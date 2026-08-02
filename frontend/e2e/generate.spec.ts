@@ -109,6 +109,26 @@ test("page loads", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("real API: submit-then-poll completes with a progress bar", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "real-api", "live Compose API only");
+  test.setTimeout(180_000);
+
+  await page.goto("/okh/generate");
+  await page
+    .getByLabel(/Repository URL/i)
+    .fill("https://github.com/blooop/Hello-World");
+  await page.getByRole("button", { name: "Generate" }).click();
+
+  await expect(page.getByRole("progressbar").first()).toBeVisible({
+    timeout: 15_000,
+  });
+  // Heuristic-only path should finish well under the old 120s proxy ceiling.
+  await expect(page.getByLabel("Title")).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole("button", { name: "Download YAML" })).toBeVisible();
+});
+
 test("rejects an unsupported host before calling the API (mocked)", async ({
   page,
 }, testInfo) => {

@@ -79,14 +79,17 @@ function ProgressBar({
         <span className="text-foreground">{label}</span>
         <span className="tabular-nums text-muted-foreground">{value}%</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+      {/* role on the track so a 0% fill is still an accessible, visible control */}
+      <div
+        id={id}
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={value}
+        aria-label={label}
+        className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
+      >
         <div
-          id={id}
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={value}
-          aria-label={label}
           className="h-full rounded-full bg-indigo-600 transition-[width] duration-300"
           style={{ width: `${value}%` }}
         />

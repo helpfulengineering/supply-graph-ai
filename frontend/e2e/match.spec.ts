@@ -3,7 +3,11 @@ import { matchResponseFixture } from "../src/test/fixtures";
 
 // Slice #191/#192: run a match + ranked results + System Mode. Mocked lane.
 
-test("match page loads with design search and expanded facility filters", async ({ page }) => {
+test("match page loads with design search and expanded facility filters", async ({
+  page,
+}, testInfo) => {
+  // Real API with an empty catalog can omit the design search combobox.
+  test.skip(testInfo.project.name === "real-api", "expects populated catalog UI");
   await page.goto("/match");
   await expect(page.getByRole("heading", { name: /match a design/i })).toBeVisible();
   await expect(page.getByLabel("Search designs")).toBeVisible();
@@ -79,7 +83,10 @@ test("selecting a facility subset sends okw_ids in the match request (mocked)", 
   expect(body!.okw_ids).toEqual(["okw-1"]);
 });
 
-test("Run Match stays disabled until a facility is selected (mocked)", async ({ page }) => {
+test("Run Match stays disabled until a facility is selected (mocked)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "expects fixture designs");
   await page.goto("/match");
   await page.getByLabel("Search designs").fill("Ventilator");
   await page.getByRole("option", { name: /Open Ventilator/i }).click();

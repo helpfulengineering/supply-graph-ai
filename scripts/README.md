@@ -30,6 +30,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 
 | Script | What it does | Run |
 | --- | --- | --- |
+| `local_async_generation_e2e` | Localhost Compose e2e for async generate-from-url jobs, progress, revoke, and LLM credential gates. | `uv run python scripts/local_async_generation_e2e.py` |
 | `validate_docs` | Validate documentation claims against the code implementation. | `uv run python scripts/validate_docs.py` |
 | `validate_okw_in_storage` | Read configured storage (local or remote) and report the OKW facilities found — quick config sanity check. | `uv run python scripts/validate_okw_in_storage.py` |
 | `verify_dev_env` | Verify the local dev environment is fully provisioned (historically fragile deps load). | `uv run python scripts/verify_dev_env.py` |
