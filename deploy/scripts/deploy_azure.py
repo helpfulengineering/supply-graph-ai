@@ -175,11 +175,11 @@ def main():
 
         deployer = AzureContainerAppsDeployer(config)
 
-        # Mint the Redis URLs from the key Azure holds, BEFORE the app update
-        # that references them — a secretRef to a secret that does not exist yet
-        # fails the update. Doing this every deploy makes Azure the single source
-        # of truth for the credential: rotating the key needs no repo change, and
-        # apps sharing the instance cannot drift apart.
+        # Mint the Redis URLs from the key Azure holds. Doing this every deploy
+        # makes Azure the single source of truth for the credential: rotating
+        # the key needs no repo change, and apps sharing the instance cannot
+        # drift apart. The deployer sets them before the update that references
+        # them — a secretRef to a secret that does not exist yet fails.
         if redis_config:
             print(
                 f"\n🔑 Minting Redis secrets from {redis_config['resource_name']!r} "
@@ -187,7 +187,7 @@ def main():
                 f"{redis_config['broker_db']}, results db {redis_config['results_db']})"
             )
             access_key = deployer.fetch_redis_access_key(redis_config["resource_name"])
-            deployer.set_secrets(build_redis_secret_values(redis_config, access_key))
+            config.service.secrets = build_redis_secret_values(redis_config, access_key)
         else:
             print(
                 f"\nℹ️  No [redis] table for environment {args.environment!r}; "

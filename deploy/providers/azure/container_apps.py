@@ -21,6 +21,26 @@ class DeploymentError(Exception):
     pass
 
 
+def _redact_secret_args(command: List[str]) -> List[str]:
+    """Copy of an az command with the values after ``--secrets`` masked.
+
+    ``--secrets`` takes ``name=value`` pairs, so the raw command is unsafe to
+    log. Names are kept — they are useful and not sensitive.
+    """
+    redacted: List[str] = []
+    in_secrets = False
+    for token in command:
+        if token.startswith("--"):
+            in_secrets = token == "--secrets"
+            redacted.append(token)
+            continue
+        if in_secrets and "=" in token:
+            redacted.append(f"{token.split('=', 1)[0]}=***")
+        else:
+            redacted.append(token)
+    return redacted
+
+
 class AzureContainerAppsDeployer(BaseDeployer):
     """Azure Container Apps deployer implementation."""
 
@@ -133,6 +153,43 @@ class AzureContainerAppsDeployer(BaseDeployer):
             raise DeploymentError(
                 f"Could not read the access key for Redis {resource_name!r} in "
                 f"{self.resource_group!r}: {stderr.strip() or 'empty key returned'}"
+            )
+        return stdout.strip()
+
+    def read_secret(self, secret_name: str, app_name: Optional[str] = None) -> str:
+        """Read one Container App secret's value (defaults to this app).
+
+        Used to mirror shared secrets onto a second app so the copies cannot
+        drift. The value is returned, never logged.
+
+        Raises:
+            DeploymentError: if the secret is missing or empty — mirroring a
+                blank over a working secret would be worse than failing.
+        """
+        source = app_name or self.container_app_name
+        exit_code, stdout, stderr = self._run_az_command(
+            [
+                "az",
+                "containerapp",
+                "secret",
+                "show",
+                "--name",
+                source,
+                "--resource-group",
+                self.resource_group,
+                "--secret-name",
+                secret_name,
+                "--query",
+                "value",
+                "--output",
+                "tsv",
+            ],
+            check=False,
+        )
+        if exit_code != 0 or not stdout.strip():
+            raise DeploymentError(
+                f"Could not read secret {secret_name!r} from {source!r}: "
+                f"{stderr.strip() or 'empty value returned'}"
             )
         return stdout.strip()
 
@@ -343,6 +400,12 @@ class AzureContainerAppsDeployer(BaseDeployer):
 
         is_update = self._check_service_exists()
 
+        # Secrets must exist before any env var references them via `secretref:`.
+        # On update that means a separate `az containerapp secret set` first; on
+        # create the app does not exist yet, so they ride along in --secrets.
+        if is_update and self.config.service.secrets:
+            self.set_secrets(self.config.service.secrets)
+
         deploy_args = [
             "az",
             "containerapp",
@@ -386,6 +449,12 @@ class AzureContainerAppsDeployer(BaseDeployer):
                         "external",
                     ]
                 )
+            if self.config.service.secrets:
+                deploy_args.append("--secrets")
+                deploy_args.extend(
+                    f"{name}={value}"
+                    for name, value in self.config.service.secrets.items()
+                )
             if env_vars:
                 deploy_args.append("--env-vars")
                 deploy_args.extend(env_vars)
@@ -403,8 +472,9 @@ class AzureContainerAppsDeployer(BaseDeployer):
                         ]
                     )
 
-        # Execute deployment
-        logger.info(f"Executing: {' '.join(deploy_args)}")
+        # Execute deployment. The create path carries secret VALUES in
+        # --secrets, so the logged form is redacted.
+        logger.info(f"Executing: {' '.join(_redact_secret_args(deploy_args))}")
         exit_code, stdout, stderr = self._run_az_command(deploy_args, check=False)
 
         if exit_code != 0:

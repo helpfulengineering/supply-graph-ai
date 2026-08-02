@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Celery worker deploy for Azure Container Apps.**
+  `deploy/scripts/deploy_azure_worker.py` deploys the worker as its own
+  no-ingress container app running the same image in `worker` mode. Its env
+  comes from the shared config surface — top-level settings plus `[worker.env]`
+  — so the storage target is declared once and the API and worker cannot drift;
+  `[worker]` holds the deploy shape (1 vCPU / 2Gi, one replica, concurrency 1).
+  The storage key and git access tokens are **mirrored from the API app** on
+  every deploy rather than set by hand, so the copies cannot diverge. Secrets
+  ride inline on create (an app that does not exist yet cannot have secrets set
+  on it) and are set ahead of the update otherwise; logged commands redact
+  secret values. Deploying a worker does **not** enable async jobs.
 - **Redis connection secrets minted by the deploy.** The backend deploy reads the
   Redis access key from Azure and mints `cache-redis-url`, `job-broker-url`, and
   `job-result-backend` as Container App secrets on every deploy, from the
