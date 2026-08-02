@@ -240,14 +240,20 @@ class AzureContainerAppsDeployer(BaseDeployer):
         flag sets (confirmed against the installed CLI's ``--help`` output, not
         assumed): ``--target-port``, ``--ingress``, ``--environment``, and
         ``--registry-*`` are create-only — passing them to ``update`` is a CLI
-        argument error. Env vars also differ: ``create`` takes ``--env-vars``
-        (full list, nothing to preserve yet); ``update`` has no ``--env-vars``
-        flag at all and instead takes ``--set-env-vars`` (adds/updates listed
-        vars, leaves any other existing container env vars — e.g. ones set
-        directly via ``az`` outside this deployer — untouched).
+        argument error. ``--command`` / ``--args`` exist on BOTH. Env vars also
+        differ: ``create`` takes ``--env-vars`` (full list, nothing to preserve
+        yet); ``update`` has no ``--env-vars`` flag at all and instead takes
+        ``--set-env-vars`` (adds/updates listed vars, leaves any other existing
+        container env vars — e.g. ones set directly via ``az`` outside this
+        deployer — untouched).
+
+        With ``service.ingress_enabled`` False the app serves no HTTP: the
+        create-only ingress flags are omitted (no ``--ingress`` means Azure
+        creates the app with ingress disabled) and no URL lookup is attempted,
+        because an app without ingress has no FQDN to look up.
 
         Returns:
-            Service URL
+            Service URL, or an empty string for an ingress-less app
 
         Raises:
             DeploymentError: If deployment fails
@@ -287,19 +293,29 @@ class AzureContainerAppsDeployer(BaseDeployer):
             str(self.config.service.max_instances),
         ]
 
+        # --command / --args take nargs='*', so each element is its own argv
+        # token (same rule as env vars above).
+        if self.config.service.command:
+            deploy_args.append("--command")
+            deploy_args.extend(self.config.service.command)
+        if self.config.service.args:
+            deploy_args.append("--args")
+            deploy_args.extend(self.config.service.args)
+
         if is_update:
             if env_vars:
                 deploy_args.append("--set-env-vars")
                 deploy_args.extend(env_vars)
         else:
-            deploy_args.extend(
-                [
-                    "--target-port",
-                    str(self.config.service.port),
-                    "--ingress",
-                    "external",
-                ]
-            )
+            if self.config.service.ingress_enabled:
+                deploy_args.extend(
+                    [
+                        "--target-port",
+                        str(self.config.service.port),
+                        "--ingress",
+                        "external",
+                    ]
+                )
             if env_vars:
                 deploy_args.append("--env-vars")
                 deploy_args.extend(env_vars)
@@ -328,7 +344,15 @@ class AzureContainerAppsDeployer(BaseDeployer):
             logger.error(error_msg)
             raise DeploymentError(error_msg)
 
-        # Get service URL
+        # An ingress-less app (e.g. a queue worker) has no FQDN, so looking one
+        # up would fail a deployment that in fact succeeded.
+        if not self.config.service.ingress_enabled:
+            logger.info(
+                "Deployment successful. %s has no ingress; no service URL.",
+                self.container_app_name,
+            )
+            return ""
+
         service_url = self.get_service_url()
         logger.info(f"Deployment successful. Service URL: {service_url}")
         return service_url
@@ -414,6 +438,15 @@ class AzureContainerAppsDeployer(BaseDeployer):
 
         logger.info(f"Container App {name} deleted successfully")
 
+    @staticmethod
+    def _fqdn_from_app_data(app_data: Dict[str, Any]) -> str:
+        """Ingress FQDN as an https URL, or "" when the app has no ingress."""
+        ingress = (
+            app_data.get("properties", {}).get("configuration", {}).get("ingress") or {}
+        )
+        fqdn = ingress.get("fqdn") or ""
+        return f"https://{fqdn}" if fqdn else ""
+
     def get_status(self, service_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Get deployment status.
@@ -457,7 +490,10 @@ class AzureContainerAppsDeployer(BaseDeployer):
                 "status": app_data.get("properties", {}).get(
                     "provisioningState", "unknown"
                 ),
-                "url": self.get_service_url(name),
+                # Read the FQDN out of the response we already have rather than
+                # calling get_service_url(), which raises when an app has no
+                # ingress — a worker's status is not an error.
+                "url": self._fqdn_from_app_data(app_data),
                 "replicas": app_data.get("properties", {})
                 .get("template", {})
                 .get("scale", {})

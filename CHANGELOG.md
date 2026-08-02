@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Ingress-less Container Apps in the shared Azure deployer.** `ServiceConfig`
+  gains `ingress_enabled`, `command`, and `args`, so one deploy path now covers
+  background workers as well as web services: create omits the ingress flags and
+  no FQDN lookup is attempted (an app without ingress has none, and querying for
+  one failed deploys that had actually succeeded). `get_status` reads the FQDN
+  from the response it already has instead of a second lookup. Web-service argv
+  is pinned by regression tests — the API and frontend deploys are unchanged.
 - **Admin-managed LLM provider credentials.** Encrypted keys can be set,
   rotated, tested, and deleted via `PUT/GET/DELETE /api/llm/credentials/{provider}`
   (strict admin auth) and **Settings → LLM providers**. Keys hot-swap into the

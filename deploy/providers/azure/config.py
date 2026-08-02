@@ -111,6 +111,9 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
             environment_vars=service_data.get("environment_vars", {}),
             secrets=service_data.get("secrets", {}),
             labels=service_data.get("labels", {}),
+            ingress_enabled=service_data.get("ingress_enabled", True),
+            command=service_data.get("command"),
+            args=service_data.get("args"),
         )
         apply_cors_origins_default(service.environment_vars)
 
@@ -164,6 +167,9 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
             "environment_vars": kwargs.pop("environment_vars", {}),
             "secrets": kwargs.pop("secrets", {}),
             "labels": kwargs.pop("labels", {}),
+            "ingress_enabled": kwargs.pop("ingress_enabled", True),
+            "command": kwargs.pop("command", None),
+            "args": kwargs.pop("args", None),
         }
         apply_cors_origins_default(service_kwargs["environment_vars"])
 
