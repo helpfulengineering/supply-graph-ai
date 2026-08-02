@@ -22,6 +22,24 @@ cache_backend = "redis"
 gunicorn_workers = "1"
 gunicorn_timeout = "300"
 
+# Azure Cache for Redis backing BOTH the catalogue cache and the Celery broker,
+# split by database (0=cache, 1=broker, 2=results) — the same split
+# docker-compose.yml uses.
+#
+# The access key is deliberately NOT here. The deploy reads it from Azure with
+# `az redis list-keys` and mints the three connection URLs as container-app
+# secrets, so the credential lives in exactly one place (Azure itself), rotating
+# it needs no repo change, and the API and worker cannot drift apart.
+#
+# Remove this table to stop the deploy managing Redis secrets for an environment.
+[redis]
+resource_name = "ohm-cache"
+host = "ohm-cache.redis.cache.windows.net"
+port = 6380
+cache_db = 0
+broker_db = 1
+results_db = 2
+
 # Frontend (nginx) container deploy config — applied to the frontend container
 # app by the frontend deploy step (schema.frontend_deploy_env_vars), NOT the
 # backend. api_upstream_url is the backend ORIGIN (scheme + host, no /v1 path).

@@ -102,6 +102,76 @@ class AzureContainerAppsDeployer(BaseDeployer):
             # Assume GB if no unit
             return float(memory)
 
+    def fetch_redis_access_key(self, resource_name: str) -> str:
+        """Primary access key for an Azure Cache for Redis in this deployer's RG.
+
+        Raises:
+            DeploymentError: if the key cannot be read. Failing loudly is the
+                point — a deploy that silently skipped this would write no
+                secret, and the app would fail later as an unrelated-looking
+                connection error.
+        """
+        exit_code, stdout, stderr = self._run_az_command(
+            [
+                "az",
+                "redis",
+                "list-keys",
+                "--name",
+                resource_name,
+                "--resource-group",
+                self.resource_group,
+                "--subscription",
+                self.subscription_id,
+                "--query",
+                "primaryKey",
+                "--output",
+                "tsv",
+            ],
+            check=False,
+        )
+        if exit_code != 0 or not stdout.strip():
+            raise DeploymentError(
+                f"Could not read the access key for Redis {resource_name!r} in "
+                f"{self.resource_group!r}: {stderr.strip() or 'empty key returned'}"
+            )
+        return stdout.strip()
+
+    def set_secrets(self, secrets: Dict[str, str]) -> None:
+        """Set Container App secrets, logging their NAMES only, never values.
+
+        Secrets must exist before any env var references them via
+        ``secretref:``, so callers set them ahead of the app update.
+        """
+        if not secrets:
+            return
+
+        command = [
+            "az",
+            "containerapp",
+            "secret",
+            "set",
+            "--name",
+            self.container_app_name,
+            "--resource-group",
+            self.resource_group,
+            "--secrets",
+        ]
+        command.extend(f"{name}={value}" for name, value in secrets.items())
+
+        # NB: deliberately not logging `command` — it carries secret values.
+        logger.info(
+            "Setting %d container app secret(s) on %s: %s",
+            len(secrets),
+            self.container_app_name,
+            ", ".join(sorted(secrets)),
+        )
+        exit_code, _, stderr = self._run_az_command(command, check=False)
+        if exit_code != 0:
+            raise DeploymentError(
+                f"Failed to set secrets ({', '.join(sorted(secrets))}) on "
+                f"{self.container_app_name}: {stderr}"
+            )
+
     def _check_secret_exists(self, secret_name: str) -> bool:
         """Check if a secret exists in Azure Key Vault."""
         # Azure Container Apps can use Key Vault or environment variables

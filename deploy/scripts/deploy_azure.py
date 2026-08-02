@@ -25,7 +25,11 @@ from deploy.providers.azure import (
     AzureDeploymentConfig,
     DeploymentError,
 )
-from src.config.schema import deploy_env_vars
+from deploy.providers.azure.redis_secrets import (
+    build_redis_secret_values,
+    redis_secret_env_vars,
+)
+from src.config.schema import deploy_env_vars, redis_deploy_config
 
 logging.basicConfig(
     level=logging.INFO,
@@ -120,6 +124,15 @@ def main():
     environment_vars["ENVIRONMENT"] = args.environment
     environment_vars["CORS_ORIGINS"] = args.cors_origins
 
+    # Redis URLs are schema secrets, so they are never applied as values — the
+    # env vars carry `secretref:` pointers to secrets minted below from the key
+    # Azure holds. Setting JOB_* here does NOT enable async jobs: jobs_available()
+    # also requires JOBS_ENABLED, which stays off until it is turned on
+    # deliberately in the production config.
+    redis_config = redis_deploy_config(args.environment)
+    if redis_config:
+        environment_vars.update(redis_secret_env_vars())
+
     print("=" * 80)
     print("Azure Container Apps Deployment")
     print("=" * 80)
@@ -161,6 +174,25 @@ def main():
         )
 
         deployer = AzureContainerAppsDeployer(config)
+
+        # Mint the Redis URLs from the key Azure holds, BEFORE the app update
+        # that references them — a secretRef to a secret that does not exist yet
+        # fails the update. Doing this every deploy makes Azure the single source
+        # of truth for the credential: rotating the key needs no repo change, and
+        # apps sharing the instance cannot drift apart.
+        if redis_config:
+            print(
+                f"\n🔑 Minting Redis secrets from {redis_config['resource_name']!r} "
+                f"(cache db {redis_config['cache_db']}, broker db "
+                f"{redis_config['broker_db']}, results db {redis_config['results_db']})"
+            )
+            access_key = deployer.fetch_redis_access_key(redis_config["resource_name"])
+            deployer.set_secrets(build_redis_secret_values(redis_config, access_key))
+        else:
+            print(
+                f"\nℹ️  No [redis] table for environment {args.environment!r}; "
+                "leaving Redis secrets untouched."
+            )
 
         print("\n🚀 Starting deployment...")
         service_url = deployer.deploy()

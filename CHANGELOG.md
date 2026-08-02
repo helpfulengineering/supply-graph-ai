@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Redis connection secrets minted by the deploy.** The backend deploy reads the
+  Redis access key from Azure and mints `cache-redis-url`, `job-broker-url`, and
+  `job-result-backend` as Container App secrets on every deploy, from the
+  non-secret `[redis]` coordinates in `config/environments/<env>.toml` (cache
+  db 0, broker db 1, results db 2). Azure is the single source of truth for the
+  credential: rotating the key needs no repo change and apps sharing the
+  instance cannot drift apart. URLs carry `?ssl_cert_reqs=required` (kombu
+  silently parses a bare `rediss://` URL as `CERT_NONE`) and percent-encode the
+  key (base64 keys contain `/` and `+`, which truncate an unencoded URL).
+  Async jobs stay **off** — `JOBS_ENABLED` is unchanged.
 - **Ingress-less Container Apps in the shared Azure deployer.** `ServiceConfig`
   gains `ingress_enabled`, `command`, and `args`, so one deploy path now covers
   background workers as well as web services: create omits the ingress flags and
