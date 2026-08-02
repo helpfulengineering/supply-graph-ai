@@ -22,3 +22,15 @@ output "location" {
 output "node_role" {
   value = var.node_role
 }
+
+output "jobs_enabled" {
+  value = var.enable_jobs
+}
+
+output "worker_container_app_name" {
+  value = var.enable_jobs ? azurerm_container_app.worker[0].name : null
+}
+
+output "redis_hostname" {
+  value = var.enable_jobs ? azurerm_redis_cache.jobs[0].hostname : null
+}

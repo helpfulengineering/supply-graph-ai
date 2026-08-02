@@ -39,37 +39,41 @@ resource "azurerm_resource_group" "this" {
 # Second apply (or null_resource): wire peer URLs. up.sh does a two-pass apply.
 
 module "peer_a" {
-  source              = "./modules/ohm_node"
-  name                = "${var.name_prefix}${local.suffix}a"
-  location            = var.peer_a_location
-  resource_group_name = azurerm_resource_group.this.name
-  image               = var.image
-  node_role           = "peer"
-  node_name           = "OHM Fed Peer A"
-  api_key             = random_password.api_key_a.result
-  manual_peers        = var._manual_peers_a
-  min_replicas        = var.min_replicas
-  cpu                 = var.cpu
-  memory              = var.memory
-  tags                = var.tags
+  source                  = "./modules/ohm_node"
+  name                    = "${var.name_prefix}${local.suffix}a"
+  location                = var.peer_a_location
+  resource_group_name     = azurerm_resource_group.this.name
+  image                   = var.image
+  node_role               = "peer"
+  node_name               = "OHM Fed Peer A"
+  api_key                 = random_password.api_key_a.result
+  manual_peers            = var._manual_peers_a
+  min_replicas            = var.min_replicas
+  cpu                     = var.cpu
+  memory                  = var.memory
+  tags                    = var.tags
   sync_rate_limit_per_min = 30
+  environment             = var.environment
+  enable_jobs             = var.enable_jobs
 }
 
 module "peer_b" {
-  source              = "./modules/ohm_node"
-  name                = "${var.name_prefix}${local.suffix}b"
-  location            = var.peer_b_location
-  resource_group_name = azurerm_resource_group.this.name
-  image               = var.image
-  node_role           = "peer"
-  node_name           = "OHM Fed Peer B"
-  api_key             = random_password.api_key_b.result
-  manual_peers        = var._manual_peers_b
-  min_replicas        = var.min_replicas
-  cpu                 = var.cpu
-  memory              = var.memory
-  tags                = var.tags
+  source                  = "./modules/ohm_node"
+  name                    = "${var.name_prefix}${local.suffix}b"
+  location                = var.peer_b_location
+  resource_group_name     = azurerm_resource_group.this.name
+  image                   = var.image
+  node_role               = "peer"
+  node_name               = "OHM Fed Peer B"
+  api_key                 = random_password.api_key_b.result
+  manual_peers            = var._manual_peers_b
+  min_replicas            = var.min_replicas
+  cpu                     = var.cpu
+  memory                  = var.memory
+  tags                    = var.tags
   sync_rate_limit_per_min = 30
+  environment             = var.environment
+  enable_jobs             = var.enable_jobs
 }
 
 module "edge" {
@@ -87,6 +91,8 @@ module "edge" {
   cpu                 = var.cpu
   memory              = var.memory
   tags                = var.tags
+  environment         = var.environment
+  enable_jobs         = var.enable_jobs
 }
 
 module "relay" {
@@ -104,4 +110,6 @@ module "relay" {
   cpu                 = var.cpu
   memory              = var.memory
   tags                = var.tags
+  environment         = var.environment
+  enable_jobs         = var.enable_jobs
 }

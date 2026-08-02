@@ -25,6 +25,14 @@ locals {
   location_slug = replace(lower(var.location), "/[^a-z0-9]/", "")
   logs_name     = "${var.name}-${local.location_slug}-logs"
   env_name      = "${var.name}-${local.location_slug}-env"
+  redis_name    = substr(replace(lower("${var.name}-redis"), "/[^a-z0-9-]/", ""), 0, 63)
+
+  provision_encryption = var.environment == "production"
+  # Celery + cache DB split matches docker-compose.yml (0=cache, 1=broker, 2=results).
+  redis_password = var.enable_jobs ? azurerm_redis_cache.jobs[0].primary_access_key : ""
+  redis_host     = var.enable_jobs ? azurerm_redis_cache.jobs[0].hostname : ""
+  job_broker_url = var.enable_jobs ? "rediss://:${local.redis_password}@${local.redis_host}:6380/1" : ""
+  job_result_url = var.enable_jobs ? "rediss://:${local.redis_password}@${local.redis_host}:6380/2" : ""
 }
 
 resource "azurerm_storage_account" "this" {
@@ -60,6 +68,35 @@ resource "azurerm_container_app_environment" "this" {
   tags                       = var.tags
 }
 
+# --- Async jobs (optional): Redis + Celery worker ----------------------------
+
+resource "azurerm_redis_cache" "jobs" {
+  count               = var.enable_jobs ? 1 : 0
+  name                = local.redis_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  capacity            = 0
+  family              = "C"
+  sku_name            = "Basic"
+  minimum_tls_version = "1.2"
+  # Public access so ACA can reach the cache without a VNet integration.
+  public_network_access_enabled = true
+  non_ssl_port_enabled          = false
+  tags                          = var.tags
+}
+
+resource "random_password" "llm_encryption_salt" {
+  count   = local.provision_encryption ? 1 : 0
+  length  = 32
+  special = false
+}
+
+resource "random_password" "llm_encryption_password" {
+  count   = local.provision_encryption ? 1 : 0
+  length  = 48
+  special = false
+}
+
 resource "azurerm_container_app" "api" {
   name                         = "${var.name}-api"
   container_app_environment_id = azurerm_container_app_environment.this.id
@@ -77,6 +114,38 @@ resource "azurerm_container_app" "api" {
     value = azurerm_storage_account.this.primary_access_key
   }
 
+  dynamic "secret" {
+    for_each = var.enable_jobs ? [1] : []
+    content {
+      name  = "job-broker-url"
+      value = local.job_broker_url
+    }
+  }
+
+  dynamic "secret" {
+    for_each = var.enable_jobs ? [1] : []
+    content {
+      name  = "job-result-backend"
+      value = local.job_result_url
+    }
+  }
+
+  dynamic "secret" {
+    for_each = local.provision_encryption ? [1] : []
+    content {
+      name  = "llm-encryption-salt"
+      value = random_password.llm_encryption_salt[0].result
+    }
+  }
+
+  dynamic "secret" {
+    for_each = local.provision_encryption ? [1] : []
+    content {
+      name  = "llm-encryption-password"
+      value = random_password.llm_encryption_password[0].result
+    }
+  }
+
   template {
     min_replicas = var.min_replicas
     max_replicas = 2
@@ -88,11 +157,8 @@ resource "azurerm_container_app" "api" {
       memory = var.memory
 
       env {
-        # Ephemeral federation lab: avoid production boot requirements
-        # (LLM_ENCRYPTION_SALT/PASSWORD). Self-hosters aiming at prod should
-        # set ENVIRONMENT=production and supply those secrets.
         name  = "ENVIRONMENT"
-        value = "test"
+        value = var.environment
       }
       env {
         name  = "API_HOST"
@@ -178,6 +244,42 @@ resource "azurerm_container_app" "api" {
         name  = "GUNICORN_TIMEOUT"
         value = "300"
       }
+      env {
+        name  = "JOBS_ENABLED"
+        value = var.enable_jobs ? "true" : "false"
+      }
+
+      dynamic "env" {
+        for_each = var.enable_jobs ? [1] : []
+        content {
+          name        = "JOB_BROKER_URL"
+          secret_name = "job-broker-url"
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.enable_jobs ? [1] : []
+        content {
+          name        = "JOB_RESULT_BACKEND"
+          secret_name = "job-result-backend"
+        }
+      }
+
+      dynamic "env" {
+        for_each = local.provision_encryption ? [1] : []
+        content {
+          name        = "LLM_ENCRYPTION_SALT"
+          secret_name = "llm-encryption-salt"
+        }
+      }
+
+      dynamic "env" {
+        for_each = local.provision_encryption ? [1] : []
+        content {
+          name        = "LLM_ENCRYPTION_PASSWORD"
+          secret_name = "llm-encryption-password"
+        }
+      }
     }
   }
 
@@ -191,4 +293,126 @@ resource "azurerm_container_app" "api" {
       latest_revision = true
     }
   }
+}
+
+resource "azurerm_container_app" "worker" {
+  count                        = var.enable_jobs ? 1 : 0
+  name                         = "${var.name}-worker"
+  container_app_environment_id = azurerm_container_app_environment.this.id
+  resource_group_name          = var.resource_group_name
+  revision_mode                = "Single"
+  tags                         = var.tags
+
+  secret {
+    name  = "azure-storage-key"
+    value = azurerm_storage_account.this.primary_access_key
+  }
+
+  secret {
+    name  = "job-broker-url"
+    value = local.job_broker_url
+  }
+
+  secret {
+    name  = "job-result-backend"
+    value = local.job_result_url
+  }
+
+  dynamic "secret" {
+    for_each = local.provision_encryption ? [1] : []
+    content {
+      name  = "llm-encryption-salt"
+      value = random_password.llm_encryption_salt[0].result
+    }
+  }
+
+  dynamic "secret" {
+    for_each = local.provision_encryption ? [1] : []
+    content {
+      name  = "llm-encryption-password"
+      value = random_password.llm_encryption_password[0].result
+    }
+  }
+
+  template {
+    min_replicas = var.worker_min_replicas
+    max_replicas = var.worker_max_replicas
+
+    container {
+      name   = "ohm-worker"
+      image  = var.image
+      cpu    = tonumber(var.cpu)
+      memory = var.memory
+      # Preserve image ENTRYPOINT; pass mode as args (Compose: command: ["worker"]).
+      command = ["/usr/local/bin/docker-entrypoint.sh"]
+      args    = ["worker"]
+
+      env {
+        name  = "ENVIRONMENT"
+        value = var.environment
+      }
+      env {
+        name  = "STORAGE_PROVIDER"
+        value = "azure_blob"
+      }
+      env {
+        name  = "AZURE_STORAGE_ACCOUNT"
+        value = azurerm_storage_account.this.name
+      }
+      env {
+        name  = "AZURE_STORAGE_CONTAINER"
+        value = azurerm_storage_container.this.name
+      }
+      env {
+        name        = "AZURE_STORAGE_KEY"
+        secret_name = "azure-storage-key"
+      }
+      env {
+        name  = "LLM_ENABLED"
+        value = "false"
+      }
+      env {
+        name  = "MATCHING_EAGER_INIT"
+        value = "false"
+      }
+      env {
+        name  = "JOBS_ENABLED"
+        value = "true"
+      }
+      env {
+        name        = "JOB_BROKER_URL"
+        secret_name = "job-broker-url"
+      }
+      env {
+        name        = "JOB_RESULT_BACKEND"
+        secret_name = "job-result-backend"
+      }
+      env {
+        name  = "CELERY_CONCURRENCY"
+        value = "1"
+      }
+      env {
+        name  = "LOG_LEVEL"
+        value = "INFO"
+      }
+
+      dynamic "env" {
+        for_each = local.provision_encryption ? [1] : []
+        content {
+          name        = "LLM_ENCRYPTION_SALT"
+          secret_name = "llm-encryption-salt"
+        }
+      }
+
+      dynamic "env" {
+        for_each = local.provision_encryption ? [1] : []
+        content {
+          name        = "LLM_ENCRYPTION_PASSWORD"
+          secret_name = "llm-encryption-password"
+        }
+      }
+    }
+  }
+
+  # No ingress — worker is reached only via Redis/Celery.
 }

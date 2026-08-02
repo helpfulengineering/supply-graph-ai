@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Generate UI uses async jobs.** `/okh/generate` accepts comma-separated URLs,
   submits Celery jobs, polls with real progress bars, and cancels via job
   revoke — no longer blocked by the 120s nginx proxy timeout.
+- **Azure Terraform: optional Redis + Celery worker.** `ohm_node` can provision
+  Azure Cache for Redis and a no-ingress worker Container App (`enable_jobs`).
+  `environment=production` auto-provisions `LLM_ENCRYPTION_*` secrets so stored
+  LLM credentials are not encrypted under default keys.
 
 ### Removed
 
