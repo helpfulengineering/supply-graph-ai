@@ -6,6 +6,12 @@ federation validation. Production CD continues to use
 [`deploy/scripts/deploy_azure.py`](../../scripts/deploy_azure.py) against the
 existing `project_data_rg` apps — **this stack never touches production**.
 
+**User-facing procedure** (new environment, `enable_jobs`, production LLM
+encryption):
+[Deploy a node on Azure](../../../docs-site/docs/guides/deploy-a-node-on-azure.md)
+in the public docs site. This README keeps operator detail and the federation
+lab scripts.
+
 ## What you get
 
 | Resource | Purpose |

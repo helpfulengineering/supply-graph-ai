@@ -114,6 +114,7 @@ nav:
       - Share a design as a package: guides/share-as-a-package.md
       - Bring your collection: guides/bring-your-collection.md
       - Run your own node: guides/run-your-own-node.md
+      - Deploy a node on Azure: guides/deploy-a-node-on-azure.md
       - Use the OHM API: guides/use-the-api.md
   - Contact: contact.md
   - Reference:

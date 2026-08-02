@@ -23,6 +23,8 @@ of files, years of documentation — take longer. On nodes with async jobs enabl
 (`JOBS_ENABLED=true` and a Celery worker), the web UI submits background jobs and
 shows real progress, so generation is no longer capped by the two-minute proxy
 timeout. You can paste several URLs separated by commas; each becomes its own job.
+Self-hosters turning that on for a new Azure environment set `enable_jobs = true`
+when they [deploy a node on Azure](deploy-a-node-on-azure.md).
 
 Operators and scripts can use the HTTP job API or the CLI:
 
