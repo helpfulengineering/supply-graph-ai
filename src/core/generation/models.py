@@ -2011,6 +2011,16 @@ class LayerConfig:
     llm_config: Dict[str, Any] = field(default_factory=dict)
     file_categorization_config: Dict[str, Any] = field(default_factory=dict)
 
+    # Resolved ONCE at the generation entry point (see
+    # src.core.llm.availability.resolve_llm_availability) and carried here as
+    # plain values, because the gate below is synchronous while reading the
+    # credential store is not. Nothing re-derives it: the gate, the progress
+    # stages and the layer stack therefore cannot disagree, and the answer
+    # cannot change midway through a run.
+    llm_available: bool = False
+    llm_provider: Optional[str] = None
+    llm_unavailable_reason: Optional[str] = None
+
     def __post_init__(self):
         """Validate configuration after initialization"""
         self._validate_config()
@@ -2159,7 +2169,12 @@ class LayerConfig:
         return self.llm_config.get("model", "gpt-3.5-turbo")
 
     def get_llm_api_key(self) -> Optional[str]:
-        """Get the LLM API key (from config or environment)"""
+        """Get the LLM API key (from config or environment).
+
+        NOTE: availability is decided by :meth:`is_llm_configured`, which reads
+        the pre-resolved answer. This remains only for callers that construct a
+        provider client directly from an explicit config.
+        """
         api_key = self.llm_config.get("api_key")
         if api_key:
             return api_key
@@ -2176,12 +2191,25 @@ class LayerConfig:
             return os.getenv(f"{provider.upper()}_API_KEY")
 
     def is_llm_configured(self) -> bool:
-        """Check if LLM layer is properly configured"""
-        if not self.use_llm:
-            return False
+        """Whether the LLM layer will run.
 
-        api_key = self.get_llm_api_key()
-        return api_key is not None and len(api_key.strip()) > 0
+        Reads the availability resolved once at the entry point rather than
+        re-deriving it. Previously this consulted process environment variables
+        only, so a credential stored via Settings → LLM providers caused the
+        layer to be dropped before the service that *would* have found it was
+        ever constructed.
+        """
+        return bool(self.use_llm and self.llm_available)
+
+    def with_llm_availability(self, availability) -> "LayerConfig":
+        """Apply a resolved :class:`LLMAvailability` to this config (in place).
+
+        Returns ``self`` so entry points can resolve-and-apply in one line.
+        """
+        self.llm_available = bool(availability.available)
+        self.llm_provider = availability.provider
+        self.llm_unavailable_reason = availability.reason
+        return self
 
     @classmethod
     def for_generate_from_url(cls, *, no_llm: bool = False) -> "LayerConfig":
@@ -2191,8 +2219,10 @@ class LayerConfig:
         default ``llm_config`` includes chunked map-reduce for quality on large
         repositories.
 
-        If API keys are missing, :meth:`is_llm_configured` is false and the
-        engine runs without the LLM matcher (direct + heuristic + NLP only).
+        The returned config has ``llm_available`` False until an entry point
+        applies a resolved availability via :meth:`with_llm_availability`; until
+        then :meth:`is_llm_configured` is false and the engine runs without the
+        LLM matcher (direct + heuristic + NLP only).
         """
         return cls(
             use_llm=not no_llm,

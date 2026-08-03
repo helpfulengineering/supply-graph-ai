@@ -149,6 +149,8 @@ async def _generate_okh_manifest(
 ) -> dict:
     """Generate OKH manifest using LLM."""
     # Create generation engine with LLM enabled
+    from ..core.llm.availability import resolve_llm_availability
+
     config = LayerConfig(
         use_llm=True,
         llm_config={
@@ -158,6 +160,13 @@ async def _generate_okh_manifest(
             "temperature": temperature,
             "timeout": timeout,
         },
+    )
+
+    # The user named a provider on the command line; resolve THAT one rather
+    # than falling back to preference order, so an explicit choice is never
+    # silently swapped for another provider.
+    config.with_llm_availability(
+        await resolve_llm_availability(preferred_provider=provider)
     )
 
     engine = GenerationEngine(config)

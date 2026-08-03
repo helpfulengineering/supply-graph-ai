@@ -1396,10 +1396,17 @@ async def generate_from_url(
                     project_data = await generator.extract_project(url)
 
             # Generate manifest from project data (LLM + chunking preferred; see LayerConfig)
-            config = LayerConfig.for_generate_from_url(no_llm=no_llm)
+            from src.core.llm.availability import resolve_llm_availability
+
+            config = LayerConfig.for_generate_from_url(
+                no_llm=no_llm
+            ).with_llm_availability(
+                await resolve_llm_availability(requested=not no_llm)
+            )
             if config.use_llm and not config.is_llm_configured():
                 cli_ctx.log(
-                    "LLM preferred but not configured; using 3-layer generation.",
+                    f"LLM preferred but unavailable "
+                    f"({config.llm_unavailable_reason}); using 3-layer generation.",
                     "warning",
                 )
             engine = GenerationEngine(config=config)
