@@ -98,7 +98,23 @@ def test_mirrored_names_match_the_live_secret_names():
         "azure-storage-key",
         "gihub-token",
         "gitlab-token",
+        "llm-encryption-password",
+        "llm-encryption-salt",
     ]
+
+
+def test_worker_carries_the_llm_encryption_secrets_even_without_llm():
+    """settings.py builds LLMConfigManager at IMPORT time.
+
+    With ENVIRONMENT=production, CredentialManager raises without these — so any
+    app importing src.config needs them, LLM or not. Omitting them crash-looped
+    the production worker, and a `staging` rehearsal cannot catch it because the
+    guard only fires when ENVIRONMENT is literally "production".
+    """
+    env_vars = mirrored_secret_env_vars()
+
+    assert env_vars["LLM_ENCRYPTION_SALT"] == "secretref:llm-encryption-salt"
+    assert env_vars["LLM_ENCRYPTION_PASSWORD"] == "secretref:llm-encryption-password"
 
 
 # --- The deploy itself -------------------------------------------------------
