@@ -1,10 +1,15 @@
 /**
  * Quality-report presentation mapper (pure, unit-tested).
  *
- * The banner WARNS and never blocks. Generation is heuristic-only in
- * production, so an imperfect manifest is the expected outcome, not an error —
- * the human review step is what compensates. The only hard gate is that the six
- * required OKH fields are valid before saving (see manifestTiers.ts).
+ * The banner WARNS and never blocks. An imperfect manifest is the expected
+ * outcome, not an error — the human review step is what compensates. The only
+ * hard gate is that the six required OKH fields are valid before saving (see
+ * manifestTiers.ts).
+ *
+ * Whether an LLM contributed varies per run and per deployment: the backend
+ * reports it as `llm_used` / `llm_status`, and adds a plain-language
+ * recommendation when a run degraded to heuristic-only. Recommendations are
+ * rendered verbatim, so that line reaches the reviewer with no work here.
  */
 
 import type { OkhQualityReport } from "../../api/ohm/okh";

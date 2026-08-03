@@ -49,6 +49,7 @@ class ProbeAsyncGenerationLoop(ProbeModule):
                 "repo_url": opts.get("repo_url", DEFAULT_REPO_URL),
                 "timeout_seconds": opts.get("timeout_seconds", DEFAULT_TIMEOUT_SECONDS),
                 "no_llm": opts.get("no_llm", True),
+                "expect_llm": opts.get("expect_llm", False),
                 "api_base_url": self.config.api_base_url,
             },
             notes=[
@@ -126,6 +127,7 @@ class ProbeAsyncGenerationLoop(ProbeModule):
             time.sleep(poll_seconds)
 
         elapsed = time.monotonic() - started
+        quality = status_body.get("quality_report") or {}
         data.update(
             {
                 "state": state,
@@ -135,6 +137,8 @@ class ProbeAsyncGenerationLoop(ProbeModule):
                 "timed_out": state not in TERMINAL_STATES,
                 "has_manifest": bool(status_body.get("manifest")),
                 "job_error": status_body.get("error"),
+                "llm_used": quality.get("llm_used"),
+                "llm_status": quality.get("llm_status"),
             }
         )
 
@@ -265,6 +269,29 @@ class ProbeAsyncGenerationLoop(ProbeModule):
                     severity=Severity.ERROR,
                     title="Generation job was revoked unexpectedly",
                     evidence={"job_id": data.get("job_id")},
+                    suggested_state="needs-triage",
+                )
+            )
+        elif (
+            state == "SUCCESS"
+            and self._options().get("expect_llm")
+            and not data.get("llm_used")
+        ):
+            findings.append(
+                Finding(
+                    module=self.name,
+                    kind=FindingKind.BUG,
+                    severity=Severity.ERROR,
+                    title="Generation succeeded but ran without an LLM",
+                    evidence={
+                        "llm_status": data.get("llm_status"),
+                        "recommendation": (
+                            "This node is expected to have an LLM provider "
+                            "configured. 'not_configured' means the credential is "
+                            "missing; 'disabled' means LLM_ENABLED is false; "
+                            "'failed' means the provider could not be reached."
+                        ),
+                    },
                     suggested_state="needs-triage",
                 )
             )
