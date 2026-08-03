@@ -29,11 +29,17 @@ from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Tried in order when nothing is explicitly configured. Deliberately excludes
-# LOCAL/ollama: it needs a base URL rather than a key and defaults to
-# localhost, so presence-based detection would make every node believe a local
-# model is available. Opting into it explicitly is #314.
+# Tried in order when no provider is named. Deliberately excludes LOCAL/ollama:
+# it has no credential to detect and its client falls back to localhost, so
+# including it here would make every node believe a local model is available.
+# Ollama is opt-in only — see OLLAMA_BASE_URL below.
 PROVIDER_PREFERENCE: List[str] = ["anthropic", "openai", "azure_openai"]
+
+# Ollama authenticates with nothing, so "is a key present" cannot answer whether
+# it is usable. It counts only when explicitly named as the default provider, or
+# when its base URL is set — never inferred from the client's localhost default.
+OLLAMA_PROVIDER = "local"
+OLLAMA_BASE_URL_ENV = "OLLAMA_BASE_URL"
 
 # Environment variable holding each provider's key, checked when the credential
 # store has nothing. Keeps the local `.env` workflow working unchanged.
@@ -84,12 +90,29 @@ async def _stored_key(provider: str) -> Optional[str]:
         return None
 
 
+def _configured_ollama_url() -> Optional[str]:
+    """An explicitly configured ollama endpoint, or None."""
+    value = os.getenv(OLLAMA_BASE_URL_ENV, "").strip()
+    return value or None
+
+
+def _ollama_base_url(*, explicitly_chosen: bool) -> Optional[str]:
+    """Where ollama is, or None if it was not opted into.
+
+    Two ways in, both deliberate: setting the base URL, or naming ollama as the
+    provider (which falls back to its client's localhost default). Never
+    inferred from that default alone — a node that merely has the library
+    installed would otherwise claim a local model it does not have.
+    """
+    return _configured_ollama_url() or (
+        "http://localhost:11434" if explicitly_chosen else None
+    )
+
+
 def _env_key(provider: str) -> Optional[str]:
     name = PROVIDER_ENV_KEYS.get(provider)
-    if not name:
-        return None
-    value = os.getenv(name)
-    return value.strip() if value and value.strip() else None
+    value = os.getenv(name, "").strip() if name else ""
+    return value or None
 
 
 async def resolve_llm_availability(
@@ -113,15 +136,34 @@ async def resolve_llm_availability(
 
     from src.config.schema import get_settings
 
-    if not get_settings().llm_enabled:
+    settings = get_settings()
+    if not settings.llm_enabled:
         logger.info("LLM disabled by configuration (LLM_ENABLED=false)")
         return LLMAvailability.unavailable(LLMUnavailableReason.DISABLED)
 
-    candidates = [preferred_provider] if preferred_provider else PROVIDER_PREFERENCE
+    chosen = preferred_provider or settings.llm_default_provider
+    if chosen:
+        # An explicit choice is tried ALONE. Falling back would silently serve a
+        # different provider than the one asked for, which is worse than failing.
+        candidates = [chosen]
+    else:
+        # Ollama joins auto-selection only when its base URL is set, which is a
+        # deliberate act. It is never reached via its client's localhost
+        # default, which every node would otherwise appear to satisfy.
+        candidates = list(PROVIDER_PREFERENCE)
+        if _configured_ollama_url():
+            candidates.append(OLLAMA_PROVIDER)
 
     for provider in candidates:
-        if not provider:
+        if provider == OLLAMA_PROVIDER:
+            base_url = _ollama_base_url(explicitly_chosen=bool(chosen))
+            if base_url:
+                logger.info("LLM available: ollama at %s", base_url)
+                return LLMAvailability(
+                    available=True, provider=provider, source="ollama"
+                )
             continue
+
         if await _stored_key(provider):
             logger.info("LLM available: %s (stored credential)", provider)
             return LLMAvailability(
@@ -135,6 +177,6 @@ async def resolve_llm_availability(
 
     logger.info(
         "No LLM provider configured (tried: %s); generation will run without one",
-        ", ".join(p for p in candidates if p),
+        ", ".join(candidates),
     )
     return LLMAvailability.unavailable(LLMUnavailableReason.NOT_CONFIGURED)

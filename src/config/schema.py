@@ -233,6 +233,16 @@ class Settings(BaseSettings):
         default=10,
         description="Per-IP rate limit for generate-from-url job submission.",
     )
+    llm_default_provider: Optional[str] = Field(
+        default=None,
+        description=(
+            "Which LLM provider generation should use: anthropic | openai | "
+            "azure_openai | local (ollama). Unset means auto-select the one "
+            "that is configured; with several configured, a documented "
+            "preference order applies and the choice is logged. Naming 'local' "
+            "is also how you opt into ollama, which has no credential to detect."
+        ),
+    )
     llm_enabled: bool = Field(
         default=True,
         description=(

@@ -325,15 +325,15 @@ class LLMProviderSelector:
                 except:
                     return False
 
-            # Run the async check
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                # If we're already in an async context, we can't use asyncio.run
-                # For now, assume Ollama is available if we can't check
-                return True
-            else:
-                return asyncio.run(check_ollama())
-        except:
+                # Cannot block on the probe from inside a running loop. Report
+                # unavailable rather than assuming: claiming a local model that
+                # is not there sends every request to a dead endpoint.
+                logger.debug("Cannot probe Ollama from a running event loop")
+                return False
+            return asyncio.run(check_ollama())
+        except Exception:
             return False
 
     def _auto_detect_best_provider(
@@ -458,27 +458,6 @@ def default_model_for(provider_name: Optional[str]) -> Optional[str]:
         return None
     selector = get_provider_selector()
     return selector.DEFAULT_MODELS.get(provider_type)
-
-
-def select_llm_provider(
-    cli_provider: Optional[str] = None,
-    cli_model: Optional[str] = None,
-    verbose: bool = True,
-) -> Dict[str, Any]:
-    """
-    Select the best available LLM provider.
-
-    Args:
-        cli_provider: Provider specified via command line flag
-        cli_model: Model specified via command line flag
-        verbose: Whether to log selection details
-
-    Returns:
-        Selection result dictionary
-    """
-    return get_provider_selector().select_provider(
-        cli_provider=cli_provider, cli_model=cli_model, verbose=verbose
-    )
 
 
 async def create_llm_service_with_selection(
