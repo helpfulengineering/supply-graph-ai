@@ -77,6 +77,34 @@ def strip_quotes(value: Optional[str]) -> Optional[str]:
     return stripped if stripped else None
 
 
+# Environments that are deliberately relaxed: a developer's laptop and the test
+# suite. EVERYTHING else — staging, demo, a name nobody anticipated — is treated
+# as a real deployment.
+#
+# The rule is derived rather than configured, and it is derived this way round on
+# purpose: it fails CLOSED. An opt-in "strict" setting would reproduce the bug
+# this exists to prevent the first time someone forgets it on a new environment.
+#
+# It also fixes a real failure. v0.10.6 crash-looped in production on missing LLM
+# encryption secrets while the staging rehearsal built to catch exactly that
+# booted clean, because the guard compared the environment to "production" and
+# staging's was "staging". Staging was LAXER than production, so the rehearsal
+# passed and production broke.
+RELAXED_ENVIRONMENTS: frozenset = frozenset({"development", "test"})
+
+
+def is_production_like(environment: Optional[str]) -> bool:
+    """True when ``environment`` names a real deployment rather than a sandbox.
+
+    This is the single question every strictness check should ask. The
+    environment NAME still selects ``config/environments/<env>.toml``; nothing
+    else compares it.
+
+    Unknown names are production-like — see :data:`RELAXED_ENVIRONMENTS`.
+    """
+    return (environment or "").strip().lower() not in RELAXED_ENVIRONMENTS
+
+
 def resolve_cors_origins(
     raw: Optional[str], environment: str, *, log: bool = False
 ) -> List[str]:
@@ -88,7 +116,7 @@ def resolve_cors_origins(
     allowlist. Pass ``log=True`` to emit the operational warnings once.
     """
     if raw is None or raw.strip() == "":
-        if environment == "production":
+        if is_production_like(environment):
             if log:
                 logger.warning(
                     "CORS_ORIGINS not set in production. No CORS origins allowed "
@@ -103,7 +131,7 @@ def resolve_cors_origins(
         return ["*"]
 
     if raw.strip() == "*":
-        if environment == "production" and log:
+        if is_production_like(environment) and log:
             logger.warning(
                 "CORS_ORIGINS is set to '*' in production. This allows all origins. "
                 "Consider restricting to specific origins for better security."
@@ -249,6 +277,14 @@ class Settings(BaseSettings):
     def cors_allow_origins(self) -> List[str]:
         return resolve_cors_origins(self.cors_origins, self.environment)
 
+    @property
+    def is_production_like(self) -> bool:
+        """Whether this is a real deployment — see :func:`is_production_like`.
+
+        Every strictness check asks this, never the environment name.
+        """
+        return is_production_like(self.environment)
+
     @classmethod
     def settings_customise_sources(
         cls,
@@ -317,7 +353,7 @@ def enforce_startup_config(settings: Optional[Settings] = None) -> List[str]:
     if not problems:
         return problems
     detail = "; ".join(problems)
-    if settings.environment == "production":
+    if settings.is_production_like:
         raise RuntimeError(f"Invalid production configuration: {detail}")
     logger.warning(
         "Configuration problems (continuing in %s, degraded): %s",

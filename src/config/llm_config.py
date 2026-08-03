@@ -217,7 +217,7 @@ class CredentialManager:
             # Check if we're in production mode
             from src.config.schema import get_settings
 
-            is_production = get_settings().environment == "production"
+            is_production = get_settings().is_production_like
 
             # Get encryption credentials from environment
             salt_env = os.getenv("LLM_ENCRYPTION_SALT")

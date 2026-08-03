@@ -53,13 +53,21 @@ def test_staging_uses_different_redis_databases_than_production():
 # --- Staging is otherwise identical to production ----------------------------
 
 
-def test_staging_forces_the_production_server():
-    """USE_GUNICORN=auto starts `uvicorn --reload` for any non-production env.
+def test_staging_is_treated_as_a_real_deployment():
+    """A rehearsal on a laxer posture or a different server proves very little.
 
-    A rehearsal on a different process model proves very little, so staging
-    pins the production server explicitly.
+    Staging used to pin `USE_GUNICORN=true` by hand to work around the
+    entrypoint only recognising "production". Both the server choice and the
+    application's strictness are now derived from the same rule, so the
+    workaround is gone and staging must simply be production-like.
+
+    The behaviours themselves are covered by test_production_like_predicate.py
+    and test_entrypoint_server_choice.py.
     """
-    assert deploy_env_vars("staging")["USE_GUNICORN"] == "true"
+    from src.config.schema import is_production_like
+
+    assert is_production_like("staging") is True
+    assert "USE_GUNICORN" not in deploy_env_vars("staging")
 
 
 def test_staging_matches_production_worker_shape():

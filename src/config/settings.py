@@ -8,7 +8,7 @@ from src.core.storage.base import StorageConfig
 
 from .auth_constants import AUTH_MODE_HYBRID
 from .llm_config import get_llm_config, is_llm_enabled, validate_llm_config
-from .schema import get_settings, resolve_cors_origins
+from .schema import get_settings, is_production_like, resolve_cors_origins
 from .storage_config import StorageConfigError, get_default_storage_config
 
 # Import secrets manager (lazy import to avoid circular dependencies)
@@ -129,8 +129,8 @@ API_KEYS = (
     else []
 )
 
-# Validate API keys in production
-if ENVIRONMENT == "production":
+# Validate API keys on any real deployment (see schema.is_production_like)
+if is_production_like(ENVIRONMENT):
     if not API_KEYS:
         logger.warning(
             "API_KEYS not set in production. API authentication is disabled. "

@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **One predicate decides whether a deployment is "real".** `ENVIRONMENT` was
+  doing two unrelated jobs: selecting `config/environments/<env>.toml`, and
+  gating how strictly the app behaves. Only the first legitimately uses the name.
+  All six strictness checks — write-auth enforcement, CORS deny-by-default, the
+  missing-API-keys warning, hard-fail startup validation, and the LLM encryption
+  requirement — now ask `is_production_like()`, which is **derived**: anything
+  outside `{development, test}` is a real deployment. It fails *closed*, so a new
+  environment is strict by default rather than silently lax.
+  This closes the hole behind the v0.10.6 incident: the production worker
+  crash-looped on missing `LLM_ENCRYPTION_*` while the staging rehearsal built to
+  catch it booted the same image clean, because the guard compared against
+  `"production"` and staging's environment was `"staging"`. A regression test now
+  reproduces that crash under a staging-like environment.
+
+  The container entrypoint mirrors the same rule (it is shell and cannot import
+  the predicate), with a test that **executes** the real decision block and fails
+  if shell and Python ever disagree — so `staging` no longer runs
+  `uvicorn --reload` while rehearsing a gunicorn deployment. A merge-gate ratchet
+  now fails on any direct `== "production"` comparison in Python or Terraform,
+  and the Terraform module mirrors the derived rule so a node named anything but
+  `production` still provisions the encryption secrets the app demands of it.
+
 ## [0.10.6] - 2026-08-03
 
 ### Added
@@ -76,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one failed deploys that had actually succeeded). `get_status` reads the FQDN
   from the response it already has instead of a second lookup. Web-service argv
   is pinned by regression tests — the API and frontend deploys are unchanged.
+
 ## [0.10.5] - 2026-08-02
 
 ### Added

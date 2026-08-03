@@ -27,7 +27,14 @@ locals {
   env_name      = "${var.name}-${local.location_slug}-env"
   redis_name    = substr(replace(lower("${var.name}-redis"), "/[^a-z0-9-]/", ""), 0, 63)
 
-  provision_encryption = var.environment == "production"
+  # Mirrors src/config/schema.py::is_production_like — anything outside the
+  # relaxed sandboxes is a real deployment. The application REQUIRES these
+  # secrets for every such environment and refuses to boot without them, so a
+  # node named anything but "production" would otherwise crash-loop exactly as
+  # the production worker did before v0.10.6 was fixed. Currently unreachable
+  # because `environment` is validated to test|development|production, which is
+  # precisely why it would bite whoever first adds a name to that list.
+  provision_encryption = !contains(["development", "test"], var.environment)
   # Celery + cache DB split matches docker-compose.yml (0=cache, 1=broker, 2=results).
   redis_password = var.enable_jobs ? azurerm_redis_cache.jobs[0].primary_access_key : ""
   redis_host     = var.enable_jobs ? azurerm_redis_cache.jobs[0].hostname : ""
