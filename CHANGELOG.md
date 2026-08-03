@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Runs report whether the LLM actually contributed.** The quality report now
+  carries `llm_used`, `llm_status` and the provider, and a degraded run adds a
+  plain-language recommendation explaining why — rendered by the existing banner
+  with no frontend change. Degradation was previously invisible outside the logs,
+  so a reviewer could not tell a thin manifest from a missing provider. Status
+  distinguishes the cases that need different fixes: `not_configured` (add a
+  credential), `disabled` (the kill switch is on), `failed` (the provider could
+  not be reached), `skipped` (confidence was met before it ran) and
+  `not_requested`. To tell *failed* from *never reached* the engine now records
+  per-layer failures — neither leaves a usage count otherwise. The production
+  probe gained `expect_llm`, which fails a release if a node with a configured
+  provider silently drops to heuristic-only.
 ### Security
 
 - **Closed four dependency CVEs**: `aiohttp` 3.14.1 → 3.14.3 (CVE-2026-59881,

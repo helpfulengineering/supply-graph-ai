@@ -6,7 +6,7 @@ validate required fields, and generate quality reports with recommendations.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .models import FieldGeneration, QualityReport
 
@@ -255,3 +255,105 @@ class QualityAssessor:
             recommendations.append("Enhance the project description with more detail")
 
         return recommendations
+
+
+# --- Did the LLM actually run? -----------------------------------------------
+#
+# Generation degrades to direct + heuristic + NLP whenever no LLM is usable, and
+# that degradation used to be invisible outside the logs: a reviewer could not
+# tell whether a thin manifest reflected a thin repository or a missing
+# provider. Declared availability is not proof either — a stored key can be
+# expired, and a named local model can be down — so this reports what HAPPENED,
+# not what was configured.
+
+
+class LLMUsageStatus:
+    """Why the LLM did or did not contribute to a run."""
+
+    USED = "used"
+    NOT_REQUESTED = "not_requested"  # caller passed no_llm
+    DISABLED = "disabled"  # LLM_ENABLED=false
+    NOT_CONFIGURED = "not_configured"  # no credential for any provider
+    FAILED = "failed"  # available and attempted, but errored
+    SKIPPED = "skipped"  # enough confidence reached before it ran
+
+
+# Reasons that mean "nothing is wrong, this is what you asked for".
+_DELIBERATE = {LLMUsageStatus.NOT_REQUESTED, LLMUsageStatus.DISABLED}
+
+_RECOMMENDATIONS = {
+    LLMUsageStatus.NOT_CONFIGURED: (
+        "Generated without an LLM — no provider is configured, so descriptive "
+        "fields such as 'function' were not inferred. Add a provider credential "
+        "in Settings to improve extraction."
+    ),
+    LLMUsageStatus.FAILED: (
+        "Generated without an LLM — the configured provider could not be reached, "
+        "so descriptive fields such as 'function' were not inferred. Check the "
+        "credential is valid and the provider is reachable."
+    ),
+    LLMUsageStatus.DISABLED: (
+        "Generated without an LLM — it is switched off (LLM_ENABLED=false), so "
+        "descriptive fields such as 'function' were not inferred."
+    ),
+}
+
+
+def summarize_llm_usage(
+    config, layer_usage_counts=None, layer_error_counts=None
+) -> Dict[str, Any]:
+    """Report whether the LLM contributed, and why not when it did not.
+
+    Args:
+        config: the :class:`LayerConfig` the run used, carrying the availability
+            resolved at the entry point.
+        layer_usage_counts: the engine's per-layer execution counts. A layer that
+            raised never increments its count.
+        layer_error_counts: the engine's per-layer failure counts. This is what
+            separates "attempted and failed" from "never reached" — without it
+            the two are indistinguishable, since neither leaves a usage count.
+
+    Returns a dict merged into the quality report. ``llm_used`` is what tests and
+    the production probe assert on; ``llm_status`` says why.
+    """
+    counts = layer_usage_counts or {}
+    errors = layer_error_counts or {}
+    ran = counts.get("llm", 0) > 0
+
+    if ran:
+        status = LLMUsageStatus.USED
+    elif not getattr(config, "use_llm", False):
+        status = LLMUsageStatus.NOT_REQUESTED
+    elif not getattr(config, "llm_available", False):
+        # The entry point already decided why; reuse its word for it so the
+        # report and the logs agree.
+        status = getattr(config, "llm_unavailable_reason", None) or (
+            LLMUsageStatus.NOT_CONFIGURED
+        )
+    elif errors.get("llm", 0) > 0:
+        status = LLMUsageStatus.FAILED
+    else:
+        # Enabled, available, no attempt recorded: progressive enhancement met
+        # its confidence threshold before reaching it.
+        status = LLMUsageStatus.SKIPPED
+
+    return {
+        "llm_used": ran,
+        "llm_status": status,
+        "llm_provider": getattr(config, "llm_provider", None) if ran else None,
+    }
+
+
+def llm_usage_recommendation(summary: Dict[str, Any]) -> Optional[str]:
+    """A plain-language line for a run that had no LLM, or None.
+
+    Rendered by the existing quality banner without any frontend change. Silent
+    for deliberate choices — telling someone who passed ``no_llm`` that they got
+    no LLM is noise.
+    """
+    if summary.get("llm_used"):
+        return None
+    # _RECOMMENDATIONS omits NOT_REQUESTED and SKIPPED: telling someone who
+    # passed no_llm that they got no LLM is noise, and stopping early because
+    # confidence was already high is a success, not a degradation.
+    return _RECOMMENDATIONS.get(summary.get("llm_status"))

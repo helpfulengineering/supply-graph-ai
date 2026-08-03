@@ -856,6 +856,12 @@ class GenerationEngine:
 
             except Exception as e:
                 logger.warning(f"Layer {layer.value} failed: {e}")
+                # Record it: a layer that raised leaves no usage count, so
+                # without this a failed layer is indistinguishable from one that
+                # was never reached (see quality.summarize_llm_usage).
+                self._metrics.error_counts[layer.value] = (
+                    self._metrics.error_counts.get(layer.value, 0) + 1
+                )
                 # Continue with other layers
                 continue
 
