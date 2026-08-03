@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The Celery worker rolls with every release.** `release.yml` deploys the
+  worker **before** the API — consumer before producer, both pinned to the same
+  published digest — so the API never enqueues work a stale worker might
+  mishandle, and the two can never run different code. The worker has no ingress,
+  so its post-deploy check compares the active revision's image digest against
+  what was just published. The end-to-end job probe runs as the release's final
+  gate: the only check that proves the whole path rather than that containers
+  rolled over. Pipeline ordering and gating are asserted by tests, since a
+  mis-ordered rollout fails silently — jobs succeed and return wrong manifests.
 - **Async generate-from-url enabled in production**, with an end-to-end health
   probe. `jobs_enabled = true` in the production config; the job endpoints leave
   their 503 branch once the worker is deployed. `probe_async_generation` submits

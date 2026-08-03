@@ -196,6 +196,85 @@ jobs:
           echo "  ${{ env.IMAGE }}:${{ needs.validate.outputs.major_minor }}"
           echo "  ${{ env.IMAGE }}:latest"
 
+  # Rolls the Celery worker (openhardwaremanager-worker / project_data_rg) BEFORE
+  # the API. Consumer before producer: the API must never enqueue work that a
+  # stale worker might mishandle. Both are pinned to the same published digest,
+  # so the two can never run different code — a worker running old code against a
+  # current API returns subtly wrong manifests, which is a far worse failure than
+  # an outage because the jobs SUCCEED.
+  #
+  # The worker has no ingress, so there is no HTTP endpoint to check. Its
+  # post-deploy assertion compares the active revision's image digest against the
+  # digest just published, mirroring the intent of the API's build-SHA check:
+  # verify identity, not just that a command exited 0.
+  #
+  # Same gate and environment as deploy-azure, so one approval covers the release.
+  deploy-worker:
+    name: Deploy Celery worker
+    runs-on: ubuntu-latest
+    needs: [validate, publish]
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' &&
+       inputs.dry_run == false &&
+       inputs.deploy == true)
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        # deploy_azure_worker.py imports src.config (pydantic-settings, …).
+        run: uv sync
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy worker
+        # --environment is explicit: the deploy target must never be inferred.
+        # The script creates the app if it does not exist, mirrors the shared
+        # secrets from the API app, and mints the Redis URLs.
+        run: |
+          uv run python deploy/scripts/deploy_azure_worker.py \
+            --image ${{ env.IMAGE }}@${{ needs.publish.outputs.digest }} \
+            --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+            --environment production
+
+      - name: Verify worker rolled to the published image
+        env:
+          WORKER_APP: openhardwaremanager-worker
+          RESOURCE_GROUP: project_data_rg
+          EXPECTED_IMAGE: ${{ env.IMAGE }}@${{ needs.publish.outputs.digest }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            active=$(az containerapp revision list \
+              --name "$WORKER_APP" --resource-group "$RESOURCE_GROUP" \
+              --query "[?properties.active].{image:properties.template.containers[0].image,running:properties.runningState}" \
+              -o json)
+            image=$(echo "$active" | python3 -c "import json,sys; r=json.load(sys.stdin); print(r[0]['image'] if r else '')")
+            running=$(echo "$active" | python3 -c "import json,sys; r=json.load(sys.stdin); print(r[0].get('running') or '' if r else '')")
+            echo "attempt $attempt/30: image=${image:-<none>} running=${running:-<none>}"
+            # runningState is Running or RunningAtMaxScale once healthy.
+            if [ "$image" = "$EXPECTED_IMAGE" ] && [[ "$running" == Running* ]]; then
+              echo "worker is running the published image"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::The worker's active revision is not running ${EXPECTED_IMAGE}. A worker on stale code against a current API returns subtly wrong manifests."
+          exit 1
+
   # Deploys to the live Azure Container App (openhardwaremanager / project_data_rg).
   # Gated by the "production" GitHub Environment: the federated OIDC credential's
   # subject is `repo:...:environment:production`, so this job can only obtain an
@@ -215,7 +294,8 @@ jobs:
   deploy-azure:
     name: Deploy to Azure Container Apps
     runs-on: ubuntu-latest
-    needs: [validate, publish]
+    # deploy-worker first: consumer before producer, and both on the same digest.
+    needs: [validate, publish, deploy-worker]
     if: >-
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' &&
@@ -355,6 +435,17 @@ jobs:
               sys.exit("DEPLOY GATE FAILED: " + "; ".join(errors))
           print("deploy gate passed")
           PY
+
+      - name: Verify async generation end to end
+        # The release's final gate, and the only check that proves the whole
+        # path rather than that containers rolled over. Submits a real job and
+        # polls it to completion: the worker, the broker, the API and the git
+        # tokens all have to be right for this to pass.
+        #
+        # It also catches the quiet failure the other checks cannot see — with
+        # no worker consuming, submissions are ACCEPTED and sit in PENDING
+        # forever, so every container looks healthy while the feature is dead.
+        run: uv run python -m harness.runner --modules probe_async_generation
 
   # Frontend (nginx SPA + /v1 reverse-proxy) — built multi-arch so the image runs
   # on linux/amd64 hosts (a bare `docker build` on Apple Silicon is arm64-only and
