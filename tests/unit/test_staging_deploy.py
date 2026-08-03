@@ -194,6 +194,72 @@ def test_mirroring_reads_from_the_named_source_app():
         assert command[command.index("--name") + 1] == "openhardwaremanager"
 
 
+def _run_teardown(argv):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_teardown_under_test",
+        _REPO_ROOT / "deploy" / "scripts" / "teardown_azure_environment.py",
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    calls = []
+
+    def _run(command, capture_output, text, check):
+        calls.append(command)
+        result = MagicMock()
+        result.returncode = 0
+        result.stdout = ""
+        result.stderr = ""
+        return result
+
+    with (
+        patch.object(sys, "argv", ["teardown.py", *argv]),
+        patch("subprocess.run", side_effect=_run),
+    ):
+        return module.main(), calls
+
+
+def test_teardown_refuses_production():
+    """The expensive mistake here is deleting the live service."""
+    code, calls = _run_teardown(["--environment", "production", "--yes"])
+
+    assert code == 1
+    assert calls == []
+
+
+def test_teardown_refuses_the_live_app_names_even_under_another_environment():
+    """Second guard, in case an environment file is ever mis-edited."""
+    code, calls = _run_teardown(
+        [
+            "--environment",
+            "staging",
+            "--container-app-name",
+            "openhardwaremanager",
+            "--yes",
+        ]
+    )
+
+    assert code == 1
+    assert calls == []
+
+
+def test_teardown_without_yes_deletes_nothing():
+    code, calls = _run_teardown(["--environment", "staging"])
+
+    assert code == 0
+    assert calls == []
+
+
+def test_teardown_keeps_blobs_unless_explicitly_asked():
+    _, calls = _run_teardown(["--environment", "staging", "--yes"])
+
+    assert not any("storage" in command for command in calls)
+    deleted = [c for c in calls if c[:3] == ["az", "containerapp", "delete"]]
+    assert len(deleted) == 2
+
+
 def test_created_app_targets_the_port_the_image_actually_binds():
     """The image's entrypoint defaults to 8001; ingress on 8080 would be dead."""
     calls = []

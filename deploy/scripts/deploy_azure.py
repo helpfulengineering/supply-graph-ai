@@ -122,6 +122,14 @@ def main():
         ),
     )
     parser.add_argument(
+        "--container-app-env",
+        default="ohm-env",
+        help=(
+            "Container Apps environment, used only when CREATING an app "
+            "(default: ohm-env). Ignored when updating an existing app."
+        ),
+    )
+    parser.add_argument(
         "--target-port",
         type=int,
         default=8001,
@@ -200,6 +208,7 @@ def main():
                     "azure": {
                         "resource_group": args.resource_group,
                         "subscription_id": args.subscription_id,
+                        "container_app_env": args.container_app_env,
                     }
                 },
             }
