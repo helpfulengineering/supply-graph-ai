@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`make secrets-check`** confirms the API and worker container apps agree on
+  every secret they share — storage key, both git tokens, and all three Redis
+  URLs — by comparing digests, never values. The deploys mirror these on every
+  run, so this verifies that took effect and catches what mirroring cannot: a
+  half-completed deploy, or a secret edited by hand afterwards. A `job-broker-url`
+  mismatch is the one that matters: jobs are then accepted and never consumed,
+  with nothing wrong-looking in either app. Kept out of `make ready`, which must
+  stay runnable offline.
 - **The Celery worker rolls with every release.** `release.yml` deploys the
   worker **before** the API — consumer before producer, both pinned to the same
   published digest — so the API never enqueues work a stale worker might

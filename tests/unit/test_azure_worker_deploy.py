@@ -224,3 +224,113 @@ def test_create_command_is_logged_with_secret_values_redacted(caplog):
 
     assert "secret-or-key-value" not in caplog.text
     assert "azure-storage-key=***" in caplog.text
+
+
+# --- Shared-secret verification ----------------------------------------------
+#
+# The deploys mirror these on every run, so this confirms mirroring took effect
+# and catches what mirroring cannot: a half-completed deploy, or a secret edited
+# by hand in the portal afterwards.
+
+
+def _load_verifier():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_verify_secrets_under_test",
+        _REPO_ROOT / "deploy" / "scripts" / "verify_app_secrets.py",
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _run_verifier(values_by_app):
+    """values_by_app: {app_name: {secret_name: value or None}}"""
+    module = _load_verifier()
+
+    def _run(command, capture_output, text, check):
+        app = command[command.index("--name") + 1]
+        secret = command[command.index("--secret-name") + 1]
+        value = values_by_app.get(app, {}).get(secret)
+        result = MagicMock()
+        result.returncode = 0 if value is not None else 1
+        result.stdout = value or ""
+        result.stderr = ""
+        return result
+
+    with (
+        patch.object(sys, "argv", ["verify_app_secrets.py"]),
+        patch("subprocess.run", side_effect=_run),
+    ):
+        return module.main(), module
+
+
+def _all_agreeing():
+    module = _load_verifier()
+    shared = {name: f"value-for-{name}" for name in module.SHARED_SECRETS}
+    return {
+        "openhardwaremanager": {**shared, "api-key": "the-api-key"},
+        "openhardwaremanager-worker": dict(shared),
+    }
+
+
+def test_secret_check_passes_when_both_apps_agree():
+    code, _ = _run_verifier(_all_agreeing())
+    assert code == 0
+
+
+def test_secret_check_detects_a_differing_value():
+    values = _all_agreeing()
+    values["openhardwaremanager-worker"]["job-broker-url"] = "pointing-somewhere-else"
+
+    code, _ = _run_verifier(values)
+    assert code == 1
+
+
+def test_secret_check_detects_a_missing_secret_on_the_worker():
+    values = _all_agreeing()
+    values["openhardwaremanager-worker"]["azure-storage-key"] = None
+
+    code, _ = _run_verifier(values)
+    assert code == 1
+
+
+def test_api_only_secret_is_not_reported_as_drift():
+    """A worker authenticates no callers, so api-key is correctly absent."""
+    values = _all_agreeing()
+    assert "api-key" not in values["openhardwaremanager-worker"]
+
+    code, _ = _run_verifier(values)
+    assert code == 0
+
+
+def test_missing_api_only_secret_on_the_api_is_a_problem():
+    values = _all_agreeing()
+    values["openhardwaremanager"]["api-key"] = None
+
+    code, _ = _run_verifier(values)
+    assert code == 1
+
+
+def test_shared_set_covers_the_broker_url():
+    """A broker mismatch is invisible in either app alone — jobs just never run."""
+    module = _load_verifier()
+
+    assert "job-broker-url" in module.SHARED_SECRETS
+    assert "job-result-backend" in module.SHARED_SECRETS
+    assert "azure-storage-key" in module.SHARED_SECRETS
+    # API-only secrets must not be in the shared set, or every check would fail.
+    assert "api-key" not in module.SHARED_SECRETS
+
+
+def test_digest_never_reveals_the_value():
+    module = _load_verifier()
+    secret = "rediss://:super-secret-key@host:6380/1"
+
+    digest = module._digest(secret)
+
+    assert secret not in digest
+    assert "super-secret-key" not in digest
+    assert module._digest(secret) == digest
+    assert module._digest(secret + "x") != digest

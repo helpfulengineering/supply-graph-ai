@@ -103,6 +103,23 @@ A healthy worker logs a `celery@… ready.` banner, the broker it connected to,
 and `concurrency: 1 (prefork)`. Confirm the transport line shows the database
 index you expect — a worker on the wrong database is invisible to the API.
 
+## Do the two apps agree?
+
+Both deploys mirror the shared secrets from the API app on every run, so they
+cannot drift across a deploy. To confirm that took effect — and to catch a
+half-completed deploy or a secret edited by hand in the portal since:
+
+```bash
+make secrets-check
+```
+
+It compares **digests**, never values, so the output is safe to paste into an
+issue. `api-key` is expected on the API only; a worker authenticates no callers.
+
+The important line is `job-broker-url`. If the API and worker point at different
+Redis databases, jobs are accepted and never consumed, and **nothing in either
+app looks wrong** — you only see it by comparing the two.
+
 ## Reading a failed job
 
 `GET /api/okh/generate-from-url/jobs/{job_id}` reports `state`, `stage`,
