@@ -233,6 +233,15 @@ class Settings(BaseSettings):
         default=10,
         description="Per-IP rate limit for generate-from-url job submission.",
     )
+    llm_enabled: bool = Field(
+        default=True,
+        description=(
+            "Master switch for LLM use. A kill switch, not an enable switch: "
+            "configuring a provider credential is what turns the LLM on, and "
+            "this turns it off without deleting credentials (e.g. during a cost "
+            "spike). False means no LLM regardless of stored keys."
+        ),
+    )
     generate_from_url_require_auth_for_llm: bool = Field(
         default=False,
         description=(

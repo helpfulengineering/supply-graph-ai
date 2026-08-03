@@ -904,8 +904,17 @@ class OKHService(BaseService["OKHService"]):
             # Clone/extract is outside the engine; share one weighted stage plan with
             # the engine so UI fractions stay aligned across the process boundary.
             job_emitter: Optional[ProgressEmitter] = None
+            # Resolve LLM availability ONCE for this run. Both the progress
+            # plan and the engine below read this same answer, so the advertised
+            # stages and the layers that actually run cannot disagree.
+            from ..llm.availability import resolve_llm_availability
+
+            availability = await resolve_llm_availability(requested=not no_llm)
+
             if progress is not None:
-                config_preview = LayerConfig.for_generate_from_url(no_llm=no_llm)
+                config_preview = LayerConfig.for_generate_from_url(
+                    no_llm=no_llm
+                ).with_llm_availability(availability)
                 use_llm = bool(
                     config_preview.use_llm and config_preview.is_llm_configured()
                 )
@@ -953,11 +962,14 @@ class OKHService(BaseService["OKHService"]):
             # no API keys — see LayerConfig.for_generate_from_url / is_llm_configured).
             from ..generation.engine import GenerationEngine
 
-            config = LayerConfig.for_generate_from_url(no_llm=no_llm)
+            config = LayerConfig.for_generate_from_url(
+                no_llm=no_llm
+            ).with_llm_availability(availability)
             if config.use_llm and not config.is_llm_configured():
                 self.logger.info(
-                    "OKH generate-from-url: LLM preferred but not configured; "
-                    "using 3-layer generation (direct/heuristic/NLP)."
+                    "OKH generate-from-url: LLM preferred but unavailable (%s); "
+                    "using 3-layer generation (direct/heuristic/NLP).",
+                    config.llm_unavailable_reason,
                 )
 
             engine_progress = None

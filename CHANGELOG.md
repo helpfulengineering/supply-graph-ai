@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A stored LLM credential now actually reaches generation.** The gate deciding
+  whether the LLM layer joins the stack read process environment variables only,
+  while the service that would have run it reads the encrypted credential store
+  first — so a key set through **Settings → LLM providers** caused the layer to
+  be dropped *before* that service was ever constructed. The store worked;
+  nothing reached it. Availability is now resolved **once**, asynchronously, at
+  the generation entry point and carried as plain values the synchronous gate
+  reads, so the gate, the progress stages and the layer stack cannot disagree.
+  Environment keys keep working unchanged; the store simply wins when both exist.
+- **The generation layer no longer hardcodes Anthropic.** It built its LLM
+  service with a fixed provider and then looked for an *Anthropic* credential
+  specifically, so a configured OpenAI key was ignored even once the gate let the
+  layer run. It now uses the resolved provider.
+- **`LLM_ENABLED` means something.** It previously gated only a startup log line.
+  It is now a schema setting and a genuine **kill switch** — false disables the
+  LLM regardless of stored credentials, so an operator can stop spend without
+  deleting keys. Configuring a provider remains the enable action. Its duplicate
+  hand-written entry in `env.template` is gone; a later assignment there would
+  have silently overridden the schema-owned one.
+
 ### Changed
 
 - **One predicate decides whether a deployment is "real".** `ENVIRONMENT` was

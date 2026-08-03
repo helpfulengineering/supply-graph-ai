@@ -114,7 +114,11 @@ async def generate_manifest_for_repository(
                 raise ValueError(f"Unsupported platform: {platform}")
             project_data = await generator.extract_project(url)
 
-    config = LayerConfig.for_generate_from_url(no_llm=not use_llm)
+    from ..llm.availability import resolve_llm_availability
+
+    config = LayerConfig.for_generate_from_url(
+        no_llm=not use_llm
+    ).with_llm_availability(await resolve_llm_availability(requested=use_llm))
     config.use_bom_normalization = use_bom_normalization
     if use_llm and not llm_chunked_mode_enabled:
         config.llm_config["chunked_mode_enabled"] = False

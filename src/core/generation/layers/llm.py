@@ -112,9 +112,26 @@ class LLMGenerationLayer(BaseGenerationLayer):
         """Create LLM service (initialization will be done in process method)"""
         try:
             # Create LLM service configuration (uses centralized default model)
+            # Use the provider resolved at the entry point. This was hardcoded
+            # to Anthropic, so a credential configured for any other provider
+            # was ignored even once the gate let this layer run — the service
+            # then looked for an ANTHROPIC credential specifically and found
+            # nothing.
+            resolved = getattr(self.layer_config, "llm_provider", None)
+            try:
+                provider = (
+                    LLMProviderType(resolved) if resolved else LLMProviderType.ANTHROPIC
+                )
+            except ValueError:
+                logger.warning(
+                    "Unknown resolved LLM provider %r; falling back to anthropic",
+                    resolved,
+                )
+                provider = LLMProviderType.ANTHROPIC
+
             service_config = LLMServiceConfig(
                 name="LLMGenerationLayer",
-                default_provider=LLMProviderType.ANTHROPIC,
+                default_provider=provider,
                 default_model=None,  # Use centralized config
                 max_retries=3,
                 retry_delay=1.0,
