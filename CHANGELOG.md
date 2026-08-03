@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Closed four dependency CVEs**: `aiohttp` 3.14.1 → 3.14.3 (CVE-2026-59881,
+  -69243, -69244) and `cryptography` 49.0.0 → 50.0.0 (CVE-2026-69247). The
+  version floors were raised as well as the lockfile, so a fresh resolve cannot
+  pick a vulnerable version again.
+
+
 ### Fixed
 
 - **A stored LLM credential now actually reaches generation.** The gate deciding
