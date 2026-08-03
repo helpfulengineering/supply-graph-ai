@@ -18,11 +18,10 @@ azure_storage_container = "staging"
 
 cache_backend = "redis"
 
-# Without this, the entrypoint's USE_GUNICORN=auto resolves to gunicorn ONLY for
-# ENVIRONMENT=production and starts `uvicorn --reload` everywhere else — a
-# different process model, which would make this environment worthless as a
-# rehearsal. Workers/timeout match production for the same reason.
-use_gunicorn = "true"
+# The entrypoint's USE_GUNICORN=auto now derives the server the same way the
+# application derives its strictness — anything outside {development, test} is a
+# real deployment — so staging gets the production server without asking. Workers
+# and timeout match production so the rehearsal runs under production's limits.
 gunicorn_workers = "1"
 gunicorn_timeout = "300"
 

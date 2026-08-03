@@ -27,13 +27,23 @@ start_api() {
     ENVIRONMENT=${ENVIRONMENT:-${ENV:-development}}
     USE_GUNICORN=${USE_GUNICORN:-"auto"}
 
-    # Auto-detect: use Gunicorn in production, uvicorn in development
+    # Auto-detect the server from the environment. This MIRRORS
+    # src/config/schema.py::is_production_like — anything outside the relaxed
+    # sandboxes is a real deployment and gets the production server.
+    #
+    # The rule is duplicated because this is shell and cannot import the
+    # predicate; asking Python here would add an interpreter start to every boot
+    # AND a confusing new failure point, since that import can itself raise.
+    # tests/unit/test_entrypoint_server_choice.py fails if the two ever diverge.
+    #
+    # Previously this compared only against "production", so `staging` ran
+    # `uvicorn --reload` — a different process model from the environment it was
+    # meant to rehearse.
     if [ "$USE_GUNICORN" = "auto" ]; then
-        if [ "$ENVIRONMENT" = "production" ]; then
-            USE_GUNICORN="true"
-        else
-            USE_GUNICORN="false"
-        fi
+        case "$(echo "$ENVIRONMENT" | tr '[:upper:]' '[:lower:]' | tr -d ' ')" in
+            development|test) USE_GUNICORN="false" ;;
+            *)                USE_GUNICORN="true" ;;
+        esac
     fi
 
     if [ "$USE_GUNICORN" = "true" ] || [ "$USE_GUNICORN" = "1" ]; then
