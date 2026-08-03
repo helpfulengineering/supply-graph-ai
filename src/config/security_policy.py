@@ -122,9 +122,10 @@ def _peacetime_requires_auth_for_writes() -> bool:
     hole for real deployments. Override by running with ``ENVIRONMENT=production``.
     Crisis and shielded always enforce writes.
     """
+    from .schema import is_production_like
     from .settings import ENVIRONMENT
 
-    return ENVIRONMENT == "production"
+    return is_production_like(ENVIRONMENT)
 
 
 def get_security_policy(mode: str | SecurityMode | None = None) -> SecurityPolicy:
