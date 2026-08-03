@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from harness.modules.client_drift import ClientDriftLoop
 from harness.modules.parity import ParityLoop
+from harness.modules.probe_async_generation import ProbeAsyncGenerationLoop
 from harness.modules.probe_cache import ProbeCacheLoop
 from harness.modules.probe_latency import ProbeLatencyLoop
 from harness.modules.probe_match import ProbeMatchLoop
@@ -31,6 +32,7 @@ PROBE_MODULES: dict[str, type] = {
     "probe_latency": ProbeLatencyLoop,
     "probe_cache": ProbeCacheLoop,
     "probe_okh_files": ProbeOkhFilesLoop,
+    "probe_async_generation": ProbeAsyncGenerationLoop,
 }
 
 MODULE_REGISTRY: dict[str, type] = {**LOOP_MODULES, **PROBE_MODULES}

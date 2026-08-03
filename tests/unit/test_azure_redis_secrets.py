@@ -247,7 +247,7 @@ def test_deploy_sets_secrets_before_the_update_that_references_them():
     assert ordered.index("secret-set") < ordered.index("app-update")
 
 
-def test_deploy_applies_secretrefs_and_leaves_jobs_disabled():
+def test_deploy_applies_secretrefs_never_values():
     calls = []
     assert _run_deploy_script(calls) == 0
 
@@ -256,9 +256,9 @@ def test_deploy_applies_secretrefs_and_leaves_jobs_disabled():
 
     assert "JOB_BROKER_URL=secretref:job-broker-url" in env_tokens
     assert "JOB_RESULT_BACKEND=secretref:job-result-backend" in env_tokens
-    # The feature stays off until it is turned on deliberately.
-    assert not any(token.startswith("JOBS_ENABLED") for token in env_tokens)
-    # No secret value is ever passed as an env var.
+    # No secret value is ever passed as an env var. Whether jobs are ENABLED is
+    # a separate decision, declared in the environment's config file — see
+    # test_jobs_enabled_is_not_implied_by_wiring_the_broker_url.
     assert not any("rediss://" in token for token in env_tokens)
 
 

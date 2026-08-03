@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Async generate-from-url enabled in production**, with an end-to-end health
+  probe. `jobs_enabled = true` in the production config; the job endpoints leave
+  their 503 branch once the worker is deployed. `probe_async_generation` submits
+  a real job, polls to a terminal state, and fails if it does not complete —
+  distinguishing *accepted but never consumed* (no worker on the queue) from
+  *ran but did not finish*, because the fixes differ. This is the worker's health
+  signal: platform probes are HTTP/TCP only, and a wedged worker still answers
+  `celery inspect ping` while consuming nothing. Ops guide:
+  `docs/ops/async-generation.md`.
 - **`staging` environment.** `config/environments/staging.toml` describes a
   full-fidelity rehearsal of production — same image, same server, same Redis
   instance — isolated by blob container (`staging`) and Redis database index

@@ -66,9 +66,17 @@ def test_environment_without_a_worker_table_yields_nothing():
     assert worker_deploy_env_vars("no-such-environment") == {}
 
 
-def test_worker_env_does_not_enable_jobs_by_itself():
-    """Deploying a worker must not flip the API's feature flag."""
-    assert "JOBS_ENABLED" not in worker_deploy_env_vars("production")
+def test_worker_inherits_the_jobs_flag_rather_than_setting_its_own():
+    """The worker must never disagree with the API about whether jobs are on.
+
+    It carries the flag because it shares the top-level config, not because the
+    worker deploy sets one — so the two can never be configured apart.
+    """
+    shared = deploy_env_vars("production")
+    worker = worker_deploy_env_vars("production")
+
+    assert worker["JOBS_ENABLED"] == shared["JOBS_ENABLED"]
+    assert "JOBS_ENABLED" not in worker_deploy_config("production")
 
 
 # --- Secrets it needs --------------------------------------------------------
@@ -200,7 +208,6 @@ def test_worker_env_vars_carry_no_secret_values():
     assert "AZURE_STORAGE_KEY=secretref:azure-storage-key" in env_tokens
     assert "JOB_BROKER_URL=secretref:job-broker-url" in env_tokens
     assert not any("rediss://" in token for token in env_tokens)
-    assert not any(token.startswith("JOBS_ENABLED") for token in env_tokens)
 
 
 def test_worker_deploy_does_not_look_up_an_fqdn():

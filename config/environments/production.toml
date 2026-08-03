@@ -17,6 +17,12 @@ azure_storage_container = "production"
 # back to memory. See CACHE_BACKEND / CACHE_REDIS_URL in env.template.
 cache_backend = "redis"
 
+# Async generate-from-url, served by the Celery worker container app. Requires
+# JOB_BROKER_URL (minted as a secret by the deploy) and a running worker —
+# jobs_available() is the AND of the two. Rehearsed in staging first; see
+# docs/ops/async-generation.md.
+jobs_enabled = true
+
 # Gunicorn (ENVIRONMENT=production). ACA runs 1 vCPU / 2Gi — a single worker
 # avoids 3× spaCy eager-init OOM; timeout must exceed MATCHING_INIT_TIMEOUT_SECONDS.
 gunicorn_workers = "1"

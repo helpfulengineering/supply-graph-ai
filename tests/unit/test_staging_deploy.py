@@ -66,10 +66,14 @@ def test_staging_matches_production_worker_shape():
     assert worker_deploy_config("staging") == worker_deploy_config("production")
 
 
-def test_staging_enables_jobs_and_production_does_not_yet():
-    """Staging exists to exercise the async path before production has it."""
+def test_both_environments_enable_jobs():
+    """Staging led; production followed once the path was proven there.
+
+    They must agree: a staging rehearsal of a feature production has switched
+    off would test the wrong thing.
+    """
     assert deploy_env_vars("staging")["JOBS_ENABLED"] == "True"
-    assert "JOBS_ENABLED" not in deploy_env_vars("production")
+    assert deploy_env_vars("production")["JOBS_ENABLED"] == "True"
 
 
 def test_staging_holds_no_secrets():
