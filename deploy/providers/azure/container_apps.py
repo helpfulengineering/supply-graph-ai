@@ -21,6 +21,26 @@ class DeploymentError(Exception):
     pass
 
 
+def _redact_secret_args(command: List[str]) -> List[str]:
+    """Copy of an az command with the values after ``--secrets`` masked.
+
+    ``--secrets`` takes ``name=value`` pairs, so the raw command is unsafe to
+    log. Names are kept — they are useful and not sensitive.
+    """
+    redacted: List[str] = []
+    in_secrets = False
+    for token in command:
+        if token.startswith("--"):
+            in_secrets = token == "--secrets"
+            redacted.append(token)
+            continue
+        if in_secrets and "=" in token:
+            redacted.append(f"{token.split('=', 1)[0]}=***")
+        else:
+            redacted.append(token)
+    return redacted
+
+
 class AzureContainerAppsDeployer(BaseDeployer):
     """Azure Container Apps deployer implementation."""
 
@@ -101,6 +121,113 @@ class AzureContainerAppsDeployer(BaseDeployer):
         else:
             # Assume GB if no unit
             return float(memory)
+
+    def fetch_redis_access_key(self, resource_name: str) -> str:
+        """Primary access key for an Azure Cache for Redis in this deployer's RG.
+
+        Raises:
+            DeploymentError: if the key cannot be read. Failing loudly is the
+                point — a deploy that silently skipped this would write no
+                secret, and the app would fail later as an unrelated-looking
+                connection error.
+        """
+        exit_code, stdout, stderr = self._run_az_command(
+            [
+                "az",
+                "redis",
+                "list-keys",
+                "--name",
+                resource_name,
+                "--resource-group",
+                self.resource_group,
+                "--subscription",
+                self.subscription_id,
+                "--query",
+                "primaryKey",
+                "--output",
+                "tsv",
+            ],
+            check=False,
+        )
+        if exit_code != 0 or not stdout.strip():
+            raise DeploymentError(
+                f"Could not read the access key for Redis {resource_name!r} in "
+                f"{self.resource_group!r}: {stderr.strip() or 'empty key returned'}"
+            )
+        return stdout.strip()
+
+    def read_secret(self, secret_name: str, app_name: Optional[str] = None) -> str:
+        """Read one Container App secret's value (defaults to this app).
+
+        Used to mirror shared secrets onto a second app so the copies cannot
+        drift. The value is returned, never logged.
+
+        Raises:
+            DeploymentError: if the secret is missing or empty — mirroring a
+                blank over a working secret would be worse than failing.
+        """
+        source = app_name or self.container_app_name
+        exit_code, stdout, stderr = self._run_az_command(
+            [
+                "az",
+                "containerapp",
+                "secret",
+                "show",
+                "--name",
+                source,
+                "--resource-group",
+                self.resource_group,
+                "--secret-name",
+                secret_name,
+                "--query",
+                "value",
+                "--output",
+                "tsv",
+            ],
+            check=False,
+        )
+        if exit_code != 0 or not stdout.strip():
+            raise DeploymentError(
+                f"Could not read secret {secret_name!r} from {source!r}: "
+                f"{stderr.strip() or 'empty value returned'}"
+            )
+        return stdout.strip()
+
+    def set_secrets(self, secrets: Dict[str, str]) -> None:
+        """Set Container App secrets, logging their NAMES only, never values.
+
+        Secrets must exist before any env var references them via
+        ``secretref:``, so callers set them ahead of the app update.
+        """
+        if not secrets:
+            return
+
+        command = [
+            "az",
+            "containerapp",
+            "secret",
+            "set",
+            "--name",
+            self.container_app_name,
+            "--resource-group",
+            self.resource_group,
+            "--secrets",
+        ]
+        command.extend(f"{name}={value}" for name, value in secrets.items())
+
+        # NB: deliberately not logging `command` — it carries secret values.
+        logger.info(
+            "Setting %d container app secret(s) on %s: %s",
+            len(secrets),
+            self.container_app_name,
+            ", ".join(sorted(secrets)),
+        )
+        exit_code, _, stderr = self._run_az_command(command, check=False)
+        if exit_code != 0:
+            raise DeploymentError(
+                f"Failed to set secrets ({', '.join(sorted(secrets))}) on "
+                f"{self.container_app_name}: {stderr}"
+            )
 
     def _check_secret_exists(self, secret_name: str) -> bool:
         """Check if a secret exists in Azure Key Vault."""
@@ -240,14 +367,20 @@ class AzureContainerAppsDeployer(BaseDeployer):
         flag sets (confirmed against the installed CLI's ``--help`` output, not
         assumed): ``--target-port``, ``--ingress``, ``--environment``, and
         ``--registry-*`` are create-only — passing them to ``update`` is a CLI
-        argument error. Env vars also differ: ``create`` takes ``--env-vars``
-        (full list, nothing to preserve yet); ``update`` has no ``--env-vars``
-        flag at all and instead takes ``--set-env-vars`` (adds/updates listed
-        vars, leaves any other existing container env vars — e.g. ones set
-        directly via ``az`` outside this deployer — untouched).
+        argument error. ``--command`` / ``--args`` exist on BOTH. Env vars also
+        differ: ``create`` takes ``--env-vars`` (full list, nothing to preserve
+        yet); ``update`` has no ``--env-vars`` flag at all and instead takes
+        ``--set-env-vars`` (adds/updates listed vars, leaves any other existing
+        container env vars — e.g. ones set directly via ``az`` outside this
+        deployer — untouched).
+
+        With ``service.ingress_enabled`` False the app serves no HTTP: the
+        create-only ingress flags are omitted (no ``--ingress`` means Azure
+        creates the app with ingress disabled) and no URL lookup is attempted,
+        because an app without ingress has no FQDN to look up.
 
         Returns:
-            Service URL
+            Service URL, or an empty string for an ingress-less app
 
         Raises:
             DeploymentError: If deployment fails
@@ -266,6 +399,12 @@ class AzureContainerAppsDeployer(BaseDeployer):
         memory_gb = self._convert_memory_to_gb(self.config.service.memory)
 
         is_update = self._check_service_exists()
+
+        # Secrets must exist before any env var references them via `secretref:`.
+        # On update that means a separate `az containerapp secret set` first; on
+        # create the app does not exist yet, so they ride along in --secrets.
+        if is_update and self.config.service.secrets:
+            self.set_secrets(self.config.service.secrets)
 
         deploy_args = [
             "az",
@@ -287,19 +426,35 @@ class AzureContainerAppsDeployer(BaseDeployer):
             str(self.config.service.max_instances),
         ]
 
+        # --command / --args take nargs='*', so each element is its own argv
+        # token (same rule as env vars above).
+        if self.config.service.command:
+            deploy_args.append("--command")
+            deploy_args.extend(self.config.service.command)
+        if self.config.service.args:
+            deploy_args.append("--args")
+            deploy_args.extend(self.config.service.args)
+
         if is_update:
             if env_vars:
                 deploy_args.append("--set-env-vars")
                 deploy_args.extend(env_vars)
         else:
-            deploy_args.extend(
-                [
-                    "--target-port",
-                    str(self.config.service.port),
-                    "--ingress",
-                    "external",
-                ]
-            )
+            if self.config.service.ingress_enabled:
+                deploy_args.extend(
+                    [
+                        "--target-port",
+                        str(self.config.service.port),
+                        "--ingress",
+                        "external",
+                    ]
+                )
+            if self.config.service.secrets:
+                deploy_args.append("--secrets")
+                deploy_args.extend(
+                    f"{name}={value}"
+                    for name, value in self.config.service.secrets.items()
+                )
             if env_vars:
                 deploy_args.append("--env-vars")
                 deploy_args.extend(env_vars)
@@ -317,8 +472,9 @@ class AzureContainerAppsDeployer(BaseDeployer):
                         ]
                     )
 
-        # Execute deployment
-        logger.info(f"Executing: {' '.join(deploy_args)}")
+        # Execute deployment. The create path carries secret VALUES in
+        # --secrets, so the logged form is redacted.
+        logger.info(f"Executing: {' '.join(_redact_secret_args(deploy_args))}")
         exit_code, stdout, stderr = self._run_az_command(deploy_args, check=False)
 
         if exit_code != 0:
@@ -328,7 +484,15 @@ class AzureContainerAppsDeployer(BaseDeployer):
             logger.error(error_msg)
             raise DeploymentError(error_msg)
 
-        # Get service URL
+        # An ingress-less app (e.g. a queue worker) has no FQDN, so looking one
+        # up would fail a deployment that in fact succeeded.
+        if not self.config.service.ingress_enabled:
+            logger.info(
+                "Deployment successful. %s has no ingress; no service URL.",
+                self.container_app_name,
+            )
+            return ""
+
         service_url = self.get_service_url()
         logger.info(f"Deployment successful. Service URL: {service_url}")
         return service_url
@@ -414,6 +578,15 @@ class AzureContainerAppsDeployer(BaseDeployer):
 
         logger.info(f"Container App {name} deleted successfully")
 
+    @staticmethod
+    def _fqdn_from_app_data(app_data: Dict[str, Any]) -> str:
+        """Ingress FQDN as an https URL, or "" when the app has no ingress."""
+        ingress = (
+            app_data.get("properties", {}).get("configuration", {}).get("ingress") or {}
+        )
+        fqdn = ingress.get("fqdn") or ""
+        return f"https://{fqdn}" if fqdn else ""
+
     def get_status(self, service_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Get deployment status.
@@ -457,7 +630,10 @@ class AzureContainerAppsDeployer(BaseDeployer):
                 "status": app_data.get("properties", {}).get(
                     "provisioningState", "unknown"
                 ),
-                "url": self.get_service_url(name),
+                # Read the FQDN out of the response we already have rather than
+                # calling get_service_url(), which raises when an app has no
+                # ingress — a worker's status is not an error.
+                "url": self._fqdn_from_app_data(app_data),
                 "replicas": app_data.get("properties", {})
                 .get("template", {})
                 .get("scale", {})

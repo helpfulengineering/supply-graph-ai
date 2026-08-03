@@ -20,7 +20,7 @@ import logging
 import os
 import tomllib
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 from pydantic import Field, field_validator
@@ -364,6 +364,77 @@ def deploy_env_vars(environment: str) -> Dict[str, str]:
             )
             continue
         env_vars[key.upper()] = str(value)
+    return env_vars
+
+
+def redis_deploy_config(environment: str) -> Dict[str, Any]:
+    """Non-secret Redis coordinates for ``<environment>``'s deploy.
+
+    Reads the ``[redis]`` table of ``config/environments/<environment>.toml``:
+    the resource name, host, port, and the database indices for cache, Celery
+    broker, and Celery results.
+
+    Deliberately carries **no credential**. The deploy fetches the access key
+    from Azure and mints the connection URLs as container-app secrets, so the
+    key lives in exactly one place and rotating it needs no repo change. The
+    URLs themselves are schema-secret fields, which ``deploy_env_vars()``
+    refuses to ship from TOML — this table is the non-secret half of them.
+
+    Returns ``{}`` when the file or its ``[redis]`` table is absent, which
+    means "this environment does not have deploy-managed Redis secrets".
+    """
+    path = _CONFIG_ENV_DIR / f"{environment}.toml"
+    if not path.is_file():
+        return {}
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    redis = data.get("redis")
+    return redis if isinstance(redis, dict) else {}
+
+
+def worker_deploy_config(environment: str) -> Dict[str, Any]:
+    """Deploy shape for ``<environment>``'s Celery worker container.
+
+    Reads the ``[worker]`` table of ``config/environments/<environment>.toml``:
+    cpu, memory, and replica bounds. Its ``[worker.env]`` sub-table is container
+    env, not deploy shape, and is returned separately by
+    :func:`worker_deploy_env_vars`. Returns ``{}`` when absent, which means
+    "this environment has no worker".
+    """
+    path = _CONFIG_ENV_DIR / f"{environment}.toml"
+    if not path.is_file():
+        return {}
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    worker = data.get("worker")
+    if not isinstance(worker, dict):
+        return {}
+    return {key: value for key, value in worker.items() if key != "env"}
+
+
+def worker_deploy_env_vars(environment: str) -> Dict[str, str]:
+    """Container env for ``<environment>``'s Celery worker.
+
+    The worker runs the same image and services as the API, so it inherits the
+    shared top-level config — :func:`deploy_env_vars` — and layers only the
+    ``[worker.env]`` table on top. Declaring the storage target once is the
+    point: an API and worker pointed at different containers would be a silent
+    and thoroughly unpleasant bug.
+
+    The API-only ``GUNICORN_*`` values come along and are inert in a worker;
+    that is the accepted price of a single source of truth. Returns ``{}`` when
+    the environment has no ``[worker]`` table at all.
+    """
+    path = _CONFIG_ENV_DIR / f"{environment}.toml"
+    if not path.is_file():
+        return {}
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    worker = data.get("worker")
+    if not isinstance(worker, dict):
+        return {}
+
+    env_vars = deploy_env_vars(environment)
+    worker_env = worker.get("env")
+    if isinstance(worker_env, dict):
+        env_vars.update({key.upper(): str(value) for key, value in worker_env.items()})
     return env_vars
 
 

@@ -7,6 +7,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.6] - 2026-08-03
+
+### Added
+
+- **`make secrets-check`** confirms the API and worker container apps agree on
+  every secret they share — storage key, both git tokens, and all three Redis
+  URLs — by comparing digests, never values. The deploys mirror these on every
+  run, so this verifies that took effect and catches what mirroring cannot: a
+  half-completed deploy, or a secret edited by hand afterwards. A `job-broker-url`
+  mismatch is the one that matters: jobs are then accepted and never consumed,
+  with nothing wrong-looking in either app. Kept out of `make ready`, which must
+  stay runnable offline.
+- **The Celery worker rolls with every release.** `release.yml` deploys the
+  worker **before** the API — consumer before producer, both pinned to the same
+  published digest — so the API never enqueues work a stale worker might
+  mishandle, and the two can never run different code. The worker has no ingress,
+  so its post-deploy check compares the active revision's image digest against
+  what was just published. The end-to-end job probe runs as the release's final
+  gate: the only check that proves the whole path rather than that containers
+  rolled over. Pipeline ordering and gating are asserted by tests, since a
+  mis-ordered rollout fails silently — jobs succeed and return wrong manifests.
+- **Async generate-from-url enabled in production**, with an end-to-end health
+  probe. `jobs_enabled = true` in the production config; the job endpoints leave
+  their 503 branch once the worker is deployed. `probe_async_generation` submits
+  a real job, polls to a terminal state, and fails if it does not complete —
+  distinguishing *accepted but never consumed* (no worker on the queue) from
+  *ran but did not finish*, because the fixes differ. This is the worker's health
+  signal: platform probes are HTTP/TCP only, and a wedged worker still answers
+  `celery inspect ping` while consuming nothing. Ops guide:
+  `docs/ops/async-generation.md`.
+- **`staging` environment.** `config/environments/staging.toml` describes a
+  full-fidelity rehearsal of production — same image, same server, same Redis
+  instance — isolated by blob container (`staging`) and Redis database index
+  (3/4/5 vs production's 0/1/2) rather than by separate infrastructure. It pins
+  `USE_GUNICORN=true` because the entrypoint's `auto` mode starts
+  `uvicorn --reload` for any non-production environment, which would make the
+  rehearsal meaningless. Async jobs are enabled there first.
+  `deploy_azure.py --mirror-secrets-from <app>` stands up a new environment by
+  copying the shared secrets from an established app, and `--target-port`
+  (default 8001, the port the image actually binds) makes a created app
+  reachable. Without the flag the production deploy is byte-for-byte unchanged.
+- **Celery worker deploy for Azure Container Apps.**
+  `deploy/scripts/deploy_azure_worker.py` deploys the worker as its own
+  no-ingress container app running the same image in `worker` mode. Its env
+  comes from the shared config surface — top-level settings plus `[worker.env]`
+  — so the storage target is declared once and the API and worker cannot drift;
+  `[worker]` holds the deploy shape (1 vCPU / 2Gi, one replica, concurrency 1).
+  The storage key and git access tokens are **mirrored from the API app** on
+  every deploy rather than set by hand, so the copies cannot diverge. Secrets
+  ride inline on create (an app that does not exist yet cannot have secrets set
+  on it) and are set ahead of the update otherwise; logged commands redact
+  secret values. Deploying a worker does **not** enable async jobs.
+- **Redis connection secrets minted by the deploy.** The backend deploy reads the
+  Redis access key from Azure and mints `cache-redis-url`, `job-broker-url`, and
+  `job-result-backend` as Container App secrets on every deploy, from the
+  non-secret `[redis]` coordinates in `config/environments/<env>.toml` (cache
+  db 0, broker db 1, results db 2). Azure is the single source of truth for the
+  credential: rotating the key needs no repo change and apps sharing the
+  instance cannot drift apart. URLs carry `?ssl_cert_reqs=required` (kombu
+  silently parses a bare `rediss://` URL as `CERT_NONE`) and percent-encode the
+  key (base64 keys contain `/` and `+`, which truncate an unencoded URL).
+  Async jobs stay **off** — `JOBS_ENABLED` is unchanged.
+- **Ingress-less Container Apps in the shared Azure deployer.** `ServiceConfig`
+  gains `ingress_enabled`, `command`, and `args`, so one deploy path now covers
+  background workers as well as web services: create omits the ingress flags and
+  no FQDN lookup is attempted (an app without ingress has none, and querying for
+  one failed deploys that had actually succeeded). `get_status` reads the FQDN
+  from the response it already has instead of a second lookup. Web-service argv
+  is pinned by regression tests — the API and frontend deploys are unchanged.
+## [0.10.5] - 2026-08-02
+
 ### Added
 
 - **Admin-managed LLM provider credentials.** Encrypted keys can be set,

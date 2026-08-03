@@ -59,6 +59,7 @@ nav:
     - Security Modes: architecture/security-modes.md
     - Source Platforms: architecture/source-platforms.md
   - Ops:
+    - Async Generation: ops/async-generation.md
     - Federation Infra: ops/federation-infra.md
     - Rule Design: ops/rule-design.md
     - Release: RELEASE.md

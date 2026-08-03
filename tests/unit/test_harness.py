@@ -28,6 +28,7 @@ def test_known_modules_include_loops_and_probes():
         "probe_latency",
         "probe_cache",
         "probe_okh_files",
+        "probe_async_generation",
     ]
 
 

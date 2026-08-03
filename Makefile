@@ -1,5 +1,5 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
+.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity secrets-check ready setup verify-env frontend-setup frontend-ready harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -124,6 +124,12 @@ scripts-check:
 # group drifts from the declared contract in tests/parity/manifest.py.
 parity:
 	uv run pytest tests/parity -q
+
+# Confirm the API and worker container apps agree on their shared secrets.
+# Deliberately NOT in `ready`: it needs live cloud credentials, and the merge
+# gate must stay runnable offline. Compares digests, never values.
+secrets-check:
+	uv run python deploy/scripts/verify_app_secrets.py
 
 # Definition of done. Green tests are not "ready to merge"; this is.
 # Each step verifies (does not mutate) and fails fast. Run before any MR.

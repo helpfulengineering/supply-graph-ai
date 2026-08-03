@@ -84,6 +84,17 @@
         "okh_id": null,
         "note": "Pain point: OKH detail file links use raw paths / broken externals."
       }
+    },
+    "probe_async_generation": {
+      "enabled": true,
+      "options": {
+        "skip_if_unreachable": true,
+        "repo_url": "https://github.com/octocat/Hello-World",
+        "timeout_seconds": 300,
+        "poll_seconds": 5,
+        "no_llm": true,
+        "note": "Health signal for the Celery worker: a job accepted but never consumed sits in PENDING forever with no error, and only an end-to-end submit-and-poll sees it."
+      }
     }
   }
 }

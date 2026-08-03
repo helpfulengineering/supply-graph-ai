@@ -22,7 +22,7 @@ from deploy.providers.azure.config import AzureDeploymentConfig
 from deploy.providers.azure.container_apps import AzureContainerAppsDeployer
 
 
-def _config(**env_overrides):
+def _config(_service_overrides=None, **env_overrides):
     data = {
         "provider": "azure",
         "environment": "production",
@@ -31,6 +31,7 @@ def _config(**env_overrides):
             "name": "openhardwaremanager",
             "image": "touchthesun/openhardwaremanager:0.8.6",
             "environment_vars": {"ENVIRONMENT": "production", **env_overrides},
+            **(_service_overrides or {}),
         },
         "providers": {
             "azure": {
@@ -76,17 +77,21 @@ def test_check_service_exists_false_when_az_show_fails():
         assert deployer._check_service_exists() is False
 
 
-def _deploy_with_existing_app(exists: bool, env_overrides=None):
+def _deploy_calls(exists: bool, env_overrides=None, service_overrides=None):
     """Run deploy() with resource-group/env checks always succeeding, and the
-    show-for-existence check returning `exists`. Returns the deploy command argv."""
-    deployer = AzureContainerAppsDeployer(_config(**(env_overrides or {})))
+    show-for-existence check returning `exists`. Returns (deploy argv, all argv)."""
+    deployer = AzureContainerAppsDeployer(
+        _config(service_overrides, **(env_overrides or {}))
+    )
 
     call_log = []
 
     def _run(command, capture_output, text, check):
         call_log.append(command)
         result = MagicMock()
-        result.stdout = "https://openhardwaremanager.example.azurecontainerapps.io"
+        # `az ... --query properties.configuration.ingress.fqdn -o tsv` returns a
+        # bare hostname; get_service_url() is what adds the scheme.
+        result.stdout = "openhardwaremanager.example.azurecontainerapps.io"
         result.stderr = ""
         if command[:3] == ["az", "containerapp", "show"] and "--query" not in command:
             result.returncode = 0 if exists else 1
@@ -97,13 +102,18 @@ def _deploy_with_existing_app(exists: bool, env_overrides=None):
     with patch(
         "deploy.providers.azure.container_apps.subprocess.run", side_effect=_run
     ):
-        deployer.deploy()
+        url = deployer.deploy()
 
     deploy_calls = [
         c for c in call_log if c[2] in ("create", "update") and c[1] == "containerapp"
     ]
     assert len(deploy_calls) == 1
-    return deploy_calls[0]
+    return deploy_calls[0], call_log, url
+
+
+def _deploy_with_existing_app(exists: bool, env_overrides=None):
+    args, _, _ = _deploy_calls(exists, env_overrides)
+    return args
 
 
 def test_deploy_update_path_uses_set_env_vars_not_env_vars():
@@ -141,3 +151,152 @@ def test_deploy_create_path_uses_env_vars_and_ingress_flags():
     assert "--target-port" in args
     assert "--ingress" in args
     assert "--environment" not in args  # not set in this fixture's provider_config
+
+
+# --- Regression: web-service deploys must be byte-identical to before -------
+#
+# Ingress-less support (worker apps) touched the shared argv builder, so these
+# pin the ENTIRE command for a normal web service. A diff here means a change
+# leaked into the API or frontend deploy path.
+
+
+def test_web_service_create_argv_is_unchanged():
+    args, _, _ = _deploy_calls(exists=False, env_overrides={"CORS_ORIGINS": "*"})
+
+    assert args == [
+        "az",
+        "containerapp",
+        "create",
+        "--name",
+        "openhardwaremanager",
+        "--resource-group",
+        "project_data_rg",
+        "--image",
+        "touchthesun/openhardwaremanager:0.8.6",
+        "--cpu",
+        "2",
+        "--memory",
+        "4.0Gi",
+        "--min-replicas",
+        "1",
+        "--max-replicas",
+        "100",
+        "--target-port",
+        "8080",
+        "--ingress",
+        "external",
+        "--env-vars",
+        "ENVIRONMENT=production",
+        "CORS_ORIGINS=*",
+    ]
+
+
+def test_web_service_update_argv_is_unchanged():
+    args, _, _ = _deploy_calls(exists=True, env_overrides={"CORS_ORIGINS": "*"})
+
+    assert args == [
+        "az",
+        "containerapp",
+        "update",
+        "--name",
+        "openhardwaremanager",
+        "--resource-group",
+        "project_data_rg",
+        "--image",
+        "touchthesun/openhardwaremanager:0.8.6",
+        "--cpu",
+        "2",
+        "--memory",
+        "4.0Gi",
+        "--min-replicas",
+        "1",
+        "--max-replicas",
+        "100",
+        "--set-env-vars",
+        "ENVIRONMENT=production",
+        "CORS_ORIGINS=*",
+    ]
+
+
+def test_frontend_shaped_service_still_gets_ingress():
+    """The frontend deploys with its own cpu/memory/port but is still a web app."""
+    args, _, _ = _deploy_calls(
+        exists=True,
+        service_overrides={"cpu": 0.5, "memory": "1Gi", "port": 8080},
+    )
+
+    assert "--cpu" in args and args[args.index("--cpu") + 1] == "0.5"
+    assert args[args.index("--memory") + 1] == "1.0Gi"
+    # update never carried ingress flags; that must stay true.
+    assert "--ingress" not in args and "--target-port" not in args
+
+
+def test_ingress_enabled_defaults_true_when_config_omits_it():
+    assert _config().service.ingress_enabled is True
+    assert _config().service.command is None
+    assert _config().service.args is None
+
+
+# --- Ingress-less (worker) apps ---------------------------------------------
+
+_WORKER = {
+    "ingress_enabled": False,
+    "command": ["/usr/local/bin/docker-entrypoint.sh"],
+    "args": ["worker"],
+}
+
+
+def test_worker_create_omits_ingress_flags():
+    args, _, _ = _deploy_calls(exists=False, service_overrides=_WORKER)
+
+    assert args[2] == "create"
+    # No --ingress at all means Azure creates the app with ingress disabled.
+    assert "--ingress" not in args
+    assert "--target-port" not in args
+    assert "--env-vars" in args
+
+
+def test_worker_deploy_passes_command_and_args_as_separate_tokens():
+    for exists in (True, False):
+        args, _, _ = _deploy_calls(exists=exists, service_overrides=_WORKER)
+
+        assert (
+            args[args.index("--command") + 1] == "/usr/local/bin/docker-entrypoint.sh"
+        )
+        assert args[args.index("--args") + 1] == "worker"
+        # nargs='*' flags need one argv element per value, never a joined string.
+        assert not any(" " in tok for tok in args)
+
+
+def test_worker_deploy_never_looks_up_an_fqdn():
+    """An ingress-less app has no FQDN; querying for one would fail a deploy
+    that actually succeeded."""
+    _, call_log, url = _deploy_calls(exists=True, service_overrides=_WORKER)
+
+    assert url == ""
+    assert not any("properties.configuration.ingress.fqdn" in c for c in call_log)
+
+
+def test_web_service_deploy_still_returns_its_url():
+    _, call_log, url = _deploy_calls(exists=True)
+
+    assert url == "https://openhardwaremanager.example.azurecontainerapps.io"
+    assert any("properties.configuration.ingress.fqdn" in c for c in call_log)
+
+
+def test_fqdn_from_app_data_handles_apps_with_and_without_ingress():
+    with_ingress = {
+        "properties": {"configuration": {"ingress": {"fqdn": "app.example.io"}}}
+    }
+    assert (
+        AzureContainerAppsDeployer._fqdn_from_app_data(with_ingress)
+        == "https://app.example.io"
+    )
+    # A worker's `az containerapp show` reports ingress: null.
+    assert (
+        AzureContainerAppsDeployer._fqdn_from_app_data(
+            {"properties": {"configuration": {"ingress": None}}}
+        )
+        == ""
+    )
+    assert AzureContainerAppsDeployer._fqdn_from_app_data({}) == ""

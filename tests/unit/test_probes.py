@@ -9,11 +9,12 @@ import pytest
 from harness.config import HarnessConfig, ModuleConfig
 from harness.modules.probe_cache import ProbeCacheLoop, _routes_with_cache_decorator
 from harness.modules.probe_match import ProbeMatchLoop, run_match_attempts
+from harness.modules.probe_async_generation import ProbeAsyncGenerationLoop
 from harness.modules.probe_okh_files import ProbeOkhFilesLoop, _check_file_url
 from harness.probes.http import HttpResult
 from harness.probes.okh import first_okh_id_from_list_body
 from harness.probes.proposal import proposal_markdown, write_probe_proposals
-from harness.protocol import Finding, FindingKind, Severity
+from harness.protocol import Finding, FindingKind, Observations, Severity
 
 pytestmark = pytest.mark.unit
 
@@ -212,3 +213,107 @@ def test_write_probe_proposals_creates_markdown(tmp_path):
     text = written[0].read_text(encoding="utf-8")
     assert "Match returned 503" in text
     assert proposal_markdown(finding)
+
+
+# --- probe_async_generation --------------------------------------------------
+#
+# The classification matters more than the happy path: "accepted but never
+# consumed" is the quiet failure this probe exists for, and it must not be
+# reported as the same thing as a job that ran and failed.
+
+
+def _async_probe(**options) -> ProbeAsyncGenerationLoop:
+    return ProbeAsyncGenerationLoop(
+        config=_cfg("probe_async_generation", **options),
+        module_config=ModuleConfig(enabled=True, options=options),
+    )
+
+
+def _judge(**data) -> list[Finding]:
+    return _async_probe().judge(Observations(data=data))
+
+
+def test_async_probe_clean_when_job_succeeds_with_a_manifest():
+    findings = _judge(
+        submit_status=202,
+        job_id="abc",
+        state="SUCCESS",
+        states_seen=["PENDING", "PROGRESS", "SUCCESS"],
+        timed_out=False,
+        has_manifest=True,
+    )
+    assert findings == []
+
+
+def test_async_probe_reports_jobs_not_enabled_on_503():
+    findings = _judge(submit_status=503, submit_detail="not enabled")
+
+    assert len(findings) == 1
+    assert findings[0].severity is Severity.ERROR
+    assert "not enabled" in findings[0].title.lower()
+    assert "JOBS_ENABLED" in findings[0].evidence["recommendation"]
+
+
+def test_async_probe_treats_rate_limiting_as_a_warning_not_an_error():
+    """A shared per-IP limit is transient; failing a release on it would be noise."""
+    findings = _judge(submit_status=429, submit_detail="too many")
+
+    assert len(findings) == 1
+    assert findings[0].severity is Severity.WARN
+
+
+def test_async_probe_distinguishes_never_consumed_from_merely_slow():
+    """The whole point: accepted-but-never-consumed is its own diagnosis."""
+    never = _judge(
+        submit_status=202,
+        job_id="abc",
+        state="PENDING",
+        states_seen=["PENDING"],
+        timed_out=True,
+        elapsed_seconds=300,
+    )
+    assert len(never) == 1
+    assert "never consumed" in never[0].title
+    assert "worker" in never[0].evidence["recommendation"].lower()
+
+    slow = _judge(
+        submit_status=202,
+        job_id="abc",
+        state="PROGRESS",
+        states_seen=["PENDING", "PROGRESS"],
+        timed_out=True,
+        elapsed_seconds=300,
+    )
+    assert len(slow) == 1
+    assert "did not finish" in slow[0].title
+    assert "never consumed" not in slow[0].title
+
+
+def test_async_probe_reports_a_failed_job_with_its_error():
+    findings = _judge(
+        submit_status=202,
+        job_id="abc",
+        state="FAILURE",
+        states_seen=["PENDING", "FAILURE"],
+        timed_out=False,
+        job_error="unsupported platform",
+    )
+
+    assert len(findings) == 1
+    assert findings[0].severity is Severity.ERROR
+    assert findings[0].evidence["error"] == "unsupported platform"
+
+
+def test_async_probe_flags_success_without_a_manifest():
+    """SUCCESS with nothing to show is a broken result path, not a pass."""
+    findings = _judge(
+        submit_status=202,
+        job_id="abc",
+        state="SUCCESS",
+        states_seen=["SUCCESS"],
+        timed_out=False,
+        has_manifest=False,
+    )
+
+    assert len(findings) == 1
+    assert "no manifest" in findings[0].title

@@ -17,10 +17,56 @@ azure_storage_container = "production"
 # back to memory. See CACHE_BACKEND / CACHE_REDIS_URL in env.template.
 cache_backend = "redis"
 
+# Async generate-from-url, served by the Celery worker container app. Requires
+# JOB_BROKER_URL (minted as a secret by the deploy) and a running worker —
+# jobs_available() is the AND of the two. Rehearsed in staging first; see
+# docs/ops/async-generation.md.
+jobs_enabled = true
+
 # Gunicorn (ENVIRONMENT=production). ACA runs 1 vCPU / 2Gi — a single worker
 # avoids 3× spaCy eager-init OOM; timeout must exceed MATCHING_INIT_TIMEOUT_SECONDS.
 gunicorn_workers = "1"
 gunicorn_timeout = "300"
+
+# Azure Cache for Redis backing BOTH the catalogue cache and the Celery broker,
+# split by database (0=cache, 1=broker, 2=results) — the same split
+# docker-compose.yml uses.
+#
+# The access key is deliberately NOT here. The deploy reads it from Azure with
+# `az redis list-keys` and mints the three connection URLs as container-app
+# secrets, so the credential lives in exactly one place (Azure itself), rotating
+# it needs no repo change, and the API and worker cannot drift apart.
+#
+# Remove this table to stop the deploy managing Redis secrets for an environment.
+[redis]
+resource_name = "ohm-cache"
+host = "ohm-cache.redis.cache.windows.net"
+port = 6380
+cache_db = 0
+broker_db = 1
+results_db = 2
+
+# Celery worker container deploy config. The worker runs the SAME image as the
+# API in `worker` mode, and inherits the top-level settings above (storage
+# target, cache, jobs) rather than re-declaring them — an API and worker pointed
+# at different storage containers is a silent and nasty class of bug.
+#
+# Sizing mirrors the API because that is the only calibrated data point for
+# spaCy under this image (the API needs 2Gi for a SINGLE gunicorn worker), and
+# concurrency 1 keeps one repo clone plus one spaCy pipeline resident at a time.
+#
+# Replicas are pinned at 1: ACA's default scaler is HTTP-based and a no-ingress
+# worker receives no HTTP, so min_replicas = 0 without an explicit queue-length
+# rule would mean jobs are accepted and then never run.
+[worker]
+cpu = 1.0
+memory = "2Gi"
+min_replicas = 1
+max_replicas = 1
+
+# Worker-only container env, layered over the shared top-level config.
+[worker.env]
+CELERY_CONCURRENCY = "1"
 
 # Frontend (nginx) container deploy config — applied to the frontend container
 # app by the frontend deploy step (schema.frontend_deploy_env_vars), NOT the

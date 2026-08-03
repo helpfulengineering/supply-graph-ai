@@ -64,6 +64,13 @@ class ServiceConfig:
     environment_vars: Dict[str, str] = field(default_factory=dict)
     secrets: Dict[str, str] = field(default_factory=dict)
     labels: Dict[str, str] = field(default_factory=dict)
+    # Background workers serve no HTTP: they need no ingress, no port, and no
+    # public URL. Defaults keep every existing web service unchanged.
+    ingress_enabled: bool = True
+    # Entrypoint override for images that support several modes from one build
+    # (e.g. the OHM image's api|cli|worker entrypoint). None = image default.
+    command: Optional[List[str]] = None
+    args: Optional[List[str]] = None
 
     def validate(self) -> None:
         """Validate service configuration."""
@@ -139,6 +146,9 @@ class BaseDeploymentConfig:
             environment_vars=service_data.get("environment_vars", {}),
             secrets=service_data.get("secrets", {}),
             labels=service_data.get("labels", {}),
+            ingress_enabled=service_data.get("ingress_enabled", True),
+            command=service_data.get("command"),
+            args=service_data.get("args"),
         )
 
         apply_cors_origins_default(service.environment_vars)
@@ -174,6 +184,9 @@ class BaseDeploymentConfig:
                 "environment_vars": self.service.environment_vars,
                 "secrets": self.service.secrets,
                 "labels": self.service.labels,
+                "ingress_enabled": self.service.ingress_enabled,
+                "command": self.service.command,
+                "args": self.service.args,
             },
             "providers": {
                 self.provider.value: self.provider_config,
