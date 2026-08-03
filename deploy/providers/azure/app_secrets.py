@@ -23,6 +23,15 @@ MIRRORED_SECRET_ENV_REFS: Dict[str, str] = {
     "AZURE_STORAGE_KEY": "azure-storage-key",
     "GITHUB_ACCESS_TOKEN": "gihub-token",
     "GITLAB_ACCESS_TOKEN": "gitlab-token",
+    # Required by ANY app that imports src.config with ENVIRONMENT=production —
+    # settings.py builds LLMConfigManager at import time, and CredentialManager
+    # raises without these. That is true whether or not the app ever touches an
+    # LLM, so the worker needs them even with LLM generation out of scope.
+    # Omitting them crash-looped the production worker at startup; a `staging`
+    # environment cannot catch it, because the guard only fires when ENVIRONMENT
+    # is literally "production".
+    "LLM_ENCRYPTION_SALT": "llm-encryption-salt",
+    "LLM_ENCRYPTION_PASSWORD": "llm-encryption-password",
 }
 
 # The API additionally serves authenticated routes; a worker consumes jobs and
