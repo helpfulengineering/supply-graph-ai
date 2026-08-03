@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`staging` environment.** `config/environments/staging.toml` describes a
+  full-fidelity rehearsal of production — same image, same server, same Redis
+  instance — isolated by blob container (`staging`) and Redis database index
+  (3/4/5 vs production's 0/1/2) rather than by separate infrastructure. It pins
+  `USE_GUNICORN=true` because the entrypoint's `auto` mode starts
+  `uvicorn --reload` for any non-production environment, which would make the
+  rehearsal meaningless. Async jobs are enabled there first.
+  `deploy_azure.py --mirror-secrets-from <app>` stands up a new environment by
+  copying the shared secrets from an established app, and `--target-port`
+  (default 8001, the port the image actually binds) makes a created app
+  reachable. Without the flag the production deploy is byte-for-byte unchanged.
 - **Celery worker deploy for Azure Container Apps.**
   `deploy/scripts/deploy_azure_worker.py` deploys the worker as its own
   no-ingress container app running the same image in `worker` mode. Its env

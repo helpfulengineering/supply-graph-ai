@@ -1,0 +1,55 @@
+# Non-secret configuration for the `staging` environment (ENVIRONMENT=staging).
+#
+# Staging is a full-fidelity rehearsal of production, not a toy: same image,
+# same server, same storage provider, same Redis instance. It is isolated from
+# production by BLOB CONTAINER and REDIS DATABASE INDEX rather than by separate
+# infrastructure, which keeps it free of new resources to pay for and forget.
+#
+# NEVER put secrets here. The apps' secrets are mirrored from the production app
+# at deploy time (`deploy_azure.py --mirror-secrets-from openhardwaremanager`),
+# and the Redis URLs are minted from the key Azure holds.
+
+storage_provider = "azure_blob"
+azure_storage_account = "projdatablobstorage"
+
+# Its own container in the shared account, seeded from production's catalogue so
+# readiness and catalogue-backed endpoints behave like the real thing.
+azure_storage_container = "staging"
+
+cache_backend = "redis"
+
+# Without this, the entrypoint's USE_GUNICORN=auto resolves to gunicorn ONLY for
+# ENVIRONMENT=production and starts `uvicorn --reload` everywhere else — a
+# different process model, which would make this environment worthless as a
+# rehearsal. Workers/timeout match production for the same reason.
+use_gunicorn = "true"
+gunicorn_workers = "1"
+gunicorn_timeout = "300"
+
+# Async generation is ON here. Proving this path works before production is the
+# entire purpose of the environment; production stays off until turned on
+# deliberately.
+jobs_enabled = true
+
+# Same Redis instance as production, different databases. Basic C0 has 16, and
+# production uses 0/1/2. Sharing the instance means a heavy staging run can
+# evict production cache entries — acceptable on a beta with no users, and the
+# reason to tear staging down when it is no longer needed.
+[redis]
+resource_name = "ohm-cache"
+host = "ohm-cache.redis.cache.windows.net"
+port = 6380
+cache_db = 3
+broker_db = 4
+results_db = 5
+
+# Worker deploy shape — identical to production, because the point is to
+# rehearse production's behaviour under production's constraints.
+[worker]
+cpu = 1.0
+memory = "2Gi"
+min_replicas = 1
+max_replicas = 1
+
+[worker.env]
+CELERY_CONCURRENCY = "1"

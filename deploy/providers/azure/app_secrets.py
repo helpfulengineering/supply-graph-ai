@@ -25,13 +25,29 @@ MIRRORED_SECRET_ENV_REFS: Dict[str, str] = {
     "GITLAB_ACCESS_TOKEN": "gitlab-token",
 }
 
+# The API additionally serves authenticated routes; a worker consumes jobs and
+# never authenticates a caller, so it has no use for these.
+API_ONLY_SECRET_ENV_REFS: Dict[str, str] = {
+    "API_KEYS": "api-key",
+}
 
-def mirrored_secret_names() -> list[str]:
-    """Secret names to copy from the API app to the worker."""
-    return sorted(set(MIRRORED_SECRET_ENV_REFS.values()))
+
+def shared_secret_env_refs(*, include_api_keys: bool = False) -> Dict[str, str]:
+    """Env var -> secret name for the apps that share these credentials."""
+    refs = dict(MIRRORED_SECRET_ENV_REFS)
+    if include_api_keys:
+        refs.update(API_ONLY_SECRET_ENV_REFS)
+    return refs
 
 
-def mirrored_secret_env_vars() -> Dict[str, str]:
+def mirrored_secret_names(*, include_api_keys: bool = False) -> list[str]:
+    """Secret names to copy from the source app onto the target app."""
+    return sorted(
+        set(shared_secret_env_refs(include_api_keys=include_api_keys).values())
+    )
+
+
+def mirrored_secret_env_vars(*, include_api_keys: bool = False) -> Dict[str, str]:
     """Env vars referencing the mirrored secrets, never their values.
 
     The worker reads and writes the same blob storage as the API
@@ -41,5 +57,7 @@ def mirrored_secret_env_vars() -> Dict[str, str]:
     """
     return {
         env_var: f"secretref:{secret}"
-        for env_var, secret in MIRRORED_SECRET_ENV_REFS.items()
+        for env_var, secret in shared_secret_env_refs(
+            include_api_keys=include_api_keys
+        ).items()
     }
