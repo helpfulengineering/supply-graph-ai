@@ -36,7 +36,12 @@ pytestmark = pytest.mark.unit
 @pytest.fixture(autouse=True)
 def _no_ambient_keys(monkeypatch):
     """Tests must not depend on the developer's real .env."""
+    # LLM_DEFAULT_PROVIDER especially: a developer's .env commonly sets it, and
+    # an explicit choice is tried ALONE, so leaving it set would silently change
+    # what every test in this file is exercising.
     for name in (
+        "LLM_DEFAULT_PROVIDER",
+        "OLLAMA_BASE_URL",
         "ANTHROPIC_API_KEY",
         "OPENAI_API_KEY",
         "AZURE_OPENAI_API_KEY",
@@ -250,3 +255,113 @@ def test_the_gate_and_the_enabled_layer_stack_agree():
 
     assert unavailable.is_llm_configured() is False
     assert GenerationLayer.LLM not in unavailable.get_enabled_layers()
+
+
+# --- Declaring the provider on the config surface ----------------------------
+
+
+@pytest.mark.asyncio
+async def test_the_configured_default_provider_wins_over_preference_order(monkeypatch):
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "openai")
+
+    with _stored({"anthropic": "sk-anthropic", "openai": "sk-openai"}):
+        availability = await resolve_llm_availability()
+
+    assert availability.provider == "openai"
+
+
+@pytest.mark.asyncio
+async def test_a_configured_default_is_tried_alone(monkeypatch):
+    """Falling back would silently serve a provider the operator did not choose."""
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "openai")
+
+    with _stored({"anthropic": "sk-anthropic"}):
+        availability = await resolve_llm_availability()
+
+    assert availability.available is False
+    assert availability.reason == LLMUnavailableReason.NOT_CONFIGURED
+
+
+@pytest.mark.asyncio
+async def test_a_call_site_choice_beats_the_configured_default(monkeypatch):
+    """`ohm llm --provider ...` must win over the deployment's default."""
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "anthropic")
+
+    with _stored({"openai": "sk-openai"}):
+        availability = await resolve_llm_availability(preferred_provider="openai")
+
+    assert availability.provider == "openai"
+
+
+# --- Ollama is opt-in, never assumed -----------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_ollama_is_usable_when_named_as_the_default(monkeypatch):
+    """It has no credential to detect, so naming it IS the opt-in."""
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "local")
+
+    with _nothing_stored():
+        availability = await resolve_llm_availability()
+
+    assert availability.available is True
+    assert availability.provider == "local"
+    assert availability.source == "ollama"
+
+
+@pytest.mark.asyncio
+async def test_ollama_is_usable_when_its_base_url_is_set(monkeypatch):
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "local")
+    monkeypatch.setenv("OLLAMA_BASE_URL", "http://gpu-box.local:11434")
+
+    with _nothing_stored():
+        availability = await resolve_llm_availability()
+
+    assert availability.available is True
+
+
+@pytest.mark.asyncio
+async def test_ollama_needs_no_api_key(monkeypatch):
+    """The whole point of the local path: run a model with no cloud key anywhere."""
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "local")
+
+    with _nothing_stored():
+        availability = await resolve_llm_availability()
+
+    assert availability.available is True
+
+
+@pytest.mark.asyncio
+async def test_ollama_is_never_reached_by_preference_order():
+    """Its client falls back to localhost, so auto-selecting it would make every
+    node claim a local model and send every request to a dead endpoint."""
+    with _nothing_stored():
+        availability = await resolve_llm_availability()
+
+    assert availability.available is False
+    assert availability.reason == LLMUnavailableReason.NOT_CONFIGURED
+
+
+@pytest.mark.asyncio
+async def test_setting_the_base_url_alone_opts_you_in(monkeypatch):
+    """Setting it is itself a deliberate act, so it counts as opting in — but
+    only the SET value ever does; the client's localhost default never has."""
+    monkeypatch.setenv("OLLAMA_BASE_URL", "http://gpu-box.local:11434")
+
+    with _nothing_stored():
+        availability = await resolve_llm_availability()
+
+    assert availability.available is True
+    assert availability.provider == "local"
+
+
+@pytest.mark.asyncio
+async def test_a_cloud_credential_still_wins_over_an_available_ollama(monkeypatch):
+    """Ollama joins the end of preference order, so it is the fallback, not the
+    default — a node with both keeps using its configured cloud provider."""
+    monkeypatch.setenv("OLLAMA_BASE_URL", "http://gpu-box.local:11434")
+
+    with _stored({"anthropic": "sk-anthropic"}):
+        availability = await resolve_llm_availability()
+
+    assert availability.provider == "anthropic"

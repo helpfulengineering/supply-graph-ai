@@ -79,6 +79,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The LLM provider is declared on the config surface, and ollama is usable.**
+  `LLM_DEFAULT_PROVIDER` is now a schema setting, deployable per environment like
+  everything else. An explicit choice is tried **alone** — falling back would
+  silently serve a provider nobody asked for. Unset, a documented preference
+  order applies and the winner is logged. Ollama needs no credential, so naming
+  it (or setting `OLLAMA_BASE_URL`) is the opt-in; it joins auto-selection only
+  when that URL is set, and is never inferred from its client's localhost
+  default, which every node would otherwise appear to satisfy. Its hand-written
+  duplicate in `env.template` is gone — a later assignment there would have
+  silently overridden the schema-owned one.
+
+
 - **`make secrets-check`** confirms the API and worker container apps agree on
   every secret they share — storage key, both git tokens, and all three Redis
   URLs — by comparing digests, never values. The deploys mirror these on every
