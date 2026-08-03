@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.6] - 2026-08-03
+
 ### Added
 
 - **`make secrets-check`** confirms the API and worker container apps agree on
@@ -74,6 +76,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one failed deploys that had actually succeeded). `get_status` reads the FQDN
   from the response it already has instead of a second lookup. Web-service argv
   is pinned by regression tests — the API and frontend deploys are unchanged.
+## [0.10.5] - 2026-08-02
+
+### Added
+
 - **Admin-managed LLM provider credentials.** Encrypted keys can be set,
   rotated, tested, and deleted via `PUT/GET/DELETE /api/llm/credentials/{provider}`
   (strict admin auth) and **Settings → LLM providers**. Keys hot-swap into the
