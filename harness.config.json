@@ -93,7 +93,8 @@
         "timeout_seconds": 300,
         "poll_seconds": 5,
         "no_llm": true,
-        "note": "Health signal for the Celery worker: a job accepted but never consumed sits in PENDING forever with no error, and only an end-to-end submit-and-poll sees it."
+        "expect_llm": false,
+        "note": "Set expect_llm=true once a provider credential is configured, to catch a silent regression to heuristic-only. Health signal for the Celery worker: a job accepted but never consumed sits in PENDING forever with no error, and only an end-to-end submit-and-poll sees it."
       }
     }
   }

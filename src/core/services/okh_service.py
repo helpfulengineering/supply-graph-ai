@@ -992,6 +992,24 @@ class OKHService(BaseService["OKHService"]):
             # Convert to response format - use to_okh_manifest() to get full OKH structure
             manifest_dict = result.to_okh_manifest(include_field_confidence=verbose)
 
+            # Report whether the LLM actually contributed. Degradation to
+            # heuristic-only is otherwise invisible outside the logs, so a
+            # reviewer cannot tell a thin manifest from a missing provider.
+            from ..generation.quality import (
+                llm_usage_recommendation,
+                summarize_llm_usage,
+            )
+
+            metrics = engine.get_metrics()
+            llm_usage = summarize_llm_usage(
+                config, metrics.layer_usage_counts, metrics.error_counts
+            )
+            recommendations = list(result.quality_report.recommendations or [])
+            note = llm_usage_recommendation(llm_usage)
+            if note:
+                # Prepended: it explains the gaps the other recommendations list.
+                recommendations.insert(0, note)
+
             return {
                 "success": True,
                 "message": "Manifest generated successfully",
@@ -1000,7 +1018,8 @@ class OKHService(BaseService["OKHService"]):
                     "overall_quality": result.quality_report.overall_quality,
                     "required_fields_complete": result.quality_report.required_fields_complete,
                     "missing_required_fields": result.quality_report.missing_required_fields,
-                    "recommendations": result.quality_report.recommendations,
+                    "recommendations": recommendations,
+                    **llm_usage,
                 },
             }
 
