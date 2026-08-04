@@ -42,6 +42,10 @@ PROTECTED_APPS = {
     "openhardwaremanager-worker",
 }
 
+# Vaults that must never be deleted by this script. Deleting one takes every
+# secret both live apps resolve at runtime, so they stop starting.
+PROTECTED_VAULTS = {"ohm-prod-kv"}
+
 
 def _run(command: list[str]) -> tuple[int, str, str]:
     result = subprocess.run(command, capture_output=True, text=True, check=False)
@@ -69,6 +73,21 @@ def main() -> int:
         help="Worker app name (default: openhardwaremanager-stg-worker for staging)",
     )
     parser.add_argument(
+        "--vault-name",
+        default=None,
+        help="Key Vault name (default: ohm-<environment>-kv)",
+    )
+    parser.add_argument(
+        "--delete-key-vault",
+        action="store_true",
+        help=(
+            "Also delete the environment's Key Vault, and PURGE it. Purging is "
+            "irreversible, and is the point: a soft-deleted vault keeps its name "
+            "reserved for 90 days, so the next rebuild of this environment would "
+            "fail on a name collision."
+        ),
+    )
+    parser.add_argument(
         "--delete-blob-container",
         action="store_true",
         help="Also delete the environment's blob container. Destroys data.",
@@ -94,6 +113,11 @@ def main() -> int:
             print(f"❌ Refusing to delete protected container app {app!r}.")
             return 1
 
+    vault = args.vault_name or f"ohm-{args.environment}-kv"
+    if args.delete_key_vault and vault in PROTECTED_VAULTS:
+        print(f"❌ Refusing to delete protected Key Vault {vault!r}.")
+        return 1
+
     env_vars = deploy_env_vars(args.environment)
     blob_container = env_vars.get("AZURE_STORAGE_CONTAINER")
     storage_account = env_vars.get("AZURE_STORAGE_ACCOUNT")
@@ -107,6 +131,10 @@ def main() -> int:
         print(f"Blob container:   {storage_account}/{blob_container}  (DATA LOSS)")
     else:
         print(f"Blob container:   {storage_account}/{blob_container}  (kept)")
+    if args.delete_key_vault:
+        print(f"Key Vault:        {vault}  (DELETED AND PURGED — irreversible)")
+    else:
+        print(f"Key Vault:        {vault}  (kept)")
     print("=" * 80)
 
     if not args.yes:
@@ -137,6 +165,50 @@ def main() -> int:
                 print(f"   ❌ {stderr.strip()}")
         else:
             print(f"   deleted: {app}")
+
+    if args.delete_key_vault:
+        print(f"\n🗑  Deleting Key Vault {vault}...")
+        code, _, stderr = _run(
+            [
+                "az",
+                "keyvault",
+                "delete",
+                "--name",
+                vault,
+                "--resource-group",
+                args.resource_group,
+            ]
+        )
+        if code != 0 and "not found" not in stderr.lower():
+            failures.append(f"key vault {vault}: {stderr.strip()}")
+            print(f"   ❌ {stderr.strip()}")
+        else:
+            # Soft-delete keeps the NAME reserved for 90 days, so without this
+            # the next rebuild of this environment fails on a name collision.
+            location = _run(
+                [
+                    "az",
+                    "group",
+                    "show",
+                    "--name",
+                    args.resource_group,
+                    "--query",
+                    "location",
+                    "--output",
+                    "tsv",
+                ]
+            )[1].strip()
+            code, _, stderr = _run(
+                ["az", "keyvault", "purge", "--name", vault, "--location", location]
+            )
+            if code != 0 and "not found" not in stderr.lower():
+                failures.append(
+                    f"key vault {vault} deleted but NOT purged — the name stays "
+                    f"reserved: {stderr.strip()}"
+                )
+                print(f"   ⚠  deleted but not purged: {stderr.strip()}")
+            else:
+                print(f"   deleted and purged: {vault}")
 
     if args.delete_blob_container and blob_container:
         print(f"\n🗑  Deleting blob container {blob_container}...")
