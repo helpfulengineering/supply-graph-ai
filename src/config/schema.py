@@ -205,10 +205,12 @@ class Settings(BaseSettings):
         json_schema_extra={"secret": True},
     )
     jobs_enabled: bool = Field(
-        default=False,
+        default=True,
         description=(
-            "Enable Celery-backed async jobs (generate-from-url). "
-            "Requires job_broker_url and a worker process."
+            "Kill switch for Celery-backed async jobs (generate-from-url). "
+            "Configuring job_broker_url and running a worker is what makes jobs "
+            "available; this only ever turns them off. Defaults on because a node "
+            "without a broker has no jobs either way."
         ),
     )
     job_broker_url: Optional[str] = Field(

@@ -83,12 +83,10 @@ services:
       - CACHE_BACKEND=${CACHE_BACKEND:-memory}
       - CACHE_REDIS_URL=${CACHE_REDIS_URL:-redis://redis:6379/0}
       - CACHE_KEY_PREFIX=${CACHE_KEY_PREFIX:-ohm}
-      # Async jobs (Celery). Literal, not interpolated: this stack ships a
-      # worker, so jobs are always available here — and `cp .env.example .env`
-      # copies the schema default (False, correct for a bare container) into a
-      # file Compose interpolates from, which would silently disable background
-      # import for anyone who followed the documented setup step.
-      - JOBS_ENABLED=true
+      # Async jobs (Celery). A kill switch like LLM_ENABLED: the broker below is
+      # what makes jobs available, and this only turns them off.
+      # Stop consuming work without editing anything: JOBS_ENABLED=false docker compose up
+      - JOBS_ENABLED=${JOBS_ENABLED:-true}
       - JOB_BROKER_URL=${JOB_BROKER_URL:-redis://redis:6379/1}
       - JOB_RESULT_BACKEND=${JOB_RESULT_BACKEND:-redis://redis:6379/2}
     volumes:
@@ -150,9 +148,7 @@ services:
       - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-storage}
       # Must match ohm-api: the worker runs the same generation code.
       - LLM_ENABLED=${LLM_ENABLED:-true}
-      # Literal for the same reason as ohm-api: a worker with jobs disabled
-      # consumes nothing.
-      - JOBS_ENABLED=true
+      - JOBS_ENABLED=${JOBS_ENABLED:-true}
       - JOB_BROKER_URL=${JOB_BROKER_URL:-redis://redis:6379/1}
       - JOB_RESULT_BACKEND=${JOB_RESULT_BACKEND:-redis://redis:6379/2}
       - CELERY_CONCURRENCY=${CELERY_CONCURRENCY:-1}
@@ -164,6 +160,17 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      # Ordering only, not readiness: start the API's mount of the shared
+      # ohm-storage volume before the worker's, rather than both at once.
+      #
+      # Added after a single observed first-run failure — `failed to mkdir
+      # /var/lib/docker/volumes/…_ohm-storage/_data/federation: file exists` on
+      # ohm-worker. It has not reproduced in 34 attempts since, including 12
+      # with this guard removed, so treat it as cheap insurance on a plausible
+      # mechanism rather than a diagnosed fix. Costs nothing: `service_started`
+      # adds no wait beyond container creation.
+      ohm-api:
+        condition: service_started
     restart: unless-stopped
     # Image HEALTHCHECK curls the API port; the worker does not serve HTTP.
     healthcheck:

@@ -97,3 +97,114 @@ jobs:
         run: |
           docker stop test-container || true
           docker rm test-container || true
+
+  # The self-host path, end to end. The job above proves one container answers
+  # /health; it cannot see the failure that matters here, because a broken async
+  # setup does not return an error — submissions are accepted and then sit in
+  # PENDING forever with no worker to consume them.
+  #
+  # This exists because that failure shipped twice: once in production, and once
+  # through `cp .env.example .env`, which Compose interpolates from and which
+  # carried a schema default that silently disabled background import.
+  compose-stack:
+    name: Self-host stack (Compose)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # Tagged as the name docker-compose.yml resolves, so Compose uses this
+      # build instead of pulling a published release. OHM_VERSION is what makes
+      # that substitution possible without editing the file.
+      - name: Build the API image under the tag Compose expects
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: touchthesun/openhardwaremanager:citest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Also exercises the env_file path: these reach the container only by
+      # passthrough, because secrets are deliberately not listed in compose's
+      # `environment:` block.
+      - name: Write a .env the way a self-hoster would
+        run: |
+          {
+            echo "GITHUB_ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}"
+            echo "ENVIRONMENT=development"
+          } > .env
+
+      # No frontend: it is not on the async path, and building it needs the docs
+      # site built first. Redis starts on its own via depends_on.
+      - name: Start the stack
+        env:
+          OHM_VERSION: citest
+        run: docker compose up -d ohm-api ohm-worker
+
+      - name: Wait for the API
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8001/health > /dev/null 2>&1; then
+              echo "API ready after ${i}0s"; exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::API never became healthy"
+          exit 1
+
+      # A 400 here means jobs are unavailable — the regression this job exists
+      # to catch. Anything else and we have a job id to follow.
+      - name: Submit a real background import
+        id: submit
+        run: |
+          RESPONSE=$(curl -sS -w '\n%{http_code}' -X POST \
+            http://localhost:8001/v1/api/okh/generate-from-url/jobs \
+            -H 'Content-Type: application/json' \
+            -d '{"urls":["https://github.com/octocat/Hello-World"],"no_llm":true}')
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          CODE=$(echo "$RESPONSE" | tail -1)
+          echo "HTTP $CODE"
+          echo "$BODY"
+          if [ "$CODE" != "200" ] && [ "$CODE" != "202" ]; then
+            echo "::error::Submission refused (HTTP $CODE). Async jobs are not available on this stack."
+            exit 1
+          fi
+          JOB_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin)['jobs'][0]['job_id'])")
+          echo "job_id=$JOB_ID" >> "$GITHUB_OUTPUT"
+
+      # The actual point: a job that is accepted but never consumed stays
+      # PENDING and reports no error, so only polling to a terminal state proves
+      # a worker is running and reachable through the broker.
+      - name: Poll it to completion
+        run: |
+          JOB_ID="${{ steps.submit.outputs.job_id }}"
+          for i in $(seq 1 60); do
+            BODY=$(curl -sS "http://localhost:8001/v1/api/okh/generate-from-url/jobs/$JOB_ID")
+            STATE=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('state',''))")
+            echo "[$i] $STATE"
+            case "$STATE" in
+              SUCCESS) echo "Background import completed."; exit 0 ;;
+              FAILURE) echo "::error::Job failed"; echo "$BODY"; exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "::error::Job never reached a terminal state in 5 minutes — accepted but not consumed, which means no worker is taking work off the broker."
+          exit 1
+
+      - name: Stack logs
+        if: failure()
+        run: |
+          echo "=== api ===";    docker compose logs --tail=120 ohm-api
+          echo "=== worker ==="; docker compose logs --tail=120 ohm-worker
+          echo "=== redis ===";  docker compose logs --tail=40 redis
+          docker compose ps -a
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v --remove-orphans || true
