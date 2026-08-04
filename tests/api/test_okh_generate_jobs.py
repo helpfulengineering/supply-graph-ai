@@ -153,23 +153,77 @@ async def test_submit_jobs_rate_limited(monkeypatch):
     assert second.status_code == 429, second.text
 
 
+def _llm_available(available: bool):
+    """Control whether an LLM would run, instead of inheriting the machine's."""
+    from src.core.llm.availability import LLMAvailability, LLMUnavailableReason
+
+    value = (
+        LLMAvailability(available=True, provider="anthropic", source="credential_store")
+        if available
+        else LLMAvailability.unavailable(LLMUnavailableReason.NOT_CONFIGURED)
+    )
+    from unittest.mock import AsyncMock
+
+    return patch(
+        "src.core.llm.availability.resolve_llm_availability",
+        AsyncMock(return_value=value),
+    )
+
+
 @pytest.mark.asyncio
 @pytest.mark.contract
-async def test_llm_generation_requires_auth_when_flag_set(monkeypatch):
+async def test_llm_generation_requires_auth_when_a_provider_is_configured(monkeypatch):
+    """The gate fires on actual spend, not on the request asking for an LLM."""
     monkeypatch.setenv("GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM", "true")
     monkeypatch.setenv("JOBS_ENABLED", "true")
     monkeypatch.setenv("JOB_BROKER_URL", "redis://redis:6379/1")
 
     app, _ = _get_app()
     transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(
-        transport=transport, base_url="http://testserver"
-    ) as client:
-        resp = await client.post(
-            "/v1/api/okh/generate-from-url/jobs",
-            json={"urls": ["https://github.com/a/one"], "no_llm": False},
-        )
+    with _llm_available(True):
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.post(
+                "/v1/api/okh/generate-from-url/jobs",
+                json={"urls": ["https://github.com/a/one"], "no_llm": False},
+            )
     assert resp.status_code == 401, resp.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_llm_generation_is_not_gated_without_a_provider(monkeypatch):
+    """With nothing to spend, an anonymous caller keeps its heuristic-only run.
+
+    This is the case the previous version of this test got wrong: it asserted
+    401 whenever the flag was set, which passed on a machine that happened to
+    have an API key and failed in CI, which has none.
+    """
+    monkeypatch.setenv("GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM", "true")
+    monkeypatch.setenv("JOBS_ENABLED", "true")
+    monkeypatch.setenv("JOB_BROKER_URL", "redis://redis:6379/1")
+
+    enqueued = MagicMock()
+    enqueued.id = "job-222"
+
+    app, _ = _get_app()
+    transport = httpx.ASGITransport(app=app)
+    with (
+        _llm_available(False),
+        patch(
+            "src.core.jobs.generation_jobs.generate_from_url_task.delay",
+            return_value=enqueued,
+        ),
+    ):
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.post(
+                "/v1/api/okh/generate-from-url/jobs",
+                json={"urls": ["https://github.com/a/one"], "no_llm": False},
+            )
+    assert resp.status_code != 401, resp.text
 
 
 @pytest.mark.asyncio
