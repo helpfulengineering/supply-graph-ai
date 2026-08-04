@@ -71,6 +71,50 @@ def pytest_collection_modifyitems(
             item.add_marker(getattr(pytest.mark, lane))
 
 
+# Provider credentials a developer commonly has in .env, and which must not
+# change what a test asserts. `load_dotenv` repopulates these from the project
+# .env whatever the shell says, so clearing them here is the only reliable way.
+_AMBIENT_LLM_CREDENTIALS = (
+    "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "AZURE_OPENAI_API_KEY",
+    "AWS_BEDROCK_API_KEY",
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    "LLM_DEFAULT_PROVIDER",
+    "OLLAMA_BASE_URL",
+)
+
+
+@pytest.fixture(autouse=True)
+def _no_ambient_llm_credentials(
+    request: pytest.Request, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Make LLM behaviour independent of whether the machine has an API key.
+
+    Whether an LLM is available changes real behaviour — which layers run, and
+    whether the auth gate fires — so a test that reads ambient credentials
+    asserts something different on a laptop with a key than in CI without one.
+
+    That is not hypothetical: a contract test asserting generation returns 401
+    passed locally and failed in CI for exactly this reason. It was green
+    because the developer had a key, not because the code was right.
+
+    Set to empty rather than deleted, deliberately: `load_dotenv` is called at
+    module import, imports happen lazily inside tests, and it repopulates any
+    variable that is ABSENT — so deleting them is undone the first time a test
+    imports a config module. It leaves a variable that already exists alone,
+    even an empty one, and the code treats empty as unset.
+
+    Tests that want a credential set one themselves; monkeypatch runs after this
+    fixture, so setting one still works. Tests marked ``llm`` deliberately use a
+    real provider and are left alone.
+    """
+    if request.node.get_closest_marker("llm"):
+        return
+    for name in _AMBIENT_LLM_CREDENTIALS:
+        monkeypatch.setenv(name, "")
+
+
 @pytest.fixture(autouse=True)
 def _block_external_network(
     request: pytest.Request, monkeypatch: pytest.MonkeyPatch
