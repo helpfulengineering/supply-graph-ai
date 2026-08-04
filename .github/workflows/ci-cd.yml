@@ -42,10 +42,10 @@ jobs:
           uv run python scripts/generate_repo_map.py
           git diff --exit-code .repo-map.md
 
-      - name: Verify env.template is up to date
+      - name: Verify .env.example is up to date
         run: |
           uv run python scripts/generate_env_template.py
-          git diff --exit-code env.template
+          git diff --exit-code .env.example
 
       - name: Verify version references are in sync
         run: uv run python scripts/bump_version.py --check

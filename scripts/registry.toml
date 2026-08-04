@@ -38,7 +38,7 @@ used_by = ["ci: release", "docs/RELEASE.md"]
 
 [scripts.generate_env_template]
 category = "generate"
-summary = "Regenerate the schema-owned block of env.template from the config schema; --check gates staleness."
+summary = "Regenerate the schema-owned block of .env.example from the config schema; --check gates staleness."
 run = "uv run python scripts/generate_env_template.py [--check]"
 mutates = true
 used_by = ["make ready (env-template-check)", "ci: quality"]

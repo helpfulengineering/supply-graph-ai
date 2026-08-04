@@ -91,7 +91,7 @@ AZURE_STORAGE_KEY=<your-account-key>
 AZURE_STORAGE_CONTAINER=<your-container-name>
 ```
 
-See [Container / self-host guide](docs-site/docs/guides/run-your-own-node.md) and `env.template` for storage env vars (Azure, AWS S3, GCS).
+See [Container / self-host guide](docs-site/docs/guides/run-your-own-node.md) and `.env.example` for storage env vars (Azure, AWS S3, GCS).
 
 > **How configuration resolves.** Non-secret defaults (storage provider / account
 > / container, `OKW_SOURCE`, CORS) are checked in per environment under
@@ -99,7 +99,7 @@ See [Container / self-host guide](docs-site/docs/guides/run-your-own-node.md) an
 > you pass as an env var (or in `.env`) overrides them. Secrets — `AZURE_STORAGE_KEY`,
 > `API_KEYS`, `LLM_*` — are never in those files (use `.env` or an Azure `secretRef`).
 > In `production` the app hard-fails on missing/invalid storage config, and `/health`
-> reports the resolved storage target + object counts. See `env.template` and
+> reports the resolved storage target + object counts. See `.env.example` and
 > [run your own node](docs-site/docs/guides/run-your-own-node.md).
 
 The API is at `http://localhost:8001`. Docs: `http://localhost:8001/v1/docs`. Check version: `curl -s http://localhost:8001/health`.
@@ -114,7 +114,7 @@ git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
 # 2. Create your environment file (defaults work for local development)
-cp env.template .env
+cp .env.example .env
 
 # 3. Build and start the API
 docker compose up ohm-api
@@ -132,7 +132,7 @@ git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
 # 2. Create your environment file
-cp env.template .env
+cp .env.example .env
 
 # 3. Provision the environment (one step)
 make setup

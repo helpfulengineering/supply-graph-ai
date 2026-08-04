@@ -1,7 +1,7 @@
-"""Tests for the env.template generator (config Slice 1 / #238).
+"""Tests for the .env.example generator (config Slice 1 / #238).
 
 Pin the lockfile behaviour: the generated block is deterministic, covers every
-schema field, and the committed env.template is not stale.
+schema field, and the committed .env.example is not stale.
 """
 
 import importlib.util
@@ -51,4 +51,4 @@ def test_committed_template_is_not_stale():
     current = gen._ENV_TEMPLATE.read_text(encoding="utf-8")
     assert (
         gen.render_template(current) == current
-    ), "env.template is stale — run `make env-template` and commit the result."
+    ), ".env.example is stale — run `make env-template` and commit the result."

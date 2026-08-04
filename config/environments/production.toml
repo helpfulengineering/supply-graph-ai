@@ -14,7 +14,7 @@ azure_storage_container = "production"
 # Cache backend. The memory backend caches the OKH catalogue PER-REPLICA, so
 # every instance pays a full assembly on its first request; redis shares one
 # copy. Needs the CACHE_REDIS_URL secret to take effect — without it this falls
-# back to memory. See CACHE_BACKEND / CACHE_REDIS_URL in env.template.
+# back to memory. See CACHE_BACKEND / CACHE_REDIS_URL in .env.example.
 cache_backend = "redis"
 
 # Require authentication for generation that would actually invoke an LLM.

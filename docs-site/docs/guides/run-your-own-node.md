@@ -76,7 +76,7 @@ all unless you ask for it, and listens only on localhost when you do.
 Everything else is optional. Copy the template when you want to change something:
 
 ```bash
-cp env.template .env
+cp .env.example .env
 ```
 
 Non-secret defaults live in per-environment configuration files chosen by an

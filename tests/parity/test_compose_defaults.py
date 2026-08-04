@@ -116,6 +116,27 @@ def test_the_llm_kill_switch_is_not_inverted():
         )
 
 
+def test_copying_the_env_template_cannot_disable_background_import():
+    """`cp .env.example .env` is the documented way to start configuring a node.
+
+    Compose interpolates `${VAR:-default}` from that same `.env`, so any value
+    the template states becomes an override — and the template carries schema
+    defaults, where `JOBS_ENABLED` is correctly `False` for a bare container.
+    Interpolating it here meant following the documented setup step silently
+    disabled background import on a stack that ships a worker to do it.
+
+    Keeping these literal is what makes the template safe to copy.
+    """
+    compose = _compose()
+    for service in _APP_SERVICES:
+        entries = compose["services"][service].get("environment") or []
+        jobs = next(e for e in entries if e.startswith("JOBS_ENABLED="))
+        assert jobs == "JOBS_ENABLED=true", (
+            f"{service} interpolates JOBS_ENABLED ({jobs!r}); a .env copied from "
+            ".env.example would disable the worker this stack ships"
+        )
+
+
 def test_every_declared_override_is_still_a_real_divergence():
     """Stale allow-list entries are how an allow-list rots into a rubber stamp."""
     live = {

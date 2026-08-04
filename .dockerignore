@@ -121,7 +121,6 @@ notes/
 
 # Configuration files that shouldn't be in container
 .env.example
-env.template
 config/llm_config.json.example
 
 # CI/CD (already excluded, but be explicit)
