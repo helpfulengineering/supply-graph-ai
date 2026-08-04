@@ -1107,24 +1107,45 @@ async def get_okh_from_storage(
         )
 
 
-def _enforce_llm_auth_if_required(
+async def _enforce_llm_auth_if_required(
     *,
     no_llm: bool,
     user: Optional[AuthenticatedUser],
 ) -> None:
-    """When configured, LLM-enabled generation requires a valid API key."""
+    """Require authentication only when a request would genuinely invoke an LLM.
+
+    This used to gate on the request's *intent* — the `no_llm` flag — rather than
+    on whether an LLM was actually available. The web UI always requests
+    LLM-enabled generation, so switching the setting on would have rejected every
+    generation in order to guard a cost that could not occur. That is why it
+    stayed off, and why the spend path stayed unguarded.
+
+    Availability is resolved here rather than reused from the generation call:
+    on the async path this runs in the API process while generation happens in
+    the worker, so there is nothing to reuse.
+    """
     from src.config.schema import get_settings
+
+    from ...llm.availability import resolve_llm_availability
 
     if no_llm or not get_settings().generate_from_url_require_auth_for_llm:
         return
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=(
-                "LLM-enabled generation requires authentication. "
-                "Pass Authorization: Bearer <token>, or set no_llm=true."
-            ),
-        )
+    if user is not None:
+        return
+
+    availability = await resolve_llm_availability(requested=True)
+    if not availability.available:
+        # No provider, so no spend to protect. Refusing here would deny an
+        # anonymous user heuristic generation they are entitled to.
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=(
+            "LLM-enabled generation requires authentication. "
+            "Pass Authorization: Bearer <token>, or set no_llm=true."
+        ),
+    )
 
 
 def _enforce_generate_rate_limit(http_request: Request) -> None:
@@ -1182,7 +1203,7 @@ async def generate_from_url(
     - Optional interactive review for field validation
     """
     _enforce_generate_rate_limit(http_request)
-    _enforce_llm_auth_if_required(no_llm=request.no_llm, user=user)
+    await _enforce_llm_auth_if_required(no_llm=request.no_llm, user=user)
     try:
         # Call service to generate manifest from URL or local path
         result = await okh_service.generate_from_url(
@@ -1225,7 +1246,7 @@ async def submit_generate_from_url_jobs(
     from src.core.jobs import generation_jobs
 
     _enforce_generate_rate_limit(http_request)
-    _enforce_llm_auth_if_required(no_llm=request.no_llm, user=user)
+    await _enforce_llm_auth_if_required(no_llm=request.no_llm, user=user)
 
     if not generation_jobs.jobs_available():
         raise HTTPException(

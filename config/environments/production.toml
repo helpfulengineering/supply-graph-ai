@@ -17,6 +17,16 @@ azure_storage_container = "production"
 # back to memory. See CACHE_BACKEND / CACHE_REDIS_URL in env.template.
 cache_backend = "redis"
 
+# Require authentication for generation that would actually invoke an LLM.
+#
+# Safe to have on before any provider is configured: the gate fires only when a
+# request would genuinely spend, so with no provider it is inert and anonymous
+# heuristic generation keeps working exactly as it does today. The moment an
+# admin adds a credential in Settings, the spend path is already guarded — which
+# removes the "remember to turn this on" step at precisely the moment it would
+# be easiest to forget.
+generate_from_url_require_auth_for_llm = true
+
 # Async generate-from-url, served by the Celery worker container app. Requires
 # JOB_BROKER_URL (minted as a secret by the deploy) and a running worker —
 # jobs_available() is the AND of the two. Rehearsed in staging first; see

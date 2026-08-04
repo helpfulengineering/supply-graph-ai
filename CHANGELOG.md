@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **LLM generation requires authentication once a provider is configured.**
+  `GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM` gated on the request's *intent* — the
+  `no_llm` flag — rather than on whether an LLM was actually available. Since the
+  web UI always requests LLM-enabled generation, switching it on would have
+  rejected every generation to guard a cost that could not occur, which is why it
+  stayed off and the spend path stayed unguarded. It now fires only when a
+  request would genuinely invoke an LLM, on both the synchronous and async
+  endpoints, and is **armed in production** — inert while no provider is
+  configured, protective the moment an admin adds a credential, with no step to
+  remember at the moment it would be easiest to forget.
+
+
 ### Changed
 
 - **`make secrets-check` now checks what Key Vault made important.** It compared
