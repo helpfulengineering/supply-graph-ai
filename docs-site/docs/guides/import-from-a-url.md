@@ -19,12 +19,21 @@ organisation backfills a back catalogue without redocumenting years of work.
 Only the URL is needed. Everything else is decided for you.
 
 Most repositories come back in a few seconds. Large, mature projects — hundreds
-of files, years of documentation — take longer. On nodes with async jobs enabled
-(`JOBS_ENABLED=true` and a Celery worker), the web UI submits background jobs and
-shows real progress, so generation is no longer capped by the two-minute proxy
-timeout. You can paste several URLs separated by commas; each becomes its own job.
-Self-hosters turning that on for a new Azure environment set `enable_jobs = true`
-when they [deploy a node on Azure](deploy-a-node-on-azure.md).
+of files, years of documentation — take longer. On nodes with async jobs enabled,
+the web UI submits background jobs and shows real progress, so generation is no
+longer capped by the two-minute proxy timeout. You can paste several URLs
+separated by commas; each becomes its own job.
+
+!!! info "On a node you run, this is already on"
+
+    `docker compose up` starts a worker and enables jobs, so background import
+    works out of the box — see [run your own node](run-your-own-node.md). It is
+    what `JOBS_ENABLED=true` plus a running `ohm-worker` gets you.
+
+    If you assembled a node by hand and background import is unavailable, those
+    two things are what's missing. On Azure Container Apps, set
+    `enable_jobs = true` when you
+    [deploy a node](deploy-a-node-on-azure.md).
 
 Operators and scripts can use the HTTP job API or the CLI:
 

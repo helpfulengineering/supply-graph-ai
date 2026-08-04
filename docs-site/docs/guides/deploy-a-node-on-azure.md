@@ -6,10 +6,22 @@ surface: selfhost
 
 # Deploy a node on Azure
 
-This is the path for standing up a **new** OHM environment on Azure Container
-Apps — your own resource group, storage, API, and (when you want them)
-background-generation workers. It does **not** change the public
-openhardwaremanager.org deployment; that stack is separate.
+This stands up a **new** OHM environment on Azure Container Apps — your own
+resource group, storage, API, and (when you want them) background-generation
+workers. It does **not** change the public openhardwaremanager.org deployment;
+that stack is separate.
+
+!!! note "One option, not the default"
+
+    Self-hosting does not require Azure or any cloud account.
+    [Run your own node](run-your-own-node.md) is the supported path everywhere,
+    including on a server you own — it's one `docker compose up`, and it's what
+    to use unless you specifically want managed infrastructure.
+
+    This guide exists because it's what the public instance runs, so it's the
+    cloud path we can keep honest. There is no equivalent for AWS or Google
+    Cloud; both are supported as *storage* backends, with compute via Compose on
+    a VM.
 
 You need the OHM source tree (the Terraform lives under
 `deploy/terraform/azure/`), an Azure subscription you can create resources in,
