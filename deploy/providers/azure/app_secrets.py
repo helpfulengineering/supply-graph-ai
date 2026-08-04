@@ -16,12 +16,10 @@ from typing import Dict
 
 # Container env var -> the Container App secret holding its value. The same
 # names are used on both apps so the two are comparable secret-for-secret.
-#
-# NB `gihub-token` is missing a 't'. That is the real name of the live secret;
-# correcting it is a separate change that must rename on both apps at once.
+
 MIRRORED_SECRET_ENV_REFS: Dict[str, str] = {
     "AZURE_STORAGE_KEY": "azure-storage-key",
-    "GITHUB_ACCESS_TOKEN": "gihub-token",
+    "GITHUB_ACCESS_TOKEN": "github-token",
     "GITLAB_ACCESS_TOKEN": "gitlab-token",
     # Required by ANY app that imports src.config with ENVIRONMENT=production —
     # settings.py builds LLMConfigManager at import time, and CredentialManager

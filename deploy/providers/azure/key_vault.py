@@ -30,15 +30,13 @@ MAX_SECRET_NAME_LENGTH = 20
 # Env var -> Key Vault secret name. These are the values both apps need, each
 # stored once. Key Vault secret names allow only alphanumerics and dashes.
 #
-# NB two names carry history:
-#   * `gihub-token` is missing a 't' — the real name of the live secret. It is
-#     renamed by a separate change, deliberately not bundled here.
+# NB one name carries history:
 #   * `llm-encrypt-password` was `llm-encryption-password` (23 chars), which
 #     exceeds the limit above. The ENV VAR name is unchanged; only the secret's
 #     name moves, so nothing in the application sees a difference.
 KEY_VAULT_SECRET_REFS: Dict[str, str] = {
     "AZURE_STORAGE_KEY": "azure-storage-key",
-    "GITHUB_ACCESS_TOKEN": "gihub-token",
+    "GITHUB_ACCESS_TOKEN": "github-token",
     "GITLAB_ACCESS_TOKEN": "gitlab-token",
     "LLM_ENCRYPTION_SALT": "llm-encryption-salt",
     "LLM_ENCRYPTION_PASSWORD": "llm-encrypt-password",

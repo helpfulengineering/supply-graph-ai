@@ -210,6 +210,21 @@ keeps its name reserved for 90 days, so a delete without a purge silently blocks
 the next rebuild of that environment with a name collision. Purging is
 irreversible, which is why it is opt-in.
 
+### Renaming a secret
+
+Do it additively, in this order, because an app that resolves the wrong name
+does not fail loudly — a missing GitHub token just means anonymous cloning, and
+anonymous rate limits look like intermittent 429s during generation.
+
+1. Create the new secret in the vault with the same value; confirm the digests
+   match before going further.
+2. Change the name in the deploy constants.
+3. Deploy. Both apps gain a reference to the new name and their env vars follow.
+4. Verify, then delete the old vault secret and the leftover app secrets.
+
+The old secret stays resolvable throughout, so there is no window where an app
+is pointed at something that does not exist.
+
 ### Leftovers
 
 The migration replaces secrets by name and touches nothing else, so a

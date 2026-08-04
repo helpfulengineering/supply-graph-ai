@@ -144,3 +144,14 @@ def test_key_vault_names_are_valid():
 
     for name in KEY_VAULT_SECRET_REFS.values():
         assert re.fullmatch(r"[A-Za-z0-9-]+", name), name
+
+
+def test_the_github_secret_name_is_spelled_correctly():
+    """It was `gihub-token` — missing a 't' — in the vault and on both apps.
+
+    Pinned because the failure mode is quiet: a wrong name means the worker
+    clones anonymously, and anonymous GitHub rate limits surface as intermittent
+    429s during generation rather than as an obvious misconfiguration.
+    """
+    assert KEY_VAULT_SECRET_REFS["GITHUB_ACCESS_TOKEN"] == "github-token"
+    assert "gihub-token" not in KEY_VAULT_SECRET_REFS.values()
