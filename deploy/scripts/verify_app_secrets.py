@@ -1,29 +1,33 @@
 #!/usr/bin/env python3
-"""Verify the API and worker container apps agree on their shared secrets.
+"""Verify the API and worker agree about the secrets they share.
 
-The deploys mirror these secrets from the API app on every run, so they cannot
-drift across a deploy. This confirms that actually took effect, and catches the
-two cases mirroring cannot: a half-completed deploy, and someone editing a
-secret directly in the portal afterwards.
+Secrets now live once in Key Vault; each app holds a *reference* resolved
+through its managed identity. So the question worth asking changed. Comparing
+resolved values proves little when there is only one copy — but two apps can
+still be pointed at **different vault secrets**, or one can be left holding an
+inline value while the other reads the vault. That is what this checks.
 
-Compares **digests**, never values, so the output is safe to paste anywhere.
+It also reports secrets that are still inline. Those are not automatically
+wrong — the platform manages the registry credential itself, and the migration
+deliberately leaves pre-rename secrets behind rather than deleting during a
+cutover — but an inline copy of a value that should come from the vault is
+drift waiting to happen.
 
-The sharp one is the broker URL. An API and worker pointed at different Redis
-databases means jobs are accepted and never consumed — no error in either app,
-a progress bar at 0%, and nothing that looks wrong until you compare the two.
+No secret value is read at all — only the vault URI each app points at — so the
+output is safe to paste anywhere.
 
 Not part of ``make ready``: it needs live cloud credentials, and the merge gate
 must stay runnable offline.
 
 Usage:
-    uv run python deploy/scripts/verify_app_secrets.py
+    make secrets-check
     uv run python deploy/scripts/verify_app_secrets.py --environment staging \\
         --container-app-name openhardwaremanager-staging \\
         --worker-app-name openhardwaremanager-stg-worker
 """
 
 import argparse
-import hashlib
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -31,76 +35,67 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from deploy.providers.azure.app_secrets import (  # noqa: E402
-    API_ONLY_SECRET_ENV_REFS,
-    mirrored_secret_names,
-)
-from deploy.providers.azure.redis_secrets import (  # noqa: E402
-    SECRET_CACHE_URL,
-    SECRET_JOB_BROKER_URL,
-    SECRET_JOB_RESULT_BACKEND,
+from deploy.providers.azure.key_vault import (  # noqa: E402
+    WORKER_EXCLUDED_SECRETS,
+    secret_refs_for,
 )
 
-# Secrets both apps must hold identically. The Redis URLs are included because a
-# broker mismatch is invisible in either app on its own.
-SHARED_SECRETS = sorted(
-    set(mirrored_secret_names())
-    | {SECRET_CACHE_URL, SECRET_JOB_BROKER_URL, SECRET_JOB_RESULT_BACKEND}
+# Secrets both apps must resolve identically. Sourced from the Key Vault mapping
+# so this cannot drift from what the deploys actually wire — reading a separate
+# list is how the previous version came to check a renamed-away secret while
+# missing the live one.
+SHARED_SECRETS = sorted(set(secret_refs_for(worker=True).values()))
+
+# Expected on the API alone: a worker authenticates no callers.
+API_ONLY_SECRETS = sorted(
+    {
+        name
+        for env_var, name in secret_refs_for().items()
+        if env_var in WORKER_EXCLUDED_SECRETS
+    }
 )
 
-# Expected on the API only — a worker authenticates no callers. Absence from the
-# worker is correct, not drift.
-API_ONLY_SECRETS = sorted(set(API_ONLY_SECRET_ENV_REFS.values()))
 
-
-def _digest(value: str) -> str:
-    """Short, stable fingerprint. Never reveals the secret."""
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
-
-
-def _read_secret(app: str, resource_group: str, name: str) -> str | None:
+def _secrets(app: str, resource_group: str) -> dict:
+    """Secret name -> its Key Vault URI, or None when the value is inline."""
     result = subprocess.run(
         [
             "az",
             "containerapp",
-            "secret",
             "show",
             "--name",
             app,
             "--resource-group",
             resource_group,
-            "--secret-name",
-            name,
             "--query",
-            "value",
+            "properties.configuration.secrets",
             "--output",
-            "tsv",
+            "json",
         ],
         capture_output=True,
         text=True,
         check=False,
     )
     if result.returncode != 0:
-        return None
-    value = result.stdout.strip()
-    return value or None
+        raise RuntimeError(
+            f"could not read secrets from {app}: {result.stderr.strip()}"
+        )
+    return {s["name"]: s.get("keyVaultUrl") for s in json.loads(result.stdout or "[]")}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify the API and worker agree on their shared secrets"
+        description="Verify the API and worker agree about their shared secrets"
     )
     parser.add_argument("--resource-group", default="project_data_rg")
     parser.add_argument("--container-app-name", default="openhardwaremanager")
     parser.add_argument("--worker-app-name", default="openhardwaremanager-worker")
-    parser.add_argument(
-        "--environment",
-        default="production",
-        help="Labels the report only; secret names are the same across environments",
-    )
+    parser.add_argument("--environment", default="production", help="labels the report")
     args = parser.parse_args()
 
     api, worker = args.container_app_name, args.worker_app_name
+    api_secrets = _secrets(api, args.resource_group)
+    worker_secrets = _secrets(worker, args.resource_group)
 
     print("=" * 78)
     print(f"Shared secret check — {args.environment}")
@@ -111,47 +106,59 @@ def main() -> int:
     problems: list[str] = []
 
     for name in SHARED_SECRETS:
-        api_value = _read_secret(api, args.resource_group, name)
-        worker_value = _read_secret(worker, args.resource_group, name)
-
-        if api_value is None and worker_value is None:
-            problems.append(f"{name}: missing from BOTH apps")
-            print(f"  ✗ {name:24} missing from both")
-            continue
-        if api_value is None:
+        if name not in api_secrets:
             problems.append(f"{name}: missing from {api}")
             print(f"  ✗ {name:24} missing from api")
             continue
-        if worker_value is None:
+        if name not in worker_secrets:
             problems.append(f"{name}: missing from {worker}")
             print(f"  ✗ {name:24} missing from worker")
             continue
 
-        api_digest, worker_digest = _digest(api_value), _digest(worker_value)
-        if api_digest != worker_digest:
-            problems.append(
-                f"{name}: differs (api {api_digest} != worker {worker_digest})"
-            )
-            print(f"  ✗ {name:24} DIFFERS  api={api_digest} worker={worker_digest}")
+        api_uri, worker_uri = api_secrets[name], worker_secrets[name]
+        if api_uri != worker_uri:
+            problems.append(f"{name}: apps reference different sources")
+            print(f"  ✗ {name:24} DIFFERENT sources")
+            print(f"      api    → {api_uri or 'inline value'}")
+            print(f"      worker → {worker_uri or 'inline value'}")
+        elif api_uri:
+            print(f"  ✓ {name:24} same vault secret")
         else:
-            print(f"  ✓ {name:24} agree    {api_digest}")
+            # Both inline and therefore equal only by luck; nothing keeps them so.
+            problems.append(f"{name}: still an inline copy on both apps")
+            print(f"  ✗ {name:24} inline on both — not vault-backed")
 
     for name in API_ONLY_SECRETS:
-        if _read_secret(api, args.resource_group, name) is None:
+        if name not in api_secrets:
             problems.append(f"{name}: missing from {api}")
             print(f"  ✗ {name:24} missing from api (API-only secret)")
         else:
             print(f"  · {name:24} api only (expected)")
 
+    leftovers = {
+        app_name: sorted(
+            name
+            for name, uri in secrets.items()
+            if uri is None and name not in API_ONLY_SECRETS
+        )
+        for app_name, secrets in ((api, api_secrets), (worker, worker_secrets))
+    }
+    if any(leftovers.values()):
+        print("\n  Inline secrets (not vault-backed):")
+        for app_name, names in leftovers.items():
+            for name in names:
+                note = " ← platform-managed" if "registry" in name else ""
+                print(f"    {app_name}: {name}{note}")
+        print("  Expected during a migration; remove once references are trusted.")
+
     print("=" * 78)
     if problems:
-        print("❌ Secret drift detected:")
+        print("❌ Problems:")
         for problem in problems:
             print(f"   - {problem}")
-        print("\nRe-run the deploys to re-mirror, or fix the source app's secret.")
         return 1
 
-    print("✅ The API and worker agree on every shared secret.")
+    print("✅ Both apps reference the same vault secret for every shared value.")
     return 0
 
 
