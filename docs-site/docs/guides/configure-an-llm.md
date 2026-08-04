@@ -69,6 +69,13 @@ is what enables it — OHM never assumes a local model is present just because
 ollama's client would default to `localhost`. Otherwise every node would believe
 it had a local model, and every generation would fail against nothing.
 
+### The command line uses the same configuration
+
+`ohm llm` commands read exactly what generation reads — including credentials
+stored through **Settings**, which they previously could not see. So a key added
+in the web app works on the command line too, without being repeated in the
+environment.
+
 ## When several are configured
 
 A stored credential wins over an environment variable for the same provider, so

@@ -210,6 +210,21 @@ keeps its name reserved for 90 days, so a delete without a purge silently blocks
 the next rebuild of that environment with a name collision. Purging is
 irreversible, which is why it is opt-in.
 
+### Deploys write references, never values
+
+Where an environment declares `key_vault_name`, the deploy scripts set secret
+**references** on the apps and mint the Redis URLs **into the vault**. They never
+set a secret value on a container app.
+
+That is not a stylistic preference. Setting a secret by name *replaces* a Key
+Vault reference with an inline value, so a deploy that wrote values would
+succeed, leave both apps working, and silently undo the migration — putting the
+duplicated copies back with nothing to signal it. `make secrets-check` reports
+any value found inline for exactly this reason.
+
+Environments with no `key_vault_name` are unaffected and still stand up the old
+way, which is what makes a fresh self-host environment possible.
+
 ### Renaming a secret
 
 Do it additively, in this order, because an app that resolves the wrong name

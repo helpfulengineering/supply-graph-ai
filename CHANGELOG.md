@@ -7,73 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **Six defects in the Azure Terraform module, and the self-host path proven.**
-  `LLM_ENABLED=false` was set on both apps — once a no-op, but since the kill
-  switch became real it actively disabled the LLM even with a credential
-  configured; `MATCHING_EAGER_INIT` was set on the worker, which never runs the
-  lifespan that reads it; `rediss://` URLs carried no `ssl_cert_reqs`, so TLS
-  verification was silently off; `CACHE_REDIS_URL` was never wired, so a node
-  paid for Redis and cached in memory anyway; database 0 sat unused; and the
-  Redis access key was interpolated **unencoded**, so a base64 key containing
-  `/` truncated the URL. The module was then applied for real with jobs enabled,
-  a generation job submitted against it and completed, and the environment
-  destroyed — the `enable_jobs` path the public guide advertises had never
-  actually been run.
-
-
-### Fixed
-
-- **One mechanism now decides which LLM provider is used.** Generation read the
-  credential store then the environment; the `ohm llm` CLI read the environment
-  only, probed ollama over the network against a hardcoded localhost address, and
-  fell through to auto-detection when an explicit choice was unavailable. So a
-  credential stored through **Settings** reached generation but was invisible to
-  the CLI. Both now use the same resolver, so `--provider` is honoured or fails
-  rather than silently running a different provider, the kill switch applies
-  everywhere, and ollama is opt-in on both paths. Provider listing no longer
-  touches the network.
-- **`ohm llm --provider` and `--model` had no effect.** The service was
-  constructed with its config passed as the service *name*, leaving the config
-  `None` and falling back to defaults — so every invocation quietly ran Anthropic
-  on the default model. Found by the tests written for the unification above.
-
-
-### Fixed
-
-- **Deploys no longer overwrite Key Vault references with inline values.** After
-  the migration, both deploy scripts still minted Redis URLs and mirrored shared
-  secrets as *values*, and setting a secret by name replaces a Key Vault
-  reference — so the next release would have succeeded, kept working, and
-  silently undone the migration on an inline copy. Where an environment declares
-  `key_vault_name`, the deploys now write references only, mint the Redis URLs
-  *into the vault*, and stop copying secrets between apps entirely. Environments
-  without a vault are unchanged.
-
-
-### Security
-
-- **LLM generation requires authentication once a provider is configured.**
-  `GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM` gated on the request's *intent* — the
-  `no_llm` flag — rather than on whether an LLM was actually available. Since the
-  web UI always requests LLM-enabled generation, switching it on would have
-  rejected every generation to guard a cost that could not occur, which is why it
-  stayed off and the spend path stayed unguarded. It now fires only when a
-  request would genuinely invoke an LLM, on both the synchronous and async
-  endpoints, and is **armed in production** — inert while no provider is
-  configured, protective the moment an admin adds a credential, with no step to
-  remember at the moment it would be easiest to forget.
-
-
-### Changed
-
-- **`make secrets-check` now checks what Key Vault made important.** It compared
-  resolved secret *values*, which proves little once there is only one copy — and
-  it read a separate list, so after the migration it verified a renamed-away
-  secret while never inspecting the live one. It now derives its scope from the
-  same mapping the deploys wire, and asserts both apps reference the **same vault
-  secret**, flagging any value left inline. It reads no secret values at all.
+## [0.10.7] - 2026-08-04
 
 ### Added
 
@@ -91,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   access, so the operator is granted Secrets Officer before any write.
 
 
-### Added
 
 - **Runs report whether the LLM actually contributed.** The quality report now
   carries `llm_used`, `llm_status` and the provider, and a degraded run adds a
@@ -105,37 +38,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   per-layer failures — neither leaves a usage count otherwise. The production
   probe gained `expect_llm`, which fails a release if a node with a configured
   provider silently drops to heuristic-only.
-### Security
-
-- **Closed four dependency CVEs**: `aiohttp` 3.14.1 → 3.14.3 (CVE-2026-59881,
-  -69243, -69244) and `cryptography` 49.0.0 → 50.0.0 (CVE-2026-69247). The
-  version floors were raised as well as the lockfile, so a fresh resolve cannot
-  pick a vulnerable version again.
-
-
-### Fixed
-
-- **A stored LLM credential now actually reaches generation.** The gate deciding
-  whether the LLM layer joins the stack read process environment variables only,
-  while the service that would have run it reads the encrypted credential store
-  first — so a key set through **Settings → LLM providers** caused the layer to
-  be dropped *before* that service was ever constructed. The store worked;
-  nothing reached it. Availability is now resolved **once**, asynchronously, at
-  the generation entry point and carried as plain values the synchronous gate
-  reads, so the gate, the progress stages and the layer stack cannot disagree.
-  Environment keys keep working unchanged; the store simply wins when both exist.
-- **The generation layer no longer hardcodes Anthropic.** It built its LLM
-  service with a fixed provider and then looked for an *Anthropic* credential
-  specifically, so a configured OpenAI key was ignored even once the gate let the
-  layer run. It now uses the resolved provider.
-- **`LLM_ENABLED` means something.** It previously gated only a startup log line.
-  It is now a schema setting and a genuine **kill switch** — false disables the
-  LLM regardless of stored credentials, so an operator can stop spend without
-  deleting keys. Configuring a provider remains the enable action. Its duplicate
-  hand-written entry in `env.template` is gone; a later assignment there would
-  have silently overridden the schema-owned one.
 
 ### Changed
+
+- **`make secrets-check` now checks what Key Vault made important.** It compared
+  resolved secret *values*, which proves little once there is only one copy — and
+  it read a separate list, so after the migration it verified a renamed-away
+  secret while never inspecting the live one. It now derives its scope from the
+  same mapping the deploys wire, and asserts both apps reference the **same vault
+  secret**, flagging any value left inline. It reads no secret values at all.
+
 
 - **One predicate decides whether a deployment is "real".** `ENVIRONMENT` was
   doing two unrelated jobs: selecting `config/environments/<env>.toml`, and
@@ -158,6 +70,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now fails on any direct `== "production"` comparison in Python or Terraform,
   and the Terraform module mirrors the derived rule so a node named anything but
   `production` still provisions the encryption secrets the app demands of it.
+
+### Fixed
+
+- **Six defects in the Azure Terraform module, and the self-host path proven.**
+  `LLM_ENABLED=false` was set on both apps — once a no-op, but since the kill
+  switch became real it actively disabled the LLM even with a credential
+  configured; `MATCHING_EAGER_INIT` was set on the worker, which never runs the
+  lifespan that reads it; `rediss://` URLs carried no `ssl_cert_reqs`, so TLS
+  verification was silently off; `CACHE_REDIS_URL` was never wired, so a node
+  paid for Redis and cached in memory anyway; database 0 sat unused; and the
+  Redis access key was interpolated **unencoded**, so a base64 key containing
+  `/` truncated the URL. The module was then applied for real with jobs enabled,
+  a generation job submitted against it and completed, and the environment
+  destroyed — the `enable_jobs` path the public guide advertises had never
+  actually been run.
+- **One mechanism now decides which LLM provider is used.** Generation read the
+  credential store then the environment; the `ohm llm` CLI read the environment
+  only, probed ollama over the network against a hardcoded localhost address, and
+  fell through to auto-detection when an explicit choice was unavailable. So a
+  credential stored through **Settings** reached generation but was invisible to
+  the CLI. Both now use the same resolver, so `--provider` is honoured or fails
+  rather than silently running a different provider, the kill switch applies
+  everywhere, and ollama is opt-in on both paths. Provider listing no longer
+  touches the network.
+- **`ohm llm --provider` and `--model` had no effect.** The service was
+  constructed with its config passed as the service *name*, leaving the config
+  `None` and falling back to defaults — so every invocation quietly ran Anthropic
+  on the default model. Found by the tests written for the unification above.
+
+
+
+- **Deploys no longer overwrite Key Vault references with inline values.** After
+  the migration, both deploy scripts still minted Redis URLs and mirrored shared
+  secrets as *values*, and setting a secret by name replaces a Key Vault
+  reference — so the next release would have succeeded, kept working, and
+  silently undone the migration on an inline copy. Where an environment declares
+  `key_vault_name`, the deploys now write references only, mint the Redis URLs
+  *into the vault*, and stop copying secrets between apps entirely. Environments
+  without a vault are unchanged.
+
+
+
+- **A stored LLM credential now actually reaches generation.** The gate deciding
+  whether the LLM layer joins the stack read process environment variables only,
+  while the service that would have run it reads the encrypted credential store
+  first — so a key set through **Settings → LLM providers** caused the layer to
+  be dropped *before* that service was ever constructed. The store worked;
+  nothing reached it. Availability is now resolved **once**, asynchronously, at
+  the generation entry point and carried as plain values the synchronous gate
+  reads, so the gate, the progress stages and the layer stack cannot disagree.
+  Environment keys keep working unchanged; the store simply wins when both exist.
+- **The generation layer no longer hardcodes Anthropic.** It built its LLM
+  service with a fixed provider and then looked for an *Anthropic* credential
+  specifically, so a configured OpenAI key was ignored even once the gate let the
+  layer run. It now uses the resolved provider.
+- **`LLM_ENABLED` means something.** It previously gated only a startup log line.
+  It is now a schema setting and a genuine **kill switch** — false disables the
+  LLM regardless of stored credentials, so an operator can stop spend without
+  deleting keys. Configuring a provider remains the enable action. Its duplicate
+  hand-written entry in `env.template` is gone; a later assignment there would
+  have silently overridden the schema-owned one.
+
+### Security
+
+- **LLM generation requires authentication once a provider is configured.**
+  `GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM` gated on the request's *intent* — the
+  `no_llm` flag — rather than on whether an LLM was actually available. Since the
+  web UI always requests LLM-enabled generation, switching it on would have
+  rejected every generation to guard a cost that could not occur, which is why it
+  stayed off and the spend path stayed unguarded. It now fires only when a
+  request would genuinely invoke an LLM, on both the synchronous and async
+  endpoints, and is **armed in production** — inert while no provider is
+  configured, protective the moment an admin adds a credential, with no step to
+  remember at the moment it would be easiest to forget.
+
+
+
+- **Closed four dependency CVEs**: `aiohttp` 3.14.1 → 3.14.3 (CVE-2026-59881,
+  -69243, -69244) and `cryptography` 49.0.0 → 50.0.0 (CVE-2026-69247). The
+  version floors were raised as well as the lockfile, so a fresh resolve cannot
+  pick a vulnerable version again.
 
 ## [0.10.6] - 2026-08-03
 
