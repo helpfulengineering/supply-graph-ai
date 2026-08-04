@@ -19,15 +19,6 @@ from .service import LLMService, LLMServiceConfig
 logger = logging.getLogger(__name__)
 
 
-class ProviderSelectionStrategy(Enum):
-    """Strategy for provider selection"""
-
-    ENV_VAR = "env_var"
-    CLI_FLAG = "cli_flag"
-    DEFAULT = "default"
-    AUTO_DETECT = "auto_detect"
-
-
 class LLMProviderSelector:
     """
     Handles LLM provider selection with multiple fallback strategies.
@@ -38,13 +29,6 @@ class LLMProviderSelector:
     3. Auto-detection based on available API keys
     4. Default fallback (lowest priority)
     """
-
-    # Default provider preferences (in order of preference)
-    DEFAULT_PROVIDER_PREFERENCES = [
-        LLMProviderType.ANTHROPIC,  # Most reliable for our use case
-        LLMProviderType.OPENAI,  # Widely available
-        LLMProviderType.LOCAL,  # Free local option
-    ]
 
     # Provider-specific environment variable names
     PROVIDER_ENV_VARS = {
@@ -69,171 +53,6 @@ class LLMProviderSelector:
     def __init__(self):
         """Initialize the provider selector."""
         self._cached_available_providers: Optional[List[LLMProviderType]] = None
-
-    def select_provider(
-        self,
-        cli_provider: Optional[str] = None,
-        cli_model: Optional[str] = None,
-        env_provider: Optional[str] = None,
-        env_model: Optional[str] = None,
-        auto_detect: bool = True,
-        verbose: bool = True,
-    ) -> Dict[str, Any]:
-        """
-        Select the best available LLM provider and model.
-
-        Args:
-            cli_provider: Provider specified via command line flag
-            cli_model: Model specified via command line flag
-            env_provider: Provider specified via environment variable
-            env_model: Model specified via environment variable
-            auto_detect: Whether to auto-detect available providers
-            verbose: Whether to log selection details
-
-        Returns:
-            Dict containing provider, model, strategy, and metadata
-        """
-        selection_result = {
-            "provider": None,
-            "model": None,
-            "strategy": None,
-            "reason": None,
-            "available_providers": [],
-            "warnings": [],
-            "errors": [],
-        }
-
-        # Get available providers
-        available_providers = self._get_available_providers()
-        selection_result["available_providers"] = [p.value for p in available_providers]
-
-        if not available_providers:
-            selection_result["errors"].append("No LLM providers are available")
-            if verbose:
-                logger.error(
-                    "❌ No LLM providers are available. Please check your configuration."
-                )
-            return selection_result
-
-        # Strategy 1: Command line flag (highest priority)
-        if cli_provider:
-            try:
-                provider_type = LLMProviderType(cli_provider)
-                if provider_type in available_providers:
-                    model = cli_model or self.DEFAULT_MODELS.get(provider_type)
-                    selection_result.update(
-                        {
-                            "provider": provider_type,
-                            "model": model,
-                            "strategy": ProviderSelectionStrategy.CLI_FLAG,
-                            "reason": f"Command line flag specified: {cli_provider}",
-                        }
-                    )
-                    if verbose:
-                        logger.info(
-                            f"🎯 Using LLM provider '{provider_type.value}' (CLI flag: --provider {cli_provider})"
-                        )
-                        logger.info(f"🤖 Using model '{model}'")
-                    return selection_result
-                else:
-                    selection_result["warnings"].append(
-                        f"CLI provider '{cli_provider}' not available"
-                    )
-                    if verbose:
-                        logger.warning(
-                            f"⚠️  CLI provider '{cli_provider}' not available, falling back to other options"
-                        )
-            except ValueError:
-                selection_result["warnings"].append(
-                    f"Invalid CLI provider '{cli_provider}'"
-                )
-                if verbose:
-                    logger.warning(
-                        f"⚠️  Invalid CLI provider '{cli_provider}', falling back to other options"
-                    )
-
-        # Strategy 2: Environment variable
-        if env_provider:
-            try:
-                provider_type = LLMProviderType(env_provider)
-                if provider_type in available_providers:
-                    model = (
-                        env_model or cli_model or self.DEFAULT_MODELS.get(provider_type)
-                    )
-                    selection_result.update(
-                        {
-                            "provider": provider_type,
-                            "model": model,
-                            "strategy": ProviderSelectionStrategy.ENV_VAR,
-                            "reason": f"Environment variable specified: {env_provider}",
-                        }
-                    )
-                    if verbose:
-                        logger.info(
-                            f"🎯 Using LLM provider '{provider_type.value}' (ENV: LLM_PROVIDER={env_provider})"
-                        )
-                        logger.info(f"🤖 Using model '{model}'")
-                    return selection_result
-                else:
-                    selection_result["warnings"].append(
-                        f"ENV provider '{env_provider}' not available"
-                    )
-                    if verbose:
-                        logger.warning(
-                            f"⚠️  ENV provider '{env_provider}' not available, falling back to other options"
-                        )
-            except ValueError:
-                selection_result["warnings"].append(
-                    f"Invalid ENV provider '{env_provider}'"
-                )
-                if verbose:
-                    logger.warning(
-                        f"⚠️  Invalid ENV provider '{env_provider}', falling back to other options"
-                    )
-
-        # Strategy 3: Auto-detection (if enabled)
-        if auto_detect:
-            best_provider = self._auto_detect_best_provider(available_providers)
-            if best_provider:
-                model = cli_model or env_model or self.DEFAULT_MODELS.get(best_provider)
-                selection_result.update(
-                    {
-                        "provider": best_provider,
-                        "model": model,
-                        "strategy": ProviderSelectionStrategy.AUTO_DETECT,
-                        "reason": f"Auto-detected best available provider: {best_provider.value}",
-                    }
-                )
-                if verbose:
-                    logger.info(
-                        f"🎯 Auto-detected LLM provider '{best_provider.value}' (best available)"
-                    )
-                    logger.info(f"🤖 Using model '{model}'")
-                return selection_result
-
-        # Strategy 4: Default fallback
-        default_provider = self._get_default_provider(available_providers)
-        if default_provider:
-            model = cli_model or env_model or self.DEFAULT_MODELS.get(default_provider)
-            selection_result.update(
-                {
-                    "provider": default_provider,
-                    "model": model,
-                    "strategy": ProviderSelectionStrategy.DEFAULT,
-                    "reason": f"Using default provider: {default_provider.value}",
-                }
-            )
-            if verbose:
-                logger.info(f"🎯 Using default LLM provider '{default_provider.value}'")
-                logger.info(f"🤖 Using model '{model}'")
-            return selection_result
-
-        # If we get here, something went wrong
-        selection_result["errors"].append("Failed to select any provider")
-        if verbose:
-            logger.error("❌ Failed to select any LLM provider")
-
-        return selection_result
 
     def invalidate_availability_cache(self) -> None:
         """Drop cached provider availability (call after credentials change)."""
@@ -311,96 +130,23 @@ class LLMProviderSelector:
         return False
 
     def _is_ollama_available(self) -> bool:
-        """Check if Ollama is available locally."""
-        try:
-            import asyncio
+        """Whether ollama has been opted into.
 
-            import httpx
+        Deliberately NOT a network probe. It used to open a connection to a
+        hardcoded localhost address and, when it could not check — which is
+        always, from inside a running event loop — report available anyway. So
+        every node claimed a local model it did not have.
 
-            async def check_ollama():
-                try:
-                    async with httpx.AsyncClient(timeout=2.0) as client:
-                        response = await client.get("http://localhost:11434/api/tags")
-                        return response.status_code == 200
-                except:
-                    return False
-
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # Cannot block on the probe from inside a running loop. Report
-                # unavailable rather than assuming: claiming a local model that
-                # is not there sends every request to a dead endpoint.
-                logger.debug("Cannot probe Ollama from a running event loop")
-                return False
-            return asyncio.run(check_ollama())
-        except Exception:
-            return False
-
-    def _auto_detect_best_provider(
-        self, available_providers: List[LLMProviderType]
-    ) -> Optional[LLMProviderType]:
-        """Auto-detect the best provider from available options."""
-        # Use our preference order
-        for preferred in self.DEFAULT_PROVIDER_PREFERENCES:
-            if preferred in available_providers:
-                return preferred
-
-        # If none of our preferences are available, return the first available
-        return available_providers[0] if available_providers else None
-
-    def _get_default_provider(
-        self, available_providers: List[LLMProviderType]
-    ) -> Optional[LLMProviderType]:
-        """Get the default provider from available options."""
-        return self._auto_detect_best_provider(available_providers)
-
-    def create_llm_service(
-        self,
-        cli_provider: Optional[str] = None,
-        cli_model: Optional[str] = None,
-        verbose: bool = True,
-    ) -> LLMService:
+        Opt-in is the same test generation uses: the base URL is set, or ollama
+        is named as the provider. One question, one answer, both paths.
         """
-        Create an LLM service with the best available provider.
+        from .availability import OLLAMA_PROVIDER, _configured_ollama_url
 
-        Args:
-            cli_provider: Provider specified via command line flag
-            cli_model: Model specified via command line flag
-            verbose: Whether to log selection details
+        if _configured_ollama_url():
+            return True
+        from src.config.schema import get_settings
 
-        Returns:
-            Configured LLMService instance
-        """
-        # Get environment variables
-        env_provider = os.getenv("LLM_PROVIDER")
-        env_model = os.getenv("LLM_MODEL")
-
-        # Select provider
-        selection = self.select_provider(
-            cli_provider=cli_provider,
-            cli_model=cli_model,
-            env_provider=env_provider,
-            env_model=env_model,
-            verbose=verbose,
-        )
-
-        if not selection["provider"]:
-            raise RuntimeError(f"Failed to select LLM provider: {selection['errors']}")
-
-        # Create service configuration
-        service_config = LLMServiceConfig(
-            default_provider=selection["provider"], default_model=selection["model"]
-        )
-
-        # Create and return service
-        service = LLMService(service_config)
-
-        if verbose:
-            logger.info(
-                f"✅ LLM service created with provider '{selection['provider'].value}' and model '{selection['model']}'"
-            )
-
-        return service
+        return get_settings().llm_default_provider == OLLAMA_PROVIDER
 
     def get_provider_info(self) -> Dict[str, Any]:
         """Get information about all providers and their availability."""
@@ -476,11 +222,53 @@ async def create_llm_service_with_selection(
     Returns:
         Configured LLMService instance
     """
-    service = get_provider_selector().create_llm_service(
-        cli_provider=cli_provider, cli_model=cli_model, verbose=verbose
+    from .availability import LLMUnavailableReason, resolve_llm_availability
+
+    # ONE decision, shared with generation. This used to select independently
+    # from process environment variables only, so a credential stored through
+    # Settings reached generation but was invisible here — `ohm llm` reported no
+    # provider on a node that was happily generating with one.
+    availability = await resolve_llm_availability(preferred_provider=cli_provider)
+
+    if not availability.available:
+        raise RuntimeError(_no_provider_message(availability.reason, cli_provider))
+
+    provider = LLMProviderType(availability.provider)
+    model = cli_model or default_model_for(availability.provider)
+
+    if verbose:
+        logger.info(
+            "Using LLM provider '%s' (%s) with model '%s'",
+            availability.provider,
+            availability.source,
+            model,
+        )
+
+    # NB the name comes FIRST. Passing the config positionally leaves `config`
+    # None and silently falls back to defaults — which is what the previous
+    # implementation did, so `ohm llm --provider openai` has always quietly run
+    # Anthropic on the default model.
+    service = LLMService(
+        "LLMProviderSelection",
+        LLMServiceConfig(default_provider=provider, default_model=model),
     )
-
-    # Initialize the service
     await service.initialize()
-
     return service
+
+
+def _no_provider_message(reason: Optional[str], requested: Optional[str]) -> str:
+    """Say what to do about it, not just that it happened."""
+    from .availability import LLMUnavailableReason
+
+    if reason == LLMUnavailableReason.DISABLED:
+        return "LLM use is switched off (LLM_ENABLED=false)."
+    if requested:
+        return (
+            f"No credential configured for provider {requested!r}. Add one in "
+            f"Settings → LLM providers, or set its API key in the environment."
+        )
+    return (
+        "No LLM provider is configured. Add a credential in Settings → LLM "
+        "providers, set a provider API key in the environment, or run a local "
+        "model with LLM_DEFAULT_PROVIDER=local."
+    )

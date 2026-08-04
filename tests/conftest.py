@@ -84,6 +84,13 @@ _AMBIENT_LLM_CREDENTIALS = (
     "OLLAMA_BASE_URL",
 )
 
+# Pinned rather than cleared: this one is a bool the code branches on, and CI
+# sets it false for the whole job while a developer's .env commonly sets it
+# true. Left inherited, a test asserting LLM behaviour passes in one place and
+# fails in the other. "true" matches the schema default (a kill switch, not an
+# enable switch); tests exercising the disabled path set it themselves.
+_LLM_ENABLED_FOR_TESTS = "true"
+
 
 @pytest.fixture(autouse=True)
 def _no_ambient_llm_credentials(
@@ -113,6 +120,7 @@ def _no_ambient_llm_credentials(
         return
     for name in _AMBIENT_LLM_CREDENTIALS:
         monkeypatch.setenv(name, "")
+    monkeypatch.setenv("LLM_ENABLED", _LLM_ENABLED_FOR_TESTS)
 
 
 @pytest.fixture(autouse=True)

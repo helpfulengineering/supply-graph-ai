@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **One mechanism now decides which LLM provider is used.** Generation read the
+  credential store then the environment; the `ohm llm` CLI read the environment
+  only, probed ollama over the network against a hardcoded localhost address, and
+  fell through to auto-detection when an explicit choice was unavailable. So a
+  credential stored through **Settings** reached generation but was invisible to
+  the CLI. Both now use the same resolver, so `--provider` is honoured or fails
+  rather than silently running a different provider, the kill switch applies
+  everywhere, and ollama is opt-in on both paths. Provider listing no longer
+  touches the network.
+- **`ohm llm --provider` and `--model` had no effect.** The service was
+  constructed with its config passed as the service *name*, leaving the config
+  `None` and falling back to defaults — so every invocation quietly ran Anthropic
+  on the default model. Found by the tests written for the unification above.
+
+
+### Fixed
+
 - **Deploys no longer overwrite Key Vault references with inline values.** After
   the migration, both deploy scripts still minted Redis URLs and mirrored shared
   secrets as *values*, and setting a secret by name replaces a Key Vault
