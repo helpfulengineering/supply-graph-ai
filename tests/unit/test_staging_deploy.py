@@ -264,6 +264,43 @@ def test_teardown_without_yes_deletes_nothing():
     assert calls == []
 
 
+def test_teardown_refuses_the_production_vault():
+    """Deleting it takes every secret both live apps resolve at runtime, so they
+    stop starting. Guarded by name as well as by environment."""
+    code, calls = _run_teardown(
+        [
+            "--environment",
+            "staging",
+            "--vault-name",
+            "ohm-prod-kv",
+            "--delete-key-vault",
+            "--yes",
+        ]
+    )
+
+    assert code == 1
+    assert calls == []
+
+
+def test_teardown_keeps_the_vault_unless_explicitly_asked():
+    _, calls = _run_teardown(["--environment", "staging", "--yes"])
+
+    assert not any("keyvault" in command for command in calls)
+
+
+def test_teardown_purges_the_vault_it_deletes():
+    """A soft-deleted vault keeps its NAME reserved for 90 days, so a delete
+    without a purge silently blocks the next rebuild of this environment."""
+    _, calls = _run_teardown(
+        ["--environment", "staging", "--delete-key-vault", "--yes"]
+    )
+
+    verbs = [c[2] for c in calls if c[:2] == ["az", "keyvault"]]
+    assert "delete" in verbs, "expected the vault to be deleted"
+    assert "purge" in verbs, "a deleted-but-unpurged vault blocks the next rebuild"
+    assert verbs.index("delete") < verbs.index("purge")
+
+
 def test_teardown_keeps_blobs_unless_explicitly_asked():
     _, calls = _run_teardown(["--environment", "staging", "--yes"])
 

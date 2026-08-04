@@ -193,6 +193,23 @@ repointed, or the repointed app cannot start:
   Key Vault-backed secret values and refreshes on its own schedule. Plan
   rotations accordingly rather than expecting immediate effect.
 
+### Tearing an environment down
+
+`teardown_azure_environment.py` removes the container apps, and — when asked —
+the blob container and the Key Vault. Both destructive options are opt-in, and
+production is refused twice over: by environment name, and by the live app and
+vault names.
+
+```bash
+uv run python deploy/scripts/teardown_azure_environment.py \
+    --environment staging --yes --delete-blob-container --delete-key-vault
+```
+
+`--delete-key-vault` also **purges**. That is deliberate: a soft-deleted vault
+keeps its name reserved for 90 days, so a delete without a purge silently blocks
+the next rebuild of that environment with a name collision. Purging is
+irreversible, which is why it is opt-in.
+
 ### Leftovers
 
 The migration replaces secrets by name and touches nothing else, so a
