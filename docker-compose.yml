@@ -1,7 +1,24 @@
+# The self-host stack. `docker compose up` runs the whole node: API, async
+# worker, Redis and the web UI.
+#
+# Services carry both `image:` and `build:`, so one file serves two audiences —
+# with both set, Compose pulls the published image and only builds when asked:
+#
+#   docker compose up            # self-host: pull published, tested images
+#   docker compose up --build    # develop:   build from source
+#
+# Pulling by default also avoids a trap: `frontend/docs-dist/` is tracked but
+# empty, so a from-source frontend build succeeds while shipping an empty /docs.
+#
+# Tags are kept equal to pyproject by scripts/bump_version.py. Set OHM_VERSION to
+# run another release (OHM_VERSION=0.10 floats on patches).
+#
+# Requires Compose >= 2.24 for `env_file: required:`.
 services:
   # Open Hardware Manager API Server
   ohm-api:
-    build: 
+    image: touchthesun/openhardwaremanager:${OHM_VERSION:-0.10.7}
+    build:
       context: .
       dockerfile: Dockerfile
     container_name: ohm-api
@@ -9,10 +26,12 @@ services:
       # Map host port 8001 to container port (defaults to 8001, but can be overridden via PORT/API_PORT)
       # If you change PORT or API_PORT, update this mapping accordingly
       - "8001:8001"
-    # Load environment variables from .env file (if it exists)
-    # Individual environment variables can override .env values
+    # Optional so a clean clone starts with no setup. Still the only way secrets
+    # reach the container: API keys, storage credentials and LLM keys are not
+    # listed under `environment:`, so they arrive by passthrough from here.
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       # Core API settings
       # Note: PORT is handled by docker-entrypoint.sh which prioritizes PORT over API_PORT
@@ -46,8 +65,11 @@ services:
       # For local storage, LOCAL_STORAGE_PATH defaults to "storage" in code
       # Set it here only if you want a different path
       - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-storage}
-      # LLM configuration
-      - LLM_ENABLED=${LLM_ENABLED:-false}
+      # LLM configuration. A kill switch, not an enable switch: with no provider
+      # configured this changes nothing, so it defaults to the schema's `true`
+      # and a key added through Settings works without further configuration.
+      # Flip it to stop LLM spend: LLM_ENABLED=false docker compose up
+      - LLM_ENABLED=${LLM_ENABLED:-true}
       # Server configuration
       - USE_GUNICORN=${USE_GUNICORN:-auto}
       # Federation (must be set in container env — host shell export alone is not enough)
@@ -89,11 +111,14 @@ services:
       start_period: 120s
 
   # Redis for cache + Celery broker/result backend.
+  #
+  # Deliberately NOT published to the host: the API and worker reach it over the
+  # compose network by name, and an unauthenticated Redis on a public interface
+  # is among the most reliably exploited misconfigurations there is.
+  # For a shell: docker compose exec redis redis-cli
   redis:
     image: redis:7-alpine
     container_name: ohm-redis
-    ports:
-      - "6379:6379"
     networks:
       - ohm-network
     restart: unless-stopped
@@ -105,19 +130,22 @@ services:
 
   # Celery worker sidecar (same image as ohm-api, worker entrypoint mode).
   ohm-worker:
+    image: touchthesun/openhardwaremanager:${OHM_VERSION:-0.10.7}
     build:
       context: .
       dockerfile: Dockerfile
     container_name: ohm-worker
     command: ["worker"]
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
       - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-storage}
-      - LLM_ENABLED=${LLM_ENABLED:-false}
+      # Must match ohm-api: the worker runs the same generation code.
+      - LLM_ENABLED=${LLM_ENABLED:-true}
       - JOBS_ENABLED=${JOBS_ENABLED:-true}
       - JOB_BROKER_URL=${JOB_BROKER_URL:-redis://redis:6379/1}
       - JOB_RESULT_BACKEND=${JOB_RESULT_BACKEND:-redis://redis:6379/2}
@@ -143,12 +171,30 @@ services:
       retries: 3
       start_period: 40s
 
+  # Web UI. Serves the SPA and reverse-proxies /v1 to the API, so the browser
+  # talks to one origin and there is no CORS configuration to get wrong.
+  ohm-frontend:
+    image: touchthesun/openhardwaremanager-frontend:${OHM_VERSION:-0.10.7}
+    build: frontend
+    container_name: ohm-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - API_UPSTREAM_URL=http://ohm-api:8001
+    networks:
+      - ohm-network
+    depends_on:
+      ohm-api:
+        condition: service_healthy
+    restart: unless-stopped
+
   # Prometheus for metrics collection
   prometheus:
     image: prom/prometheus:latest
     container_name: ohm-prometheus
     ports:
-      - "9090:9090"
+      # Loopback only: unauthenticated, and nothing off-box needs to reach it.
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
