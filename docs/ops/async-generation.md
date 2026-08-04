@@ -144,3 +144,59 @@ is silent by design — the job succeeds either way — but heuristic-only outpu
 typically leaves `function` empty, and that is a required OKH field. The guided
 review in the UI asks for it before enabling download, so expect to write one
 sentence per generated manifest.
+
+## Secrets in Key Vault
+
+Container App secrets are per-app, so every value the API and worker share once
+existed twice. They are now **references**: the value lives once in Key Vault and
+both apps hold a pointer, resolved at runtime through their system-assigned
+managed identity. Rotation is one edit rather than an edit plus a redeploy of
+everything downstream.
+
+Migrating an environment:
+
+```bash
+uv run python deploy/scripts/migrate_secrets_to_key_vault.py \
+    --environment production --vault-name <vault> \
+    --container-app-name openhardwaremanager \
+    --worker-app-name openhardwaremanager-worker \
+    --deploy-principal-id <CI principal object id> --dry-run
+```
+
+Run the dry run first, and **rehearse on staging before production**: an app that
+cannot resolve a secret does not start, which in production is an outage.
+
+The order is not arbitrary — identities and access must exist before any app is
+repointed, or the repointed app cannot start:
+
+1. Create the vault (RBAC-authorised).
+2. Enable a system-assigned identity on each app.
+3. Grant each identity **Key Vault Secrets User**; grant the operator and the CI
+   deploy principal **Key Vault Secrets Officer** (both write).
+4. Copy current values in from the API app.
+5. Repoint both apps.
+6. Verify: health, worker logs, and the end-to-end job probe.
+
+!!! warning "An RBAC vault grants Owners nothing on the data plane"
+    Subscription Owner is a management-plane role. Without an explicit
+    **Secrets Officer** grant, writing secrets fails with a bare 403 partway
+    through, leaving the vault half-populated. The migration script grants the
+    operator this before it writes.
+
+### Two constraints worth knowing
+
+- A Container App secret name carrying a Key Vault reference **cannot exceed 20
+  characters**. `llm-encryption-password` was 23, so the secret is now
+  `llm-encrypt-password`. Only the secret's name changed; the environment
+  variable the application reads is unchanged.
+- Rotation needs no deploy, but is **not instant** — the platform caches
+  Key Vault-backed secret values and refreshes on its own schedule. Plan
+  rotations accordingly rather than expecting immediate effect.
+
+### Leftovers
+
+The migration replaces secrets by name and touches nothing else, so a
+pre-rename secret such as `llm-encryption-password` remains, unreferenced.
+Removing leftovers is a **separate** step once the references have been trusted
+in production — not part of the cutover, where an unnecessary deletion is one
+more way to lose a value you still need.

@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Container App secrets can be backed by Key Vault.** Each shared value lives
+  once in a vault; both apps hold a reference resolved through their
+  system-assigned managed identity, so rotation is one edit rather than an edit
+  plus a redeploy of everything downstream.
+  `deploy/scripts/migrate_secrets_to_key_vault.py` performs the migration in the
+  order that keeps apps startable — identities and access first, values second,
+  repointing last — and is idempotent, dry-runnable, and rehearsed on staging
+  before production. Two platform facts it encodes: a secret name carrying a
+  Key Vault reference cannot exceed 20 characters (so
+  `llm-encryption-password` becomes `llm-encrypt-password`, env var unchanged),
+  and an RBAC-authorised vault grants subscription Owners **no** data-plane
+  access, so the operator is granted Secrets Officer before any write.
+
+
+### Added
+
 - **Runs report whether the LLM actually contributed.** The quality report now
   carries `llm_used`, `llm_status` and the provider, and a degraded run adds a
   plain-language recommendation explaining why — rendered by the existing banner
