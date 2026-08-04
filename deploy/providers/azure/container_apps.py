@@ -193,6 +193,19 @@ class AzureContainerAppsDeployer(BaseDeployer):
             )
         return stdout.strip()
 
+    def write_vault_secret(self, vault_name: str, name: str, value: str) -> None:
+        """Store a value in Key Vault. Logs the NAME only, never the value."""
+        from .key_vault import write_secret_to_vault
+
+        logger.info("Writing %s to Key Vault %s", name, vault_name)
+        exit_code, _, stderr = self._run_az_command(
+            write_secret_to_vault(vault_name, name, value), check=False
+        )
+        if exit_code != 0:
+            raise DeploymentError(
+                f"Failed to write {name!r} to Key Vault {vault_name!r}: {stderr}"
+            )
+
     def set_secrets(self, secrets: Dict[str, str]) -> None:
         """Set Container App secrets, logging their NAMES only, never values.
 

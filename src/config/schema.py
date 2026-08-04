@@ -422,6 +422,20 @@ def deploy_env_vars(environment: str) -> Dict[str, str]:
     return env_vars
 
 
+def key_vault_name(environment: str) -> Optional[str]:
+    """Key Vault holding ``<environment>``'s secrets, or None if it has none.
+
+    When set, the deploy writes secret REFERENCES rather than values: each value
+    lives once in the vault and both apps resolve it through their managed
+    identity. Without this the deploy would set inline values and silently undo
+    that.
+    """
+    path = _CONFIG_ENV_DIR / f"{environment}.toml"
+    if not path.is_file():
+        return None
+    return tomllib.loads(path.read_text(encoding="utf-8")).get("key_vault_name")
+
+
 def redis_deploy_config(environment: str) -> Dict[str, Any]:
     """Non-secret Redis coordinates for ``<environment>``'s deploy.
 

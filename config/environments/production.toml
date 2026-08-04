@@ -38,6 +38,11 @@ jobs_enabled = true
 gunicorn_workers = "1"
 gunicorn_timeout = "300"
 
+# Key Vault holding this environment's secrets. Each value lives here once and
+# both container apps hold a reference resolved through their managed identity,
+# so the deploy never writes a secret VALUE onto an app.
+key_vault_name = "ohm-prod-kv"
+
 # Azure Cache for Redis backing BOTH the catalogue cache and the Celery broker,
 # split by database (0=cache, 1=broker, 2=results) — the same split
 # docker-compose.yml uses.
