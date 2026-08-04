@@ -144,3 +144,66 @@ def test_key_vault_names_are_valid():
 
     for name in KEY_VAULT_SECRET_REFS.values():
         assert re.fullmatch(r"[A-Za-z0-9-]+", name), name
+
+
+# --- The deploy must not undo the migration ----------------------------------
+#
+# The failure this guards is silent: setting a secret VALUE replaces the app's
+# Key Vault reference, the deploy succeeds, the app keeps working on an inline
+# copy, and the duplicated secrets the vault removed quietly come back.
+
+
+def _worker_deploy(record):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_worker_deploy_kv",
+        _REPO_ROOT / "deploy" / "scripts" / "deploy_azure_worker.py",
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    from unittest.mock import MagicMock, patch
+
+    def _run(command, capture_output, text, check):
+        record.append(command)
+        result = MagicMock()
+        result.returncode = 0
+        result.stdout = "value-or-key"
+        result.stderr = ""
+        return result
+
+    argv = [
+        "deploy_azure_worker.py",
+        "--image",
+        "img@sha256:abc",
+        "--subscription-id",
+        "sub",
+        "--environment",
+        "production",
+    ]
+    with (
+        patch.object(sys, "argv", argv),
+        patch("deploy.providers.azure.container_apps.subprocess.run", side_effect=_run),
+    ):
+        return module.main()
+
+
+def test_the_worker_deploy_writes_references_never_values():
+    calls = []
+    assert _worker_deploy(calls) == 0
+
+    for command in calls:
+        if command[:4] == ["az", "containerapp", "secret", "set"]:
+            for token in command[command.index("--secrets") + 1 :]:
+                assert "keyvaultref:" in token, token
+
+
+def test_the_worker_deploy_no_longer_copies_secrets_from_the_api_app():
+    """One value with two references has nothing to mirror."""
+    calls = []
+    assert _worker_deploy(calls) == 0
+
+    assert not any(
+        c[:4] == ["az", "containerapp", "secret", "show"] for c in calls
+    ), "the worker deploy should not read the API app's secret values"

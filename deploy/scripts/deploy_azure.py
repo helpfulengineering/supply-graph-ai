@@ -29,11 +29,15 @@ from deploy.providers.azure.app_secrets import (
     mirrored_secret_env_vars,
     mirrored_secret_names,
 )
+from deploy.providers.azure.key_vault import (
+    container_app_secrets,
+    secret_env_vars as vault_secret_env_vars,
+)
 from deploy.providers.azure.redis_secrets import (
     build_redis_secret_values,
     redis_secret_env_vars,
 )
-from src.config.schema import deploy_env_vars, redis_deploy_config
+from src.config.schema import deploy_env_vars, key_vault_name, redis_deploy_config
 
 logging.basicConfig(
     level=logging.INFO,
@@ -166,9 +170,13 @@ def main():
     if redis_config:
         environment_vars.update(redis_secret_env_vars())
 
-    # Standing up a new environment: the target app has no secrets yet, so it
-    # needs both the values (mirrored below) and the env vars pointing at them.
-    if args.mirror_secrets_from:
+    # With a vault, every secret env var points at a reference and the deploy
+    # never handles a value. Without one, standing up a new environment still
+    # needs the values mirrored from an established app.
+    vault = key_vault_name(args.environment)
+    if vault:
+        environment_vars.update(vault_secret_env_vars())
+    elif args.mirror_secrets_from:
         environment_vars.update(mirrored_secret_env_vars(include_api_keys=True))
 
     print("=" * 80)
@@ -223,7 +231,12 @@ def main():
         # them — a secretRef to a secret that does not exist yet fails.
         secrets = {}
 
-        if args.mirror_secrets_from:
+        if vault:
+            # References, not values. Setting a value here would REPLACE the
+            # Key Vault reference on the app and silently undo the migration —
+            # the deploy would succeed and the app would work, on a copy.
+            secrets.update(container_app_secrets(vault))
+        elif args.mirror_secrets_from:
             print(f"\n🔑 Mirroring shared secrets from {args.mirror_secrets_from!r}")
             secrets.update(
                 {
@@ -239,7 +252,13 @@ def main():
                 f"{redis_config['broker_db']}, results db {redis_config['results_db']})"
             )
             access_key = deployer.fetch_redis_access_key(redis_config["resource_name"])
-            secrets.update(build_redis_secret_values(redis_config, access_key))
+            minted = build_redis_secret_values(redis_config, access_key)
+            if vault:
+                # The value belongs in the vault; the app already references it.
+                for name, url in minted.items():
+                    deployer.write_vault_secret(vault, name, url)
+            else:
+                secrets.update(minted)
         else:
             print(
                 f"\nℹ️  No [redis] table for environment {args.environment!r}; "

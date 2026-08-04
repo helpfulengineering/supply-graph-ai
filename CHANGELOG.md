@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Deploys no longer overwrite Key Vault references with inline values.** After
+  the migration, both deploy scripts still minted Redis URLs and mirrored shared
+  secrets as *values*, and setting a secret by name replaces a Key Vault
+  reference — so the next release would have succeeded, kept working, and
+  silently undone the migration on an inline copy. Where an environment declares
+  `key_vault_name`, the deploys now write references only, mint the Redis URLs
+  *into the vault*, and stop copying secrets between apps entirely. Environments
+  without a vault are unchanged.
+
+
 ### Security
 
 - **LLM generation requires authentication once a provider is configured.**
