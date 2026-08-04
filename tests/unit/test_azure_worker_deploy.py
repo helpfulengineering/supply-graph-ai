@@ -6,6 +6,7 @@ config surface, it runs worker mode with no ingress, it carries the secrets it
 needs, and it does not by itself switch async jobs on.
 """
 
+import json
 import logging
 import sys
 from pathlib import Path
@@ -244,9 +245,10 @@ def test_create_command_is_logged_with_secret_values_redacted(caplog):
 
 # --- Shared-secret verification ----------------------------------------------
 #
-# The deploys mirror these on every run, so this confirms mirroring took effect
-# and catches what mirroring cannot: a half-completed deploy, or a secret edited
-# by hand in the portal afterwards.
+# Secrets live once in Key Vault now, so comparing resolved VALUES proves little
+# — there is only one copy. What can still go wrong is the two apps being
+# pointed at different sources, or one being left holding an inline value while
+# the other reads the vault. That is what these pin.
 
 
 def _load_verifier():
@@ -261,17 +263,23 @@ def _load_verifier():
     return module
 
 
-def _run_verifier(values_by_app):
-    """values_by_app: {app_name: {secret_name: value or None}}"""
+VAULT = "https://ohm-kv.vault.azure.net/secrets"
+
+
+def _run_verifier(secrets_by_app):
+    """secrets_by_app: {app: {secret_name: key_vault_uri or None}}"""
     module = _load_verifier()
 
     def _run(command, capture_output, text, check):
         app = command[command.index("--name") + 1]
-        secret = command[command.index("--secret-name") + 1]
-        value = values_by_app.get(app, {}).get(secret)
         result = MagicMock()
-        result.returncode = 0 if value is not None else 1
-        result.stdout = value or ""
+        result.returncode = 0
+        result.stdout = json.dumps(
+            [
+                {"name": name, "keyVaultUrl": uri}
+                for name, uri in secrets_by_app.get(app, {}).items()
+            ]
+        )
         result.stderr = ""
         return result
 
@@ -282,71 +290,88 @@ def _run_verifier(values_by_app):
         return module.main(), module
 
 
-def _all_agreeing():
+def _all_vault_backed():
     module = _load_verifier()
-    shared = {name: f"value-for-{name}" for name in module.SHARED_SECRETS}
+    shared = {name: f"{VAULT}/{name}" for name in module.SHARED_SECRETS}
+    api_only = {name: f"{VAULT}/{name}" for name in module.API_ONLY_SECRETS}
     return {
-        "openhardwaremanager": {**shared, "api-key": "the-api-key"},
+        "openhardwaremanager": {**shared, **api_only},
         "openhardwaremanager-worker": dict(shared),
     }
 
 
-def test_secret_check_passes_when_both_apps_agree():
-    code, _ = _run_verifier(_all_agreeing())
+def test_passes_when_both_apps_reference_the_same_vault_secrets():
+    code, _ = _run_verifier(_all_vault_backed())
     assert code == 0
 
 
-def test_secret_check_detects_a_differing_value():
-    values = _all_agreeing()
-    values["openhardwaremanager-worker"]["job-broker-url"] = "pointing-somewhere-else"
+def test_detects_apps_pointed_at_different_vault_secrets():
+    """The failure Key Vault does not prevent: one value, two pointers, and the
+    pointers disagree."""
+    secrets = _all_vault_backed()
+    secrets["openhardwaremanager-worker"][
+        "job-broker-url"
+    ] = "https://other-kv.vault.azure.net/secrets/job-broker-url"
 
-    code, _ = _run_verifier(values)
+    code, _ = _run_verifier(secrets)
     assert code == 1
 
 
-def test_secret_check_detects_a_missing_secret_on_the_worker():
-    values = _all_agreeing()
-    values["openhardwaremanager-worker"]["azure-storage-key"] = None
+def test_detects_a_secret_left_inline_on_one_app():
+    """A stale inline copy silently shadows the vault for that app."""
+    secrets = _all_vault_backed()
+    secrets["openhardwaremanager-worker"]["azure-storage-key"] = None
 
-    code, _ = _run_verifier(values)
+    code, _ = _run_verifier(secrets)
+    assert code == 1
+
+
+def test_detects_a_shared_secret_missing_from_the_worker():
+    secrets = _all_vault_backed()
+    del secrets["openhardwaremanager-worker"]["gihub-token"]
+
+    code, _ = _run_verifier(secrets)
+    assert code == 1
+
+
+def test_a_value_inline_on_both_apps_is_not_treated_as_agreement():
+    """Equal only by luck, with nothing keeping them so — that is the drift this
+    migration removed, not a passing state."""
+    secrets = _all_vault_backed()
+    for app in secrets:
+        secrets[app]["cache-redis-url"] = None
+
+    code, _ = _run_verifier(secrets)
     assert code == 1
 
 
 def test_api_only_secret_is_not_reported_as_drift():
     """A worker authenticates no callers, so api-key is correctly absent."""
-    values = _all_agreeing()
-    assert "api-key" not in values["openhardwaremanager-worker"]
+    module = _load_verifier()
+    secrets = _all_vault_backed()
 
-    code, _ = _run_verifier(values)
+    assert not set(module.API_ONLY_SECRETS) & set(secrets["openhardwaremanager-worker"])
+    code, _ = _run_verifier(secrets)
     assert code == 0
 
 
 def test_missing_api_only_secret_on_the_api_is_a_problem():
-    values = _all_agreeing()
-    values["openhardwaremanager"]["api-key"] = None
+    module = _load_verifier()
+    secrets = _all_vault_backed()
+    for name in module.API_ONLY_SECRETS:
+        del secrets["openhardwaremanager"][name]
 
-    code, _ = _run_verifier(values)
+    code, _ = _run_verifier(secrets)
     assert code == 1
 
 
-def test_shared_set_covers_the_broker_url():
-    """A broker mismatch is invisible in either app alone — jobs just never run."""
+def test_the_checked_set_comes_from_what_the_deploys_actually_wire():
+    """The previous version read a separate list, drifted from it, and ended up
+    checking a renamed-away secret while missing the live one."""
+    from deploy.providers.azure.key_vault import secret_refs_for
+
     module = _load_verifier()
 
-    assert "job-broker-url" in module.SHARED_SECRETS
-    assert "job-result-backend" in module.SHARED_SECRETS
-    assert "azure-storage-key" in module.SHARED_SECRETS
-    # API-only secrets must not be in the shared set, or every check would fail.
-    assert "api-key" not in module.SHARED_SECRETS
-
-
-def test_digest_never_reveals_the_value():
-    module = _load_verifier()
-    secret = "rediss://:super-secret-key@host:6380/1"
-
-    digest = module._digest(secret)
-
-    assert secret not in digest
-    assert "super-secret-key" not in digest
-    assert module._digest(secret) == digest
-    assert module._digest(secret + "x") != digest
+    assert set(module.SHARED_SECRETS) == set(secret_refs_for(worker=True).values())
+    assert "llm-encrypt-password" in module.SHARED_SECRETS
+    assert "llm-encryption-password" not in module.SHARED_SECRETS

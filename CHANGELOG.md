@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`make secrets-check` now checks what Key Vault made important.** It compared
+  resolved secret *values*, which proves little once there is only one copy — and
+  it read a separate list, so after the migration it verified a renamed-away
+  secret while never inspecting the live one. It now derives its scope from the
+  same mapping the deploys wire, and asserts both apps reference the **same vault
+  secret**, flagging any value left inline. It reads no secret values at all.
+
 ### Added
 
 - **Container App secrets can be backed by Key Vault.** Each shared value lives
