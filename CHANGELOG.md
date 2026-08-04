@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Six defects in the Azure Terraform module, and the self-host path proven.**
+  `LLM_ENABLED=false` was set on both apps — once a no-op, but since the kill
+  switch became real it actively disabled the LLM even with a credential
+  configured; `MATCHING_EAGER_INIT` was set on the worker, which never runs the
+  lifespan that reads it; `rediss://` URLs carried no `ssl_cert_reqs`, so TLS
+  verification was silently off; `CACHE_REDIS_URL` was never wired, so a node
+  paid for Redis and cached in memory anyway; database 0 sat unused; and the
+  Redis access key was interpolated **unencoded**, so a base64 key containing
+  `/` truncated the URL. The module was then applied for real with jobs enabled,
+  a generation job submitted against it and completed, and the environment
+  destroyed — the `enable_jobs` path the public guide advertises had never
+  actually been run.
+
+
+### Fixed
+
 - **One mechanism now decides which LLM provider is used.** Generation read the
   credential store then the environment; the `ohm llm` CLI read the environment
   only, probed ollama over the network against a hardcoded localhost address, and

@@ -54,6 +54,28 @@ self-host node that needs background generation and progress polling, set
 `enable_jobs = true` on the `ohm_node` module (see
 [examples/single-peer](examples/single-peer/README.md)).
 
+## Keeping this aligned with production
+
+Production does **not** use this module — it uses `deploy/scripts/deploy_azure.py`
+and `deploy_azure_worker.py`. Two descriptions of one system drift, and this one
+did: an audit found six defects, three of which `terraform validate` cannot see.
+
+So the policy is: **where this module and the production deploy path disagree,
+the production path is right and this is the bug.** It is the one that runs
+continuously against a live system.
+
+Concretely, this module must mirror:
+
+- the Redis database split (0 = cache, 1 = broker, 2 = results);
+- `?ssl_cert_reqs=required` on every `rediss://` URL — the client parses a bare
+  one as `CERT_NONE`, silently unverified;
+- URL-encoding the Redis access key — base64 keys contain `/`, which truncates
+  an unencoded URL;
+- the strictness rule in `src/config/schema.py::is_production_like`.
+
+Anything changed in the deploy scripts' secret or Redis handling should be
+checked here in the same change.
+
 ## Prerequisites
 
 - Azure CLI (`az login`) with permission to create RGs / ACA / storage
