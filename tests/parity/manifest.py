@@ -395,6 +395,12 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         path="guides/bring-your-collection.md",
     ),
     SiteDoc(
+        "llm",
+        "Configure an LLM provider",
+        "deployed",
+        path="guides/configure-an-llm.md",
+    ),
+    SiteDoc(
         "selfhost",
         "Run your own node",
         "deployed",

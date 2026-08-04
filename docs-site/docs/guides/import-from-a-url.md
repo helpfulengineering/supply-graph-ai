@@ -39,6 +39,16 @@ ohm okh generate-jobs wait <job_id>
     `POST /api/okh/generate-from-url/jobs` for anything that might take more than
     a minute, or when submitting multiple URLs.
 
+!!! tip "Whether an LLM is involved changes what you get back"
+
+    Without one, extraction fills in most fields but leaves **`function`** —
+    what the hardware is *for* — for you to write. That is usually the only
+    field the review screen still needs. The generated design reports whether an
+    LLM contributed and, if not, why, so a thin result is never a mystery.
+
+    See [Configure an LLM](configure-an-llm.md), including how to run a local
+    model with ollama and no cloud key at all.
+
 ## Then review it — this part is not optional
 
 What comes back is a **draft**, and treating it as finished is the main way to
