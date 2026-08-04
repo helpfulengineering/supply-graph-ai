@@ -94,10 +94,13 @@ def test_worker_carries_storage_key_and_both_git_tokens():
 
 
 def test_mirrored_names_match_the_live_secret_names():
-    """`gihub-token` is missing a 't' in the live app; renaming is separate work."""
+    """The GitHub secret was `gihub-token` — missing a 't' — until it was
+    renamed. Getting this wrong drops the worker to anonymous GitHub rate
+    limits, which surfaces as confusing 429s during generation rather than as
+    an obvious failure."""
     assert mirrored_secret_names() == [
         "azure-storage-key",
-        "gihub-token",
+        "github-token",
         "gitlab-token",
         "llm-encryption-password",
         "llm-encryption-salt",
@@ -194,7 +197,7 @@ def test_worker_creates_with_secrets_inline_because_the_app_does_not_exist_yet()
         for token in command[command.index("--secrets") + 1 :]
         if "=" in token and not token.startswith("--")
     }
-    assert {"azure-storage-key", "gihub-token", "gitlab-token"} <= secret_names
+    assert {"azure-storage-key", "github-token", "gitlab-token"} <= secret_names
     assert {"job-broker-url", "job-result-backend"} <= secret_names
 
 
@@ -328,7 +331,7 @@ def test_detects_a_secret_left_inline_on_one_app():
 
 def test_detects_a_shared_secret_missing_from_the_worker():
     secrets = _all_vault_backed()
-    del secrets["openhardwaremanager-worker"]["gihub-token"]
+    del secrets["openhardwaremanager-worker"]["github-token"]
 
     code, _ = _run_verifier(secrets)
     assert code == 1
