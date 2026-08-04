@@ -35,11 +35,25 @@ locals {
   # because `environment` is validated to test|development|production, which is
   # precisely why it would bite whoever first adds a name to that list.
   provision_encryption = !contains(["development", "test"], var.environment)
-  # Celery + cache DB split matches docker-compose.yml (0=cache, 1=broker, 2=results).
-  redis_password = var.enable_jobs ? azurerm_redis_cache.jobs[0].primary_access_key : ""
-  redis_host     = var.enable_jobs ? azurerm_redis_cache.jobs[0].hostname : ""
-  job_broker_url = var.enable_jobs ? "rediss://:${local.redis_password}@${local.redis_host}:6380/1" : ""
-  job_result_url = var.enable_jobs ? "rediss://:${local.redis_password}@${local.redis_host}:6380/2" : ""
+  # Celery + cache DB split matches docker-compose.yml: 0=cache, 1=broker,
+  # 2=results. Database 0 was previously left unused, so a node paid for Redis
+  # and still ran an in-memory cache.
+  redis_host = var.enable_jobs ? azurerm_redis_cache.jobs[0].hostname : ""
+
+  # urlencode is load-bearing. Azure Redis access keys are base64, whose
+  # alphabet includes "/" and "+"; an unencoded "/" terminates the URL's
+  # userinfo section and silently truncates the password, so the client
+  # authenticates with a fragment and fails far from the cause.
+  redis_password = var.enable_jobs ? urlencode(azurerm_redis_cache.jobs[0].primary_access_key) : ""
+
+  # ?ssl_cert_reqs=required is also load-bearing: the pinned client parses a
+  # bare rediss:// URL as CERT_NONE — no error, no warning, TLS verification
+  # silently off.
+  redis_url_base  = var.enable_jobs ? "rediss://:${local.redis_password}@${local.redis_host}:6380" : ""
+  redis_url_query = "?ssl_cert_reqs=required"
+  cache_redis_url = var.enable_jobs ? "${local.redis_url_base}/0${local.redis_url_query}" : ""
+  job_broker_url  = var.enable_jobs ? "${local.redis_url_base}/1${local.redis_url_query}" : ""
+  job_result_url  = var.enable_jobs ? "${local.redis_url_base}/2${local.redis_url_query}" : ""
 }
 
 resource "azurerm_storage_account" "this" {
@@ -124,6 +138,14 @@ resource "azurerm_container_app" "api" {
   dynamic "secret" {
     for_each = var.enable_jobs ? [1] : []
     content {
+      name  = "cache-redis-url"
+      value = local.cache_redis_url
+    }
+  }
+
+  dynamic "secret" {
+    for_each = var.enable_jobs ? [1] : []
+    content {
       name  = "job-broker-url"
       value = local.job_broker_url
     }
@@ -203,10 +225,11 @@ resource "azurerm_container_app" "api" {
         name  = "CORS_ORIGINS"
         value = "*"
       }
-      env {
-        name  = "LLM_ENABLED"
-        value = "false"
-      }
+      # LLM_ENABLED is deliberately NOT set. It is a kill switch, not an
+      # enable switch: forcing it false here disabled the LLM even when an
+      # operator had configured a credential, silently producing worse
+      # manifests. Leaving it unset means a configured provider is used, and an
+      # operator can still switch it off deliberately.
       env {
         name  = "MATCHING_EAGER_INIT"
         value = "false"
@@ -254,6 +277,25 @@ resource "azurerm_container_app" "api" {
       env {
         name  = "JOBS_ENABLED"
         value = var.enable_jobs ? "true" : "false"
+      }
+
+      dynamic "env" {
+        for_each = var.enable_jobs ? [1] : []
+        content {
+          name        = "CACHE_REDIS_URL"
+          secret_name = "cache-redis-url"
+        }
+      }
+
+      # cache_backend comes from config/environments/<env>.toml. Without the URL
+      # above it silently degrades to an in-memory cache, so a node paid for
+      # Redis and cached per-replica anyway.
+      dynamic "env" {
+        for_each = var.enable_jobs ? [1] : []
+        content {
+          name  = "CACHE_BACKEND"
+          value = "redis"
+        }
       }
 
       dynamic "env" {
@@ -316,6 +358,11 @@ resource "azurerm_container_app" "worker" {
   }
 
   secret {
+    name  = "cache-redis-url"
+    value = local.cache_redis_url
+  }
+
+  secret {
     name  = "job-broker-url"
     value = local.job_broker_url
   }
@@ -374,18 +421,27 @@ resource "azurerm_container_app" "worker" {
         name        = "AZURE_STORAGE_KEY"
         secret_name = "azure-storage-key"
       }
-      env {
-        name  = "LLM_ENABLED"
-        value = "false"
-      }
-      env {
-        name  = "MATCHING_EAGER_INIT"
-        value = "false"
-      }
+      # LLM_ENABLED is deliberately NOT set. It is a kill switch, not an
+      # enable switch: forcing it false here disabled the LLM even when an
+      # operator had configured a credential, silently producing worse
+      # manifests. Leaving it unset means a configured provider is used, and an
+      # operator can still switch it off deliberately.
+      # MATCHING_EAGER_INIT is not set here: it is read only in the API's
+      # lifespan, which a Celery worker never runs.
       env {
         name  = "JOBS_ENABLED"
         value = "true"
       }
+      env {
+        name        = "CACHE_REDIS_URL"
+        secret_name = "cache-redis-url"
+      }
+
+      env {
+        name  = "CACHE_BACKEND"
+        value = "redis"
+      }
+
       env {
         name        = "JOB_BROKER_URL"
         secret_name = "job-broker-url"
