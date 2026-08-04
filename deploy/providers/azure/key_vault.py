@@ -108,3 +108,19 @@ def secret_env_vars(*, worker: bool = False) -> Dict[str, str]:
         env_var: f"secretref:{name}"
         for env_var, name in secret_refs_for(worker=worker).items()
     }
+
+
+def write_secret_to_vault(vault_name: str, secret_name: str, value: str) -> list:
+    """``az`` argv that stores one value in the vault. Never log it."""
+    return [
+        "az",
+        "keyvault",
+        "secret",
+        "set",
+        "--vault-name",
+        vault_name,
+        "--name",
+        secret_name,
+        "--value",
+        value,
+    ]

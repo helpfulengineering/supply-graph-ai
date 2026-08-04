@@ -40,11 +40,16 @@ from deploy.providers.azure.app_secrets import (
     mirrored_secret_env_vars,
     mirrored_secret_names,
 )
+from deploy.providers.azure.key_vault import (
+    container_app_secrets,
+    secret_env_vars as vault_secret_env_vars,
+)
 from deploy.providers.azure.redis_secrets import (
     build_redis_secret_values,
     redis_secret_env_vars,
 )
 from src.config.schema import (
+    key_vault_name,
     redis_deploy_config,
     worker_deploy_config,
     worker_deploy_env_vars,
@@ -160,10 +165,17 @@ def main():
     # VALUE is ever applied as an env var.
     environment_vars = worker_deploy_env_vars(args.environment)
     environment_vars["ENVIRONMENT"] = args.environment
-    environment_vars.update(mirrored_secret_env_vars())
+
+    # With a vault, the worker references the same secrets the API does — one
+    # value, two pointers — so there is nothing to mirror and no value to hold.
+    vault = key_vault_name(args.environment)
+    if vault:
+        environment_vars.update(vault_secret_env_vars(worker=True))
+    else:
+        environment_vars.update(mirrored_secret_env_vars())
 
     redis_config = redis_deploy_config(args.environment)
-    if redis_config:
+    if redis_config and not vault:
         environment_vars.update(redis_secret_env_vars())
 
     print("=" * 80)
@@ -184,7 +196,11 @@ def main():
         # Resolve secret VALUES before building the config: the deployer sets
         # them ahead of an update, or passes them inline when creating the app
         # (which cannot have secrets set on it before it exists).
-        print(f"\n🔑 Mirroring shared secrets from {args.api_container_app_name!r}")
+        if not vault:
+            print(
+                f"\n🔑 Mirroring shared secrets from "
+                f"{args.api_container_app_name!r}"
+            )
         probe = AzureContainerAppsDeployer(
             AzureDeploymentConfig.from_dict(
                 {
@@ -201,11 +217,17 @@ def main():
                 }
             )
         )
-        secrets = {
-            name: probe.read_secret(name, app_name=args.api_container_app_name)
-            for name in mirrored_secret_names()
-        }
-        if redis_config:
+        if vault:
+            # References only. Mirroring a VALUE here would replace the app's
+            # Key Vault reference and quietly recreate the duplicate copies the
+            # vault exists to remove.
+            secrets = container_app_secrets(vault, worker=True)
+        else:
+            secrets = {
+                name: probe.read_secret(name, app_name=args.api_container_app_name)
+                for name in mirrored_secret_names()
+            }
+        if redis_config and not vault:
             print(f"🔑 Minting Redis secrets from {redis_config['resource_name']!r}")
             access_key = probe.fetch_redis_access_key(redis_config["resource_name"])
             secrets.update(build_redis_secret_values(redis_config, access_key))

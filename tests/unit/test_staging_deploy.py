@@ -139,17 +139,54 @@ def _app_command(calls):
     )
 
 
-def test_production_deploy_is_unchanged_without_the_mirror_flag():
-    """The established app is its own source of truth; never re-write its secrets."""
+def test_production_deploy_writes_references_never_values():
+    """Production has a vault, so the deploy must never handle a secret VALUE.
+
+    Writing one would REPLACE the app's Key Vault reference — the deploy would
+    succeed, the app would keep working on an inline copy, and the migration
+    would be silently undone.
+    """
     calls = []
     assert _run_backend_deploy(calls, ["--environment", "production"]) == 0
 
     command = _app_command(calls)
     env_tokens = command[command.index("--set-env-vars") + 1 :]
 
+    # Env vars name secrets; they never carry one.
+    for token in env_tokens:
+        if token.startswith(
+            ("API_KEYS=", "AZURE_STORAGE_KEY=", "GITHUB_ACCESS_TOKEN=")
+        ):
+            assert token.split("=", 1)[1].startswith("secretref:"), token
+
+    # And the secrets set on the app are vault references.
+    secrets_index = command.index("--secrets") if "--secrets" in command else None
+    if secrets_index is not None:
+        for token in command[secrets_index + 1 :]:
+            if token.startswith("--"):
+                break
+            assert "keyvaultref:" in token, token
+
+    # Nothing reads another app's secret value to copy it.
     assert not any(c[:4] == ["az", "containerapp", "secret", "show"] for c in calls)
-    assert not any(token.startswith("API_KEYS=") for token in env_tokens)
-    assert not any(token.startswith("AZURE_STORAGE_KEY=") for token in env_tokens)
+
+
+def test_production_deploy_mints_redis_urls_into_the_vault_not_onto_the_app():
+    """The generator still runs every deploy; its output goes to the vault."""
+    calls = []
+    assert _run_backend_deploy(calls, ["--environment", "production"]) == 0
+
+    vault_writes = [c for c in calls if c[:4] == ["az", "keyvault", "secret", "set"]]
+    written = {c[c.index("--name") + 1] for c in vault_writes}
+
+    assert {"job-broker-url", "job-result-backend", "cache-redis-url"} <= written
+
+    # The URL itself must never be set as an app secret.
+    app_secret_sets = [
+        c for c in calls if c[:4] == ["az", "containerapp", "secret", "set"]
+    ]
+    for command in app_secret_sets:
+        assert not any("rediss://" in token for token in command), command
 
 
 def test_mirroring_wires_both_the_values_and_the_env_refs():
