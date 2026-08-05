@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Regenerate the schema-owned block of ``env.template`` from the config schema.
+"""Regenerate the schema-owned block of ``.env.example`` from the config schema.
 
 The typed schema (:class:`src.config.schema.Settings`) is the source of truth for
 Slice-1 settings. This script emits one entry per schema field — name, one-line
-description, default, and secret-vs-not — into the marked block of ``env.template``,
+description, default, and secret-vs-not — into the marked block of ``.env.example``,
 leaving the hand-maintained remainder untouched. As later slices migrate more
 settings onto the schema, the block grows automatically.
 
@@ -11,7 +11,7 @@ Usage:
     python scripts/generate_env_template.py           # rewrite the block in place
     python scripts/generate_env_template.py --check    # exit 1 if the block is stale
 
-CI runs the in-place form followed by ``git diff --exit-code env.template``
+CI runs the in-place form followed by ``git diff --exit-code .env.example``
 (the same lockfile pattern used for the repository map).
 """
 
@@ -27,7 +27,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from src.config.schema import Settings  # noqa: E402
 
-_ENV_TEMPLATE = _REPO_ROOT / "env.template"
+_ENV_TEMPLATE = _REPO_ROOT / ".env.example"
 _BEGIN = "# === BEGIN GENERATED: schema-owned settings — regenerate with 'make env-template' ==="
 _END = "# === END GENERATED ==="
 
@@ -66,7 +66,7 @@ def render_template(current: str) -> str:
     """Return ``current`` with the marked block replaced by a fresh render."""
     if _BEGIN not in current or _END not in current:
         raise SystemExit(
-            f"env.template is missing the generated-block markers.\n"
+            f".env.example is missing the generated-block markers.\n"
             f"Add these two lines where the block should live:\n{_BEGIN}\n{_END}"
         )
     head, rest = current.split(_BEGIN, 1)
@@ -79,7 +79,7 @@ def main() -> int:
     parser.add_argument(
         "--check",
         action="store_true",
-        help="Exit non-zero if env.template's generated block is stale.",
+        help="Exit non-zero if .env.example's generated block is stale.",
     )
     args = parser.parse_args()
 
@@ -89,18 +89,18 @@ def main() -> int:
     if args.check:
         if current != updated:
             print(
-                "env.template is stale. Run `make env-template` and commit the result.",
+                ".env.example is stale. Run `make env-template` and commit the result.",
                 file=sys.stderr,
             )
             return 1
-        print("env.template is up to date.")
+        print(".env.example is up to date.")
         return 0
 
     if current != updated:
         _ENV_TEMPLATE.write_text(updated, encoding="utf-8")
-        print("Regenerated env.template schema block.")
+        print("Regenerated .env.example schema block.")
     else:
-        print("env.template already up to date.")
+        print(".env.example already up to date.")
     return 0
 
 

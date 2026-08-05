@@ -69,7 +69,7 @@ check: lint format-check test
 repo-map:
 	uv run python scripts/generate_repo_map.py
 
-# Regenerate the schema-owned block of env.template from src/config/schema.py.
+# Regenerate the schema-owned block of .env.example from src/config/schema.py.
 env-template:
 	uv run python scripts/generate_env_template.py
 

@@ -47,9 +47,11 @@ Requests carry a bearer token:
 Authorization: Bearer <your-token>
 ```
 
-Read operations may be open depending on how an instance is configured. Anything
-that writes needs a credential. On an instance you run, you create these
-yourself — see [run your own node](run-your-own-node.md).
+Read operations are generally open. Writes are checked against the credentials an
+instance is configured with — but note that **an instance started with no
+`API_KEYS` configured accepts anonymous writes**, so on a node you run, setting
+one is what turns write protection on. See
+[run your own node](run-your-own-node.md#before-anyone-else-can-reach-it).
 
 ## Two things worth knowing before you build
 
@@ -63,6 +65,35 @@ did not satisfy every requirement, alongside those that did, each with a
 structured explanation of what was and wasn't met. Don't treat a confidence score
 alone as "this workshop can build it" — read the explanation, which says which
 requirements failed. See [find who can build a design](find-who-can-build-it.md).
+
+## Running a node just for the API
+
+If you're embedding OHM rather than offering a web interface, the usual answer is
+to start the stack without the frontend — `docker compose up ohm-api ohm-worker`,
+covered in [run your own node](run-your-own-node.md#running-without-the-web-interface).
+
+For the smallest possible footprint, a single container serves the API with no
+Redis and no worker:
+
+```bash
+docker run -p 8001:8001 \
+  -e STORAGE_PROVIDER=local \
+  -e API_KEYS=<your-token> \
+  touchthesun/openhardwaremanager:<version>
+```
+
+Know what you're trading away:
+
+- **No background jobs.** `POST /api/okh/generate-from-url/jobs` returns an error
+  saying jobs are disabled. Only the synchronous endpoint works.
+- **Synchronous generation blocks for as long as it takes.** Small repositories
+  return in seconds; a large, mature project can take several minutes, which will
+  exceed default timeouts in most proxies and HTTP clients.
+- **No shared cache**, so it doesn't scale past one container.
+
+That makes it a reasonable fit for a sidecar serving small repositories, and a
+poor one for anything pointed at repositories you don't control. If you're not
+sure which you have, use the two-container form above.
 
 ## Which instance to point at
 

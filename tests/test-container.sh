@@ -163,7 +163,7 @@ main() {
     if [ $TESTS_PASSED -eq $TESTS_TOTAL ]; then
         echo -e "\n${GREEN}🎉 All tests passed! Containerization is working correctly.${NC}"
         echo -e "\n${YELLOW}Next steps:${NC}"
-        echo "1. Copy env.template to .env and configure your settings"
+        echo "1. Copy .env.example to .env and configure your settings"
         echo "2. Run: docker-compose up ome-api"
         echo "3. Access API docs at: http://localhost:8001/docs"
         exit 0

@@ -7,10 +7,11 @@ drift-prone spots. One command rewrites them all in lockstep; `--check` verifies
 they still match (a staleness gate for `make ready`).
 
 Only "current release" claims belong in the registry (README badge, quickstart
-docker tags). Historical facts (CHANGELOG, "added in 0.8.x") and illustrative
-examples ("e.g. v0.8.0") must NOT be listed — they are correctly pinned to a
-specific version and should never move. Docker examples in the docs float on the
-`:0.8` major.minor tag on purpose, so they never drift and are not registered.
+docker tags, the image tags Compose pulls). Historical facts (CHANGELOG, "added
+in 0.8.x") and illustrative examples ("e.g. v0.8.0") must NOT be listed — they
+are correctly pinned to a specific version and should never move. The docs-site
+guides use a `<version>` placeholder rather than a literal, so they state no
+version to drift and are not registered.
 
 Usage:
     python scripts/bump_version.py 0.9.0     # bump pyproject + registry
@@ -60,6 +61,15 @@ _SITES: list[Site] = [
         "README.md",
         re.compile(r"openhardwaremanager:(?P<v>\d+\.\d+\.\d+)"),
         "quickstart docker tag",
+    ),
+    # Compose pulls published images by default, so these tags decide what a
+    # self-hoster actually runs. Matches both the API and frontend images.
+    Site(
+        "docker-compose.yml",
+        re.compile(
+            r"openhardwaremanager(?:-frontend)?:\$\{OHM_VERSION:-(?P<v>\d+\.\d+\.\d+)\}"
+        ),
+        "compose image tags",
     ),
 ]
 

@@ -12,6 +12,9 @@ fi
 
 # Default values
 MODE=${1:-"api"}
+# Recorded for healthcheck.sh, which runs as a separate process and otherwise
+# has no way to know whether this container is serving HTTP or consuming tasks.
+echo "$MODE" > /tmp/ohm-container-mode 2>/dev/null || true
 API_HOST=${API_HOST:-"0.0.0.0"}
 # Support PORT env var (Cloud Run) and API_PORT (backward compatibility)
 API_PORT=${PORT:-${API_PORT:-"8001"}}

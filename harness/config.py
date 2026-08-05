@@ -7,6 +7,7 @@ modules stay free of hard-coded OHM paths/URLs.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
@@ -38,6 +39,34 @@ class HarnessConfig:
 
     def module(self, name: str) -> ModuleConfig:
         return self.modules.get(name, ModuleConfig(enabled=True))
+
+
+_BASE_URL_ENV = "OHM_HARNESS_API_BASE_URL"
+
+
+def _target_base_url(raw: dict[str, Any]) -> str:
+    """The API the harness points at, overridable without editing tracked config.
+
+    ``harness.config.json`` pins the deployed node, which is what you want by
+    default and exactly wrong when the thing you need to check is a stack you
+    just started locally.
+    """
+    override = os.environ.get(_BASE_URL_ENV)
+    if override:
+        return override.rstrip("/")
+    return str(raw.get("api_base_url", HarnessConfig.api_base_url))
+
+
+def _derived(raw: dict[str, Any], key: str, base_url: str, suffix: str) -> str:
+    """A URL that follows the base unless it was overridden on its own.
+
+    Without this, pointing the harness at localhost would leave it probing the
+    deployed node's health and schema — reporting on one system while claiming
+    to describe another.
+    """
+    if os.environ.get(_BASE_URL_ENV):
+        return f"{base_url}{suffix}"
+    return str(raw.get(key, getattr(HarnessConfig, key)))
 
 
 def load_config(path: Optional[Path] = None) -> HarnessConfig:
@@ -75,11 +104,12 @@ def load_config(path: Optional[Path] = None) -> HarnessConfig:
     ):
         modules.setdefault(name, ModuleConfig(enabled=False))
 
+    base_url = _target_base_url(raw)
     return HarnessConfig(
-        api_base_url=str(raw.get("api_base_url", HarnessConfig.api_base_url)),
-        api_health_url=str(raw.get("api_health_url", HarnessConfig.api_health_url)),
+        api_base_url=base_url,
+        api_health_url=_derived(raw, "api_health_url", base_url, "/health"),
         api_path_prefix=str(raw.get("api_path_prefix", HarnessConfig.api_path_prefix)),
-        openapi_url=str(raw.get("openapi_url", HarnessConfig.openapi_url)),
+        openapi_url=_derived(raw, "openapi_url", base_url, "/v1/openapi.json"),
         frontend_url=str(raw.get("frontend_url", HarnessConfig.frontend_url)),
         frontend_dir=str(raw.get("frontend_dir", HarnessConfig.frontend_dir)),
         committed_schema=str(
