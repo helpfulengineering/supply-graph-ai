@@ -74,13 +74,13 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
 COPY src/ ./src/
 COPY config/ ./config/
-COPY deploy/docker/docker-entrypoint.sh deploy/docker/gunicorn.conf.py ./
+COPY deploy/docker/docker-entrypoint.sh deploy/docker/healthcheck.sh deploy/docker/gunicorn.conf.py ./
 
 RUN mkdir -p logs storage storage/federation temp_context temp_matching_context && \
     chmod -R 755 logs storage temp_context temp_matching_context
 
-RUN chmod +x docker-entrypoint.sh && \
-    mv docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x docker-entrypoint.sh healthcheck.sh && \
+    mv docker-entrypoint.sh healthcheck.sh /usr/local/bin/
 
 RUN groupadd -r ohm && useradd -r -g ohm ohm && \
     chown -R ohm:ohm /app && \
@@ -91,8 +91,10 @@ USER root
 
 EXPOSE 8001
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD sh -c 'curl -f http://localhost:${PORT:-8001}/health || exit 1'
+# Mode-aware: this image runs an HTTP API or a Celery worker, and they cannot be
+# asked the same question. See deploy/docker/healthcheck.sh.
+HEALTHCHECK --interval=30s --timeout=15s --start-period=40s --retries=3 \
+    CMD ["/usr/local/bin/healthcheck.sh"]
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
