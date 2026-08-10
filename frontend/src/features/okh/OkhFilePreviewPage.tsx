@@ -1,16 +1,30 @@
+"use client";
+
 import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOkhDetail } from "../../api/ohm/okh";
 import { LoadingState, ErrorState } from "../../components/ui/states";
 import { enrichFileRef } from "./okhFilePath";
-import { decodeFilePathFromRoute, OkhFilePreviewContent } from "./OkhFilePreviewContent";
+import {
+  decodeFilePathFromRoute,
+  OkhFilePreviewContent,
+} from "./OkhFilePreviewContent";
 
 export function OkhFilePreviewPage() {
-  const { id, "*": filePathEncoded } = useParams<{ id: string; "*": string }>();
-  const filePath = filePathEncoded ? decodeFilePathFromRoute(filePathEncoded) : "";
+  const { id, path } = useParams<{ id: string; path: string[] }>();
+  const filePathEncoded = Array.isArray(path) ? path.join("/") : path;
+  const filePath = filePathEncoded
+    ? decodeFilePathFromRoute(filePathEncoded)
+    : "";
 
-  const { data: okh, isLoading, isError, error } = useQuery({
+  const {
+    data: okh,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["okh-detail", id],
     queryFn: () => fetchOkhDetail(id!),
     enabled: Boolean(id),
@@ -39,7 +53,9 @@ export function OkhFilePreviewPage() {
   if (isError || !okh) {
     return (
       <ErrorState
-        description={error instanceof Error ? error.message : "Design not found."}
+        description={
+          error instanceof Error ? error.message : "Design not found."
+        }
       />
     );
   }
@@ -52,12 +68,15 @@ export function OkhFilePreviewPage() {
   return (
     <div className="space-y-6">
       <nav className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-        <Link to="/okh" className="hover:text-indigo-600 dark:hover:text-indigo-400">
+        <Link
+          href="/okh"
+          className="hover:text-indigo-600 dark:hover:text-indigo-400"
+        >
           Designs
         </Link>
         <span aria-hidden="true">›</span>
         <Link
-          to={`/okh/${id}`}
+          href={`/okh/${id}`}
           className="truncate hover:text-indigo-600 dark:hover:text-indigo-400"
         >
           {title}

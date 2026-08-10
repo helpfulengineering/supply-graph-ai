@@ -1,6 +1,8 @@
+"use client";
+
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { fetchPackageList, packageDetailPath } from "../../api/package";
 
 /** Packages built from this OKH manifest (client-filtered list). */
@@ -12,15 +14,12 @@ export function ReleasesStrip({ okhId }: { okhId: string }) {
   });
 
   const releases = useMemo(
-    () =>
-      (list.data?.items ?? []).filter((p) => p.okh_manifest_id === okhId),
+    () => (list.data?.items ?? []).filter((p) => p.okh_manifest_id === okhId),
     [list.data, okhId],
   );
 
   if (list.isLoading) {
-    return (
-      <p className="text-sm text-muted-foreground">Loading releases…</p>
-    );
+    return <p className="text-sm text-muted-foreground">Loading releases…</p>;
   }
   if (!releases.length) return null;
 
@@ -39,11 +38,13 @@ export function ReleasesStrip({ okhId }: { okhId: string }) {
         {releases.map((p) => (
           <li key={`${p.package_name}@${p.version}`}>
             <Link
-              to={packageDetailPath(p.package_name, p.version)}
+              href={packageDetailPath(p.package_name, p.version)}
               className="text-sm text-indigo-600 hover:underline dark:text-indigo-400"
             >
               {p.package_name}
-              <span className="ml-2 font-mono text-xs text-slate-500">v{p.version}</span>
+              <span className="ml-2 font-mono text-xs text-slate-500">
+                v{p.version}
+              </span>
             </Link>
           </li>
         ))}

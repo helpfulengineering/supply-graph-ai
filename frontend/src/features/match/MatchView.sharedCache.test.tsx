@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("../../api/ohm/network", async (importOriginal) => {
@@ -63,9 +62,7 @@ describe("MatchView network cache sharing", () => {
 
     render(
       <QueryClientProvider client={client}>
-        <MemoryRouter>
-          <MatchView />
-        </MemoryRouter>
+        <MatchView />
       </QueryClientProvider>,
     );
 

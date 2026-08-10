@@ -1,5 +1,8 @@
+"use client";
+
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import { withNavState } from "../../lib/navState";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchAllOkhList } from "../../api/ohm/okh";
 import { fetchNetworkSpaces } from "../../api/ohm/network";
@@ -102,7 +105,7 @@ export function MatchView({
   inlineManifest?: Record<string, unknown>;
   inlineTitle?: string;
 }) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const networkMode = !!networkFilter;
   const designs = useQuery({
     queryKey: ["okh-list"],
@@ -151,8 +154,10 @@ export function MatchView({
   // solution is evaluated against the same requirement set.
   const requirementCount = useMemo(
     () =>
-      rawView?.solutions.reduce((max, s) => Math.max(max, s.coverage?.total ?? 0), 0) ??
-      0,
+      rawView?.solutions.reduce(
+        (max, s) => Math.max(max, s.coverage?.total ?? 0),
+        0,
+      ) ?? 0,
     [rawView],
   );
   const ceiling = toleranceCeiling(requirementCount);
@@ -175,7 +180,8 @@ export function MatchView({
     };
   }, [rawView, effectiveTolerance]);
 
-  const hiddenCount = (rawView?.solutions.length ?? 0) - (view?.solutions.length ?? 0);
+  const hiddenCount =
+    (rawView?.solutions.length ?? 0) - (view?.solutions.length ?? 0);
 
   const selectedDesign = useMemo(
     () => (designs.data?.items ?? []).find((d) => d.id === selected) ?? null,
@@ -222,9 +228,9 @@ export function MatchView({
               {inlineTitle || "Generated design"}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Matching a design you generated and reviewed in this session. It has
-              not been saved to the catalogue, and closing this page will discard
-              it — download it first if you want to keep it.
+              Matching a design you generated and reviewed in this session. It
+              has not been saved to the catalogue, and closing this page will
+              discard it — download it first if you want to keep it.
             </p>
           </div>
         ) : (
@@ -392,8 +398,9 @@ export function MatchView({
                     gap in a 2-requirement design is not the same as one gap in
                     a design with six.
                   */}
-                  This design has {requirementCount} requirements. The most you can
-                  relax to is {ceiling}, so a result always meets at least two.
+                  This design has {requirementCount} requirements. The most you
+                  can relax to is {ceiling}, so a result always meets at least
+                  two.
                   {hiddenCount > 0 &&
                     ` ${hiddenCount} facilit${hiddenCount === 1 ? "y is" : "ies are"} hidden at this setting.`}
                 </p>
@@ -448,7 +455,7 @@ export function MatchView({
                         websiteByFacilityId,
                       ),
                     };
-                    navigate("/rfq", { state });
+                    router.push(withNavState("/rfq", state));
                   }}
                 >
                   Contact selected facilities →

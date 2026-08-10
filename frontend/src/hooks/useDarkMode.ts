@@ -1,8 +1,13 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "ohm-color-scheme";
 
 function getInitialDark(): boolean {
+  // The provider stack renders client-side only, but keep the initializer
+  // safe under any server evaluation.
+  if (typeof window === "undefined") return false;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored !== null) return stored === "dark";

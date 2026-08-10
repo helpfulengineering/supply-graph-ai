@@ -1,4 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "./categories";
 import { formatOkhDisplayTitle } from "./formatOkhDisplayTitle";
@@ -9,7 +12,7 @@ interface Props {
 }
 
 export function OkhListRow({ okh }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const title = formatOkhDisplayTitle(okh.title);
   const category =
     deriveCategories(okh).find((c) => c !== UNCATEGORIZED) ?? UNCATEGORIZED;
@@ -20,7 +23,7 @@ export function OkhListRow({ okh }: Props) {
   return (
     <div className="flex flex-col gap-2 border-b border-slate-100 py-3 last:border-0 dark:border-slate-800 sm:flex-row sm:items-center sm:gap-4">
       <Link
-        to={`/okh/${okh.id}`}
+        href={`/okh/${okh.id}`}
         className="min-w-0 flex-1 no-underline hover:text-indigo-600 dark:hover:text-indigo-400"
       >
         <div className="font-medium text-slate-800 dark:text-slate-100 break-words">
@@ -35,7 +38,7 @@ export function OkhListRow({ okh }: Props) {
         </div>
       </Link>
       <button
-        onClick={() => navigate(`/match?okh_id=${okh.id}`)}
+        onClick={() => router.push(`/match?okh_id=${okh.id}`)}
         className="shrink-0 self-start rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900 sm:self-center"
       >
         Run Match ⚡

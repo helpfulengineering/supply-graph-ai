@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import {
   downloadPackageFile,
   fetchPackageMetadata,
@@ -41,7 +43,9 @@ export function PackageDetailView({ org, project, version }: Props) {
     onError: reportAuthFailure,
     onSuccess: (result) => {
       setPinResult(result);
-      void queryClient.invalidateQueries({ queryKey: ["package", org, project, version] });
+      void queryClient.invalidateQueries({
+        queryKey: ["package", org, project, version],
+      });
     },
   });
 
@@ -53,7 +57,9 @@ export function PackageDetailView({ org, project, version }: Props) {
   if (meta.isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground break-all">{packageName}</h1>
+        <h1 className="text-2xl font-bold text-foreground break-all">
+          {packageName}
+        </h1>
         <LoadingSpinner message="Loading package…" />
       </div>
     );
@@ -61,7 +67,9 @@ export function PackageDetailView({ org, project, version }: Props) {
   if (meta.isError || !meta.data) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground break-all">{packageName}</h1>
+        <h1 className="text-2xl font-bold text-foreground break-all">
+          {packageName}
+        </h1>
         <ErrorMessage error={meta.error ?? new Error("Package not found")} />
       </div>
     );
@@ -71,7 +79,7 @@ export function PackageDetailView({ org, project, version }: Props) {
   return (
     <div className="space-y-6">
       <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/packages" className="hover:text-indigo-600">
+        <Link href="/packages" className="hover:text-indigo-600">
           Packages
         </Link>
         <span aria-hidden="true">›</span>
@@ -82,18 +90,28 @@ export function PackageDetailView({ org, project, version }: Props) {
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground break-all">{packageName}</h1>
-          <p className="mt-1 font-mono text-sm text-muted-foreground">v{pkg.version}</p>
+          <h1 className="text-2xl font-bold text-foreground break-all">
+            {packageName}
+          </h1>
+          <p className="mt-1 font-mono text-sm text-muted-foreground">
+            v{pkg.version}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
             onClick={() =>
-              void downloadPackageFile(packageName, version).catch(reportAuthFailure)
+              void downloadPackageFile(packageName, version).catch(
+                reportAuthFailure,
+              )
             }
           >
             ↓ Download .tar.gz
           </Button>
-          <Button variant="outline" disabled={pin.isPending} onClick={() => pin.mutate()}>
+          <Button
+            variant="outline"
+            disabled={pin.isPending}
+            onClick={() => pin.mutate()}
+          >
             {pin.isPending ? "Pinning…" : "Pin"}
           </Button>
           <Button
@@ -125,7 +143,7 @@ export function PackageDetailView({ org, project, version }: Props) {
             <dd>
               <Link
                 className="font-mono text-indigo-600 hover:underline"
-                to={`/okh/${pkg.okh_manifest_id}`}
+                href={`/okh/${pkg.okh_manifest_id}`}
               >
                 {pkg.okh_manifest_id}
               </Link>
@@ -135,7 +153,10 @@ export function PackageDetailView({ org, project, version }: Props) {
       </dl>
 
       {pin.isSuccess && pinResult && (
-        <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
+        <p
+          className="text-sm text-emerald-700 dark:text-emerald-400"
+          role="status"
+        >
           Package pinned. Bundle {pinResult.bundle_hash}
         </p>
       )}
@@ -171,7 +192,9 @@ export function parsePackageRoute(
 ): Props | null {
   if (!org || !project || !version) return null;
   try {
-    splitPackageName(`${decodeURIComponent(org)}/${decodeURIComponent(project)}`);
+    splitPackageName(
+      `${decodeURIComponent(org)}/${decodeURIComponent(project)}`,
+    );
   } catch {
     return null;
   }

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# ---- Build stage: compile the SPA to static assets ----
+# ---- Build stage: compile the Next.js app to a standalone server ----
 FROM node:22-alpine AS build
 WORKDIR /app
 
@@ -8,43 +8,58 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Build (tsc -b && vite build) → /app/dist
 COPY . .
-RUN npm run build
-
-# ---- Runtime stage: nginx serving the SPA + proxying /v1 to the backend ----
-FROM nginx:1.27-alpine AS runtime
-
-# The base image runs envsubst over templates at startup, rendering this into
-# /etc/nginx/conf.d/default.conf with the host-specific values below.
-COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Documentation site, served at /docs. Built by `make docs-site` (mkdocs writes
-# straight into this context via site_dir), so it must be built BEFORE the image.
-# CI does that in the publish-frontend job; a stale or empty docs-dist ships an
-# empty docs section, which the post-deploy smoke check is there to catch.
-COPY docs-dist /usr/share/nginx/html/docs
 
 # Build identity, baked in so a deploy can prove which image is actually
 # serving. A version string cannot do this: republishing a release tag yields a
 # new image reporting the same version, so a deploy that silently fails to roll
 # over still passes a version check. Static file rather than a runtime env var —
-# it has to describe the IMAGE, not the container's environment.
+# it has to describe the IMAGE, not the container's environment. Written before
+# `next build` so the standalone output carries it.
+ARG GIT_SHA=unknown
+RUN mkdir -p public && printf '{"build":"%s"}\n' "${GIT_SHA}" > public/build-info.json
+
+# next build → .next/standalone (server) + .next/static (assets)
+RUN npm run build
+
+# ---- Runtime stage: the standalone node server (replaces nginx) ----
+# The server owns every contract nginx used to: /v1 proxy (app/v1 route
+# handler), /docs static tree (app/docs route handler), /healthz, and
+# /build-info.json + /_next/static via the bundled asset server.
+FROM node:22-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+
+# Documentation site, served at /docs by the docs route handler. Built by
+# `make docs-site` (mkdocs writes straight into this context via site_dir), so
+# it must be built BEFORE the image. CI does that in the publish-frontend job;
+# a stale or empty docs-dist ships an empty docs section, which the post-deploy
+# smoke check is there to catch.
+COPY docs-dist ./docs-dist
+
 ARG GIT_SHA=unknown
 LABEL org.opencontainers.image.revision="${GIT_SHA}"
-RUN printf '{"build":"%s"}\n' "${GIT_SHA}" > /usr/share/nginx/html/build-info.json
 
 # Host-specific config — injected at deploy time from the centralized config
 # surface (config/environments/<env>.toml [frontend]); NOT baked into the image.
-# API_UPSTREAM_URL has no default on purpose: an unset value fails nginx startup
-# loudly rather than silently proxying nowhere.
+# API_UPSTREAM_URL has no default on purpose: entry.sh refuses to start on an
+# unset value, failing loudly rather than silently proxying nowhere (the same
+# behaviour nginx's envsubst startup gave the previous image).
 ENV API_UPSTREAM_URL="" \
+    DOCS_ROOT=/app/docs-dist \
+    HOSTNAME=0.0.0.0 \
     PORT=8080
+
+COPY entry.sh ./entry.sh
+RUN chmod +x entry.sh
 
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget -qO- "http://localhost:${PORT}/healthz" >/dev/null 2>&1 || exit 1
 
-# Base image ENTRYPOINT renders templates (envsubst) then starts nginx.
+CMD ["./entry.sh"]

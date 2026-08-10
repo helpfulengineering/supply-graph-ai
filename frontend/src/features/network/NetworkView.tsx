@@ -1,15 +1,24 @@
+"use client";
+
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { fetchNetworkSpaces, type NetworkFilters as Filters } from "../../api/ohm/network";
+import {
+  fetchNetworkSpaces,
+  type NetworkFilters as Filters,
+} from "../../api/ohm/network";
 import { Button } from "../../components/ui/button";
 import { deriveFilterOptions } from "./deriveFilterOptions";
 import { filterByName } from "./nameSearch";
 import { buildNetworkSummary } from "./networkSummary";
 import { NetworkFilters } from "./NetworkFilters";
 import { NetworkSpaceCard } from "./NetworkSpaceCard";
-import { NetworkMap } from "./NetworkMap";
-import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
+import { NetworkMap } from "./NetworkMapLazy";
+import {
+  LoadingState,
+  EmptyState,
+  ErrorState,
+} from "../../components/ui/states";
 import { Pagination } from "../../components/ui/Pagination";
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -17,9 +26,19 @@ import { SeedPeerCta } from "./SeedPeerCta";
 
 const PAGE_SIZE = 24;
 
-function ViewToggle({ view, onChange }: { view: "list" | "map"; onChange: (v: "list" | "map") => void }) {
+function ViewToggle({
+  view,
+  onChange,
+}: {
+  view: "list" | "map";
+  onChange: (v: "list" | "map") => void;
+}) {
   return (
-    <div role="group" aria-label="View" className="inline-flex overflow-hidden rounded-md border border-input">
+    <div
+      role="group"
+      aria-label="View"
+      className="inline-flex overflow-hidden rounded-md border border-input"
+    >
       {(["list", "map"] as const).map((v) => (
         <button
           key={v}
@@ -28,7 +47,9 @@ function ViewToggle({ view, onChange }: { view: "list" | "map"; onChange: (v: "l
           onClick={() => onChange(v)}
           className={cn(
             "px-3 py-1.5 text-sm capitalize transition-colors",
-            view === v ? "bg-primary text-primary-foreground" : "bg-background text-foreground hover:bg-accent",
+            view === v
+              ? "bg-primary text-primary-foreground"
+              : "bg-background text-foreground hover:bg-accent",
           )}
         >
           {v}
@@ -39,7 +60,7 @@ function ViewToggle({ view, onChange }: { view: "list" | "map"; onChange: (v: "l
 }
 
 export function NetworkView() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { hasWrite } = useAuth();
   const [filters, setFilters] = useState<Filters>({});
   const [view, setView] = useState<"list" | "map">("list");
@@ -53,7 +74,7 @@ export function NetworkView() {
     for (const [key, value] of Object.entries(filters)) {
       if (value) params.set(key, String(value));
     }
-    navigate(`/match?${params.toString()}`);
+    router.push(`/match?${params.toString()}`);
   };
 
   const activeCount = Object.values(filters).filter(Boolean).length;
@@ -89,7 +110,10 @@ export function NetworkView() {
 
   const totalPages = Math.max(1, Math.ceil(spaces.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
-  const pageItems = spaces.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const pageItems = spaces.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
 
   const applyFilters = (next: Filters) => {
     setFilters(next);
@@ -102,7 +126,8 @@ export function NetworkView() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Network</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Browse OHM facilities and Maps of Making spaces. Filter by location, process, and more.
+            Browse OHM facilities and Maps of Making spaces. Filter by location,
+            process, and more.
           </p>
         </div>
         <Button
@@ -111,7 +136,7 @@ export function NetworkView() {
               ? undefined
               : "Connect a write-capable API key first (opens Session)"
           }
-          onClick={() => navigate(createHref)}
+          onClick={() => router.push(createHref)}
         >
           {createLabel}
         </Button>
@@ -160,7 +185,11 @@ export function NetworkView() {
 
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            {data && <p className="text-sm text-slate-600 dark:text-slate-400">{buildNetworkSummary(data)}</p>}
+            {data && (
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {buildNetworkSummary(data)}
+              </p>
+            )}
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={matchAgainstThese}>
                 ⚡ Match a design against these
@@ -172,7 +201,11 @@ export function NetworkView() {
           {active.isLoading && <LoadingState message="Loading network…" />}
           {active.isError && (
             <ErrorState
-              description={active.error instanceof Error ? active.error.message : "Failed to load the network."}
+              description={
+                active.error instanceof Error
+                  ? active.error.message
+                  : "Failed to load the network."
+              }
               onRetry={() => active.refetch()}
             />
           )}
@@ -190,11 +223,15 @@ export function NetworkView() {
               }
               action={
                 hasFilters ? (
-                  <Button variant="outline" size="sm" onClick={() => applyFilters({})}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => applyFilters({})}
+                  >
                     Clear filters
                   </Button>
                 ) : (
-                  <Button size="sm" onClick={() => navigate(createHref)}>
+                  <Button size="sm" onClick={() => router.push(createHref)}>
                     {createLabel}
                   </Button>
                 )
@@ -202,7 +239,9 @@ export function NetworkView() {
             />
           )}
 
-          {!active.isLoading && !active.isError && spaces.length > 0 &&
+          {!active.isLoading &&
+            !active.isError &&
+            spaces.length > 0 &&
             (view === "map" ? (
               <div className="h-[520px] overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
                 <NetworkMap spaces={spaces} />

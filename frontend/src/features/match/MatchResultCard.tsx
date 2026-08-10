@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { Badge } from "../../components/ui/Badge";
 import type { RankedSolution } from "./matchViewModel";
 import { confidencePct, confidenceToken } from "./confidence";
@@ -68,7 +70,9 @@ export function MatchResultCard({
               secondary signal.
             */}
             <div className="flex shrink-0 flex-col items-end gap-1">
-              <Badge variant={solution.coverage?.missing ? "yellow" : token.variant}>
+              <Badge
+                variant={solution.coverage?.missing ? "yellow" : token.variant}
+              >
                 {coverageLabel(solution.coverage)}
               </Badge>
               <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -79,7 +83,7 @@ export function MatchResultCard({
           {treeHref && (
             <div className="mt-3">
               <Link
-                to={treeHref}
+                href={treeHref}
                 className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
               >
                 View supply tree →

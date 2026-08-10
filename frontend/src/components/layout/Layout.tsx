@@ -1,15 +1,15 @@
-import { Outlet } from "react-router-dom";
+"use client";
+
+import type { ReactNode } from "react";
 import { NavBar } from "./NavBar";
 import { AuthBanner } from "../../features/auth/AuthBanner";
 
-export function Layout() {
+export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <NavBar />
       <AuthBanner />
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        <Outlet />
-      </main>
+      <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
     </div>
   );
 }

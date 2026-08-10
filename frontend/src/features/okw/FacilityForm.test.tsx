@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { server } from "../../test/msw/server";
@@ -17,16 +16,7 @@ vi.mock("../../context/AuthContext", () => ({
   }),
 }));
 
-const navigate = vi.fn();
-vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual<typeof import("react-router-dom")>(
-    "react-router-dom",
-  );
-  return {
-    ...actual,
-    useNavigate: () => navigate,
-  };
-});
+import { mockRouter } from "../../test/nextNavigation";
 
 function renderForm(mode: "create" | "edit" = "create") {
   const client = new QueryClient({
@@ -34,28 +24,26 @@ function renderForm(mode: "create" | "edit" = "create") {
   });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter>
-        <FacilityForm
-          mode={mode}
-          facilityId={mode === "edit" ? "okw-1" : undefined}
-          initialFacility={
-            mode === "edit"
-              ? {
-                  id: "okw-1",
-                  name: "Laser Fab Lab",
-                  facility_status: "Active",
-                  access_type: "Membership",
-                  location: {
-                    city: "Austin",
-                    country: "US",
-                    address: { city: "Austin", country: "US", region: "TX" },
-                  },
-                  manufacturing_processes: ["laser_cutting"],
-                }
-              : undefined
-          }
-        />
-      </MemoryRouter>
+      <FacilityForm
+        mode={mode}
+        facilityId={mode === "edit" ? "okw-1" : undefined}
+        initialFacility={
+          mode === "edit"
+            ? {
+                id: "okw-1",
+                name: "Laser Fab Lab",
+                facility_status: "Active",
+                access_type: "Membership",
+                location: {
+                  city: "Austin",
+                  country: "US",
+                  address: { city: "Austin", country: "US", region: "TX" },
+                },
+                manufacturing_processes: ["laser_cutting"],
+              }
+            : undefined
+        }
+      />
     </QueryClientProvider>,
   );
 }
@@ -64,7 +52,7 @@ describe("FacilityForm", () => {
   beforeEach(() => {
     authState.hasWrite = true;
     reportAuthFailure.mockClear();
-    navigate.mockClear();
+    mockRouter.push.mockClear();
   });
 
   it("disables save and shows write-gate when user lacks write", async () => {
@@ -73,7 +61,9 @@ describe("FacilityForm", () => {
     expect(
       await screen.findByText(/Connect a write-capable API key to save/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Create facility/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Create facility/i }),
+    ).toBeDisabled();
   });
 
   it("validates then creates and navigates to detail", async () => {
@@ -116,10 +106,13 @@ describe("FacilityForm", () => {
     await waitFor(() => {
       expect(validateBody).toBeTruthy();
       expect(createBody).toBeTruthy();
-      expect(navigate).toHaveBeenCalledWith("/facilities/okw-created?created=1");
+      expect(mockRouter.push).toHaveBeenCalledWith(
+        "/facilities/okw-created?created=1",
+      );
     });
 
-    const content = (validateBody as { content: Record<string, unknown> }).content;
+    const content = (validateBody as { content: Record<string, unknown> })
+      .content;
     expect(content.name).toBe("Test Lab");
     expect(content.manufacturing_processes).toContain("3d_printing");
   });
@@ -150,8 +143,10 @@ describe("FacilityForm", () => {
     await user.type(screen.getByLabelText(/^Country/i), "US");
     await user.click(screen.getByRole("button", { name: /Create facility/i }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/Validation failed/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /Validation failed/i,
+    );
     expect(createSpy).not.toHaveBeenCalled();
-    expect(navigate).not.toHaveBeenCalled();
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 });

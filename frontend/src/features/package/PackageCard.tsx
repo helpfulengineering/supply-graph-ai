@@ -1,4 +1,6 @@
-import { useNavigate } from "react-router-dom";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { downloadPackageFile, packageDetailPath } from "../../api/package";
 import type { PackageListItem } from "../../types/package";
 import { useAuth } from "../../context/AuthContext";
@@ -33,7 +35,7 @@ function formatDate(iso: string): string {
 }
 
 export function PackageCard({ pkg, selected = false, onToggle }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { reportAuthFailure } = useAuth();
   const detail = packageDetailPath(pkg.package_name, pkg.version);
 
@@ -50,11 +52,17 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
           />
         )}
         <div className="min-w-0 space-y-2">
-          <button type="button" className="text-left" onClick={() => navigate(detail)}>
+          <button
+            type="button"
+            className="text-left"
+            onClick={() => router.push(detail)}
+          >
             <h3 className="font-semibold text-slate-800 break-all hover:text-indigo-600 dark:text-slate-100">
               {pkg.package_name}
             </h3>
-            <p className="font-mono text-xs text-slate-600 dark:text-slate-400">v{pkg.version}</p>
+            <p className="font-mono text-xs text-slate-600 dark:text-slate-400">
+              v{pkg.version}
+            </p>
           </button>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
             <span>
@@ -63,7 +71,9 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
             <span>{formatBytes(pkg.total_size_bytes)}</span>
             <span>Built {formatDate(pkg.build_timestamp)}</span>
             {pkg.okh_manifest_id && (
-              <span className="font-mono">manifest: {pkg.okh_manifest_id.slice(0, 8)}…</span>
+              <span className="font-mono">
+                manifest: {pkg.okh_manifest_id.slice(0, 8)}…
+              </span>
             )}
           </div>
         </div>
@@ -73,7 +83,9 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
         type="button"
         className="shrink-0"
         onClick={() =>
-          void downloadPackageFile(pkg.package_name, pkg.version).catch(reportAuthFailure)
+          void downloadPackageFile(pkg.package_name, pkg.version).catch(
+            reportAuthFailure,
+          )
         }
       >
         ↓ Download .tar.gz

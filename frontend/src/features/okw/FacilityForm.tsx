@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
@@ -34,7 +37,7 @@ interface Props {
 }
 
 export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { hasWrite, reportAuthFailure } = useAuth();
   const taxonomyQuery = useQuery({
     queryKey: ["taxonomy", "processes"],
@@ -72,7 +75,12 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       ...state.equipment.map((e) => e.processId),
     ]);
     return taxonomy.filter((p) => ids.has(p.canonical_id) || !p.parent);
-  }, [taxonomy, state.selectedParents, state.selectedSubtypes, state.equipment]);
+  }, [
+    taxonomy,
+    state.selectedParents,
+    state.selectedSubtypes,
+    state.equipment,
+  ]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -117,7 +125,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           author: state.author.trim() || undefined,
           onBehalfOf: state.onBehalfOf.trim() || undefined,
         });
-        navigate(`/facilities/${id}?created=1`);
+        router.push(`/facilities/${id}?created=1`);
         return;
       }
 
@@ -126,7 +134,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         facilityId,
         formToUpdateBody(state, taxonomy) as Parameters<typeof updateOkw>[1],
       );
-      navigate(`/facilities/${facilityId}`);
+      router.push(`/facilities/${facilityId}`);
     } catch (err) {
       reportAuthFailure(err);
       setError(err instanceof Error ? err.message : "Save failed.");
@@ -151,7 +159,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/facilities" className="hover:text-indigo-600">
+        <Link href="/facilities" className="hover:text-indigo-600">
           Facilities
         </Link>
         <span aria-hidden="true">›</span>
@@ -161,8 +169,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       <div>
         <h1 className="text-2xl font-bold text-foreground">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Useful details up front; hours, equipment, and JSON import are optional. Visibility
-          defaults to private until you share.
+          Useful details up front; hours, equipment, and JSON import are
+          optional. Visibility defaults to private until you share.
         </p>
       </div>
 
@@ -175,16 +183,16 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           <ol className="mt-2 list-decimal space-y-1 pl-5">
             <li>
               Open{" "}
-              <Link to="/settings/session" className="underline font-medium">
+              <Link href="/settings/session" className="underline font-medium">
                 Settings → Session
               </Link>{" "}
               and paste a key with <code className="text-xs">write</code> (or{" "}
               <code className="text-xs">admin</code>).
             </li>
             <li>
-              On a new node, start from the env <code className="text-xs">API_KEYS</code>{" "}
-              bootstrap token, then create a named key under Keys &amp; accounts if you are an
-              admin.
+              On a new node, start from the env{" "}
+              <code className="text-xs">API_KEYS</code> bootstrap token, then
+              create a named key under Keys &amp; accounts if you are an admin.
             </li>
             <li>Return here and save the facility.</li>
           </ol>
@@ -198,7 +206,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             >
               Get a write key
             </a>{" "}
-            (local: <code className="text-xs">docs/auth/get-a-write-key.md</code>).
+            (local:{" "}
+            <code className="text-xs">docs/auth/get-a-write-key.md</code>).
           </p>
         </div>
       )}
@@ -223,7 +232,10 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               <select
                 value={state.facilityStatus}
                 onChange={(e) =>
-                  patch({ facilityStatus: e.target.value as FacilityFormState["facilityStatus"] })
+                  patch({
+                    facilityStatus: e.target
+                      .value as FacilityFormState["facilityStatus"],
+                  })
                 }
                 className={fieldClass}
               >
@@ -239,7 +251,10 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               <select
                 value={state.accessType}
                 onChange={(e) =>
-                  patch({ accessType: e.target.value as FacilityFormState["accessType"] })
+                  patch({
+                    accessType: e.target
+                      .value as FacilityFormState["accessType"],
+                  })
                 }
                 className={fieldClass}
               >
@@ -303,7 +318,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             Processes
           </h2>
           <p className="text-xs text-muted-foreground">
-            Select parent types; expand a parent to pick more specific subtypes when you want.
+            Select parent types; expand a parent to pick more specific subtypes
+            when you want.
           </p>
           {taxonomyQuery.isLoading && (
             <p className="text-sm text-muted-foreground">Loading taxonomy…</p>
@@ -363,7 +379,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             onClick={() => setAdvancedOpen((o) => !o)}
             aria-expanded={advancedOpen}
           >
-            {advancedOpen ? "Hide advanced" : "Show advanced"} — hours, contact, equipment, import
+            {advancedOpen ? "Hide advanced" : "Show advanced"} — hours, contact,
+            equipment, import
           </button>
         </div>
 
@@ -458,7 +475,9 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                     type="button"
                     variant="outline"
                     onClick={() =>
-                      patch({ equipment: state.equipment.filter((_, j) => j !== i) })
+                      patch({
+                        equipment: state.equipment.filter((_, j) => j !== i),
+                      })
                     }
                   >
                     Remove
@@ -473,7 +492,10 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                     equipment: [
                       ...state.equipment,
                       {
-                        processId: state.selectedSubtypes[0] || state.selectedParents[0] || "",
+                        processId:
+                          state.selectedSubtypes[0] ||
+                          state.selectedParents[0] ||
+                          "",
                         make: "",
                         model: "",
                       },
@@ -490,7 +512,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 Import JSON
               </h2>
               <p className="text-xs text-muted-foreground">
-                Paste OKW JSON to fill the form. For YAML, convert first or use the CLI.
+                Paste OKW JSON to fill the form. For YAML, convert first or use
+                the CLI.
               </p>
               <textarea
                 value={importText}
@@ -514,14 +537,17 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         )}
 
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={!hasWrite || busy || taxonomyQuery.isLoading}>
+          <Button
+            type="submit"
+            disabled={!hasWrite || busy || taxonomyQuery.isLoading}
+          >
             {busy
               ? "Saving…"
               : mode === "create"
                 ? "Create facility"
                 : "Save changes"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>
         </div>

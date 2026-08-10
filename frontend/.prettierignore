@@ -4,3 +4,5 @@ src/api/generated
 src/components/ui
 node_modules
 package-lock.json
+.next
+next-env.d.ts

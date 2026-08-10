@@ -447,9 +447,9 @@ jobs:
         # forever, so every container looks healthy while the feature is dead.
         run: uv run python -m harness.runner --modules probe_async_generation
 
-  # Frontend (nginx SPA + /v1 reverse-proxy) — built multi-arch so the image runs
-  # on linux/amd64 hosts (a bare `docker build` on Apple Silicon is arm64-only and
-  # fails to activate on Azure Container Apps).
+  # Frontend (Next.js standalone server + /v1 reverse-proxy) — built multi-arch
+  # so the image runs on linux/amd64 hosts (a bare `docker build` on Apple
+  # Silicon is arm64-only and fails to activate on Azure Container Apps).
   publish-frontend:
     name: Publish frontend multi-arch to Docker Hub
     runs-on: ubuntu-latest
@@ -464,10 +464,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # The documentation site is served from /docs by this image's nginx, so it
-      # is baked in here. mkdocs writes into frontend/docs-dist (its site_dir),
-      # which the Dockerfile COPYs — so it MUST be built before the image, or the
-      # image ships an empty docs section.
+      # The documentation site is served from /docs by this image's docs route
+      # handler. mkdocs writes into frontend/docs-dist (its site_dir), which the
+      # Dockerfile COPYs — so it MUST be built before the image, or the image
+      # ships an empty docs section.
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
 
