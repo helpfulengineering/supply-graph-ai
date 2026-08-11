@@ -211,7 +211,7 @@ export function GenerateView() {
   const showProgress = active || (jobs.length > 0 && !manifest && !allTerminal);
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-6">
       <div>
         <PageHero title="Generate a design from a URL" crumb="repository · extraction · review" />
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
@@ -245,7 +245,7 @@ export function GenerateView() {
             }}
             aria-invalid={urlError ? true : undefined}
             aria-describedby={urlError ? "repo-url-error" : "repo-url-hint"}
-            className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm"
+            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
           <button
             type="button"

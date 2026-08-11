@@ -1,6 +1,6 @@
 "use client";
 
-import { Package } from "lucide-react";
+import { PackagesIllustration } from "../../components/ui/illustrations";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -97,17 +97,12 @@ export function PackageListView() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <PageHero title="Packages" crumb="archives · versions · downloads" />
-          <p className="mt-1 text-sm text-muted-foreground">
-            Point-in-time archives of OKH design files. Each package is a{" "}
-            <span className="font-mono text-xs">.tar.gz</span>; multi-select
-            downloads a server-built zip of those tarballs.
-          </p>
         </div>
         <button
           type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="shrink-0 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background disabled:opacity-50"
+          className="shrink-0 rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background disabled:opacity-50"
         >
           {isFetching ? "Refreshing…" : "↻ Refresh"}
         </button>
@@ -163,7 +158,7 @@ export function PackageListView() {
         <>
           {filtered.length === 0 ? (
             <EmptyState
-              icon={Package}
+              icon={() => <PackagesIllustration className="h-10 w-10" />}
               heading={
                 packages.length === 0 ? "No packages built yet" : "No matches"
               }

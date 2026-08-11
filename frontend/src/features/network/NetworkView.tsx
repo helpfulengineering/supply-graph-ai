@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchX } from "lucide-react";
+import { FacilitiesIllustration } from "../../components/ui/illustrations";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -127,10 +127,6 @@ export function NetworkView() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <PageHero title="Network" crumb="local · federated · filtered" />
-          <p className="mt-1 text-sm text-muted-foreground">
-            Browse OHM facilities and Maps of Making spaces. Filter by location,
-            process, and more.
-          </p>
         </div>
         <Button
           title={
@@ -214,7 +210,7 @@ export function NetworkView() {
 
           {!active.isLoading && !active.isError && spaces.length === 0 && (
             <EmptyState
-              icon={<SearchX aria-hidden="true" className="h-8 w-8" strokeWidth={1.5} />}
+              icon={<FacilitiesIllustration className="h-10 w-10" />}
               title={hasFilters ? "No spaces match" : "No spaces yet"}
               description={
                 hasFilters

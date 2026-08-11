@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { siteConfig } from "./src/lib/site/config";
 
 /**
  * Trailing-slash policy, split by surface (Next's global redirect is disabled
@@ -14,6 +15,16 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // The optional site layer is gated here rather than in the page. Whether it
+  // is enabled is a build-time constant (NEXT_PUBLIC_* is inlined), so a
+  // page-level notFound() renders the boundary but leaves the response 200 —
+  // the page looks right while the status lies, which misleads monitors and
+  // crawlers. This runs per request and can answer with a real 404. On the
+  // default deployment /mission-control genuinely does not exist.
+  if (!siteConfig.enabled && pathname.startsWith("/mission-control")) {
+    return new NextResponse(null, { status: 404 });
+  }
 
   if (
     pathname === "/docs" ||

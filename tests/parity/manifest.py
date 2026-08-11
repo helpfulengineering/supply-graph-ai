@@ -221,6 +221,21 @@ AREAS: tuple[Area, ...] = (
         fe_routes=("/settings",),
         fe_api_prefixes=("/api/identity",),
     ),
+    # --- Frontend-only surfaces: no service, no API, no CLI ---------------
+    Area(
+        "site-layer",
+        None,
+        None,
+        None,
+        "internal",
+        note="Optional site layer (visitor gate, telemetry, whitelabel, Mission "
+        "Control) backed by Supabase ohmgr_* and OFF by default. Frontend-only "
+        "by design: it is the SITE layer, never an authorization source, so it "
+        "has no Python service, API tag, or CLI group. Application permissions "
+        "stay with the identity area's whoami. See "
+        "docs/architecture/site-layer.md.",
+        fe_routes=("/mission-control",),
+    ),
     # --- Internal services: no API and no CLI by design -------------------
     Area("cache", "cache", None, None, "internal", note="Caching internals."),
     Area(

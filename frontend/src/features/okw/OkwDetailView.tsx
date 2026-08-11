@@ -229,7 +229,7 @@ export function OkwDetailView({ id }: { id: string }) {
   const editHref = `/facilities/${id}/edit`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/facilities" className="hover:text-primary-ink">
           Facilities

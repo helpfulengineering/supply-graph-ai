@@ -77,7 +77,7 @@ export function LLMCredentialsPanel() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
         Store an encrypted provider API key on this node and hot-swap it into
         the running LLM service. Keys are never shown in full after save — only
@@ -112,7 +112,7 @@ export function LLMCredentialsPanel() {
             <select
               value={provider}
               onChange={(e) => setProvider(e.target.value)}
-              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               {PROVIDERS.map((p) => (
                 <option key={p} value={p}>
@@ -129,7 +129,7 @@ export function LLMCredentialsPanel() {
               value={model}
               onChange={(e) => setModel(e.target.value)}
               placeholder="claude-sonnet-4-5-20250929"
-              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             />
           </label>
           <label className="block text-sm sm:col-span-2">

@@ -19,9 +19,9 @@ interface PageHeroProps {
  */
 export function PageHero({ title, crumb, actions }: PageHeroProps) {
   return (
-    <header className="mb-5">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+    <header className="mb-3">
+      <div className="flex flex-wrap items-baseline gap-x-3">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {title}
         </h1>
         {crumb && (
@@ -31,7 +31,7 @@ export function PageHero({ title, crumb, actions }: PageHeroProps) {
       </div>
       <div
         aria-hidden="true"
-        className="mt-3 h-0.5 w-full rounded-full"
+        className="mt-1.5 h-px w-full rounded-full"
         style={{
           background:
             "linear-gradient(120deg, var(--ttm-irid-a), var(--ttm-irid-b), var(--ttm-irid-c), var(--ttm-irid-d), var(--ttm-irid-e))",

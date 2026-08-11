@@ -1,6 +1,6 @@
 "use client";
 
-import { Wrench } from "lucide-react";
+import { DesignsIllustration } from "../../components/ui/illustrations";
 import { PageHero } from "../../components/layout/PageHero";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -154,10 +154,6 @@ export function OkhListView() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <PageHero title="Open Hardware Designs" crumb="catalog · facets · matching" />
-          <p className="mt-1 text-sm text-muted-foreground">
-            Browse designs by category and capability, then run facility
-            matching.
-          </p>
         </div>
         <div className="flex gap-2">
           {/* Generation needs no write key: it produces a file to download, and
@@ -257,7 +253,7 @@ export function OkhListView() {
 
           {!isLoading && !isError && !hasItems && (
             <EmptyState
-              icon={<Wrench aria-hidden="true" className="h-8 w-8" strokeWidth={1.5} />}
+              icon={<DesignsIllustration className="h-10 w-10" />}
               title="No designs found"
               description={
                 selectedCount > 0 || filterText

@@ -77,7 +77,7 @@ export function KeysAccountsPanel() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
         To rotate a key: create a replacement, switch Session to it, then revoke
         the old key.

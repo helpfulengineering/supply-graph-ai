@@ -1,6 +1,6 @@
 "use client";
 
-import { Network } from "lucide-react";
+import { NetworkIllustration } from "../../components/ui/illustrations";
 import { PageHero } from "../../components/layout/PageHero";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -54,7 +54,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
   if (isSolutionEmpty(data)) {
     return (
       <EmptyState
-        icon={<Network aria-hidden="true" className="h-8 w-8" strokeWidth={1.5} />}
+        icon={<NetworkIllustration className="h-10 w-10" />}
         title="No supply tree"
         description="This solution has no supply tree to visualize."
       />
@@ -73,9 +73,6 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <PageHero title="Supply Tree" crumb="plan · facilities · dependencies" />
-            <p className="mt-1 text-sm text-muted-foreground">
-              Manufacturing plan for the matched solution.
-            </p>
           </div>
           <Button
             variant="outline"

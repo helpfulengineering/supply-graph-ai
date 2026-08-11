@@ -35,6 +35,55 @@ yourself.
 
 ---
 
+## The interface
+
+**Live demo: [supply-graph-ai.thetechmargin.com](https://supply-graph-ai.thetechmargin.com/)**
+
+![The dashboard — network map, live counts, and system status](docs/assets/ux/dashboard-warm-light.png)
+
+The frontend is a Next.js App Router application that ships with the API and
+serves its own UI. Everything below is themeable: one token file drives ten
+colour worlds in light and dark, and every surface — including the map, the
+supply-tree graph, and the charts — reads from it.
+
+| | |
+|---|---|
+| ![Synthwave, dark](docs/assets/ux/dashboard-synthwave-dark.png) | ![Blueprint, dark](docs/assets/ux/catalog-blueprint-dark.png) |
+| The same dashboard in Synthwave dark | The design catalog in Blueprint dark |
+
+Every route is reachable from one hamburger sitemap, grouped by purpose, each
+entry carrying a role line rather than a bare label. Adding a page requires
+deciding nothing about its chrome.
+
+![The sitemap drawer](docs/assets/ux/sitemap-drawer.png)
+
+### What the UX overhaul added
+
+- **Ten theme worlds x light/dark** — twenty palettes behind shadcn's own token
+  names, so every component re-themes without being edited. Colour exists in
+  exactly one file, and a unit test fails the build if a raw hex or a
+  hardcoded Tailwind palette shade appears anywhere else.
+- **A contrast gate, not a contrast promise** — an axe scan runs across all
+  twenty variants on every CI run, computing contrast from *runtime-resolved*
+  token values rather than numbers copied into a test. Adding a world extends
+  the matrix automatically. It caught five failing palettes the day it landed.
+- **Universal chrome** — one header, one sitemap drawer, one footer, with
+  focus trapping, `aria-current`, skip-to-content, 44px targets, and every
+  animation inside the `prefers-reduced-motion` guard.
+- **Data surfaces on tokens** — the Leaflet map, the cytoscape supply-tree
+  graph, and the ECharts distribution chart all resolve their colours from the
+  live token layer, so they follow the active world instead of carrying
+  private palettes.
+- **A deterministic demo dataset** (`make seed-demo`) — ten designs and seven
+  facilities curated so the golden path completes, with content-derived ids so
+  deep links survive reseeding. It backs a real-API E2E lane that previously
+  skipped nearly every assertion for lack of data.
+
+Verification for the whole surface: **326 unit tests** and **100 Playwright E2E
+specs**, including the twenty-variant accessibility matrix.
+
+---
+
 ## Software
 
 OHM exposes a FastAPI HTTP API that can be run locally via Docker Compose, from a

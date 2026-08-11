@@ -22,7 +22,7 @@ export function FacetPanel({
   onClear,
 }: Props) {
   return (
-    <nav aria-label="Filters" className="space-y-5 text-sm">
+    <nav aria-label="Filters" className="space-y-6 text-sm">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-foreground">Filters</h2>
         {selectedCount > 0 && (

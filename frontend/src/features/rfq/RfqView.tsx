@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import { QuotesIllustration } from "../../components/ui/illustrations";
 import { PageHero } from "../../components/layout/PageHero";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -37,7 +37,7 @@ export function RfqView({ navState }: Props) {
       <div className="space-y-6">
         <PageHero title="RFQ Generation" crumb="facilities · quotes · documents" />
         <EmptyState
-          icon={FileText}
+          icon={() => <QuotesIllustration className="h-10 w-10" />}
           heading="No facilities selected"
           body="Return to the match results page, select one or more facilities, then click Contact selected facilities."
           action={
@@ -144,7 +144,7 @@ export function RfqView({ navState }: Props) {
 
       {/* Generation form */}
       {!generated && (
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="rounded-xl border border-border bg-card p-5">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Configuration
           </h2>
@@ -200,7 +200,7 @@ export function RfqView({ navState }: Props) {
               onChange={(e) =>
                 setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
               }
-              className="w-24 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-24 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-ring"
             />
             <span className="text-sm text-muted-foreground">units</span>
           </div>
@@ -238,7 +238,7 @@ export function RfqView({ navState }: Props) {
 
       {/* Results */}
       {generated && rfqs.length > 0 && (
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* Results header */}
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -247,7 +247,7 @@ export function RfqView({ navState }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={handleDownloadAll}
-                className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
+                className="rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
               >
                 ↓ Download all (.txt)
               </button>
@@ -262,7 +262,7 @@ export function RfqView({ navState }: Props) {
                   setGenerated(false);
                   setRfqs([]);
                 }}
-                className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background transition-colors"
+                className="rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background transition-colors"
               >
                 ← Edit settings
               </button>
@@ -270,7 +270,7 @@ export function RfqView({ navState }: Props) {
           </div>
 
           {/* Document cards */}
-          <div className="space-y-5">
+          <div className="space-y-6">
             {rfqs.map((doc) => (
               <RfqDocumentCard key={doc.rfq_number} doc={doc} />
             ))}

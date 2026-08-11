@@ -36,7 +36,7 @@ export function SpacesPanel() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <section
         aria-labelledby="claim-space-heading"
         className="rounded-xl border border-border bg-card p-5"

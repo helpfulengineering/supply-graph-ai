@@ -16,7 +16,7 @@ export function SyncedFacilityBanner({
   return (
     <div
       role="status"
-      className="rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground"
+      className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
     >
       <p className="font-medium">Synced from a federation peer</p>
       <p className="mt-1 text-xs">

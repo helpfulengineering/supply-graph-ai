@@ -10,6 +10,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { refreshLowVolatilityData } from "../../queryClient";
 import { NAV_GROUPS, isActivePath } from "./nav";
+import { useSiteLayer } from "../../lib/site/useSiteLayer";
 
 interface NavDrawerProps {
   open: boolean;
@@ -27,6 +28,7 @@ interface NavDrawerProps {
 export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const pathname = usePathname() ?? "";
   const { isAdmin, token } = useAuth();
+  const site = useSiteLayer();
   const { isDark, toggle, theme, setTheme, themes } = useTheme();
   const queryClient = useQueryClient();
   const isFetching = useIsFetching() > 0;
@@ -119,7 +121,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         id="site-menu"
         className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-border bg-card shadow-xl animate-in slide-in-from-right duration-200 motion-reduce:animate-none"
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Menu
           </span>
@@ -193,6 +195,27 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               <span className="text-xs text-muted-foreground">{settingsDesc}</span>
             </Link>
           </div>
+
+          {/* Site layer: absent entirely when the instance did not opt in.
+              Not disabled, not explained — on the default deployment the
+              capability does not exist, so the nav simply has no entry. */}
+          {site.enabled && (
+            <div className="py-2">
+              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Site
+              </p>
+              <Link
+                href="/mission-control"
+                aria-current={isActivePath(pathname, "/mission-control") ? "page" : undefined}
+                className={itemClass(isActivePath(pathname, "/mission-control"))}
+              >
+                <span className="text-sm font-medium">Mission Control</span>
+                <span className="text-xs text-muted-foreground">
+                  telemetry and visitor records for this site
+                </span>
+              </Link>
+            </div>
+          )}
 
           <div className="py-2">
             <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
