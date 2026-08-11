@@ -1,6 +1,7 @@
 "use client";
 
 import { Package } from "lucide-react";
+import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -95,7 +96,7 @@ export function PackageListView() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Packages</h1>
+          <PageHero title="Packages" crumb="archives · versions · downloads" />
           <p className="mt-1 text-sm text-muted-foreground">
             Point-in-time archives of OKH design files. Each package is a{" "}
             <span className="font-mono text-xs">.tar.gz</span>; multi-select

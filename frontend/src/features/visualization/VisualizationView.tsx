@@ -1,6 +1,7 @@
 "use client";
 
 import { Network } from "lucide-react";
+import { PageHero } from "../../components/layout/PageHero";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { fetchVisualization } from "../../api/ohm/supply-tree";
@@ -71,7 +72,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         </button>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Supply Tree</h1>
+            <PageHero title="Supply Tree" crumb="plan · facilities · dependencies" />
             <p className="mt-1 text-sm text-muted-foreground">
               Manufacturing plan for the matched solution.
             </p>

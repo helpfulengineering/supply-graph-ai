@@ -1,6 +1,7 @@
 "use client";
 
 import { SearchX } from "lucide-react";
+import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { withNavState } from "../../lib/navState";
@@ -216,7 +217,7 @@ export function MatchView({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Match a Design</h1>
+        <PageHero title="Match a Design" crumb="design · facilities · solutions" />
         <p className="mt-1 text-sm text-muted-foreground">
           Choose a design and the facilities to compare, then run a match.
         </p>

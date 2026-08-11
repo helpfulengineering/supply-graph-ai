@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { PageHero } from "../../components/layout/PageHero";
 import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { withNavState } from "../../lib/navState";
@@ -212,9 +213,7 @@ export function GenerateView() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">
-          Generate a design from a URL
-        </h1>
+        <PageHero title="Generate a design from a URL" crumb="repository · extraction · review" />
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Point OHM at a public GitHub or GitLab repository and it will read
           what's there into a structured design record. You can paste several

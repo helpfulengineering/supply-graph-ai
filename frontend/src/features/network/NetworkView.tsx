@@ -1,6 +1,7 @@
 "use client";
 
 import { SearchX } from "lucide-react";
+import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -125,7 +126,7 @@ export function NetworkView() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Network</h1>
+          <PageHero title="Network" crumb="local · federated · filtered" />
           <p className="mt-1 text-sm text-muted-foreground">
             Browse OHM facilities and Maps of Making spaces. Filter by location,
             process, and more.

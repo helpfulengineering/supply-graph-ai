@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText } from "lucide-react";
+import { PageHero } from "../../components/layout/PageHero";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -34,7 +35,7 @@ export function RfqView({ navState }: Props) {
   if (!navState || navState.solutions.length === 0) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">RFQ Generation</h1>
+        <PageHero title="RFQ Generation" crumb="facilities · quotes · documents" />
         <EmptyState
           icon={FileText}
           heading="No facilities selected"
@@ -124,7 +125,7 @@ export function RfqView({ navState }: Props) {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">RFQ Generation</h1>
+          <PageHero title="RFQ Generation" crumb="facilities · quotes · documents" />
           <p className="mt-1 text-sm text-muted-foreground">
             Generating requests for quotation for{" "}
             <span className="font-medium text-foreground">{okhTitle}</span>

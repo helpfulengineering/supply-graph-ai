@@ -36,8 +36,12 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/okh/generate", name: "Generate", desc: "draft a design manifest from a URL" },
       { href: "/okh/new", name: "New design", desc: "author an OKH manifest by hand" },
       { href: "/facilities/new", name: "New facility", desc: "register an OKW space" },
+      { href: "/rfq", name: "RFQ", desc: "request quotes for a matched solution" },
     ],
   },
+  // Deliberately absent: /visualization redirects home by design — supply
+  // trees are per-match results reached from their match, with no browse list.
+  // Every other route in app/ is attached here; tests/parity guards the set.
   {
     label: "Reference",
     entries: [
