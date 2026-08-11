@@ -32,6 +32,9 @@ import {
   ErrorState,
 } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
+import { SECTION_LABEL } from "../../components/ui/typography";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 
 export function VisualizationView({ solutionId }: { solutionId: string }) {
   const router = useRouter();
@@ -97,10 +100,8 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         const deps = toDependencies(data);
         return (
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-xl border border-border bg-card p-4">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Production Sequence
-              </h2>
+            <section className={PANEL}>
+              <h2 className={cn(SECTION_LABEL, "mb-4")}>Production Sequence</h2>
               {sequence.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No production stages.
@@ -121,10 +122,8 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
               )}
             </section>
 
-            <section className="rounded-xl border border-border bg-card p-4">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Dependencies
-              </h2>
+            <section className={PANEL}>
+              <h2 className={cn(SECTION_LABEL, "mb-4")}>Dependencies</h2>
               {deps.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No inter-component dependencies.

@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "../../components/ui/button";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_LABEL } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 /**
  * Hand-off from a facility detail into Match a Design with this facility
@@ -10,10 +13,8 @@ import { Button } from "../../components/ui/button";
 export function FacilityDesigns({ okwId }: { okwId: string }) {
   const router = useRouter();
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Matching designs
-      </h2>
+    <section className={PANEL}>
+      <h2 className={cn(SECTION_LABEL, "mb-2")}>Matching designs</h2>
       <p className="mb-4 text-sm text-muted-foreground">
         Find which catalog designs this facility can produce. You’ll pick a
         design and confirm facility filters on the Match page before anything

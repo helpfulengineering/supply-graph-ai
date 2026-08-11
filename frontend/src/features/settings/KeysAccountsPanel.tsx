@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
+import {
+  CHECKBOX,
+  CHOICE_ROW,
+  FIELD,
+  FIELD_SM,
+  LABEL,
+} from "../../components/ui/field";
+import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAccount,
@@ -12,6 +19,8 @@ import {
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL, PANEL_WARNING } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 const PERMISSION_OPTIONS = ["read", "write", "admin"] as const;
 
@@ -88,11 +97,11 @@ export function KeysAccountsPanel() {
         <div
           role="dialog"
           aria-labelledby="token-once-heading"
-          className="rounded-xl border border-warning/30 bg-warning/10 p-5"
+          className={PANEL_WARNING}
         >
           <h2
             id="token-once-heading"
-            className="text-lg font-semibold text-warning"
+            className={cn(SECTION_TITLE, "text-warning")}
           >
             Copy this token now
           </h2>
@@ -121,11 +130,8 @@ export function KeysAccountsPanel() {
         </div>
       )}
 
-      <section
-        aria-labelledby="keys-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <h2 id="keys-heading" className="text-lg font-semibold text-foreground">
+      <section aria-labelledby="keys-heading" className={PANEL}>
+        <h2 id="keys-heading" className={SECTION_TITLE}>
           API keys
         </h2>
 
@@ -145,13 +151,14 @@ export function KeysAccountsPanel() {
               required
             />
           </label>
-          <fieldset>
+          <fieldset className="min-w-0">
             <legend className="text-sm font-medium">Permissions</legend>
             <div className="mt-2 flex flex-wrap gap-3">
               {PERMISSION_OPTIONS.map((p) => (
-                <label key={p} className="flex items-center gap-1.5 text-sm">
+                <label key={p} className={cn(CHOICE_ROW, "w-auto")}>
                   <input
                     type="checkbox"
+                    className={CHECKBOX}
                     checked={permissions.includes(p)}
                     onChange={() => togglePermission(p)}
                   />
@@ -227,14 +234,8 @@ export function KeysAccountsPanel() {
         )}
       </section>
 
-      <section
-        aria-labelledby="accounts-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <h2
-          id="accounts-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+      <section aria-labelledby="accounts-heading" className={PANEL}>
+        <h2 id="accounts-heading" className={SECTION_TITLE}>
           Accounts
         </h2>
 

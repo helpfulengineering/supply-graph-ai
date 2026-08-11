@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { FIELD_SM } from "../../components/ui/field";
+import { PANEL_ACCENT } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Link from "next/link";
@@ -80,7 +82,7 @@ export function OkhFilePreviewContent({
 
   const wrapperClass = fullPage
     ? "min-h-[50vh] space-y-4"
-    : "mt-2 mb-4 space-y-3 rounded-lg border border-primary/30 bg-accent/40 p-4";
+    : cn(PANEL_ACCENT, "mt-2 mb-4 space-y-3");
 
   if (!previewable) {
     return (

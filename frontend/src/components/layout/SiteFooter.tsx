@@ -33,11 +33,23 @@ export function SiteFooter() {
           </span>
         </span>
 
-        <span className="flex items-center gap-1.5">
-          made with
-          <Heart aria-hidden="true" className="h-4 w-4 text-primary-ink" fill="currentColor" />
-          <span className="sr-only">heart</span>
-          by{" "}
+        {/*
+          A <p> of inline content, not a flex row of fragments. Flex blockifies
+          its children, so as a flex item "OpenSource" stops being a link
+          inside a line of text and becomes a standalone 81x20 target — under
+          the 24x24 WCAG 2.5.8 minimum, with no way to pad it that does not
+          break the line. Inline in a paragraph it is sized by the line-height
+          of the words around it, which is exactly the condition 2.5.8's inline
+          exception describes. e2e/responsive.spec.ts measures this.
+        */}
+        <p className="text-center">
+          made with{" "}
+          <Heart
+            aria-hidden="true"
+            className="inline h-4 w-4 align-text-bottom text-primary-ink"
+            fill="currentColor"
+          />
+          <span className="sr-only">heart</span> by{" "}
           <a
             href={SOURCE_URL}
             target="_blank"
@@ -47,7 +59,7 @@ export function SiteFooter() {
           >
             OpenSource
           </a>
-        </span>
+        </p>
       </div>
     </footer>
   );

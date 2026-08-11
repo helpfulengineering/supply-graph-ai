@@ -3,6 +3,9 @@
 import { useId, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { FIELD, HINT, LABEL } from "../../components/ui/field";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 import { useDialogFocus } from "../../lib/useDialogFocus";
 import { signIn, type GateCopy } from "../../lib/site/stack";
 import { gateFieldErrors, gateFieldsValid, type GateFieldErrors } from "./gateValidation";
@@ -76,9 +79,12 @@ export function Gate({ copy, onSignedIn, onDismiss }: GateProps) {
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={bodyId}
-        className="absolute left-1/2 top-1/2 w-[min(30rem,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-card p-5 shadow-xl animate-in fade-in zoom-in-95 duration-150 motion-reduce:animate-none"
+        className={cn(
+          PANEL,
+          "absolute left-1/2 top-1/2 max-h-[calc(100vh-2rem)] w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto shadow-xl animate-in fade-in zoom-in-95 duration-150 motion-reduce:animate-none",
+        )}
       >
-        <h2 id={titleId} className="text-base font-semibold text-foreground">
+        <h2 id={titleId} className={SECTION_TITLE}>
           {copy.title}
         </h2>
         <p id={bodyId} className="mt-1 text-sm text-muted-foreground">

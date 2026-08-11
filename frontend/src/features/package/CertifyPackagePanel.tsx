@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { certifyRelease } from "../../api/ohm/identity";
 import type { PinRecord } from "../../api/package";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 interface Props {
   version: string;
@@ -44,14 +46,8 @@ export function CertifyPackagePanel({ version, pin }: Props) {
   const canSubmit = Boolean(subjectDid.trim() && bundle_hash);
 
   return (
-    <section
-      aria-labelledby="certify-heading"
-      className="rounded-xl border border-border bg-card p-4"
-    >
-      <h2
-        id="certify-heading"
-        className="text-lg font-semibold text-foreground"
-      >
+    <section aria-labelledby="certify-heading" className={PANEL}>
+      <h2 id="certify-heading" className={SECTION_TITLE}>
         Certify release
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">

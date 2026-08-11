@@ -5,6 +5,9 @@ import { downloadPackageFile, packageDetailPath } from "../../api/package";
 import type { PackageListItem } from "../../types/package";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
+import { CHECKBOX, CHECKBOX_HIT } from "../../components/ui/field";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 
 interface Props {
   pkg: PackageListItem;
@@ -40,16 +43,23 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
   const detail = packageDetailPath(pkg.package_name, pkg.version);
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between">
+    <div
+      className={cn(
+        PANEL,
+        "flex flex-col gap-4 shadow-sm sm:flex-row sm:items-start sm:justify-between",
+      )}
+    >
       <div className="flex min-w-0 gap-3">
         {onToggle && (
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={selected}
-            onChange={onToggle}
-            aria-label={`Select ${pkg.package_name} ${pkg.version}`}
-          />
+          <label className={cn(CHECKBOX_HIT, "mt-1")}>
+            <input
+              type="checkbox"
+              className={CHECKBOX}
+              checked={selected}
+              onChange={onToggle}
+              aria-label={`Select ${pkg.package_name} ${pkg.version}`}
+            />
+          </label>
         )}
         <div className="min-w-0 space-y-2">
           <button

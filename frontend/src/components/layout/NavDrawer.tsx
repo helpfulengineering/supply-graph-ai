@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FIELD } from "../../components/ui/field";
+import { CHECKBOX, CHOICE_ROW, FIELD } from "../../components/ui/field";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,6 +9,7 @@ import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { FlaskConical, Link2, RefreshCw, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useThemeSwatches } from "../../hooks/useThemeSwatches";
 import { refreshLowVolatilityData } from "../../queryClient";
 import {
   ACCOUNT_GROUP,
@@ -148,6 +149,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const { isAdmin, token } = useAuth();
   const site = useSiteLayer();
   const { isDark, toggle, theme, setTheme, themes, shareUrl } = useTheme();
+  const swatches = useThemeSwatches();
   const queryClient = useQueryClient();
   const isFetching = useIsFetching() > 0;
   const panelRef = useRef<HTMLDivElement>(null);
@@ -229,7 +231,11 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
 
         <nav aria-label="Primary navigation" className="flex-1 px-2 pt-2">
           {NAV_GROUPS.map((group) => (
-            <NavGroupBlock key={group.label} group={group} pathname={pathname} />
+            <NavGroupBlock
+              key={group.label}
+              group={group}
+              pathname={pathname}
+            />
           ))}
 
           <NavGroupBlock group={accountGroup} pathname={pathname} />
@@ -276,28 +282,57 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           </div>
         </nav>
 
-        <fieldset className="shrink-0 border-t border-border px-2 py-2">
+        <fieldset className="min-w-0 shrink-0 border-t border-border px-2 py-2">
           <legend className="sr-only">Theme</legend>
           <p aria-hidden="true" className={LABEL}>
             Theme
           </p>
           <div className="grid grid-cols-2 gap-x-2 px-1">
-            {themes.map(({ slug, label }) => (
-              <label
-                key={slug}
-                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-foreground transition-colors hover:bg-muted"
-              >
-                <input
-                  type="radio"
-                  name="ohm-theme-pick"
-                  value={slug}
-                  checked={theme === slug}
-                  onChange={() => setTheme(slug)}
-                  className="accent-[var(--ttm-accent-cta)]"
-                />
-                {label}
-              </label>
-            ))}
+            {themes.map(({ slug, label }) => {
+              const swatch = swatches[slug];
+              return (
+                <label key={slug} className={CHOICE_ROW}>
+                  <input
+                    type="radio"
+                    name="ohm-theme-pick"
+                    value={slug}
+                    checked={theme === slug}
+                    onChange={() => setTheme(slug)}
+                    className={CHECKBOX}
+                  />
+                  {/*
+                    The name IS the preview: rendered in that world's own
+                    accent and typeface. Two markers per row (a radio and a
+                    swatch dot) was one too many, and the colour belongs on the
+                    thing you are reading.
+
+                    swatch.ink, not swatch.accent: raw accents sit between
+                    3.8:1 and 4.5:1 as ink in several worlds — the finding
+                    behind --color-primary-ink — so the colour is blended
+                    toward the current world's foreground before it is used as
+                    text. Terminal and Mono also repoint every font stack at
+                    the monospace face, which their names then show.
+                  */}
+                  <span
+                    className="truncate"
+                    style={
+                      swatch
+                        ? {
+                            fontFamily: swatch.fontSans,
+                            color: swatch.ink,
+                            // Raw accent here, not ink: a shadow is decoration
+                            // and carries no contrast requirement, so it can
+                            // use the undiluted colour the ink had to temper.
+                            textShadow: `0 0 10px color-mix(in srgb, ${swatch.accent} 45%, transparent)`,
+                          }
+                        : undefined
+                    }
+                  >
+                    {label}
+                  </span>
+                </label>
+              );
+            })}
           </div>
           <button
             type="button"
@@ -323,9 +358,6 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           >
             <Link2 aria-hidden="true" className="h-4 w-4 shrink-0" />
             {copied ? "Link copied" : "Copy link with this look"}
-            <span className="ml-auto text-xs font-normal text-muted-foreground">
-              theme + mode in the URL
-            </span>
           </button>
         </fieldset>
 

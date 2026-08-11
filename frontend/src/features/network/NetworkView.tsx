@@ -24,10 +24,15 @@ import {
 } from "../../components/ui/states";
 import { Pagination } from "../../components/ui/Pagination";
 import { useAuth } from "../../context/AuthContext";
-import { cn } from "@/lib/utils";
 import { SeedPeerCta } from "./SeedPeerCta";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
 
 const PAGE_SIZE = 24;
+
+const VIEW_OPTIONS = [
+  { value: "list" as const, label: "List" },
+  { value: "map" as const, label: "Map" },
+];
 
 function ViewToggle({
   view,
@@ -36,29 +41,17 @@ function ViewToggle({
   view: "list" | "map";
   onChange: (v: "list" | "map") => void;
 }) {
+  // Was a hand-rolled twin of the match page's mode switch, down to the class
+  // string, but wearing role="group"/aria-pressed instead of a radio group —
+  // two spellings of one concept that also disagreed about what the concept
+  // was. It is a one-of-N choice, so it is a radio group.
   return (
-    <div
-      role="group"
-      aria-label="View"
-      className="inline-flex overflow-hidden rounded-md border border-input"
-    >
-      {(["list", "map"] as const).map((v) => (
-        <button
-          key={v}
-          type="button"
-          aria-pressed={view === v}
-          onClick={() => onChange(v)}
-          className={cn(
-            "px-3 py-1.5 text-sm capitalize transition-colors",
-            view === v
-              ? "bg-primary text-primary-foreground"
-              : "bg-background text-foreground hover:bg-accent",
-          )}
-        >
-          {v}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      label="View"
+      value={view}
+      options={VIEW_OPTIONS}
+      onChange={onChange}
+    />
   );
 }
 
@@ -125,22 +118,21 @@ export function NetworkView() {
 
   return (
     <div className="space-y-6">
-      <PageHero
-        title="Network"
-        crumb="local · federated · filtered"
-        actions={
-          <Button
-            title={
-              hasWrite
-                ? undefined
-                : "Connect a write-capable API key first (opens Session)"
-            }
-            onClick={() => router.push(createHref)}
-          >
-            {createLabel}
-          </Button>
-        }
-      />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <PageHero title="Network" crumb="local · federated · filtered" />
+        </div>
+        <Button
+          title={
+            hasWrite
+              ? undefined
+              : "Connect a write-capable API key first (opens Session)"
+          }
+          onClick={() => router.push(createHref)}
+        >
+          {createLabel}
+        </Button>
+      </div>
 
       <SeedPeerCta />
 
@@ -152,10 +144,7 @@ export function NetworkView() {
             thousand spaces typing a name is what a person tries first.
           */}
           <div>
-            <label
-              htmlFor="space-name-search"
-              className={LABEL}
-            >
+            <label htmlFor="space-name-search" className={LABEL}>
               Search by name
             </label>
             <input

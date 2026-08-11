@@ -17,6 +17,9 @@ import { Button } from "../../components/ui/button";
 import { useAuth } from "../../context/AuthContext";
 import { AttestationsPanel } from "../identity/AttestationsPanel";
 import { CertifyPackagePanel } from "./CertifyPackagePanel";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
+import { PAGE_TITLE } from "../../components/ui/typography";
 
 interface Props {
   org: string;
@@ -57,9 +60,7 @@ export function PackageDetailView({ org, project, version }: Props) {
   if (meta.isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground break-all">
-          {packageName}
-        </h1>
+        <h1 className={cn(PAGE_TITLE, "break-all")}>{packageName}</h1>
         <LoadingSpinner message="Loading package…" />
       </div>
     );
@@ -67,9 +68,7 @@ export function PackageDetailView({ org, project, version }: Props) {
   if (meta.isError || !meta.data) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground break-all">
-          {packageName}
-        </h1>
+        <h1 className={cn(PAGE_TITLE, "break-all")}>{packageName}</h1>
         <ErrorMessage error={meta.error ?? new Error("Package not found")} />
       </div>
     );
@@ -90,9 +89,7 @@ export function PackageDetailView({ org, project, version }: Props) {
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground break-all">
-            {packageName}
-          </h1>
+          <h1 className={cn(PAGE_TITLE, "break-all")}>{packageName}</h1>
           <p className="mt-1 font-mono text-sm text-muted-foreground">
             v{pkg.version}
           </p>
@@ -124,7 +121,7 @@ export function PackageDetailView({ org, project, version }: Props) {
         </div>
       </div>
 
-      <dl className="grid gap-3 rounded-xl border border-border bg-card p-4 text-sm sm:grid-cols-2">
+      <dl className={cn(PANEL, "grid gap-3 text-sm sm:grid-cols-2")}>
         <div>
           <dt className="text-xs uppercase text-muted-foreground">Files</dt>
           <dd>{pkg.total_files}</dd>

@@ -19,11 +19,19 @@ function dotIcon(source: NetworkSpace["source"]): L.DivIcon {
   const color = sourceColor(source);
   const key = `${source}:${color}`;
   if (!_iconCache[key]) {
+    // 24x24 icon, 12px dot. Leaflet markers are focusable targets, so a 12px
+    // icon is a 12px target — under the WCAG 2.5.8 minimum, which the
+    // narrow-viewport lane measures. The dot stays 12px so the map reads the
+    // same; the extra 6px on each side is transparent hit area, centred so the
+    // anchor still lands on the coordinate.
     _iconCache[key] = L.divIcon({
       className: "",
-      html: `<span style="display:block;width:12px;height:12px;border-radius:9999px;background:${color};border:1.5px solid white;box-shadow:0 0 3px rgba(0,0,0,0.5)"></span>`,
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
+      html:
+        `<span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px">` +
+        `<span style="display:block;width:12px;height:12px;border-radius:9999px;background:${color};border:1.5px solid white;box-shadow:0 0 3px rgba(0,0,0,0.5)"></span>` +
+        `</span>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
     });
   }
   return _iconCache[key]!;

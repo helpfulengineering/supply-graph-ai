@@ -1,4 +1,6 @@
 import type { TaxonomyProcess } from "./facilityFormModel";
+import { CHECKBOX } from "../../components/ui/field";
+import { cn } from "@/lib/utils";
 
 function rootsOf(taxonomy: TaxonomyProcess[]): TaxonomyProcess[] {
   return taxonomy
@@ -70,7 +72,7 @@ export function ProcessTaxonomyPicker({
             <label className="flex items-start gap-2">
               <input
                 type="checkbox"
-                className="mt-0.5"
+                className={cn(CHECKBOX, "mt-0.5")}
                 checked={parentOn}
                 disabled={disabled}
                 onChange={() => toggleParent(root.canonical_id)}
@@ -86,7 +88,7 @@ export function ProcessTaxonomyPicker({
                     <label className="flex items-start gap-2 text-foreground">
                       <input
                         type="checkbox"
-                        className="mt-0.5"
+                        className={cn(CHECKBOX, "mt-0.5")}
                         checked={selectedSubtypes.includes(kid.canonical_id)}
                         disabled={disabled}
                         onChange={() =>

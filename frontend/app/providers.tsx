@@ -8,6 +8,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { Layout } from "@/components/layout/Layout";
 import { installDemoFetch } from "@/lib/demo/demoFetch";
+import { siteConfig } from "@/lib/site/config";
 
 /**
  * The client provider stack, mounted once by the root layout.
@@ -24,6 +25,14 @@ import { installDemoFetch } from "@/lib/demo/demoFetch";
 // request escapes to the network first and no component ever learns the
 // source changed.
 installDemoFetch();
+
+// Publish the site-layer posture on the document, so anything observing the
+// app (tests, an operator with devtools) reads what the SERVER was built with
+// rather than inferring it. Reading process.env in a test reads the runner's
+// environment, which diverges the moment a running dev server is reused.
+if (typeof document !== "undefined") {
+  document.documentElement.dataset.siteLayer = siteConfig.enabled ? "on" : "off";
+}
 
 export function Providers({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);

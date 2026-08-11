@@ -19,6 +19,8 @@ import { Pagination } from "../../components/ui/Pagination";
 import { useAuth } from "../../context/AuthContext";
 import type { CatalogGroupBy, CatalogSort, CatalogView } from "./catalogBrowse";
 import type { OkhManifest } from "../../types/okh";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 function SelectControl<T extends string>({
   label,
@@ -152,34 +154,36 @@ export function OkhListView() {
 
   return (
     <div className="space-y-6">
-      <PageHero
-        title="Open Hardware Designs"
-        crumb="catalog · facets · matching"
-        actions={
-          <>
-            {/* Generation needs no write key: it produces a file to download,
-                and deliberately does not save to the catalogue. */}
-            <Button
-              variant="outline"
-              onClick={() => router.push("/okh/generate")}
-            >
-              Generate from URL
-            </Button>
-            <Button
-              title={
-                hasWrite
-                  ? undefined
-                  : "Connect a write-capable API key first (opens Session)"
-              }
-              onClick={() =>
-                router.push(hasWrite ? "/okh/new" : "/settings/session")
-              }
-            >
-              New design
-            </Button>
-          </>
-        }
-      />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <PageHero
+            title="Open Hardware Designs"
+            crumb="catalog · facets · matching"
+          />
+        </div>
+        <div className="flex gap-2">
+          {/* Generation needs no write key: it produces a file to download, and
+              deliberately does not save to the catalogue. */}
+          <Button
+            variant="outline"
+            onClick={() => router.push("/okh/generate")}
+          >
+            Generate from URL
+          </Button>
+          <Button
+            title={
+              hasWrite
+                ? undefined
+                : "Connect a write-capable API key first (opens Session)"
+            }
+            onClick={() =>
+              router.push(hasWrite ? "/okh/new" : "/settings/session")
+            }
+          >
+            New design
+          </Button>
+        </div>
+      </div>
 
       <div className="flex gap-8">
         <aside className="hidden w-60 shrink-0 lg:block">{panel}</aside>
@@ -278,7 +282,12 @@ export function OkhListView() {
                 {pageGroups.map((group) => (
                   <section key={group.label || "__all__"} className="space-y-3">
                     {group.label ? (
-                      <h2 className="text-sm font-semibold text-foreground border-b border-border pb-1">
+                      <h2
+                        className={cn(
+                          CARD_TITLE,
+                          "border-b border-border pb-1",
+                        )}
+                      >
                         {group.label}
                         <span className="ml-2 font-normal text-muted-foreground">
                           ({group.items.length})

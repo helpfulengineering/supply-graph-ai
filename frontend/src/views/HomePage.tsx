@@ -6,7 +6,15 @@ import { Badge } from "../components/ui/Badge";
 import { LoadingState, ErrorState } from "../components/ui/states";
 import { NetworkMap } from "../features/network/NetworkMapLazy";
 import { GettingStarted } from "../features/dashboard/GettingStarted";
+import { NetworkBarChart } from "../features/dashboard/NetworkBarChart";
+import {
+  capabilityCoverage,
+  facilitiesByCountry,
+} from "../features/dashboard/networkStats";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
+import { PANEL } from "../components/ui/surface";
+import { cn } from "@/lib/utils";
+import { SECTION_LABEL_SM, SECTION_TITLE } from "../components/ui/typography";
 import {
   buildNetworkSummary,
   SOURCE_STYLES,
@@ -15,7 +23,7 @@ import {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className={PANEL}>
       <p className="text-2xl font-bold text-foreground">{value}</p>
       <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
@@ -42,6 +50,7 @@ export function HomePage() {
     queryKey: ["network", "baseline"],
     queryFn: () => fetchNetworkSpaces(),
   });
+  const spaces = map.data?.spaces ?? [];
   const domains = useQuery({ queryKey: ["domains"], queryFn: fetchDomains });
   // Metrics are more volatile than the catalog data; keep a short stale window.
   const metrics = useQuery({
@@ -55,18 +64,17 @@ export function HomePage() {
 
   return (
     <div className="space-y-6">
-      <PageHero
-        title="Open Hardware Manager"
-        crumb="designs · facilities · supply chains"
-      />
+      <div>
+        <PageHero
+          title="Open Hardware Manager"
+          crumb="designs · facilities · supply chains"
+        />
+      </div>
 
       {/* Hero: the manufacturing network map. */}
       <section aria-labelledby="network-heading">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2
-            id="network-heading"
-            className="text-lg font-semibold text-foreground"
-          >
+          <h2 id="network-heading" className={SECTION_TITLE}>
             Manufacturing network
           </h2>
           <div className="flex gap-3">
@@ -119,6 +127,28 @@ export function HomePage() {
         />
       </div>
 
+      {/*
+        Derived from the space set the map above already loaded — no extra
+        request. The counts answer the two questions the map shape raises but
+        cannot: where the network actually concentrates, and what it can make.
+      */}
+      {spaces.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <NetworkBarChart
+            title="Where the network is"
+            caption="Facilities by country, top 8"
+            rows={facilitiesByCountry(spaces)}
+            seriesIndex={0}
+          />
+          <NetworkBarChart
+            title="What it can make"
+            caption="Facilities offering each capability, top 8"
+            rows={capabilityCoverage(spaces)}
+            seriesIndex={1}
+          />
+        </div>
+      )}
+
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <GettingStarted />
@@ -126,13 +156,10 @@ export function HomePage() {
 
         <div className="space-y-6">
           <section aria-labelledby="system-heading">
-            <h2
-              id="system-heading"
-              className="mb-3 text-lg font-semibold text-foreground"
-            >
+            <h2 id="system-heading" className={cn(SECTION_TITLE, "mb-3")}>
               System
             </h2>
-            <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+            <div className={cn(PANEL, "space-y-3")}>
               <div className="flex items-center gap-2">
                 <span
                   className={`h-2.5 w-2.5 rounded-full ${online ? "bg-success" : "bg-destructive"}`}
@@ -143,9 +170,7 @@ export function HomePage() {
                 </span>
               </div>
               <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Domains
-                </p>
+                <p className={cn(SECTION_LABEL_SM, "mb-1.5")}>Domains</p>
                 <div className="flex flex-wrap gap-1.5">
                   {(domains.data ?? []).map((d) => (
                     <Badge key={d.id} variant="blue">
@@ -160,9 +185,7 @@ export function HomePage() {
                 </div>
               </div>
               <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Security
-                </p>
+                <p className={cn(SECTION_LABEL_SM, "mb-1.5")}>Security</p>
                 <SecurityPolicyBadge />
               </div>
             </div>

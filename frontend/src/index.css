@@ -25,6 +25,24 @@ a {
 }
 
 @theme inline {
+  /* The type scale, as utilities.
+     tokens.css has carried --ttm-fs-* since Phase 2 and nothing read them:
+     every heading in the app picked a Tailwind step by hand, so one page title
+     was text-xl and another text-2xl, and one "section label" role was spelled
+     at two sizes across 23 files. Size is a design decision like colour, and it
+     belongs in the same place — bridged here so `text-h4` resolves through the
+     token rather than a component naming a rem value. Roles read these via
+     components/ui/typography.ts; components should not reach past it. */
+  --text-display: var(--ttm-fs-display);
+  --text-h1: var(--ttm-fs-h1);
+  --text-h2: var(--ttm-fs-h2);
+  --text-h3: var(--ttm-fs-h3);
+  --text-h4: var(--ttm-fs-h4);
+  --text-h5: var(--ttm-fs-h5);
+  --text-body: var(--ttm-fs-body);
+  --text-small: var(--ttm-fs-small);
+  --text-caption: var(--ttm-fs-caption);
+
   --font-heading: var(--font-sans);
   --font-sans: "Geist Variable", sans-serif;
   --font-mono: var(--ttm-font-mono);
@@ -89,8 +107,8 @@ a {
   /* Accent glow. A tinted halo derived from the world's own accent, so it
      retunes per world instead of being a fixed shadow — and it stays a
      shadow, never a colour a component picks. */
-  --shadow-glow: 0 0 0 1px
-      color-mix(in srgb, var(--ttm-accent-cta) 28%, transparent),
+  --shadow-glow:
+    0 0 0 1px color-mix(in srgb, var(--ttm-accent-cta) 28%, transparent),
     0 4px 20px color-mix(in srgb, var(--ttm-accent-cta) 18%, transparent);
   --shadow-glow-sm: 0 0 12px
     color-mix(in srgb, var(--ttm-accent-cta) 14%, transparent);

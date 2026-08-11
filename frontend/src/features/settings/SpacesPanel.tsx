@@ -5,6 +5,8 @@ import { ApiError } from "../../api/ohm/client";
 import { claimSpace, listSpaceClaims } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 export function SpacesPanel() {
   const queryClient = useQueryClient();
@@ -38,14 +40,8 @@ export function SpacesPanel() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="claim-space-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <h2
-          id="claim-space-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+      <section aria-labelledby="claim-space-heading" className={PANEL}>
+        <h2 id="claim-space-heading" className={SECTION_TITLE}>
           Claim space
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -104,14 +100,8 @@ export function SpacesPanel() {
         </form>
       </section>
 
-      <section
-        aria-labelledby="claims-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <h2
-          id="claims-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+      <section aria-labelledby="claims-heading" className={PANEL}>
+        <h2 id="claims-heading" className={SECTION_TITLE}>
           Space claims
         </h2>
         {claims.isLoading && <LoadingSpinner message="Loading claims…" />}

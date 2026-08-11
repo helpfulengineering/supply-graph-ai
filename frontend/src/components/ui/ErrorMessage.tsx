@@ -1,4 +1,6 @@
 import { AlertTriangle } from "lucide-react";
+import { PANEL_DANGER } from "./surface";
+import { cn } from "@/lib/utils";
 
 interface Props {
   error: Error | unknown;
@@ -13,7 +15,7 @@ function errorText(error: unknown): string {
 
 export function ErrorMessage({ error, retry, className = "" }: Props) {
   return (
-    <div className={`rounded-lg border border-destructive bg-destructive/10 p-4 ${className}`}>
+    <div className={cn(PANEL_DANGER, className)}>
       <div className="flex items-start gap-3">
         <AlertTriangle aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
         <div className="flex-1">

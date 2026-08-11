@@ -12,10 +12,10 @@
     "format:check": "prettier --check .",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "e2e": "playwright test --project=mocked",
+    "e2e": "playwright test --project=mocked --project=responsive",
+    "e2e:responsive": "playwright test --project=responsive",
     "e2e:real": "playwright test --project=real-api",
     "gen:api": "node harness/gen-api-types.mjs",
-    "gen:brand": "node --experimental-strip-types scripts/gen-brand.ts",
     "frontend-ready": "node harness/run-gate.mjs",
     "start": "next start -p 5173"
   },

@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
-import { LABEL } from "../../components/ui/field";
+import {
+  CHECKBOX,
+  CHOICE_ROW,
+  FIELD,
+  LABEL,
+  LINK_BUTTON,
+  LINK_BUTTON_MUTED,
+} from "../../components/ui/field";
+import { Fieldset } from "../../components/ui/Fieldset";
+import { SCROLL_LIST } from "../../components/ui/surface";
 import { normalizedCityOptions } from "../network/cityNames";
 import {
   cityMatchKey,
@@ -181,16 +190,8 @@ export function FacilityFilter({
     onChange([...next]);
   }
 
-  const selectClass =
-    "w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
-
   return (
-    <fieldset className="max-w-2xl rounded-lg border border-input p-4">
-      <legend className="px-1 text-sm font-medium text-foreground">
-        Facilities
-      </legend>
-      <p className="mb-3 text-xs text-muted-foreground">{summary}</p>
-
+    <Fieldset legend="Facilities" description={summary} className="max-w-2xl">
       {isLoading && (
         <p className="text-sm text-muted-foreground">Loading facilities…</p>
       )}
@@ -207,7 +208,7 @@ export function FacilityFilter({
               <span className="mb-1 block text-muted-foreground">Source</span>
               <select
                 aria-label="Source"
-                className={selectClass}
+                className={FIELD}
                 value={geo.source}
                 onChange={(e) =>
                   setGeoField(
@@ -225,7 +226,7 @@ export function FacilityFilter({
               <span className="mb-1 block text-muted-foreground">Country</span>
               <select
                 aria-label="Country"
-                className={selectClass}
+                className={FIELD}
                 value={geo.country}
                 onChange={(e) => setGeoField("country", e.target.value)}
               >
@@ -243,7 +244,7 @@ export function FacilityFilter({
               </span>
               <select
                 aria-label="State / Region"
-                className={selectClass}
+                className={FIELD}
                 value={geo.region}
                 onChange={(e) => setGeoField("region", e.target.value)}
               >
@@ -259,7 +260,7 @@ export function FacilityFilter({
               <span className="mb-1 block text-muted-foreground">City</span>
               <select
                 aria-label="City"
-                className={selectClass}
+                className={FIELD}
                 value={geo.city}
                 onChange={(e) => setGeoField("city", e.target.value)}
               >
@@ -273,68 +274,91 @@ export function FacilityFilter({
             </label>
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Filter facilities by name…"
-              aria-label="Filter facilities by name"
-              className={selectClass}
-            />
-          </div>
-          <div className="flex gap-3 text-xs">
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Filter facilities by name…"
+            aria-label="Filter facilities by name"
+            className={FIELD}
+          />
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              className="text-primary-ink hover:underline"
+              className={LINK_BUTTON}
               onClick={() => onChange(visible.map((f) => f.id))}
             >
               Select all visible
             </button>
             <button
               type="button"
-              className="text-muted-foreground hover:underline"
+              className={LINK_BUTTON_MUTED}
               onClick={() => onChange([])}
             >
               Clear
             </button>
           </div>
-          <ul className="max-h-56 space-y-1 overflow-y-auto rounded-md border border-input p-2">
-            {visible.map((f) => (
-              <li key={f.id}>
-                <label className="flex items-center gap-2 text-sm text-foreground">
-                  <input
-                    type="checkbox"
-                    aria-label={f.name}
-                    checked={selected.has(f.id)}
-                    onChange={() => toggle(f.id)}
-                  />
-                  <span className="min-w-0 flex-1 truncate" aria-hidden="true">
-                    {f.name}
-                  </span>
-                  <span
-                    className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground"
-                    aria-hidden="true"
-                  >
-                    {sourceLabel(f.source)}
-                  </span>
-                  <span
-                    className="truncate text-xs text-muted-foreground"
-                    aria-hidden="true"
-                  >
-                    {[
-                      f.city,
-                      f.region ? displayRegionName(f.region) : null,
-                      f.country ? displayCountryName(f.country) : null,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </span>
-                </label>
-              </li>
-            ))}
+          <ul className={SCROLL_LIST}>
+            {visible.map((f) => {
+              const place = [
+                f.city,
+                f.region ? displayRegionName(f.region) : null,
+                f.country ? displayCountryName(f.country) : null,
+              ]
+                .filter(Boolean)
+                .join(", ");
+              return (
+                <li key={f.id}>
+                  <label className={CHOICE_ROW}>
+                    {/*
+                      The visible row is three columns; the accessible name is
+                      one string. Announcing "Maker Hanoi" alone is ambiguous
+                      across 3,193 facilities where names repeat between
+                      cities, so source and place go into the label the screen
+                      reader actually reads, and the spans that render them
+                      stay aria-hidden to avoid saying it all twice.
+                    */}
+                    <input
+                      type="checkbox"
+                      className={CHECKBOX}
+                      aria-label={[f.name, sourceLabel(f.source), place]
+                        .filter(Boolean)
+                        .join(" — ")}
+                      checked={selected.has(f.id)}
+                      onChange={() => toggle(f.id)}
+                    />
+                    {/*
+                      Every text column truncates AND carries min-w-0. Without
+                      it a flex item's min-width resolves to min-content, so
+                      `truncate` never gets the chance to act — the item simply
+                      refuses to shrink and widens the row instead. That is the
+                      other half of the /match overflow, and it is invisible
+                      until a name is longer than the column.
+                    */}
+                    <span
+                      className="min-w-0 flex-1 truncate"
+                      aria-hidden="true"
+                    >
+                      {f.name}
+                    </span>
+                    <span
+                      className="hidden shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground sm:inline"
+                      aria-hidden="true"
+                    >
+                      {sourceLabel(f.source)}
+                    </span>
+                    <span
+                      className="hidden min-w-0 max-w-[45%] truncate text-xs text-muted-foreground sm:inline"
+                      aria-hidden="true"
+                    >
+                      {place}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
             {visible.length === 0 && (
-              <li className="text-sm text-muted-foreground">
+              <li className="px-2 py-1 text-sm text-muted-foreground">
                 No facilities match the current filters.
               </li>
             )}
@@ -353,6 +377,6 @@ export function FacilityFilter({
           </p>
         </div>
       )}
-    </fieldset>
+    </Fieldset>
   );
 }

@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { listReputation } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { AttestationList } from "../identity/AttestationList";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 export function ReputationPanel() {
   const [input, setInput] = useState("");
@@ -18,14 +20,8 @@ export function ReputationPanel() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="reputation-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <h2
-          id="reputation-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+      <section aria-labelledby="reputation-heading" className={PANEL}>
+        <h2 id="reputation-heading" className={SECTION_TITLE}>
           Reputation lookup
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">

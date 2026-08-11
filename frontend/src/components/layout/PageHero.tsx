@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import { navEntryFor } from "./nav";
+import { CAPTION, PAGE_TITLE } from "../ui/typography";
+import { cn } from "@/lib/utils";
 
 interface PageHeroProps {
   title: ReactNode;
@@ -57,7 +59,8 @@ export function PageHero({
 }: PageHeroProps) {
   const resolved = navEntryFor(usePathname() ?? "");
   // `undefined` means "resolve from the route"; `null` means "no icon".
-  const Icon: LucideIcon | null = icon === undefined ? (resolved?.entry.icon ?? null) : icon;
+  const Icon: LucideIcon | null =
+    icon === undefined ? (resolved?.entry.icon ?? null) : icon;
   const tone = accent ?? resolved?.group.accent ?? "text-muted-foreground";
 
   return (
@@ -82,13 +85,11 @@ export function PageHero({
             className={`h-5 w-5 shrink-0 self-center ${tone}`}
           />
         )}
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          {title}
-        </h1>
-        {crumb && (
-          <span className="font-mono text-xs text-muted-foreground">{crumb}</span>
+        <h1 className={PAGE_TITLE}>{title}</h1>
+        {crumb && <span className={cn(CAPTION, "font-mono")}>{crumb}</span>}
+        {actions && (
+          <span className="ml-auto flex items-center gap-2">{actions}</span>
         )}
-        {actions && <span className="ml-auto flex items-center gap-2">{actions}</span>}
       </div>
       <div
         aria-hidden="true"

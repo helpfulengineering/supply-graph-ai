@@ -8,6 +8,8 @@ import {
 import { getOkwVisibility, setOkwVisibility } from "../../api/ohm/okw";
 import { useAuth } from "../../context/AuthContext";
 import { Badge } from "../../components/ui/Badge";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_LABEL } from "../../components/ui/typography";
 
 const LEVELS: VisibilityLevel[] = ["private", "followers", "public"];
 
@@ -61,10 +63,7 @@ export function VisibilityControl({
   const body = (
     <>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2
-          id={`${kind}-visibility-heading`}
-          className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
-        >
+        <h2 id={`${kind}-visibility-heading`} className={SECTION_LABEL}>
           Who can receive this
         </h2>
         {level && <Badge variant="indigo">{level}</Badge>}
@@ -126,10 +125,7 @@ export function VisibilityControl({
   }
 
   return (
-    <section
-      aria-labelledby={`${kind}-visibility-heading`}
-      className="rounded-xl border border-border bg-card p-4"
-    >
+    <section aria-labelledby={`${kind}-visibility-heading`} className={PANEL}>
       {body}
     </section>
   );

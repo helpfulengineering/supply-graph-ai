@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
+import {
+  CHECKBOX,
+  CHOICE_ROW,
+  FIELD,
+  FIELD_MONO,
+  LABEL,
+} from "../../components/ui/field";
+import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bootstrapEdgeGrant,
@@ -10,6 +17,8 @@ import {
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 const PERMISSION_OPTIONS = ["read", "write", "admin"] as const;
 
@@ -77,14 +86,8 @@ export function GrantsPanel() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="list-grants-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <h2
-          id="list-grants-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+      <section aria-labelledby="list-grants-heading" className={PANEL}>
+        <h2 id="list-grants-heading" className={SECTION_TITLE}>
           List grants
         </h2>
         <form
@@ -169,14 +172,8 @@ export function GrantsPanel() {
         )}
       </section>
 
-      <section
-        aria-labelledby="issue-grant-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <h2
-          id="issue-grant-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+      <section aria-labelledby="issue-grant-heading" className={PANEL}>
+        <h2 id="issue-grant-heading" className={SECTION_TITLE}>
           Issue grant
         </h2>
         <form
@@ -192,13 +189,14 @@ export function GrantsPanel() {
             Uses the Subject DID field above. Issuer defaults to the local node
             identity.
           </p>
-          <fieldset>
+          <fieldset className="min-w-0">
             <legend className="text-sm font-medium">Permissions</legend>
             <div className="mt-2 flex flex-wrap gap-3">
               {PERMISSION_OPTIONS.map((p) => (
-                <label key={p} className="flex items-center gap-1.5 text-sm">
+                <label key={p} className={cn(CHOICE_ROW, "w-auto")}>
                   <input
                     type="checkbox"
+                    className={CHECKBOX}
                     checked={permissions.includes(p)}
                     onChange={() => togglePermission(p)}
                   />
@@ -267,14 +265,8 @@ export function GrantsPanel() {
         </form>
       </section>
 
-      <section
-        aria-labelledby="bootstrap-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <h2
-          id="bootstrap-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+      <section aria-labelledby="bootstrap-heading" className={PANEL}>
+        <h2 id="bootstrap-heading" className={SECTION_TITLE}>
           Bootstrap edge grant
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">

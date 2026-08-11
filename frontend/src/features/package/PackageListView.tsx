@@ -2,6 +2,8 @@
 
 import { PackagesIllustration } from "../../components/ui/illustrations";
 import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { PANEL_INSET } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -20,6 +22,7 @@ import { ErrorMessage } from "../../components/ui/ErrorMessage";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/button";
 import { useAuth } from "../../context/AuthContext";
+import { CARD_TITLE } from "../../components/ui/typography";
 
 function matchesFilter(pkg: PackageListItem, q: string): boolean {
   if (!q) return true;
@@ -95,20 +98,19 @@ export function PackageListView() {
 
   return (
     <div className="space-y-6">
-      <PageHero
-        title="Packages"
-        crumb="archives · versions · downloads"
-        actions={
-          <button
-            type="button"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className={`${FIELD_SM} shrink-0 font-medium text-muted-foreground hover:bg-background`}
-          >
-            {isFetching ? "Refreshing…" : "↻ Refresh"}
-          </button>
-        }
-      />
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <PageHero title="Packages" crumb="archives · versions · downloads" />
+        </div>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className={`${FIELD_SM} shrink-0 font-medium text-muted-foreground hover:bg-background`}
+        >
+          {isFetching ? "Refreshing…" : "↻ Refresh"}
+        </button>
+      </div>
 
       <div className="rounded-xl border border-border bg-background px-5 py-4">
         <p className="text-sm font-medium text-foreground">
@@ -149,7 +151,7 @@ export function PackageListView() {
       )}
 
       {isLoading && (
-        <div className="rounded-xl border border-border bg-background p-8">
+        <div className={cn(PANEL_INSET, "p-8")}>
           <LoadingSpinner message="Loading packages…" />
         </div>
       )}
@@ -190,9 +192,7 @@ export function PackageListView() {
               {groups.map(([name, versions]) => (
                 <section key={name} className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-sm font-semibold text-foreground">
-                      {name}
-                    </h2>
+                    <h2 className={CARD_TITLE}>{name}</h2>
                     <div className="flex flex-wrap gap-1">
                       {versions.map((pkg) => (
                         <button

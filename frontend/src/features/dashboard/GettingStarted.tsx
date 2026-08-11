@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { navEntryFor } from "../../components/layout/nav";
+import { SECTION_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
+import { PANEL } from "../../components/ui/surface";
 
 interface Step {
   n: number;
@@ -54,10 +57,7 @@ const STEPS: Step[] = [
 export function GettingStarted() {
   return (
     <section aria-labelledby="getting-started-heading">
-      <h2
-        id="getting-started-heading"
-        className="mb-3 text-lg font-semibold text-foreground"
-      >
+      <h2 id="getting-started-heading" className={cn(SECTION_TITLE, "mb-3")}>
         Getting started
       </h2>
       <ol className="space-y-2.5">
@@ -65,10 +65,7 @@ export function GettingStarted() {
           const target = navEntryFor(s.icon ?? s.to);
           const Icon = target?.entry.icon;
           return (
-            <li
-              key={s.n}
-              className="flex gap-3 rounded-xl border border-border bg-card p-3.5"
-            >
+            <li key={s.n} className={cn(PANEL, "flex gap-3 p-3.5")}>
               <span
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-on-accent"
                 aria-hidden="true"

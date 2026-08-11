@@ -12,6 +12,9 @@ import { createOkw, updateOkw, validateOkw } from "../../api/ohm/okw";
 import { fetchProcessTaxonomy } from "../../api/ohm/taxonomy";
 import { Button } from "../../components/ui/button";
 import { ProcessTaxonomyPicker } from "./ProcessTaxonomyPicker";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
+import { SECTION_LABEL } from "../../components/ui/typography";
 import {
   ACCESS_TYPES,
   FACILITY_STATUSES,
@@ -213,10 +216,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       )}
 
       <form onSubmit={(e) => void onSubmit(e)} className="space-y-6">
-        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Basics
-          </h2>
+        <section className={cn(PANEL, "space-y-3")}>
+          <h2 className={SECTION_LABEL}>Basics</h2>
           <label className={LABEL}>
             Name *
             <input
@@ -313,10 +314,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           </label>
         </section>
 
-        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Processes
-          </h2>
+        <section className={cn(PANEL, "space-y-3")}>
+          <h2 className={SECTION_LABEL}>Processes</h2>
           <p className="text-xs text-muted-foreground">
             Select parent types; expand a parent to pick more specific subtypes
             when you want.
@@ -345,10 +344,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         </section>
 
         {mode === "create" && (
-          <section className="space-y-3 rounded-xl border border-border bg-card p-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Attribution (optional)
-            </h2>
+          <section className={cn(PANEL, "space-y-3")}>
+            <h2 className={SECTION_LABEL}>Attribution (optional)</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={LABEL}>
                 Author
@@ -386,10 +383,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
         {advancedOpen && (
           <div className="space-y-4">
-            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Hours &amp; contact
-              </h2>
+            <section className={cn(PANEL, "space-y-3")}>
+              <h2 className={SECTION_LABEL}>Hours &amp; contact</h2>
               <label className={LABEL}>
                 Opening hours
                 <input
@@ -426,10 +421,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </div>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Equipment details
-              </h2>
+            <section className={cn(PANEL, "space-y-3")}>
+              <h2 className={SECTION_LABEL}>Equipment details</h2>
               <p className="text-xs text-muted-foreground">
                 Rows with make or model are saved; empty rows are ignored.
               </p>
@@ -507,10 +500,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </Button>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Import JSON
-              </h2>
+            <section className={cn(PANEL, "space-y-3")}>
+              <h2 className={SECTION_LABEL}>Import JSON</h2>
               <p className="text-xs text-muted-foreground">
                 Paste OKW JSON to fill the form. For YAML, convert first or use
                 the CLI.
