@@ -1,6 +1,18 @@
 "use client";
 
 import { siteConfig } from "./config";
+import {
+  toDeletedCount,
+  toEventTotal,
+  toMaskedActivity,
+  toMaskedDirectory,
+  toOperatorActivity,
+  toOperatorDirectory,
+  toOwnRecord,
+  type ActivityEntry,
+  type DirectoryEntry,
+  type OwnRecord,
+} from "./rows";
 // Type-only: erased at compile time, so the default build still ships no SDK.
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -10,13 +22,23 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Ported from the reference's stack.js. Two properties carried over
  * deliberately:
  *
- * 1. FAIL-SOFT. Every call is a no-op when the layer is disabled, and network
- *    failures are swallowed. Telemetry must never be able to break a page —
- *    the app's actual job is matching designs to facilities.
+ * 1. FAIL-SOFT, FOR THE AMBIENT CALLS. Page-view telemetry, gate copy, and
+ *    sign-in are no-ops when the layer is disabled, and their network failures
+ *    are swallowed. Telemetry must never be able to break a page — the app's
+ *    actual job is matching designs to facilities.
  * 2. NO SDK ON THE DEFAULT BUILD. The Supabase client is imported dynamically
  *    inside the enabled branch, so an instance that never opts in does not
  *    ship it at all. A static import would put it in every bundle to serve a
  *    capability that is off by default.
+ *
+ * WHAT IS NOT FAIL-SOFT: everything Mission Control's panels call. Fail-soft
+ * is right for a dropped page-view because nobody asked for it and nobody is
+ * waiting on it. It is wrong for a read or a mutation somebody clicked: an
+ * operator who deletes a visitor and gets silence cannot tell "deleted" from
+ * "your token expired" from "the network is down", and will click again. So
+ * those return a `Result` and the panels render the failure. The two idioms
+ * live in one file because they talk to one schema — the distinction is who
+ * asked, not which table.
  *
  * This is the SITE layer. It never grants application permissions — those come
  * from the backend's whoami. See supabase/schema.sql for the full boundary.
@@ -24,6 +46,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 const SESSION_KEY = "ohm_site_session";
 const VISITOR_KEY = "ohm_site_visitor";
+/**
+ * sessionStorage, never local: the operator token is the site layer's only
+ * real secret, and a tab-scoped hold means closing the tab locks it again.
+ * Persisting it would turn "unlock for a moment" into a credential left on
+ * the device.
+ */
+const OPERATOR_KEY = "ohm_site_operator";
 const FLUSH_MS = 4000;
 const MAX_BATCH = 25;
 
@@ -232,6 +261,33 @@ function mergeGateCopy(value: unknown): GateCopy {
   };
 }
 
+// ── operator token ──────────────────────────────────────────────────────────
+
+export function operatorToken(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return sessionStorage.getItem(OPERATOR_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function setOperatorToken(token: string): void {
+  try {
+    sessionStorage.setItem(OPERATOR_KEY, token);
+  } catch {
+    // ignore
+  }
+}
+
+export function clearOperatorToken(): void {
+  try {
+    sessionStorage.removeItem(OPERATOR_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 /**
  * Site-layer operator check — deliberately NOT named isAdmin.
  *
@@ -240,18 +296,157 @@ function mergeGateCopy(value: unknown): GateCopy {
  * records and publish whitelabel config. Merging them would break the identity
  * ADR's promise of offline verification with no central authority, and would
  * leave RequireAdmin obeying two disagreeing truths.
+ *
+ * VERIFIED BY THE TOKEN, NOT BY THE MARKER. This used to answer from
+ * `ohmgr_is_admin(email)`, which reads the `is_admin` column — and schema.sql
+ * is explicit that the column is a display marker and "access never derives
+ * from it client-side". It cannot: gate emails are unauthenticated, so anyone
+ * who types a seeded operator's address at the gate would have been "operator
+ * verified". That was harmless only while nothing was gated behind it, and
+ * this file now gates unmasked PII behind it.
+ *
+ * So the check is a round trip: present the held token to a token-gated RPC
+ * and see whether it raises. `ohmgr_admin_stats` is the probe because it is
+ * stable, cheap, and the panel wants its answer anyway. The token never leaves
+ * this tab, and it is the server that decides — the client only relays.
  */
 export async function isOperator(): Promise<boolean> {
-  if (!siteConfig.enabled || schemaMissing) return false;
-  const v = visitor();
-  if (!v?.email) return false;
+  const token = operatorToken();
+  if (!token) return false;
+  return (await adminStats(token)).ok;
+}
+
+// ── tiered reads and mutations (not fail-soft — see the file header) ────────
+
+export type Result<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: string };
+
+/**
+ * Postgres exception messages, in the operator's terms.
+ *
+ * The RPCs raise short, exact strings ('unauthorized', 'sign in first'); those
+ * are the right thing for a function to raise and the wrong thing to put in
+ * front of a person, who needs to know which of their two identities the
+ * server just refused. Anything unrecognised passes through rather than being
+ * flattened into "something went wrong" — an unmapped Postgres error is still
+ * more informative than no error.
+ */
+function readable(error: unknown): string {
+  const message =
+    error && typeof error === "object" ? ((error as { message?: string }).message ?? "") : "";
+  if (/unauthorized/i.test(message)) {
+    return "That operator token was not accepted. Check it, or unlock again.";
+  }
+  if (/sign in first/i.test(message)) {
+    return "Sign in at the gate first — this view is for signed-in visitors.";
+  }
+  if (/no such visitor/i.test(message)) {
+    return "No visitor with that address. It may already have been erased.";
+  }
+  return message || "The site layer did not answer.";
+}
+
+/**
+ * One RPC call, mapped to a Result.
+ *
+ * `map` runs only on success, so every caller below is a name, its arguments,
+ * and the shape it expects — the error paths are not restated seven times.
+ */
+async function call<T>(
+  fn: string,
+  args: Record<string, unknown>,
+  map: (data: unknown) => T,
+): Promise<Result<T>> {
+  if (!siteConfig.enabled) {
+    return { ok: false, error: "The site layer is not configured on this instance." };
+  }
   try {
     const sb = await client();
-    const { data } = (await sb?.rpc("ohmgr_is_admin", { p_email: v.email })) ?? {
-      data: false,
-    };
-    return data === true;
+    if (!sb) return { ok: false, error: "The site layer is not configured on this instance." };
+    const { data, error } = await sb.rpc(fn, args);
+    if (error) {
+      if (isMissingSchema(error)) {
+        schemaMissing = true;
+        return {
+          ok: false,
+          error: "The site layer's tables are missing — run supabase/schema.sql.",
+        };
+      }
+      return { ok: false, error: readable(error) };
+    }
+    return { ok: true, data: map(data) };
   } catch {
-    return false;
+    return { ok: false, error: "Could not reach the site layer." };
   }
+}
+
+// self-service tier: any visitor who completed the gate, keyed by their claim
+
+export function myRecord(email: string): Promise<Result<OwnRecord | null>> {
+  return call("ohmgr_my_record", { p_email: email }, toOwnRecord);
+}
+
+export function updateOwnName(email: string, name: string): Promise<Result<null>> {
+  return call("ohmgr_update_own_name", { p_email: email, p_name: name }, () => null);
+}
+
+export function deleteOwn(email: string): Promise<Result<null>> {
+  return call("ohmgr_delete_own", { p_email: email }, () => null);
+}
+
+export function visitorsMasked(email: string): Promise<Result<DirectoryEntry[]>> {
+  return call("ohmgr_visitors_masked", { p_email: email }, toMaskedDirectory);
+}
+
+export function eventsMasked(email: string, limit = 200): Promise<Result<ActivityEntry[]>> {
+  return call("ohmgr_events_masked", { p_email: email, p_limit: limit }, toMaskedActivity);
+}
+
+// operator tier: token-gated, unmasked, mutating
+
+export function adminStats(token: string): Promise<Result<number>> {
+  return call("ohmgr_admin_stats", { p_token: token }, toEventTotal);
+}
+
+export function adminVisitors(token: string): Promise<Result<DirectoryEntry[]>> {
+  return call("ohmgr_admin_visitors", { p_token: token }, toOperatorDirectory);
+}
+
+export function adminEvents(token: string, limit = 200): Promise<Result<ActivityEntry[]>> {
+  return call("ohmgr_admin_events", { p_token: token, p_limit: limit }, toOperatorActivity);
+}
+
+export function adminUpdateVisitor(
+  token: string,
+  email: string,
+  changes: { name?: string; isAdmin?: boolean },
+): Promise<Result<null>> {
+  return call(
+    "ohmgr_admin_update_visitor",
+    {
+      p_token: token,
+      p_email: email,
+      // Explicit nulls, not omissions: the RPC coalesces null onto the current
+      // value, so "leave the name alone" and "no name argument" must be the
+      // same call. Omitting a key would land on the SQL default, which is null
+      // anyway — sending it says so rather than relying on that.
+      p_name: changes.name ?? null,
+      p_is_admin: changes.isAdmin ?? null,
+    },
+    () => null,
+  );
+}
+
+export function adminDeleteVisitor(token: string, email: string): Promise<Result<null>> {
+  return call("ohmgr_admin_delete_visitor", { p_token: token, p_email: email }, () => null);
+}
+
+/** Deletes events older than `keepDays`, returning how many rows went. */
+export function adminPurgeEvents(token: string, keepDays: number): Promise<Result<number>> {
+  return call(
+    "ohmgr_admin_purge_events",
+    { p_token: token, p_keep_days: keepDays },
+    toDeletedCount,
+  );
 }

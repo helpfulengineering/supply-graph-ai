@@ -2,7 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { siteConfig } from "./config";
-import { isOperator, track, visitor, type Visitor } from "./stack";
+import {
+  adminStats,
+  clearOperatorToken,
+  isOperator,
+  setOperatorToken,
+  track,
+  visitor,
+  type Visitor,
+} from "./stack";
 
 export interface SiteLayerState {
   /** Whether this instance opted into the site layer at all. */
@@ -24,6 +32,14 @@ export interface SiteLayerState {
    * application authorization from the backend's whoami.
    */
   isOperator: boolean;
+  /**
+   * Verifies a token server-side and, if it holds, keeps it for this tab.
+   * Resolves to the failure message so the form can render it, or null on
+   * success. A rejected token is not stored.
+   */
+  unlock: (token: string) => Promise<string | null>;
+  /** Forgets the operator token. Leaves the visitor record alone. */
+  lock: () => void;
   /** Re-read after a sign-in or sign-out. Does not re-count the page view. */
   refresh: () => void;
 }
@@ -37,7 +53,7 @@ export interface SiteLayerState {
  * not a misconfiguration.
  */
 export function useSiteLayer(): SiteLayerState {
-  const [state, setState] = useState<Omit<SiteLayerState, "refresh">>({
+  const [state, setState] = useState<Omit<SiteLayerState, "refresh" | "unlock" | "lock">>({
     enabled: siteConfig.enabled,
     // Nothing to wait for with the layer off: every field is already final.
     ready: !siteConfig.enabled,
@@ -69,5 +85,23 @@ export function useSiteLayer(): SiteLayerState {
 
   const refresh = useCallback(() => setReads((n) => n + 1), []);
 
-  return { ...state, refresh };
+  // Stores only after the server accepts it, so a mistyped token never leaves
+  // the tab believing it is unlocked — and never leaves a bad secret sitting
+  // in sessionStorage for the next call to retry with.
+  const unlock = useCallback(async (token: string): Promise<string | null> => {
+    const trimmed = token.trim();
+    if (!trimmed) return "Enter the operator token.";
+    const probe = await adminStats(trimmed);
+    if (!probe.ok) return probe.error;
+    setOperatorToken(trimmed);
+    setState((s) => ({ ...s, isOperator: true }));
+    return null;
+  }, []);
+
+  const lock = useCallback(() => {
+    clearOperatorToken();
+    setState((s) => ({ ...s, isOperator: false }));
+  }, []);
+
+  return { ...state, unlock, lock, refresh };
 }

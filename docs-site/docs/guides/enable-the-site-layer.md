@@ -73,9 +73,17 @@ one tab and never persists it.
 
 ## 3. Grant an operator marker (optional)
 
-`is_admin` on a visitor row is a *marker*, not the credential — it decides
-whether Mission Control offers the operator card, while the token above is what
-actually authorises anything. It is grantable only from here:
+`is_admin` on a visitor row is a *marker*, not a credential. It is a label
+Mission Control renders beside a name, and nothing more — it unlocks no view
+and authorises no call. The token from step 2 is the only thing that does.
+
+That distinction is load-bearing rather than pedantic: gate emails are never
+verified, so anyone can type any address. If the marker granted anything,
+knowing an operator's email address would be enough to have it. Mission Control
+therefore offers the token field to everyone, signed in or not, and decides
+what to show from what the server accepts.
+
+The marker is grantable only from here:
 
 ```sql
 update public.ohmgr_visitors
@@ -123,7 +131,40 @@ select public.ohmgr_publish_config('PASTE-THE-SAME-TOKEN-HERE', jsonb_build_obje
 Set `"enabled": false` if this instance should ask nobody to sign in. Mission
 Control then shows the unsigned view with no dialog and no sign-in button.
 
-## 6. Verify the boundary holds
+## 6. What Mission Control shows
+
+The page is composed from the tier you hold. The two tiers are **independent
+doors, not a ladder** — signing in never makes you an operator, and unlocking
+never requires a visitor record.
+
+| | Nobody | Visitor (signed in at the gate) | Operator (holds the token) |
+|---|---|---|---|
+| **My record** | — | name, first/last seen, rename, erase | same, if also signed in |
+| **Visitors** | — | 200 most recent, addresses masked `a***@e***` | 100 most recent, real addresses |
+| **Activity** | — | 200 most recent events, addresses masked | same, plus the address and session behind each |
+| **Mutations** | — | own row only | rename, admin marker, delete any visitor; purge by retention window |
+| **Operator field** | offered | offered | Lock |
+
+The masked reads withhold the raw address at the *function* level, not in the
+browser — `ohmgr_visitors_masked` and `ohmgr_events_masked` never return one,
+so there is nothing in a visitor's page to un-mask. User agents are returned to
+nobody.
+
+**Erasure is self-service.** A visitor can delete their own row and every
+telemetry event attributed to it, without asking an operator. That is the point
+of showing people their own record.
+
+**Retention is a window, not a button.** The purge control takes a number of
+days to keep and reports how many rows went, so the ordinary operation is
+"keep 30 days" rather than "delete everything".
+
+None of these views cache. The app persists its other queries to storage so a
+reload starts warm; these panels deliberately opt out, because an operator's
+unmasked read would otherwise be spooled onto the device. The token itself
+lives in `sessionStorage` for one tab and is verified server-side before it is
+stored at all.
+
+## 7. Verify the boundary holds
 
 Run these as the **anon** role (a fresh SQL editor session is not anon — use
 the REST endpoint with the anon key, or the API docs' "Run" button):
@@ -163,7 +204,12 @@ error in the console is expected until the schema lands.
 
 **`unauthorized` from every operator call** — the token in the browser does not
 hash to what is stored. Re-run step 2 and paste the same string into Mission
-Control.
+Control. Mission Control reports this as "that operator token was not
+accepted"; a rejected token is never stored, so the next call does not silently
+retry with it.
+
+**Signed in as a visitor with `is_admin`, but the panels are still masked** —
+working as intended. The marker is a label; unlock with the token from step 2.
 
 **Telemetry silently absent** — expected when the layer is off. Telemetry is
 fail-soft by design and must never break a page; matching designs to facilities

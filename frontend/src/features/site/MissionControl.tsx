@@ -6,8 +6,13 @@ import { useSiteLayer } from "../../lib/site/useSiteLayer";
 import { siteConfig } from "../../lib/site/config";
 import { PANEL } from "../../components/ui/surface";
 import { CARD_TITLE } from "../../components/ui/typography";
+import { Button } from "../../components/ui/button";
 import { clearVisitor, gateCopy, type GateCopy } from "../../lib/site/stack";
 import { Gate } from "./Gate";
+import { MyRecord } from "./MyRecord";
+import { OperatorPanel } from "./OperatorPanel";
+import { VisitorDirectory } from "./VisitorDirectory";
+import { ActivityFeed } from "./ActivityFeed";
 
 /**
  * Mission Control — the site layer's own surface: telemetry, visitor records,
@@ -21,12 +26,32 @@ import { Gate } from "./Gate";
  * That is the point of "off is a first-class state": on the default deployment
  * the feature does not exist, so a page apologising for its absence would be
  * describing a misconfiguration that isn't one.
+ *
+ * WHAT RENDERS DEPENDS ON THE TIER, and the two tiers are independent doors
+ * rather than a ladder:
+ *
+ *   nobody         the gate, and the operator token field
+ *   visitor        + their own record, and the masked directory and feed
+ *   operator       the same surfaces, unmasked, with the mutations
+ *
+ * An operator needs no visitor record and a visitor never becomes an operator
+ * by signing in — which is why the token field is outside the signed-in
+ * branch, and why `is_admin` on a visitor row is rendered as a marker rather
+ * than as access. Each panel does its own reading; this component decides only
+ * which of them exist.
  */
 export function MissionControl() {
   // The route is gated in the server component; this hook only supplies state.
-  const { visitor, isOperator, ready, refresh } = useSiteLayer();
+  const { visitor, isOperator, ready, refresh, unlock, lock } = useSiteLayer();
   const [copy, setCopy] = useState<GateCopy | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  // Bumped when a mutation lands, so panels reading the same rows from
+  // different RPCs (an operator renaming their own row in the directory) do
+  // not sit on each other's stale copy.
+  const [changed, setChanged] = useState(0);
+  // Same idea for the event count: the operator panel states a total that a
+  // purge in the feed below invalidates.
+  const [purged, setPurged] = useState(0);
 
   // Fetched rather than assumed: the gate's heading, body, and fine print are
   // the operator's to write, and `enabled: false` is their way to say this
@@ -78,54 +103,48 @@ export function MissionControl() {
             from your OHM API session and grants no application permissions.
           </p>
           {copy?.enabled && !gateOpen && (
-            <button
+            <Button
               type="button"
+              size="lg"
+              className="mt-3"
               onClick={() => setDismissed(false)}
-              className="mt-3 inline-flex min-h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
             >
               Sign in
-            </button>
+            </Button>
           )}
         </section>
       )}
 
       {visitor && (
-        <section className={PANEL}>
-          <h2 className={CARD_TITLE}>My record</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {visitor.name} · {visitor.email}
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            You control this record: rename it, or erase it and every telemetry
-            event attributed to it.
-          </p>
-          <button
-            type="button"
-            onClick={signOut}
-            className="mt-3 inline-flex min-h-9 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-          >
-            Sign out
-          </button>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Signing out forgets this record on this device; it does not erase
-            it.
-          </p>
-        </section>
+        <MyRecord
+          key={`${visitor.email}-${changed}`}
+          visitor={visitor}
+          onErased={signOut}
+          onSignOut={signOut}
+        />
       )}
 
-      <section className={PANEL}>
-        <h2 className={CARD_TITLE}>
-          Operator{" "}
-          <span className="ml-1 font-mono text-xs font-normal text-muted-foreground">
-            {isOperator ? "verified" : "locked"}
-          </span>
-        </h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Unmasked visitor and telemetry reads require the operator token,
-          verified server-side and held in this tab only. Site-layer operator
-          status is not OHM admin.
-        </p>
-      </section>
+      <OperatorPanel
+        isOperator={isOperator}
+        unlock={unlock}
+        lock={lock}
+        eventsChanged={purged}
+      />
+
+      {(visitor || isOperator) && (
+        <>
+          <VisitorDirectory
+            email={visitor?.email ?? null}
+            isOperator={isOperator}
+            onVisitorChanged={() => setChanged((n) => n + 1)}
+          />
+          <ActivityFeed
+            email={visitor?.email ?? null}
+            isOperator={isOperator}
+            onEventsChanged={() => setPurged((n) => n + 1)}
+          />
+        </>
+      )}
 
       <p className="font-mono text-xs text-muted-foreground">
         site layer connected · {new URL(siteConfig.url).host}

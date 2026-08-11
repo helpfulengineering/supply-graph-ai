@@ -62,6 +62,41 @@ would make `RequireAdmin` and the Settings tab list obey two disagreeing
 truths, and would put a network dependency inside an authorization path that
 is specified to work without one.
 
+## Two doors, not a ladder
+
+Within the site layer there are two tiers, and neither leads to the other:
+
+| Tier | Established by | Reads |
+|---|---|---|
+| **Visitor** | a name and email typed at the gate, verified by nobody | their own row in full; everyone else masked to `f***@d***` |
+| **Operator** | the token from `ohmgr_admin_secrets`, hashed and checked server-side | everything unmasked, and every mutation |
+
+Signing in never promotes you, and unlocking never requires a visitor record —
+an operator on a fresh device goes straight to the token field. Mission Control
+therefore offers that field at every tier rather than nesting it inside the
+signed-in branch.
+
+**`isOperator` is established by presenting the token, not by reading
+`is_admin`.** The column is a display marker; the schema says so, and it has to
+be, because the email a visitor claims at the gate is unauthenticated. Deriving
+access from it would mean knowing an operator's address was enough to have
+their access. So the check is a round trip: the held token goes to a
+token-gated RPC, and the server's willingness to answer *is* the answer. This
+is the same reasoning that keeps `isOperator` out of `isAdmin`, applied one
+level down.
+
+The client never decides what it may see. Each surface has two backing
+functions — a masked one any signed-in visitor may call and an unmasked
+operator one — and the masked variants do not return the withheld columns at
+all. A frontend bug cannot leak an address the function did not send, and the
+rendered rows carry which variant produced them, so an operator control cannot
+be drawn over self-service data.
+
+None of it is cached. The app persists its other queries to storage so a reload
+starts warm; these panels opt out, because visitor names, addresses, and page
+histories at rest on the device would undo the tier that gated them. The token
+lives in `sessionStorage` for one tab and is verified before it is stored.
+
 ## Enabling it
 
 The operator runbook — every statement to run, and how to verify the boundary
