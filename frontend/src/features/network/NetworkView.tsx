@@ -1,6 +1,7 @@
 "use client";
 
 import { FacilitiesIllustration } from "../../components/ui/illustrations";
+import { FIELD } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -165,7 +166,7 @@ export function NetworkView() {
                 setNameQuery(e.target.value);
                 setPage(1);
               }}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className={FIELD}
             />
             <p className="mt-1 text-xs text-muted-foreground">
               Matches name, city, and country.

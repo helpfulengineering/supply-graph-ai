@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin } from "lucide-react";
+import { FIELD } from "../../components/ui/field";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -104,7 +105,7 @@ function PostCreateBanner({
   return (
     <div
       role="status"
-      className="rounded-md border border-primary/30 bg-accent px-4 py-3 text-sm text-primary-ink"
+      className={`${FIELD} border-primary/30 bg-accent px-4 py-3 text-primary-ink`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "../okh/categories";
 import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
@@ -101,7 +102,7 @@ export function DesignPicker({
       </legend>
 
       {selected ? (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-primary/30 bg-accent/70 px-3 py-2">
+        <div className={`${FIELD} mb-3 flex flex-wrap items-center justify-between gap-2 border-primary/30 bg-accent/70`}>
           <div className="min-w-0">
             <p className="text-xs text-primary-ink">Selected design</p>
             <p className="truncate font-medium text-primary-ink">
@@ -139,7 +140,7 @@ export function DesignPicker({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search designs…"
             aria-label="Search designs"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className={`${FIELD} focus:outline-none focus:ring-2 focus:ring-ring`}
           />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -150,7 +151,7 @@ export function DesignPicker({
                 </span>
                 <select
                   aria-label={group.label}
-                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className={`${FIELD_SM} w-full`}
                   value={(selections[group.key] ?? [])[0] ?? ""}
                   onChange={(e) => {
                     const v = e.target.value;
@@ -184,7 +185,7 @@ export function DesignPicker({
           )}
 
           {shown.length === 0 ? (
-            <p className="rounded-md border border-input px-3 py-2 text-sm text-muted-foreground">
+            <p className={`${FIELD} text-muted-foreground`}>
               No designs match the current search/filters.
             </p>
           ) : (

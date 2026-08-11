@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { NavDrawer } from "./NavDrawer";
+import { DemoDataBadge } from "../../features/dashboard/DemoDataBadge";
 import { Logo } from "./Logo";
 
 /**
@@ -27,7 +28,9 @@ export function SiteHeader() {
           <span className="sr-only">Open Hardware Manager — home</span>
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <DemoDataBadge />
+
           <button
             type="button"
             onClick={toggle}

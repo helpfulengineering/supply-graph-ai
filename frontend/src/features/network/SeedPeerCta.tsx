@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FIELD } from "../../components/ui/field";
 import {
   fetchFederationStatus,
   seedFromPeerUrl,
@@ -38,7 +39,7 @@ export function SeedPeerCta() {
     <div
       role="region"
       aria-label="Seed facilities from peer"
-      className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+      className={FIELD}
     >
       <p className="font-medium text-foreground">
         Seed local facilities from a public peer

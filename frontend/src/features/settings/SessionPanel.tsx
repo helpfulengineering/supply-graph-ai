@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { FIELD_MONO, FIELD_SM } from "../../components/ui/field";
 import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
 
@@ -45,7 +46,7 @@ export function SessionPanel() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={token ? "•••••••• (replace current)" : "ohm_…"}
-              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm"
+              className={`${FIELD_MONO} mt-1 w-full`}
             />
           </label>
           <div className="flex flex-wrap gap-2">
@@ -60,7 +61,7 @@ export function SessionPanel() {
               type="button"
               onClick={() => clear()}
               disabled={!token}
-              className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-background disabled:opacity-50 dark:hover:bg-muted"
+              className={`${FIELD_SM} font-medium hover:bg-background dark:hover:bg-muted`}
             >
               Clear session
             </button>

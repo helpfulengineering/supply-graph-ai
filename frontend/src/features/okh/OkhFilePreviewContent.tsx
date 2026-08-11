@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FIELD_SM } from "../../components/ui/field";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Link from "next/link";
@@ -122,7 +123,7 @@ export function OkhFilePreviewContent({
           {!fullPage && (
             <Link
               href={`/okh/${encodeURIComponent(okhId)}/files/${encodePathSegments(file.path)}`}
-              className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
+              className={`${FIELD_SM} font-medium text-muted-foreground hover:bg-background`}
             >
               Full preview
             </Link>
@@ -130,7 +131,7 @@ export function OkhFilePreviewContent({
           <a
             href={href}
             download
-            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
+            className={`${FIELD_SM} font-medium text-muted-foreground hover:bg-background`}
           >
             Download
           </a>
@@ -138,7 +139,7 @@ export function OkhFilePreviewContent({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
+            className={`${FIELD_SM} font-medium text-muted-foreground hover:bg-background`}
           >
             Open tab
           </a>

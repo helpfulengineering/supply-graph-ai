@@ -82,6 +82,12 @@ export interface OkhManifest {
   tool_list: string[];
   image: string | null;
   project_link: string | null;
+  /**
+   * Free-form record metadata from the API. Optional because the fixture
+   * contract this type was derived from omits it; `demo` is stamped by
+   * scripts/seed_demo_data.py and read by the demo-data indicator.
+   */
+  metadata?: Record<string, unknown>;
 }
 
 export interface OkhListResponse {

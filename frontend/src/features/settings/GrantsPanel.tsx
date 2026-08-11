@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD, FIELD_MONO } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bootstrapEdgeGrant,
@@ -99,7 +100,7 @@ export function GrantsPanel() {
               value={subjectDid}
               onChange={(e) => setSubjectDid(e.target.value)}
               placeholder="did:key:…"
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full`}
             />
           </label>
           <button
@@ -147,7 +148,7 @@ export function GrantsPanel() {
                 {g.grant_id && (
                   <button
                     type="button"
-                    className="rounded-md border border-destructive px-2 py-1 text-sm text-destructive hover:bg-destructive/10"
+                    className={`${FIELD} border-destructive text-destructive hover:bg-destructive/10`}
                     onClick={() => {
                       if (window.confirm("Revoke this grant?")) {
                         revoke.mutate(g.grant_id!);
@@ -211,7 +212,7 @@ export function GrantsPanel() {
             <select
               value={scopeKind}
               onChange={(e) => setScopeKind(e.target.value)}
-              className="mt-1 block rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 block`}
             >
               <option value="node">node</option>
               <option value="space">space</option>
@@ -225,7 +226,7 @@ export function GrantsPanel() {
               value={scopeTarget}
               onChange={(e) => setScopeTarget(e.target.value)}
               placeholder="DID, pool id, or content hash"
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full max-w-md`}
               required
             />
           </label>
@@ -236,7 +237,7 @@ export function GrantsPanel() {
               min={1}
               value={ttlDays}
               onChange={(e) => setTtlDays(e.target.value)}
-              className="mt-1 w-32 rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-32`}
             />
           </label>
           <button

@@ -77,10 +77,31 @@ deciding nothing about its chrome.
 - **A deterministic demo dataset** (`make seed-demo`) — ten designs and seven
   facilities curated so the golden path completes, with content-derived ids so
   deep links survive reseeding. It backs a real-API E2E lane that previously
-  skipped nearly every assertion for lack of data.
+  skipped nearly every assertion for lack of data. An instance running it says
+  so: the **Demo data** chip in the header is derived from the records
+  themselves, not a build flag, so it appears exactly when seeded records are
+  loaded and never on a production instance.
+- **One spelling per control** — seventeen hand-styled `<select>`s and
+  sixty-four `<input>`s had drifted into six near-identical spellings with
+  inconsistent focus rings. They now share canonical classes, so every field
+  looks the same and is keyboard-visible in all twenty variants.
 
-Verification for the whole surface: **326 unit tests** and **100 Playwright E2E
+Verification for the whole surface: **330 unit tests** and **108 Playwright E2E
 specs**, including the twenty-variant accessibility matrix.
+
+**Two independent ways to get a demo world, both optional:**
+
+*As a visitor* — open the sitemap and switch on **Demo data**. The app swaps its
+data source to a bundled sample world, needs no backend at all, and switches
+back the same way. It is a source swap at the fetch boundary, not a mode the
+components know about, so everything you see runs the same code path real data
+does.
+
+*As an operator* — seed the records server-side:
+
+```bash
+make seed-demo   # then restart the API — list responses are cached for an hour
+```
 
 ---
 

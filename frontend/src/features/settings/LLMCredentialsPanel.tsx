@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD, FIELD_MONO, FIELD_SM } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteLLMCredential,
@@ -112,7 +113,7 @@ export function LLMCredentialsPanel() {
             <select
               value={provider}
               onChange={(e) => setProvider(e.target.value)}
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className={`${FIELD} mt-1 w-full`}
             >
               {PROVIDERS.map((p) => (
                 <option key={p} value={p}>
@@ -129,7 +130,7 @@ export function LLMCredentialsPanel() {
               value={model}
               onChange={(e) => setModel(e.target.value)}
               placeholder="claude-sonnet-4-5-20250929"
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className={`${FIELD} mt-1 w-full`}
             />
           </label>
           <label className="block text-sm sm:col-span-2">
@@ -139,7 +140,7 @@ export function LLMCredentialsPanel() {
               autoComplete="off"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm"
+              className={`${FIELD_MONO} mt-1 w-full`}
             />
           </label>
         </div>
@@ -195,7 +196,7 @@ export function LLMCredentialsPanel() {
                     type="button"
                     onClick={() => test.mutate(c.provider)}
                     disabled={test.isPending}
-                    className="rounded-md border border-border px-3 py-1.5 text-sm"
+                    className={FIELD_SM}
                   >
                     Test
                   </button>
@@ -203,7 +204,7 @@ export function LLMCredentialsPanel() {
                     type="button"
                     onClick={() => remove.mutate(c.provider)}
                     disabled={remove.isPending}
-                    className="rounded-md border border-destructive px-3 py-1.5 text-sm text-destructive"
+                    className={`${FIELD_SM} border-destructive text-destructive`}
                   >
                     Delete
                   </button>

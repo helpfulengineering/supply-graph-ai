@@ -8,6 +8,7 @@
  */
 
 import { useState } from "react";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import {
   getPath,
   humanizeKey,
@@ -61,7 +62,7 @@ function ScalarField({
           onChange={(e) =>
             onChange(setPath(manifest, field.path, e.target.value))
           }
-          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className={`${FIELD} mt-1 w-full`}
         />
       ) : (
         <input
@@ -71,7 +72,7 @@ function ScalarField({
           onChange={(e) =>
             onChange(setPath(manifest, field.path, e.target.value))
           }
-          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className={`${FIELD} mt-1 w-full`}
         />
       )}
     </label>
@@ -140,7 +141,7 @@ function ListField({
               setDraft("");
             }
           }}
-          className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className={`${FIELD} flex-1`}
         />
         <button
           type="button"
@@ -149,7 +150,7 @@ function ListField({
             commit([...items, draft.trim()]);
             setDraft("");
           }}
-          className="rounded-md border border-border px-3 py-1.5 text-sm"
+          className={FIELD_SM}
         >
           Add
         </button>
@@ -209,7 +210,7 @@ function NestedField({
                 );
               }
             }}
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-xs"
+            className={`${FIELD_SM} mt-1 w-full`}
           />
           {error && (
             <p role="alert" className="mt-1 text-xs text-destructive">

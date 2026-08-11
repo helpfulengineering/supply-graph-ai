@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { Layout } from "@/components/layout/Layout";
+import { installDemoFetch } from "@/lib/demo/demoFetch";
 
 /**
  * The client provider stack, mounted once by the root layout.
@@ -18,6 +19,12 @@ import { Layout } from "@/components/layout/Layout";
  * Server rendering for public routes is a deliberate follow-up, not part of
  * the zero-feature-change port.
  */
+// Demo mode swaps the data source at the fetch boundary. Installed here,
+// before the gated render mounts anything that can issue a query, so no
+// request escapes to the network first and no component ever learns the
+// source changed.
+installDemoFetch();
+
 export function Providers({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {

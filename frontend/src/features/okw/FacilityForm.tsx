@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -176,7 +177,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
       {!hasWrite && (
         <div
-          className="rounded-md border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning"
+          className={`${FIELD} border-warning/30 bg-warning/10 px-4 py-3 text-warning`}
           role="status"
         >
           <p className="font-medium">Connect a write-capable API key to save</p>
@@ -520,7 +521,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 onChange={(e) => setImportText(e.target.value)}
                 rows={6}
                 spellCheck={false}
-                className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-xs"
+                className={`${FIELD_SM} w-full`}
                 placeholder="{ … }"
               />
               <Button type="button" variant="outline" onClick={applyImport}>
