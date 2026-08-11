@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD_MONO } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "../../api/ohm/client";
 import { claimSpace, listSpaceClaims } from "../../api/ohm/identity";
@@ -63,7 +64,7 @@ export function SpacesPanel() {
             <input
               value={spaceDid}
               onChange={(e) => setSpaceDid(e.target.value)}
-              className="mt-1 w-full max-w-xl rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full max-w-xl`}
               required
             />
           </label>
@@ -72,7 +73,7 @@ export function SpacesPanel() {
             <input
               value={adminDid}
               onChange={(e) => setAdminDid(e.target.value)}
-              className="mt-1 w-full max-w-xl rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full max-w-xl`}
               required
             />
           </label>

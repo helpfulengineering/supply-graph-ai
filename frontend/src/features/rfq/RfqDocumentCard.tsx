@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD_SM } from "../../components/ui/field";
 import {
   BuildPackageButton,
   okhFromUnknown,
@@ -94,19 +95,19 @@ export function RfqDocumentCard({ doc }: Props) {
         <div className="flex shrink-0 gap-2">
           <button
             onClick={handleCopy}
-            className="rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
+            className={`${FIELD_SM} font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted`}
           >
             {copied ? "Copied" : "Copy text"}
           </button>
           <button
             onClick={handleDownloadText}
-            className="rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
+            className={`${FIELD_SM} font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted`}
           >
             ↓ .txt
           </button>
           <button
             onClick={handleDownloadJson}
-            className="rounded-md border border-primary/30 bg-accent px-3 py-1.5 text-xs font-medium text-primary-ink hover:bg-accent transition-colors dark:hover:bg-accent/40"
+            className={`${FIELD_SM} border-primary/30 bg-accent font-medium text-primary-ink hover:bg-accent dark:hover:bg-accent/40`}
           >
             ↓ .json
           </button>

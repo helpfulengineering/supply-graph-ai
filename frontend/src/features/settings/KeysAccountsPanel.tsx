@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAccount,
@@ -111,7 +112,7 @@ export function KeysAccountsPanel() {
             </button>
             <button
               type="button"
-              className="rounded-md border border-border px-3 py-1.5 text-sm"
+              className={FIELD_SM}
               onClick={() => setCreatedToken(null)}
             >
               Done
@@ -140,7 +141,7 @@ export function KeysAccountsPanel() {
             <input
               value={keyName}
               onChange={(e) => setKeyName(e.target.value)}
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-md`}
               required
             />
           </label>
@@ -205,7 +206,7 @@ export function KeysAccountsPanel() {
                 {!k.revoked && (
                   <button
                     type="button"
-                    className="rounded-md border border-destructive px-2 py-1 text-sm text-destructive hover:bg-destructive/10"
+                    className={`${FIELD} border-destructive text-destructive hover:bg-destructive/10`}
                     onClick={() => {
                       if (window.confirm(`Revoke key “${k.name}”?`)) {
                         revoke.mutate(k.key_id);
@@ -249,7 +250,7 @@ export function KeysAccountsPanel() {
             <input
               value={accountName}
               onChange={(e) => setAccountName(e.target.value)}
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-md`}
               required
             />
           </label>
@@ -260,7 +261,7 @@ export function KeysAccountsPanel() {
               onChange={(e) =>
                 setAccountKind(e.target.value as "person" | "space")
               }
-              className="mt-1 block rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 block`}
             >
               <option value="person">person</option>
               <option value="space">space</option>
@@ -296,7 +297,7 @@ export function KeysAccountsPanel() {
                 {a.id && !a.disabled && (
                   <button
                     type="button"
-                    className="rounded-md border border-border px-2 py-1 text-sm"
+                    className={FIELD}
                     onClick={() => {
                       if (
                         window.confirm(`Disable account “${a.display_name}”?`)

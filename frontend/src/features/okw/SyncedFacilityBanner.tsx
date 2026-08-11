@@ -1,4 +1,5 @@
 import type { RecordProvenance } from "../../api/ohm/okw";
+import { FIELD } from "../../components/ui/field";
 
 /** True when ingest stamped a federated OKW (role synced_from). */
 export function isSyncedFacilityProvenance(
@@ -16,7 +17,7 @@ export function SyncedFacilityBanner({
   return (
     <div
       role="status"
-      className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+      className={`${FIELD} text-foreground`}
     >
       <p className="font-medium">Synced from a federation peer</p>
       <p className="mt-1 text-xs">

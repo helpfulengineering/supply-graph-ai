@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD, FIELD_MONO } from "../../components/ui/field";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { certifyRelease } from "../../api/ohm/identity";
 import type { PinRecord } from "../../api/package";
@@ -80,7 +81,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
           <input
             value={subjectDid}
             onChange={(e) => setSubjectDid(e.target.value)}
-            className="mt-1 w-full max-w-xl rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+            className={`${FIELD_MONO} mt-1 w-full max-w-xl`}
             required
           />
         </label>
@@ -92,7 +93,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
               <input
                 value={advBundle}
                 onChange={(e) => setAdvBundle(e.target.value)}
-                className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+                className={`${FIELD_MONO} mt-1 w-full`}
                 required
               />
             </label>
@@ -101,7 +102,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
               <input
                 value={advVersion}
                 onChange={(e) => setAdvVersion(e.target.value)}
-                className="mt-1 w-40 rounded-md border border-border px-3 py-2 text-sm bg-background"
+                className={`${FIELD} mt-1 w-40`}
               />
             </label>
             <label className="block text-sm font-medium">
@@ -109,7 +110,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
               <input
                 value={advManifest}
                 onChange={(e) => setAdvManifest(e.target.value)}
-                className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+                className={`${FIELD_MONO} mt-1 w-full`}
               />
             </label>
           </div>

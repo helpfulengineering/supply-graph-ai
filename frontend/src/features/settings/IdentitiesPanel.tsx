@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD, FIELD_MONO } from "../../components/ui/field";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   fetchSecurityPolicy,
@@ -92,7 +93,7 @@ export function IdentitiesPanel() {
             <select
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 block w-full max-w-md`}
               required
               disabled={!mintAllowed}
             >
@@ -111,7 +112,7 @@ export function IdentitiesPanel() {
             <select
               value={kind}
               onChange={(e) => setKind(e.target.value as "person" | "space")}
-              className="mt-1 block rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 block`}
               disabled={!mintAllowed}
             >
               <option value="person">person</option>
@@ -123,7 +124,7 @@ export function IdentitiesPanel() {
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-md`}
               disabled={!mintAllowed}
             />
           </label>
@@ -165,7 +166,7 @@ export function IdentitiesPanel() {
               value={lookupDid}
               onChange={(e) => setLookupDid(e.target.value)}
               placeholder="did:key:…"
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full`}
               required
             />
           </label>
@@ -218,7 +219,7 @@ export function IdentitiesPanel() {
                 </div>
                 <button
                   type="button"
-                  className="rounded-md border border-border px-2 py-1 text-sm"
+                  className={FIELD}
                   disabled={rotate.isPending}
                   onClick={() => {
                     if (

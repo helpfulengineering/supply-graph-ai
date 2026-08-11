@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD, FIELD_MONO } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listDirectory, publishDirectoryEntry } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -64,7 +65,7 @@ export function DirectoryPanel() {
             <input
               value={did}
               onChange={(e) => setDid(e.target.value)}
-              className="mt-1 w-full max-w-xl rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full max-w-xl`}
               required
             />
           </label>
@@ -73,7 +74,7 @@ export function DirectoryPanel() {
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-md`}
             />
           </label>
           <label className="block text-sm font-medium">
@@ -82,7 +83,7 @@ export function DirectoryPanel() {
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
               placeholder="https://ohm.example.org"
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-md`}
             />
           </label>
           <label className="block text-sm font-medium">
@@ -91,7 +92,7 @@ export function DirectoryPanel() {
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
               placeholder="example.org"
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-md`}
             />
           </label>
           <button

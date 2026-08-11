@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD, FIELD_MONO, FIELD_SM } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bindOAuth,
@@ -108,7 +109,7 @@ export function BindingsPanel() {
             <input
               value={domainDid}
               onChange={(e) => setDomainDid(e.target.value)}
-              className="mt-1 w-full max-w-xl rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full max-w-xl`}
               required
             />
           </label>
@@ -118,7 +119,7 @@ export function BindingsPanel() {
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
               placeholder="example.org"
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-md`}
               required
             />
           </label>
@@ -149,7 +150,7 @@ export function BindingsPanel() {
               </code>
               <button
                 type="button"
-                className="rounded-md border border-border px-2 py-1 text-xs"
+                className={FIELD_SM}
                 onClick={() => copyText(pending.well_known_url)}
               >
                 Copy URL
@@ -160,7 +161,7 @@ export function BindingsPanel() {
             </pre>
             <button
               type="button"
-              className="rounded-md border border-border px-2 py-1 text-xs"
+              className={FIELD_SM}
               onClick={() =>
                 copyText(JSON.stringify(pending.well_known_document, null, 2))
               }
@@ -219,7 +220,7 @@ export function BindingsPanel() {
             <input
               value={oauthDid}
               onChange={(e) => setOauthDid(e.target.value)}
-              className="mt-1 w-full max-w-xl rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full max-w-xl`}
               required
             />
           </label>
@@ -229,7 +230,7 @@ export function BindingsPanel() {
               value={provider}
               onChange={(e) => setProvider(e.target.value)}
               placeholder="github"
-              className="mt-1 w-full max-w-xs rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-xs`}
               required
             />
           </label>
@@ -239,7 +240,7 @@ export function BindingsPanel() {
               value={externalSubject}
               onChange={(e) => setExternalSubject(e.target.value)}
               placeholder="username or IdP subject id"
-              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full max-w-md`}
               required
             />
           </label>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD_MONO } from "../../components/ui/field";
 import { useQuery } from "@tanstack/react-query";
 import { listReputation } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -45,7 +46,7 @@ export function ReputationPanel() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="did:key:…"
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full`}
               required
             />
           </label>

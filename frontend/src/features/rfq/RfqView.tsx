@@ -1,6 +1,7 @@
 "use client";
 
 import { QuotesIllustration } from "../../components/ui/illustrations";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -200,7 +201,7 @@ export function RfqView({ navState }: Props) {
               onChange={(e) =>
                 setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
               }
-              className="w-24 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-ring"
+              className={`${FIELD} w-24 focus:border-primary/30 focus:ring-1`}
             />
             <span className="text-sm text-muted-foreground">units</span>
           </div>
@@ -247,13 +248,13 @@ export function RfqView({ navState }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={handleDownloadAll}
-                className="rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
+                className={`${FIELD_SM} font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted`}
               >
                 ↓ Download all (.txt)
               </button>
               <button
                 onClick={handleDownloadAllJson}
-                className="rounded-md border border-primary/30 bg-accent px-3 py-1.5 text-xs font-medium text-primary-ink hover:bg-accent transition-colors"
+                className={`${FIELD_SM} border-primary/30 bg-accent font-medium text-primary-ink hover:bg-accent`}
               >
                 ↓ Download all (.json)
               </button>
@@ -262,7 +263,7 @@ export function RfqView({ navState }: Props) {
                   setGenerated(false);
                   setRfqs([]);
                 }}
-                className="rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background transition-colors"
+                className={`${FIELD_SM} font-medium text-muted-foreground hover:bg-background transition-colors`}
               >
                 ← Edit settings
               </button>

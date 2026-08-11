@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FIELD } from "../../components/ui/field";
 import {
   getOkhVisibility,
   setOkhVisibility,
@@ -87,7 +88,7 @@ export function VisibilityControl({
             value={level ?? "private"}
             disabled={!hasWrite || mutation.isPending}
             onChange={(e) => mutation.mutate(e.target.value as VisibilityLevel)}
-            className="mt-1 w-full max-w-xs rounded-md border border-border px-3 py-2 text-sm bg-background disabled:opacity-50"
+            className={`${FIELD} mt-1 w-full max-w-xs`}
           >
             {LEVELS.map((l) => (
               <option key={l} value={l}>

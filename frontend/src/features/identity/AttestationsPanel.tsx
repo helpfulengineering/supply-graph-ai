@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FIELD_MONO } from "../../components/ui/field";
 import { useQuery } from "@tanstack/react-query";
 import { listAttestations } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -56,7 +57,7 @@ export function AttestationsPanel({ contentHash }: Props) {
               value={lookup}
               onChange={(e) => setLookup(e.target.value)}
               placeholder="sha256:…"
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
+              className={`${FIELD_MONO} mt-1 w-full`}
             />
           </label>
           <button

@@ -1,6 +1,7 @@
 "use client";
 
 import { DesignsIllustration } from "../../components/ui/illustrations";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -36,7 +37,7 @@ function SelectControl<T extends string>({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="rounded-md border border-input bg-background px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        className={`${FIELD_SM} text-foreground focus:outline-none focus:ring-2 focus:ring-ring`}
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -191,7 +192,7 @@ export function OkhListView() {
                 placeholder="Search designs…"
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
-                className="w-full max-w-md rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className={`${FIELD} w-full max-w-md`}
               />
               <Button
                 variant="outline"

@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -245,7 +246,7 @@ export function GenerateView() {
             }}
             aria-invalid={urlError ? true : undefined}
             aria-describedby={urlError ? "repo-url-error" : "repo-url-hint"}
-            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className={`${FIELD} flex-1`}
           />
           <button
             type="button"
@@ -304,7 +305,7 @@ export function GenerateView() {
             <button
               type="button"
               onClick={() => void cancel()}
-              className="rounded-md border border-border px-3 py-1.5 text-sm"
+              className={FIELD_SM}
             >
               Cancel
             </button>
@@ -388,7 +389,7 @@ export function GenerateView() {
               type="button"
               disabled={missing.length > 0}
               onClick={() => downloadManifest(manifest, "json")}
-              className="rounded-md border border-border px-5 py-2 text-sm font-semibold disabled:opacity-60"
+              className={`${FIELD} px-5 font-semibold disabled:opacity-60`}
             >
               Download JSON
             </button>
@@ -406,7 +407,7 @@ export function GenerateView() {
                   }),
                 )
               }
-              className="rounded-md border border-border px-5 py-2 text-sm font-semibold disabled:opacity-60"
+              className={`${FIELD} px-5 font-semibold disabled:opacity-60`}
             >
               Find who can build this
             </button>

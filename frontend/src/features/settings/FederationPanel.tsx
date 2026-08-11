@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import {
   discoverFederationPeers,
   fetchFederationStatus,
@@ -153,7 +154,7 @@ export function FederationPanel() {
             <button
               type="button"
               disabled={disabled || discover.isPending}
-              className="rounded-md border border-border px-3 py-1.5 text-sm disabled:opacity-50"
+              className={FIELD_SM}
               onClick={() => discover.mutate()}
             >
               {discover.isPending ? "Discovering…" : "Discover"}
@@ -206,7 +207,7 @@ export function FederationPanel() {
                   {p.followed ? (
                     <button
                       type="button"
-                      className="rounded-md border border-border px-2 py-1 text-sm"
+                      className={FIELD}
                       disabled={unfollow.isPending}
                       onClick={() => unfollow.mutate(p.did)}
                     >
@@ -215,7 +216,7 @@ export function FederationPanel() {
                   ) : (
                     <button
                       type="button"
-                      className="rounded-md border border-border px-2 py-1 text-sm"
+                      className={FIELD}
                       disabled={follow.isPending}
                       onClick={() => follow.mutate(p.did)}
                     >

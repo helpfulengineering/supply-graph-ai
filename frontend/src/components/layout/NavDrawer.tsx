@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { FIELD } from "../../components/ui/field";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -269,7 +270,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             type="button"
             onClick={toggle}
             aria-pressed={isDark}
-            className="mt-3 flex min-h-11 w-full items-center justify-between rounded-md border border-border px-3 text-sm text-foreground transition-colors hover:bg-muted"
+            className={`${FIELD} mt-3 flex min-h-11 w-full items-center justify-between hover:bg-muted`}
           >
             <span>{isDark ? "Dark mode" : "Light mode"}</span>
             <span className="text-xs text-muted-foreground">switch to {isDark ? "light" : "dark"}</span>

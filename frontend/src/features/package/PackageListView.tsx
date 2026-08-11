@@ -1,6 +1,7 @@
 "use client";
 
 import { PackagesIllustration } from "../../components/ui/illustrations";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -102,7 +103,7 @@ export function PackageListView() {
           type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="shrink-0 rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background disabled:opacity-50"
+          className={`${FIELD_SM} shrink-0 font-medium text-muted-foreground hover:bg-background`}
         >
           {isFetching ? "Refreshing…" : "↻ Refresh"}
         </button>
@@ -133,7 +134,7 @@ export function PackageListView() {
             placeholder="Search name, version, or manifest id…"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full max-w-md rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className={`${FIELD} w-full max-w-md`}
           />
           <Button
             disabled={selected.size === 0 || zipping}

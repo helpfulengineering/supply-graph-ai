@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
@@ -128,7 +129,7 @@ export function CreateJsonRecordPage({
       </div>
 
       {!hasWrite && (
-        <p className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
+        <p className={`${FIELD} border-warning/30 bg-warning/10 text-warning`}>
           You need a write-capable API key to create. Browse still works;
           connect a key in Settings if you are an admin.
         </p>
@@ -142,7 +143,7 @@ export function CreateJsonRecordPage({
             onChange={(e) => setJsonText(e.target.value)}
             rows={16}
             spellCheck={false}
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-xs"
+            className={`${FIELD_SM} mt-1 w-full`}
             placeholder="{ … }"
             required
           />
@@ -165,7 +166,7 @@ export function CreateJsonRecordPage({
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               placeholder="did:key:… or external id"
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full`}
             />
           </label>
           <label className="block text-sm font-medium">
@@ -174,7 +175,7 @@ export function CreateJsonRecordPage({
               value={onBehalfOf}
               onChange={(e) => setOnBehalfOf(e.target.value)}
               placeholder="space DID"
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm bg-background"
+              className={`${FIELD} mt-1 w-full`}
             />
           </label>
         </div>
