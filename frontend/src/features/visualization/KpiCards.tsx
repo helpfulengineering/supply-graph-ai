@@ -1,6 +1,7 @@
 import type { Kpi } from "./supplyTreeAdapter";
 import { PANEL } from "../../components/ui/surface";
-import { SECTION_LABEL_SM } from "../../components/ui/typography";
+import { SECTION_LABEL_SM, STAT_VALUE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 /** Presentational KPI grid; values come from the supply-tree adapter. */
 export function KpiCards({ kpis }: { kpis: Kpi[] }) {
@@ -9,9 +10,7 @@ export function KpiCards({ kpis }: { kpis: Kpi[] }) {
       {kpis.map((k) => (
         <div key={k.label} className={PANEL}>
           <p className={SECTION_LABEL_SM}>{k.label}</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-foreground">
-            {k.value}
-          </p>
+          <p className={cn(STAT_VALUE, "mt-2")}>{k.value}</p>
         </div>
       ))}
     </div>

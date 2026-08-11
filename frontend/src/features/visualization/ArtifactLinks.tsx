@@ -5,7 +5,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { VisualizationData } from "../../types/supply-tree";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import { PANEL_FLUSH, PANEL_HEADER } from "../../components/ui/surface";
 
 interface Props {
   data: VisualizationData;
@@ -52,10 +53,10 @@ export function ArtifactLinks({ data, solutionId }: Props) {
   ];
 
   return (
-    <div className="rounded-xl border border-border bg-card">
-      <div className="border-b border-border px-5 py-3">
+    <div className={PANEL_FLUSH}>
+      <div className={PANEL_HEADER}>
         <h3 className={CARD_TITLE}>Export Artifacts</h3>
-        <p className="text-xs text-muted-foreground">
+        <p className={CAPTION}>
           Download or open generated artifacts for this solution
         </p>
       </div>

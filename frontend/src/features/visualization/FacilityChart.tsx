@@ -1,7 +1,13 @@
 import ReactECharts from "echarts-for-react";
 import { useChartTokens } from "../../lib/chartTokens";
+import { NARROW, useMediaQuery } from "../../hooks/useMediaQuery";
 import type { VisualizationData } from "../../types/supply-tree";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import {
+  PANEL_BODY,
+  PANEL_FLUSH,
+  PANEL_HEADER,
+} from "../../components/ui/surface";
 
 interface Props {
   data: VisualizationData;
@@ -12,6 +18,7 @@ export function FacilityChart({ data }: Props) {
   // resolved to concrete values — the same ones the DOM around it renders
   // with, for whichever of the twenty variants is active.
   const t = useChartTokens();
+  const narrow = useMediaQuery(NARROW);
   const distribution = data.network.facility_distribution;
 
   if (distribution.length === 0) {
@@ -33,10 +40,13 @@ export function FacilityChart({ data }: Props) {
       textStyle: { color: t.text },
     },
     grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
+    // Hidden on a phone: the ticks collide and every bar already ends in its
+    // own count, so the axis and its gridlines only crowd the labels.
     xAxis: {
       type: "value",
       max: maxCount + 0.5,
-      splitLine: { lineStyle: { color: t.border } },
+      show: !narrow,
+      splitLine: { show: !narrow, lineStyle: { color: t.border } },
       axisLabel: {
         color: t.textFaint,
         formatter: (v: number) => (Number.isInteger(v) ? String(v) : ""),
@@ -47,7 +57,7 @@ export function FacilityChart({ data }: Props) {
       data: facilities,
       axisLabel: {
         color: t.textMuted,
-        width: 180,
+        width: narrow ? 110 : 180,
         overflow: "truncate",
       },
       axisLine: { lineStyle: { color: t.border } },
@@ -76,7 +86,7 @@ export function FacilityChart({ data }: Props) {
           show: true,
           position: "right",
           color: t.textMuted,
-          fontSize: 11,
+          fontSize: t.fontSizeCaption,
         },
       },
     ],
@@ -85,14 +95,12 @@ export function FacilityChart({ data }: Props) {
   const chartHeight = Math.max(160, distribution.length * 48 + 40);
 
   return (
-    <div className="rounded-xl border border-border bg-card">
-      <div className="border-b border-border px-5 py-3">
+    <div className={PANEL_FLUSH}>
+      <div className={PANEL_HEADER}>
         <h3 className={CARD_TITLE}>Facility Distribution</h3>
-        <p className="text-xs text-muted-foreground">
-          Trees assigned per facility
-        </p>
+        <p className={CAPTION}>Trees assigned per facility</p>
       </div>
-      <div className="p-4">
+      <div className={PANEL_BODY}>
         <ReactECharts
           option={option}
           style={{ height: `${chartHeight}px`, width: "100%" }}

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTheme } from "../context/ThemeContext";
 import { THEMES, type ThemeSlug } from "./useDarkMode";
+import { formatRgb, inkFor, parseRgb } from "../lib/contrastInk";
 
 export interface ThemeSwatch {
   /** The world's call-to-action accent, resolved to a concrete colour. */
@@ -14,6 +16,11 @@ export interface ThemeSwatch {
    * blends toward the CURRENT world's foreground — the drawer is painted in
    * the active world, not the one being previewed — so the correction matches
    * the surface the text actually lands on.
+   *
+   * Solved for the RATIO, not fixed at 80%: a fixed blend of a pale accent is
+   * still pale, which is why Mono and Bubblegum were unreadable in light mode
+   * while passing every check that only looked at the active world's own
+   * tokens. See lib/contrastInk.
    */
   ink: string;
   /** The world's sans stack. Terminal and Mono repoint it at the mono face. */
@@ -52,30 +59,42 @@ export function resolveThemeSwatches(): Record<ThemeSlug, ThemeSwatch> {
   const original = root.getAttribute("data-ttm-theme");
   const out = {} as Record<ThemeSlug, ThemeSwatch>;
 
-  // A probe, because the ink has to be a CONCRETE colour by the time it
-  // reaches an inline style. Assigning `color-mix(... var(--ttm-text))`
-  // through CSSOM drops the declaration, so the label rendered unstyled — the
-  // browser resolves it here instead, while the world is applied, and what
-  // ships to React is an rgb() string.
+  // A probe, because the ratio has to be computed from CONCRETE colours and
+  // the tokens are authored as hex, var() chains, and color-mix(). Setting each
+  // one as a `color` and reading it back makes the browser do the resolving,
+  // and what ships to React is an rgb() string either way.
   const probe = document.createElement("span");
   probe.style.display = "none";
   root.appendChild(probe);
+  const resolve = (value: string): string => {
+    probe.style.color = "";
+    probe.style.color = value;
+    return getComputedStyle(probe).color;
+  };
 
   try {
+    // The surface the names are drawn on, read in the ACTIVE world: the drawer
+    // is painted in the world you are in, not the one you are previewing.
+    const surface = parseRgb(
+      resolve(getComputedStyle(root).getPropertyValue("--card").trim()),
+    );
+
     for (const { slug } of THEMES) {
       root.setAttribute("data-ttm-theme", slug);
       // getComputedStyle forces the style recalc, so the read below sees this
       // world and not the one that was set a moment ago.
       const style = getComputedStyle(root);
       const accent = style.getPropertyValue("--ttm-accent-cta").trim();
-      probe.style.color = "";
-      probe.style.color = `color-mix(in srgb, ${accent} 80%, ${style
-        .getPropertyValue("--ttm-text")
-        .trim()})`;
-      const ink = getComputedStyle(probe).color || accent;
+      const accentRgb = parseRgb(resolve(accent));
+      const textRgb = parseRgb(
+        resolve(style.getPropertyValue("--ttm-text").trim()),
+      );
       out[slug] = {
         accent,
-        ink,
+        ink:
+          accentRgb && textRgb && surface
+            ? formatRgb(inkFor(accentRgb, textRgb, surface))
+            : accent,
         fontSans: style.getPropertyValue("--ttm-font-sans").trim(),
       };
     }
@@ -91,28 +110,41 @@ export function resolveThemeSwatches(): Record<ThemeSlug, ThemeSwatch> {
 }
 
 /**
- * Swatches, resolved once on mount.
+ * Swatches, re-resolved whenever the surface under them changes.
  *
  * Not `useMemo` during render: this reads and writes documentElement, which is
- * a side effect and would run during React's render phase. It also cannot run
- * on the server, and the swatches do not depend on the active world — a
- * world's own accent is the same colour whichever world is currently applied.
+ * a side effect and would run during React's render phase, and it cannot run
+ * on the server at all.
  *
- * Empty until the effect runs, so callers fall back to unstyled dots for one
+ * Keyed on the active world AND polarity, which the first version deliberately
+ * did not do — on the reasoning that a world's accent is the same colour
+ * whichever world is applied. True of the accent, false of the ink: the ink is
+ * solved against the surface it lands on, so a set resolved in dark mode is
+ * wrong the moment the visitor switches to light. That is exactly how Mono
+ * stayed unreadable — its near-white accent needs no correction on a dark card
+ * and needs a large one on a cream card, and nothing re-ran to apply it.
+ *
+ * Empty until the effect runs, so callers fall back to unstyled names for one
  * paint rather than rendering a wrong colour.
  */
 export function useThemeSwatches(): Partial<Record<ThemeSlug, ThemeSwatch>> {
+  const { theme, isDark } = useTheme();
   const [swatches, setSwatches] = useState<
     Partial<Record<ThemeSlug, ThemeSwatch>>
   >({});
 
-  // Polarity is deliberately not a dependency. A world's accent is defined in
-  // both its light and dark blocks, so the swatch reads whichever polarity is
-  // live — which is the honest preview, since that is what the visitor would
-  // actually get by choosing it.
   useEffect(() => {
-    setSwatches(resolveThemeSwatches());
-  }, []);
+    // After the frame, not during the effect pass. The polarity class lands on
+    // <html> in the PROVIDER's effect, and React runs a child's effects before
+    // its parent's — so resolving here directly reads the surface the app is
+    // leaving rather than the one it is entering, and every ink comes out
+    // solved against the wrong background. That is the whole bug: toggling to
+    // light left ten labels between 1.05:1 and 3.18:1.
+    const frame = requestAnimationFrame(() =>
+      setSwatches(resolveThemeSwatches()),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [theme, isDark]);
 
   return swatches;
 }

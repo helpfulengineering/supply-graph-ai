@@ -3,7 +3,7 @@
 import { FacilitiesIllustration } from "../../components/ui/illustrations";
 import { FIELD, LABEL } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,7 +12,8 @@ import {
 } from "../../api/ohm/network";
 import { Button } from "../../components/ui/button";
 import { deriveFilterOptions } from "./deriveFilterOptions";
-import { filtersFromParams, filtersToSearch } from "./filterParams";
+import { filterUpdates, filtersFromParams } from "./filterParams";
+import { mergeParams, oneOf, pageFromParam, toSearch } from "../../lib/urlState";
 import { filterByName } from "./nameSearch";
 import { buildNetworkSummary } from "./networkSummary";
 import { NetworkFilters } from "./NetworkFilters";
@@ -67,9 +68,17 @@ export function NetworkView() {
   const [filters, setFilters] = useState<Filters>(() =>
     filtersFromParams(searchParams),
   );
-  const [view, setView] = useState<"list" | "map">("list");
-  const [page, setPage] = useState(1);
-  const [nameQuery, setNameQuery] = useState("");
+  // View and page live in the address too, so a link reopens what the sender
+  // was looking at rather than page 1 of the list.
+  const [view, setView] = useState<"list" | "map">(() =>
+    oneOf(searchParams.get("view"), ["list", "map"] as const, "list"),
+  );
+  const [page, setPage] = useState(() =>
+    pageFromParam(searchParams.get("page")),
+  );
+  const [nameQuery, setNameQuery] = useState(
+    () => searchParams.get("q") ?? "",
+  );
 
   // Carry the active filter into the match flow: pick a design there, match
   // against exactly this filtered network (local ∪ MoM).
@@ -119,16 +128,45 @@ export function NetworkView() {
     safePage * PAGE_SIZE,
   );
 
+  /**
+   * Write the surface's own state back to the address, keeping everything it
+   * does not own — the look rides in the same query string.
+   *
+   * Replace, not push: narrowing a filter is a refinement, not a step to go
+   * back from.
+   */
+  const syncUrl = useCallback(
+    (updates: Record<string, string | number | null>) => {
+      const qs = mergeParams(new URLSearchParams(searchParams), updates);
+      router.replace(`${pathname}${toSearch(qs)}`, { scroll: false });
+    },
+    [router, pathname, searchParams],
+  );
+
   const applyFilters = (next: Filters) => {
     setFilters(next);
     setPage(1);
-    const qs = filtersToSearch(next);
-    // Replace, not push: narrowing a filter is a refinement, not a step back to.
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    syncUrl({ ...filterUpdates(next), page: null });
+  };
+
+  const applyView = (next: "list" | "map") => {
+    setView(next);
+    syncUrl({ view: next === "list" ? null : next });
+  };
+
+  const applyPage = (next: number) => {
+    setPage(next);
+    syncUrl({ page: next === 1 ? null : next });
+  };
+
+  const applyNameQuery = (next: string) => {
+    setNameQuery(next);
+    setPage(1);
+    syncUrl({ q: next || null, page: null });
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <PageHero title="Network" crumb="local · federated · filtered" />
@@ -147,7 +185,7 @@ export function NetworkView() {
 
       <SeedPeerCta />
 
-      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-4">
           {/*
             First control in the sidebar, above the filters: the site's primary
@@ -163,10 +201,7 @@ export function NetworkView() {
               type="search"
               value={nameQuery}
               placeholder="e.g. FabLab Lyon"
-              onChange={(e) => {
-                setNameQuery(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => applyNameQuery(e.target.value)}
               className={FIELD}
             />
             <p className="mt-1 text-xs text-muted-foreground">
@@ -194,7 +229,7 @@ export function NetworkView() {
               <Button variant="outline" size="sm" onClick={matchAgainstThese}>
                 Match a design against these
               </Button>
-              <ViewToggle view={view} onChange={setView} />
+              <ViewToggle view={view} onChange={applyView} />
             </div>
           </div>
 
@@ -258,7 +293,7 @@ export function NetworkView() {
                   totalPages={totalPages}
                   totalItems={spaces.length}
                   pageSize={PAGE_SIZE}
-                  onPage={setPage}
+                  onPage={applyPage}
                 />
               </>
             ))}

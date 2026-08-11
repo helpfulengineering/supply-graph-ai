@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import type { NavIcon } from "./nav";
 import { navEntryFor } from "./nav";
 import { CAPTION, PAGE_TITLE } from "../ui/typography";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,7 @@ interface PageHeroProps {
    * pages with no place in the sitemap, where an invented icon would imply a
    * section that does not exist.
    */
-  icon?: LucideIcon | null;
+  icon?: NavIcon | null;
   /** Token utility for the icon's colour; defaults to the route's group accent. */
   accent?: string;
 }
@@ -59,7 +59,7 @@ export function PageHero({
 }: PageHeroProps) {
   const resolved = navEntryFor(usePathname() ?? "");
   // `undefined` means "resolve from the route"; `null` means "no icon".
-  const Icon: LucideIcon | null =
+  const Icon: NavIcon | null =
     icon === undefined ? (resolved?.entry.icon ?? null) : icon;
   const tone = accent ?? resolved?.group.accent ?? "text-muted-foreground";
 

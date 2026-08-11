@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { CHECKBOX, CHECKBOX_HIT } from "../../components/ui/field";
 import { PANEL } from "../../components/ui/surface";
+import { CARD_TITLE } from "../../components/ui/typography";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -67,7 +68,7 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
             className="text-left"
             onClick={() => router.push(detail)}
           >
-            <h3 className="font-semibold text-foreground break-all hover:text-primary-ink">
+            <h3 className={cn(CARD_TITLE, "break-all hover:text-primary-ink")}>
               {pkg.package_name}
             </h3>
             <p className="font-mono text-xs text-muted-foreground">

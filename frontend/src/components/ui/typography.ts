@@ -21,13 +21,13 @@
  */
 
 /** The page's own `<h1>`. One per route, rendered by PageHero. */
-export const PAGE_TITLE = "text-h4 font-semibold tracking-tight text-foreground";
+export const PAGE_TITLE = "text-h4 font-semibold tracking-tight text-heading";
 
 /** A titled division of a page — the `<h2>` above a group of panels. */
-export const SECTION_TITLE = "text-h5 font-semibold text-foreground";
+export const SECTION_TITLE = "text-h5 font-semibold text-heading";
 
 /** The heading inside a card or panel. */
-export const CARD_TITLE = "text-body font-semibold text-foreground";
+export const CARD_TITLE = "text-body font-semibold text-heading";
 
 /**
  * The small uppercase eyebrow that names a group — "Coverage", "Identity".
@@ -47,6 +47,19 @@ export const SECTION_LABEL =
  */
 export const SECTION_LABEL_SM =
   "text-caption font-semibold uppercase tracking-wide text-muted-foreground";
+
+/**
+ * The single large figure on a stat card — a KPI, a facility count.
+ *
+ * A role, not a size, and it had the same two-spellings problem the headings
+ * had: `text-3xl font-bold tabular-nums` on the visualization KPIs and
+ * `text-2xl font-bold` on the dashboard's, which is a decision nobody made.
+ * `tabular-nums` belongs to the role rather than to one of its uses: a column
+ * of counts that shifts width as the digits change is the defect the figure
+ * exists to avoid.
+ */
+export const STAT_VALUE =
+  "text-h3 font-bold leading-none tabular-nums text-heading";
 
 /** Supporting copy under a heading. */
 export const BODY_MUTED = "text-small text-muted-foreground";

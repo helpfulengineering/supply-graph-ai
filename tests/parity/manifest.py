@@ -154,13 +154,17 @@ AREAS: tuple[Area, ...] = (
         "exposed",
         note=(
             "Catch-all maintenance endpoints; backs scaffold/cleanup services. "
-            "Also owns /help, a static frontend page (sitemap, keyboard "
-            "shortcuts, accessibility) generated from the nav and shortcut "
-            "data files. It calls no service, so it has no backend counterpart "
-            "— declared here rather than left undeclared so the route gate "
-            "stays meaningful."
+            "Also owns /help and /icons, static frontend pages that call no "
+            "service and so have no backend counterpart — declared here "
+            "rather than left undeclared so the route gate stays meaningful. "
+            "/help is the sitemap, keyboard shortcuts and accessibility notes, "
+            "generated from the nav and shortcut data files. /icons is an "
+            "unlisted internal gallery of every glyph the app ships and the "
+            "process each one is wired to; nothing links to it and it is not "
+            "access-controlled, because everything on it is already in the "
+            "client bundle."
         ),
-        fe_routes=("/", "/help"),
+        fe_routes=("/", "/help", "/icons"),
         fe_api_prefixes=("/api/utility",),
     ),
     Area(

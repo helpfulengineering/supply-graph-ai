@@ -1,4 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import {
+  DataProcessingIcon,
+  InternetIcon,
+  ReliabilityIcon,
+  SmartFactoryIcon,
+  type IconProps,
+} from "../components/icons";
+import type { JSX } from "react";
 import { PageHero } from "../components/layout/PageHero";
 import { fetchDomains, fetchMetrics } from "../api/ohm/utility";
 import { fetchNetworkSpaces } from "../api/ohm/network";
@@ -13,22 +21,65 @@ import {
 } from "../features/dashboard/networkStats";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { PANEL } from "../components/ui/surface";
+import { Tooltip } from "../components/ui/Tooltip";
 import { cn } from "@/lib/utils";
-import { SECTION_LABEL_SM, SECTION_TITLE } from "../components/ui/typography";
+import {
+  SECTION_LABEL_SM,
+  SECTION_TITLE,
+  STAT_VALUE,
+} from "../components/ui/typography";
 import {
   buildNetworkSummary,
   SOURCE_STYLES,
   sourceColor,
 } from "../features/network/networkSummary";
 
-function StatCard({ label, value }: { label: string; value: string }) {
+/**
+ * One figure on the dashboard.
+ *
+ * Icon beside the number rather than a number alone in a box: at four across,
+ * each card was a short figure and a short label in the top-left of a wide
+ * panel, and the rest was empty. The icon uses the width the card already
+ * spends, and gives the row something to scan by other than reading each
+ * label.
+ */
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: (props: IconProps) => JSX.Element;
+  label: string;
+  value: string;
+}) {
   return (
-    <div className={PANEL}>
-      <p className="text-2xl font-bold text-foreground">{value}</p>
-      <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-    </div>
+    <Tooltip content={label} value={value}>
+      {/*
+        The label is in the tooltip, so it must also be somewhere a tooltip
+        cannot be relied on: aria-label names the card for a screen reader, and
+        tabindex makes the tooltip reachable without a pointer. A figure whose
+        caption only ever appears on hover is not a labelled figure.
+      */}
+      <div
+        tabIndex={0}
+        role="group"
+        aria-label={`${label}: ${value}`}
+        className={cn(
+          PANEL,
+          // Vertical padding pulled off PANEL: these cards are one line of
+          // content, and the panel's 12/16px top and bottom made a row of four
+          // short figures twice as tall as it needed to be.
+          "flex w-full items-center gap-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        )}
+      >
+        {/* The world's accent as ink, not a flat grey: the figure beside it
+            already carries the theme, and a muted icon read as a disabled
+            control. --color-primary-ink is the accent tempered for use as
+            text, which is what an icon at this weight is. */}
+        <Icon aria-hidden="true" className="h-5 w-5 shrink-0 text-primary-ink" />
+        <p className={STAT_VALUE}>{value}</p>
+      </div>
+    </Tooltip>
   );
 }
 
@@ -63,7 +114,7 @@ export function HomePage() {
   const m = map.data;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <PageHero
           title="Open Hardware Manager"
@@ -108,20 +159,26 @@ export function HomePage() {
       </section>
 
       {/* Network + system stats. */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Two-up from the narrowest width: these are four short figures, and one
+          per row turned the most scannable thing on the page into a scroll. */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard
+          icon={SmartFactoryIcon}
           label="OHM facilities"
           value={(m?.local_count ?? 0).toLocaleString()}
         />
         <StatCard
+          icon={InternetIcon}
           label="Maps of Making"
           value={m?.mom_available ? (m?.mom_count ?? 0).toLocaleString() : "—"}
         />
         <StatCard
+          icon={DataProcessingIcon}
           label="Requests (1h)"
           value={(metrics.data?.recent_requests_1h ?? 0).toLocaleString()}
         />
         <StatCard
+          icon={ReliabilityIcon}
           label="Errors"
           value={(metrics.data?.total_errors ?? 0).toLocaleString()}
         />

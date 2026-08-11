@@ -1,20 +1,21 @@
 import {
-  BookText,
-  FactoryIcon,
-  FilePlus2,
-  FileText,
-  Gauge,
-  LayoutDashboard,
-  LifeBuoy,
-  MapPinned,
-  Package,
-  Settings,
-  Sparkles,
-  Waypoints,
-  Wrench,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+  EfficiencyIcon,
+  FirstAidBoxIcon,
+  CubeIcon,
+  NotebookIcon,
+  BobbinIcon,
+  AccuracyIcon,
+  HammerIcon,
+  IndustrialIcon,
+  IntegrationIcon,
+  PackingIcon,
+  ExecutionIcon,
+  SettingsIcon,
+  SmartFactoryIcon,
+  WorkflowIcon,
+  type IconProps,
+} from "../icons";
+import type { JSX } from "react";
 
 /**
  * The sitemap — single source for everything that names a route.
@@ -32,18 +33,28 @@ import {
  * holds while this table is the sole source, which is why the drawer's
  * Account and Site rows moved here instead of staying inline in the drawer.
  *
- * Icons are lucide, not the Noun Project illustration set. That is measured,
- * not assumed: the illustrations carry 200–3000 units of path data drawn for
- * 100pt, and at the 20px this list renders they collapse into unreadable
- * blobs. They earn their place at 40px+, which is where the empty states use
- * them (components/ui/illustrations.tsx).
+ * Icons come from the purchased general set, drawn at the same 20px the list
+ * renders at and checked there rather than assumed. The distinction that
+ * matters is which set: the future-technology illustrations carry 200–3000
+ * units of path data drawn for 100pt and do collapse at this size — they earn
+ * their place at 40px+, which is where the empty states use them
+ * (components/ui/illustrations.tsx). The general set is line art and holds.
  */
+
+/**
+ * What a nav row draws.
+ *
+ * Widened from `LucideIcon` when the rows moved to the purchased set: a
+ * ForwardRefExoticComponent is not the same shape as a plain function
+ * component, and the entries are the latter.
+ */
+export type NavIcon = (props: IconProps) => JSX.Element;
 
 export interface NavEntry {
   href: string;
   name: string;
   desc: string;
-  icon: LucideIcon;
+  icon: NavIcon;
   /**
    * Prefix that counts as "on this page", when it is wider than the link.
    *
@@ -86,25 +97,25 @@ export const NAV_GROUPS: NavGroup[] = [
         href: "/",
         name: "Dashboard",
         desc: "network map and system status",
-        icon: LayoutDashboard,
+        icon: AccuracyIcon,
       },
       {
         href: "/okh",
         name: "Designs",
         desc: "browse the open hardware catalog",
-        icon: Wrench,
+        icon: CubeIcon,
       },
       {
         href: "/facilities",
         name: "Facilities",
         desc: "manufacturing spaces, local and federated",
-        icon: MapPinned,
+        icon: SmartFactoryIcon,
       },
       {
         href: "/packages",
         name: "Packages",
         desc: "versioned design bundles",
-        icon: Package,
+        icon: PackingIcon,
       },
     ],
   },
@@ -116,31 +127,31 @@ export const NAV_GROUPS: NavGroup[] = [
         href: "/match",
         name: "Match",
         desc: "pair a design with facilities that can build it",
-        icon: Zap,
+        icon: IntegrationIcon,
       },
       {
         href: "/okh/generate",
         name: "Generate",
         desc: "draft a design manifest from a URL",
-        icon: Sparkles,
+        icon: ExecutionIcon,
       },
       {
         href: "/okh/new",
         name: "New design",
         desc: "author an OKH manifest by hand",
-        icon: FilePlus2,
+        icon: HammerIcon,
       },
       {
         href: "/facilities/new",
         name: "New facility",
         desc: "register an OKW space",
-        icon: FactoryIcon,
+        icon: IndustrialIcon,
       },
       {
         href: "/rfq",
         name: "RFQ",
         desc: "request quotes for a matched solution",
-        icon: FileText,
+        icon: BobbinIcon,
       },
     ],
   },
@@ -152,14 +163,14 @@ export const NAV_GROUPS: NavGroup[] = [
         href: "/help",
         name: "Help",
         desc: "sitemap, shortcuts, and accessibility",
-        icon: LifeBuoy,
+        icon: FirstAidBoxIcon,
       },
       // Static mkdocs site served on the same origin — a hard link, not a route.
       {
         href: "/docs/",
         name: "Documentation",
         desc: "guides and API reference",
-        icon: BookText,
+        icon: NotebookIcon,
         external: true,
       },
     ],
@@ -188,7 +199,7 @@ export const ACCOUNT_GROUP: NavGroup = {
       match: "/settings",
       name: "Settings",
       desc: "your API session, and instance administration when your key allows it",
-      icon: Settings,
+      icon: SettingsIcon,
     },
   ],
 };
@@ -208,7 +219,7 @@ export const SITE_GROUP: NavGroup = {
       href: "/mission-control",
       name: "Mission Control",
       desc: "telemetry and visitor records for this site",
-      icon: Gauge,
+      icon: EfficiencyIcon,
     },
   ],
 };
@@ -229,7 +240,7 @@ export const UNLISTED_GROUP: NavGroup = {
       href: "/visualization",
       name: "Supply Tree",
       desc: "the production plan a match resolved to",
-      icon: Waypoints,
+      icon: WorkflowIcon,
     },
   ],
 };

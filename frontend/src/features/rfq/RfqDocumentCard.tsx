@@ -5,6 +5,8 @@ import {
   okhFromUnknown,
 } from "../package/BuildPackageButton";
 import type { RFQDocument } from "../../types/rfq";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   doc: RFQDocument;
@@ -81,7 +83,7 @@ export function RfqDocumentCard({ doc }: Props) {
             <span className="flex h-6 w-7 items-center justify-center rounded bg-muted text-xs font-bold text-muted-foreground">
               #{doc.rank}
             </span>
-            <h3 className="truncate font-semibold text-foreground">
+            <h3 className={cn(CARD_TITLE, "truncate")}>
               {doc.facility_name}
             </h3>
             <ConfidencePill score={doc.confidence} />
