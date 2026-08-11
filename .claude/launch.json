@@ -4,9 +4,10 @@
     {
       "name": "ohm-frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": ["exec", "next", "dev"],
       "cwd": "frontend",
-      "port": 5173
+      "port": 5173,
+      "autoPort": true
     }
   ]
 }
