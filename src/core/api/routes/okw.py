@@ -26,7 +26,12 @@ from ...models.disclosure import (
     DisclosurePreviewResponse,
     DisclosureResponse,
 )
-from ...models.visibility import VisibilityBody, VisibilityResponse, is_shareable
+from ...models.visibility import (
+    VisibilityBody,
+    VisibilityLevel,
+    VisibilityResponse,
+    is_shareable,
+)
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
@@ -664,6 +669,62 @@ async def get_okw(
         logger.error(f"Error getting OKW facility {id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=500, detail=f"Error getting OKW facility: {str(e)}"
+        )
+
+
+@router.get(
+    "/{id}/spaceapi",
+    summary="Publish a facility as a SpaceAPI document",
+    description="""
+    Serve one facility as the SpaceAPI document Maps of Making ingests.
+
+    Register the URL once at https://mapsofmaking.org and MoM re-polls it every
+    ten minutes, so enrichment done here reaches the map without re-entry.
+
+    Only facilities set to `public` visibility are served; anything else answers
+    404. The document carries coordinates, not a street address.
+    """,
+)
+async def get_okw_spaceapi(
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+) -> Any:
+    """Serve a facility as a SpaceAPI document for Maps of Making to poll.
+
+    Takes no viewer dependency, unlike its sibling reads: what this endpoint
+    publishes does not vary by caller, and signing in does not reveal a record
+    the owner has not chosen to publish. Preview an unpublished document with
+    ``ohm okw spaceapi`` instead.
+    """
+    try:
+        facility = await okw_service.get(id)
+        visibility = await okw_service.get_visibility(id) if facility else None
+
+        # `public`, not is_shareable() — deliberately stricter than the sibling
+        # reads. is_shareable() also admits `followers`, which means follow-gated
+        # federation sync where the receiving node decides what to re-share; an
+        # open third-party map is categorically broader than that. It matters
+        # concretely rather than theoretically: records predating Slice 4 carry
+        # no visibility object and resolve to `followers` via LEGACY_VISIBILITY,
+        # and the seeded dataset writes straight to storage, so the looser gate
+        # would publish the entire seed to a live public map on behalf of people
+        # who never made that choice.
+        if not facility or visibility != VisibilityLevel.PUBLIC:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKW facility with ID {id} not found",
+            )
+
+        # Returned bare rather than wrapped in OKWResponse: MoM's validator
+        # reads the SpaceAPI keys at the root of the document.
+        return facility.to_spaceapi_json()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error building SpaceAPI document for {id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Error building SpaceAPI document: {str(e)}"
         )
 
 

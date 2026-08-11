@@ -222,6 +222,23 @@ AREAS: tuple[Area, ...] = (
         fe_api_prefixes=("/api/identity",),
     ),
     # --- Internal services: no API and no CLI by design -------------------
+    Area(
+        "maps-of-making",
+        None,
+        None,
+        None,
+        "internal",
+        note="Bidirectional Maps of Making bridge, backed by "
+        "src/core/services/mom_bridge.py. Declared rather than left silent: "
+        "inventory.py globs *_service.py, so this module was invisible to the "
+        "gate and passed by omission rather than by decision. No tag or group "
+        "of its own on purpose — inbound (SPARQL pull, 24h cache) surfaces "
+        "through the okw area's GET /api/okw/spaces and the match candidate "
+        "pool; outbound is okw's GET /api/okw/{id}/spaceapi plus "
+        "`ohm okw spaceapi`, which serve one facility as the SpaceAPI document "
+        "MoM polls. Rename candidate (mom_bridge -> maps_of_making_service) if "
+        "it ever earns its own surface.",
+    ),
     Area("cache", "cache", None, None, "internal", note="Caching internals."),
     Area(
         "rate_limit",
@@ -351,6 +368,16 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "deployed",
         path="guides/find-your-space.md",
         requires_fe_call="/api/okw/spaces",
+    ),
+    SiteDoc(
+        "okw",
+        "Publish a facility to Maps of Making",
+        "deployed",
+        path="guides/publish-to-maps-of-making.md",
+        # No requires_fe_call: the surface is the public endpoint plus
+        # `ohm okw spaceapi`. Nothing in the frontend calls it, and MoM's
+        # poller is the consumer — asserting a frontend call would be asserting
+        # the wrong evidence.
     ),
     SiteDoc(
         "okw",

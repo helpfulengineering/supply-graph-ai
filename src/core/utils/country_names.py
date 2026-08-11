@@ -82,3 +82,30 @@ def country_match_key(raw: Optional[str]) -> str:
 def countries_match(a: Optional[str], b: Optional[str]) -> bool:
     ka, kb = country_match_key(a), country_match_key(b)
     return bool(ka) and ka == kb
+
+
+# Names back to ISO 3166-1 alpha-2 only. COUNTRY_NAMES also carries the
+# non-standard "USA" alias, so the general reverse map above can answer with a
+# three-letter code; a consumer expecting alpha-2 would take that as valid.
+_BY_NAME_ALPHA2 = {
+    name.lower(): code for code, name in COUNTRY_NAMES.items() if len(code) == 2
+}
+
+
+def country_code(raw: Optional[str]) -> str:
+    """Return the ISO 3166-1 alpha-2 code for a code or English name, else "".
+
+    Empty for anything not in the table, so callers can omit the field rather
+    than publish a guess — this feeds interop formats where a wrong code is
+    worse than an absent one.
+    """
+    if not raw or not str(raw).strip():
+        return ""
+    s = str(raw).strip()
+    upper = s.upper()
+    if upper not in COUNTRY_NAMES:
+        return _BY_NAME_ALPHA2.get(s.lower(), "")
+    if len(upper) == 2:
+        return upper
+    # A known but non-alpha-2 key such as "USA": resolve via its display name.
+    return _BY_NAME_ALPHA2.get(COUNTRY_NAMES[upper].lower(), "")

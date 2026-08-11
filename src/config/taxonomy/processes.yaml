@@ -110,7 +110,7 @@ processes:
   cnc_machining:
     display_name: "CNC Machining"
     tsdc_code: "CNC"
-    wikidata_qid: "Q174689"
+    wikidata_qid: "Q3689317"
     aliases:
       - "cnc"
       - "cnc machining"
@@ -122,7 +122,7 @@ processes:
   cnc_milling:
     display_name: "CNC Milling"
     parent: "cnc_machining"
-    wikidata_qid: "Q179507"
+    wikidata_qid: "Q656950"
     aliases:
       - "cnc milling"
       - "cnc_milling"
@@ -133,7 +133,7 @@ processes:
   cnc_turning:
     display_name: "CNC Turning"
     parent: "cnc_machining"
-    wikidata_qid: "Q1260093"
+    wikidata_qid: "Q258127"
     aliases:
       - "cnc turning"
       - "cnc_turning"
@@ -148,7 +148,7 @@ processes:
   laser_cutting:
     display_name: "Laser Cutting"
     tsdc_code: "LAS"
-    wikidata_qid: "Q3062349"
+    wikidata_qid: "Q593053"
     aliases:
       - "las"
       - "laser"
@@ -159,10 +159,12 @@ processes:
   # Maps of Making publishes a `vinyl-cutting` activity that OHM had no process
   # for, so those spaces' capability was dropped on ingest. Aliases are taken
   # from MoM's own skos:altLabel values so the bridge resolves on first contact.
-  # No wikidata_qid: MoM's concept carries no owl:sameAs, and alias matching is
-  # sufficient (that is how laser_cutting resolves today).
+  # MoM's crosswalk since gave the concept an owl:sameAs, so the QID is no
+  # longer absent — but theirs (Q1303073) is a disambiguation page, so this is
+  # the verified entity rather than a copy of it.
   vinyl_cutting:
     display_name: "Vinyl Cutting"
+    wikidata_qid: "Q12860083"
     aliases:
       - "vinyl cutting"
       - "vinyl_cutting"
@@ -175,10 +177,13 @@ processes:
   # PCB (TSDC: PCB)
   # ---------------------------------------------------------------------------
 
+  # Q173350 is the board, not the making of it — Wikidata has no entity for the
+  # process. Recorded anyway because it is what the Wikipedia URL these records
+  # actually carry resolves to, which is the join partners use.
   pcb_fabrication:
     display_name: "PCB Fabrication"
     tsdc_code: "PCB"
-    wikidata_qid: "Q1047286"
+    wikidata_qid: "Q173350"
     aliases:
       - "pcb"
       - "pcb fabrication"
@@ -244,7 +249,7 @@ processes:
   welding:
     display_name: "Welding"
     tsdc_code: "WEL"
-    wikidata_qid: "Q12544"
+    wikidata_qid: "Q131172"
     aliases:
       - "wel"
       - "welding"
