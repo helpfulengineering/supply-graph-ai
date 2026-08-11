@@ -71,16 +71,17 @@ Generate a long random string yourself, then:
 
 ```sql
 insert into public.ohmgr_admin_secrets (id, token_hash)
-values (1, encode(digest('PASTE-A-LONG-RANDOM-TOKEN-HERE', 'sha256'), 'hex'))
+values (1, encode(sha256(convert_to('PASTE-A-LONG-RANDOM-TOKEN-HERE', 'UTF8')), 'hex'))
 on conflict (id) do update
   set token_hash = excluded.token_hash, updated_at = now();
 ```
 
-If `digest` is not available, enable pgcrypto first:
-
-```sql
-create extension if not exists pgcrypto;
-```
+This is core `sha256()`, not pgcrypto's `digest()`, and needs no extension. The
+two produce the same bytes, but on Supabase pgcrypto is installed into the
+`extensions` schema, so `digest` does not resolve from the `SECURITY DEFINER`
+functions — they pin `search_path = public` precisely so nothing can be
+shadowed. `ohmgr_check_admin` hashes the same way, so a token stored by any
+other expression will not compare equal.
 
 Verify the token works — this returns `true` only for the right string:
 

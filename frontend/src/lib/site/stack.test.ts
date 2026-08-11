@@ -126,3 +126,138 @@ describe("flush", () => {
     expect(calls).toBe(1);
   });
 });
+
+/**
+ * The tiered calls, on the wire.
+ *
+ * Mission Control's panels mock this module wholesale, so nothing there
+ * notices if an argument is misnamed — and these are `SECURITY DEFINER`
+ * functions with fixed parameter names, where `p_email` spelled `email` is not
+ * a rename but an RPC that raises. Same reasoning as the telemetry contract
+ * above, applied to the twelve functions the operator views call.
+ */
+describe("tiered calls", () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  /** Captures one RPC's request body and answers with `reply`. */
+  function capture(
+    fn: string,
+    reply: Parameters<typeof HttpResponse.json>[0],
+    status = 200,
+  ) {
+    const bodies: Array<Record<string, unknown>> = [];
+    server.use(
+      http.post(`*/rest/v1/rpc/${fn}`, async ({ request }) => {
+        bodies.push((await request.json()) as Record<string, unknown>);
+        return HttpResponse.json(reply, { status });
+      }),
+    );
+    return bodies;
+  }
+
+  it("sends the operator token under the name the RPC declares", async () => {
+    const bodies = capture("ohmgr_admin_visitors", [
+      {
+        name: "Ada Lovelace",
+        email: "ada@example.org",
+        first_seen: "2026-08-01T09:00:00.000Z",
+        last_seen: "2026-08-11T09:00:00.000Z",
+        is_admin: true,
+      },
+    ]);
+
+    const stack = await enabledStack();
+    const result = await stack.adminVisitors("the-token");
+
+    expect(bodies[0]).toEqual({ p_token: "the-token" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // Mapped to the domain shape, and marked unmasked so the panel may
+      // render its mutations.
+      expect(result.data[0]).toMatchObject({ email: "ada@example.org", masked: false });
+    }
+  });
+
+  it("sends an explicit null for the field a marker toggle leaves alone", async () => {
+    const bodies = capture("ohmgr_admin_update_visitor", null);
+
+    const stack = await enabledStack();
+    await stack.adminUpdateVisitor("the-token", "ada@example.org", { isAdmin: true });
+
+    // ohmgr_admin_update_visitor coalesces null onto the current value, so
+    // "leave the name alone" must arrive as p_name: null rather than as an
+    // absent key or an empty string — the latter would fail its length check.
+    expect(bodies[0]).toEqual({
+      p_token: "the-token",
+      p_email: "ada@example.org",
+      p_name: null,
+      p_is_admin: true,
+    });
+  });
+
+  it("keeps the self-service reads keyed by the claimed email", async () => {
+    const bodies = capture("ohmgr_events_masked", []);
+
+    const stack = await enabledStack();
+    await stack.eventsMasked("ada@example.org", 50);
+
+    expect(bodies[0]).toEqual({ p_email: "ada@example.org", p_limit: 50 });
+  });
+
+  it("turns a raised 'unauthorized' into something an operator can act on", async () => {
+    capture("ohmgr_admin_stats", { code: "P0001", message: "unauthorized" }, 400);
+
+    const stack = await enabledStack();
+    const result = await stack.adminStats("wrong");
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/token was not accepted/i);
+  });
+
+  it("reads a bigint total that PostgREST returned as a string", async () => {
+    capture("ohmgr_admin_stats", [{ total_events: "128000" }]);
+
+    const stack = await enabledStack();
+    const result = await stack.adminStats("the-token");
+
+    expect(result).toEqual({ ok: true, data: 128_000 });
+  });
+
+  it("is not an operator without a token, and never asks the server", async () => {
+    let calls = 0;
+    server.use(
+      http.post("*/rest/v1/rpc/ohmgr_admin_stats", () => {
+        calls += 1;
+        return HttpResponse.json([{ total_events: "1" }]);
+      }),
+    );
+
+    const stack = await enabledStack();
+    expect(await stack.isOperator()).toBe(false);
+    expect(calls).toBe(0);
+  });
+
+  it("establishes operator status by presenting the held token, not by is_admin", async () => {
+    const bodies = capture("ohmgr_admin_stats", [{ total_events: "1" }]);
+
+    const stack = await enabledStack();
+    stack.setOperatorToken("the-token");
+
+    expect(await stack.isOperator()).toBe(true);
+    // The probe is the token-gated RPC. Nothing reads ohmgr_is_admin: gate
+    // emails are unauthenticated, so a column anyone can claim cannot be the
+    // credential. See supabase/schema.sql.
+    expect(bodies[0]).toEqual({ p_token: "the-token" });
+
+    stack.clearOperatorToken();
+    expect(await stack.isOperator()).toBe(false);
+  });
+});
