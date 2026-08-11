@@ -12,14 +12,20 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 const GROUPS: { id: DisclosureGroup; label: string; hint: string }[] = [
-  { id: "identity", label: "Identity", hint: "Name and status (always included)" },
+  {
+    id: "identity",
+    label: "Identity",
+    hint: "Name and status (always included)",
+  },
   { id: "location", label: "Location", hint: "Address, access, loading dock" },
   { id: "equipment", label: "Equipment", hint: "Machines and tools" },
   { id: "operations", label: "Operations", hint: "Hours, contact, capacity" },
   { id: "supply", label: "Supply", hint: "Materials and products" },
 ];
 
-function activeAudience(visibility: VisibilityLevel | undefined): DisclosureAudience | null {
+function activeAudience(
+  visibility: VisibilityLevel | undefined,
+): DisclosureAudience | null {
   if (visibility === "followers") return "followers";
   if (visibility === "public") return "public";
   return null;
@@ -55,13 +61,15 @@ function AudienceEditor({
 
   return (
     <div
-      className={active ? "space-y-2" : "space-y-2 border-l-2 border-slate-200 pl-3 dark:border-slate-700"}
+      className={
+        active ? "space-y-2" : "space-y-2 border-l-2 border-border pl-3"
+      }
       data-active-audience={active ? "true" : "false"}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
         {active && (
-          <span className="ml-2 font-normal normal-case text-indigo-600 dark:text-indigo-400">
+          <span className="ml-2 font-normal normal-case text-primary">
             (active for export)
           </span>
         )}
@@ -78,8 +86,10 @@ function AudienceEditor({
               id={`${audience}-${g.id}`}
             />
             <label htmlFor={`${audience}-${g.id}`} className="cursor-pointer">
-              <span className="text-slate-800 dark:text-slate-100">{g.label}</span>
-              <span className="block text-xs text-slate-500 dark:text-slate-400">{g.hint}</span>
+              <span className="text-foreground">{g.label}</span>
+              <span className="block text-xs text-muted-foreground">
+                {g.hint}
+              </span>
             </label>
           </li>
         ))}
@@ -105,16 +115,18 @@ function PeerPreview({
 
   if (visibility === "private") {
     return (
-      <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-300">
-        <p className="font-semibold text-slate-700 dark:text-slate-200">Peers will see</p>
+      <div className="rounded-md bg-background p-3 text-xs text-muted-foreground">
+        <p className="font-semibold text-foreground">Peers will see</p>
         <p className="mt-1" role="status">
-          Nothing is exported while visibility is private. Promote to followers or public to
-          share a redacted projection.
+          Nothing is exported while visibility is private. Promote to followers
+          or public to share a redacted projection.
         </p>
         {query.data && (
           <div className="mt-2">
-            <p className="text-slate-500">If promoted to followers, peers would see fields:</p>
-            <pre className="mt-1 max-h-40 overflow-auto rounded bg-white p-2 text-[11px] dark:bg-slate-900">
+            <p className="text-muted-foreground">
+              If promoted to followers, peers would see fields:
+            </p>
+            <pre className="mt-1 max-h-40 overflow-auto rounded bg-card p-2 text-[11px]">
               {JSON.stringify(query.data.facility, null, 2)}
             </pre>
           </div>
@@ -124,31 +136,35 @@ function PeerPreview({
   }
 
   if (query.isLoading) {
-    return <p className="text-xs text-muted-foreground">Loading peer preview…</p>;
+    return (
+      <p className="text-xs text-muted-foreground">Loading peer preview…</p>
+    );
   }
   if (query.isError || !query.data) {
     return (
-      <p className="text-xs text-red-600 dark:text-red-400">
-        {query.error instanceof Error ? query.error.message : "Failed to load preview."}
+      <p className="text-xs text-destructive">
+        {query.error instanceof Error
+          ? query.error.message
+          : "Failed to load preview."}
       </p>
     );
   }
 
   const keys = Object.keys(query.data.facility);
   return (
-    <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-300">
-      <p className="font-semibold text-slate-700 dark:text-slate-200">Peers will see</p>
+    <div className="rounded-md bg-background p-3 text-xs text-muted-foreground">
+      <p className="font-semibold text-foreground">Peers will see</p>
       <p className="mt-1">
         Visibility <span className="font-medium">{visibility}</span> exports the{" "}
         <span className="font-medium">{previewAudience}</span> profile
         {query.data.exported ? "" : " (not currently exported)"}.
       </p>
-      <p className="mt-1 text-slate-500">
+      <p className="mt-1 text-muted-foreground">
         Groups: {query.data.groups.join(", ") || "identity"} · Fields:{" "}
         {keys.length ? keys.join(", ") : "(none)"}
       </p>
       <pre
-        className="mt-2 max-h-48 overflow-auto rounded bg-white p-2 text-[11px] dark:bg-slate-900"
+        className="mt-2 max-h-48 overflow-auto rounded bg-card p-2 text-[11px]"
         data-testid="disclosure-preview-json"
       >
         {JSON.stringify(query.data.facility, null, 2)}
@@ -198,19 +214,23 @@ export function DisclosureControl({
     <>
       <h2
         id="okw-disclosure-heading"
-        className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+        className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
       >
         How much they see
       </h2>
-      <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
-        Field groups included in the federated projection per audience. Identity is always on;
-        default is identity only until you opt in.
+      <p className="mb-3 text-xs text-muted-foreground">
+        Field groups included in the federated projection per audience. Identity
+        is always on; default is identity only until you opt in.
       </p>
 
-      {query.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {query.isLoading && (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      )}
       {query.isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
-          {query.error instanceof Error ? query.error.message : "Failed to load disclosure."}
+        <p className="text-sm text-destructive">
+          {query.error instanceof Error
+            ? query.error.message
+            : "Failed to load disclosure."}
         </p>
       )}
 
@@ -244,8 +264,10 @@ export function DisclosureControl({
         </p>
       )}
       {mutation.isError && (
-        <p className="mt-2 text-sm text-red-600" role="alert">
-          {mutation.error instanceof Error ? mutation.error.message : "Update failed."}
+        <p className="mt-2 text-sm text-destructive" role="alert">
+          {mutation.error instanceof Error
+            ? mutation.error.message
+            : "Update failed."}
         </p>
       )}
     </>
@@ -262,7 +284,7 @@ export function DisclosureControl({
   return (
     <section
       aria-labelledby="okw-disclosure-heading"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-xl border border-border bg-card p-5"
     >
       {body}
     </section>

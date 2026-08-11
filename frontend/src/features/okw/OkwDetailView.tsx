@@ -48,17 +48,17 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
     <section
       role="status"
       aria-label="Validation result"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-xl border border-border bg-card p-5"
     >
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Validation
         </h2>
         <Badge variant={result.is_valid ? "green" : "yellow"}>
           {result.is_valid ? "Valid" : "Needs attention"}
         </Badge>
       </div>
-      <p className="mb-2 text-sm text-slate-600 dark:text-slate-300">
+      <p className="mb-2 text-sm text-muted-foreground">
         Score: {Math.round(result.score * 100)}%
       </p>
       {[
@@ -73,10 +73,10 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
       ].map(([label, items]) =>
         (items as string[]).length > 0 ? (
           <div key={label as string} className="mb-2">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-semibold text-muted-foreground">
               {label}
             </p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700 dark:text-slate-200">
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
               {(items as string[]).map((t, i) => (
                 <li key={i}>{t}</li>
               ))}
@@ -87,9 +87,7 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
       {errors.length === 0 &&
         warnings.length === 0 &&
         suggestions.length === 0 && (
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            No issues reported.
-          </p>
+          <p className="text-sm text-muted-foreground">No issues reported.</p>
         )}
     </section>
   );
@@ -105,7 +103,7 @@ function PostCreateBanner({
   return (
     <div
       role="status"
-      className="rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-100"
+      className="rounded-md border border-primary/30 bg-accent px-4 py-3 text-sm text-primary"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
@@ -231,17 +229,12 @@ export function OkwDetailView({ id }: { id: string }) {
 
   return (
     <div className="space-y-8">
-      <nav className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-        <Link
-          href="/facilities"
-          className="hover:text-indigo-600 dark:hover:text-indigo-400"
-        >
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/facilities" className="hover:text-primary">
           Facilities
         </Link>
         <span aria-hidden="true">›</span>
-        <span className="truncate text-slate-700 dark:text-slate-200">
-          {f.name || "Facility"}
-        </span>
+        <span className="truncate text-foreground">{f.name || "Facility"}</span>
       </nav>
 
       {showCreatedBanner && (
@@ -256,13 +249,11 @@ export function OkwDetailView({ id }: { id: string }) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+          <h1 className="text-2xl font-bold text-foreground">
             {f.name || "Unnamed facility"}
           </h1>
           {location && (
-            <p className="text-base text-slate-600 dark:text-slate-300">
-              📍 {location}
-            </p>
+            <p className="text-base text-muted-foreground">📍 {location}</p>
           )}
           <div className="flex flex-wrap gap-1.5 pt-1">
             {f.access_type && <Badge variant="blue">{f.access_type}</Badge>}
@@ -307,7 +298,7 @@ export function OkwDetailView({ id }: { id: string }) {
       </div>
 
       {deleteError && (
-        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {deleteError}
         </p>
       )}
@@ -328,25 +319,23 @@ export function OkwDetailView({ id }: { id: string }) {
       <SharingPanel id={id} />
 
       {f.description && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <section className="rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             About
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            {f.description}
-          </p>
+          <p className="text-sm text-muted-foreground">{f.description}</p>
         </section>
       )}
 
       {equipment.length > 0 && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <section className="rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Equipment ({equipment.length})
           </h2>
           <ul className="space-y-2">
             {equipment.map((e, i) => (
               <li key={i} className="flex items-center justify-between gap-2">
-                <span className="text-sm text-slate-700 dark:text-slate-200">
+                <span className="text-sm text-foreground">
                   {[e.make, e.model].filter(Boolean).join(" ") || "Equipment"}
                 </span>
                 {e.equipment_type && (
@@ -361,8 +350,8 @@ export function OkwDetailView({ id }: { id: string }) {
       )}
 
       {certifications.length > 0 && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <section className="rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Certifications
           </h2>
           <div className="flex flex-wrap gap-1.5">

@@ -24,9 +24,9 @@ import {
 } from "./facilityFormModel";
 
 const fieldClass =
-  "mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950";
+  "mt-1 w-full rounded-md border border-border px-3 py-2 text-sm bg-background";
 const compactClass =
-  "rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-950";
+  "rounded-md border border-border px-2 py-1.5 text-sm bg-background";
 
 type Mode = "create" | "edit";
 
@@ -158,12 +158,12 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link href="/facilities" className="hover:text-indigo-600">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/facilities" className="hover:text-primary">
           Facilities
         </Link>
         <span aria-hidden="true">›</span>
-        <span className="text-slate-700 dark:text-slate-200">{title}</span>
+        <span className="text-foreground">{title}</span>
       </nav>
 
       <div>
@@ -176,7 +176,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
       {!hasWrite && (
         <div
-          className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
+          className="rounded-md border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning"
           role="status"
         >
           <p className="font-medium">Connect a write-capable API key to save</p>
@@ -196,7 +196,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             </li>
             <li>Return here and save the facility.</li>
           </ol>
-          <p className="mt-2 text-xs opacity-90">
+          <p className="mt-2 text-xs">
             Details:{" "}
             <a
               href="https://docs.openhardwaremanager.org/auth/get-a-write-key/"
@@ -213,8 +213,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       )}
 
       <form onSubmit={(e) => void onSubmit(e)} className="space-y-6">
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Basics
           </h2>
           <label className="block text-sm font-medium">
@@ -313,8 +313,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           </label>
         </section>
 
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Processes
           </h2>
           <p className="text-xs text-muted-foreground">
@@ -325,7 +325,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             <p className="text-sm text-muted-foreground">Loading taxonomy…</p>
           )}
           {taxonomyQuery.isError && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-destructive">
               {taxonomyQuery.error instanceof Error
                 ? taxonomyQuery.error.message
                 : "Failed to load taxonomy."}
@@ -345,8 +345,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         </section>
 
         {mode === "create" && (
-          <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Attribution (optional)
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -375,7 +375,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         <div>
           <button
             type="button"
-            className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+            className="text-sm font-medium text-primary hover:underline"
             onClick={() => setAdvancedOpen((o) => !o)}
             aria-expanded={advancedOpen}
           >
@@ -386,8 +386,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
         {advancedOpen && (
           <div className="space-y-4">
-            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Hours &amp; contact
               </h2>
               <label className="block text-sm font-medium">
@@ -426,8 +426,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </div>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Equipment details
               </h2>
               <p className="text-xs text-muted-foreground">
@@ -507,8 +507,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </Button>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Import JSON
               </h2>
               <p className="text-xs text-muted-foreground">
@@ -520,7 +520,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 onChange={(e) => setImportText(e.target.value)}
                 rows={6}
                 spellCheck={false}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-xs dark:border-slate-600 dark:bg-slate-950"
+                className="w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-xs"
                 placeholder="{ … }"
               />
               <Button type="button" variant="outline" onClick={applyImport}>
@@ -531,7 +531,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         )}
 
         {error && (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          <p className="text-sm text-destructive" role="alert">
             {error}
           </p>
         )}

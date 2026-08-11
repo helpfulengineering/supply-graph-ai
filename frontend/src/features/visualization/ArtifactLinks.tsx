@@ -45,26 +45,28 @@ export function ArtifactLinks({ data, solutionId }: Props) {
   ];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-      <div className="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+    <div className="rounded-xl border border-border bg-card">
+      <div className="border-b border-border px-5 py-3">
+        <h3 className="text-sm font-semibold text-foreground">
           Export Artifacts
         </h3>
-        <p className="text-xs text-slate-600 dark:text-slate-600">
+        <p className="text-xs text-muted-foreground">
           Download or open generated artifacts for this solution
         </p>
       </div>
-      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+      <div className="divide-y divide-border">
         {links.map(({ label, icon, href, description, download }) => (
           <div
             key={label}
             className="flex items-center justify-between gap-4 px-5 py-4"
           >
             <div className="flex items-center gap-3">
-              <span className="text-xl" aria-hidden="true">{icon}</span>
+              <span className="text-xl" aria-hidden="true">
+                {icon}
+              </span>
               <div>
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</p>
-                <p className="text-xs text-slate-600 dark:text-slate-600">{description}</p>
+                <p className="text-sm font-medium text-foreground">{label}</p>
+                <p className="text-xs text-muted-foreground">{description}</p>
               </div>
             </div>
             {href ? (
@@ -73,12 +75,12 @@ export function ArtifactLinks({ data, solutionId }: Props) {
                 target={download ? undefined : "_blank"}
                 rel="noopener noreferrer"
                 download={download || undefined}
-                className="shrink-0 rounded-md bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900"
+                className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-primary hover:bg-accent transition-colors"
               >
                 {download ? "Download" : "Open"}
               </a>
             ) : (
-              <span className="shrink-0 rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-600">
+              <span className="shrink-0 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
                 Unavailable
               </span>
             )}

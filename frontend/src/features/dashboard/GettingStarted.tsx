@@ -40,24 +40,20 @@ export function GettingStarted() {
         {STEPS.map((s) => (
           <li
             key={s.n}
-            className="flex gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"
+            className="flex gap-3 rounded-xl border border-border bg-card p-4"
           >
             <span
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-on-accent"
               aria-hidden="true"
             >
               {s.n}
             </span>
             <div className="min-w-0">
-              <p className="font-medium text-slate-800 dark:text-slate-100">
-                {s.title}
-              </p>
-              <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
-                {s.body}
-              </p>
+              <p className="font-medium text-foreground">{s.title}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{s.body}</p>
               <Link
                 href={s.to}
-                className="mt-1.5 inline-block text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                className="mt-1.5 inline-block text-sm font-medium text-primary hover:underline"
               >
                 {s.cta} →
               </Link>

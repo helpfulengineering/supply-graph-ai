@@ -21,15 +21,13 @@ export function OkhListRow({ okh }: Props) {
   const processes = (okh.manufacturing_processes ?? []).slice(0, 3).join(", ");
 
   return (
-    <div className="flex flex-col gap-2 border-b border-slate-100 py-3 last:border-0 dark:border-slate-800 sm:flex-row sm:items-center sm:gap-4">
+    <div className="flex flex-col gap-2 border-b border-border py-3 last:border-0 sm:flex-row sm:items-center sm:gap-4">
       <Link
         href={`/okh/${okh.id}`}
-        className="min-w-0 flex-1 no-underline hover:text-indigo-600 dark:hover:text-indigo-400"
+        className="min-w-0 flex-1 no-underline hover:text-primary"
       >
-        <div className="font-medium text-slate-800 dark:text-slate-100 break-words">
-          {title}
-        </div>
-        <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500">
+        <div className="font-medium text-foreground break-words">{title}</div>
+        <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
           <span>{category}</span>
           {processes && <span>{processes}</span>}
           <span>{author}</span>
@@ -39,7 +37,7 @@ export function OkhListRow({ okh }: Props) {
       </Link>
       <button
         onClick={() => router.push(`/match?okh_id=${okh.id}`)}
-        className="shrink-0 self-start rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900 sm:self-center"
+        className="shrink-0 self-start rounded-md bg-accent px-3 py-1 text-xs font-medium text-primary hover:bg-accent transition-colors sm:self-center"
       >
         Run Match ⚡
       </button>

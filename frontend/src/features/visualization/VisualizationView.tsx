@@ -64,7 +64,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
       <div>
         <button
           onClick={() => router.back()}
-          className="mb-2 text-sm text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+          className="mb-2 text-sm text-muted-foreground hover:text-primary"
         >
           ← Back
         </button>
@@ -97,22 +97,22 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         const deps = toDependencies(data);
         return (
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+            <section className="rounded-xl border border-border bg-card p-5">
+              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Production Sequence
               </h2>
               {sequence.length === 0 ? (
-                <p className="text-sm text-slate-600 dark:text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   No production stages.
                 </p>
               ) : (
                 <ol className="space-y-2">
                   {sequence.map((stage) => (
                     <li key={stage.index} className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-primary">
                         {stage.index}
                       </span>
-                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                      <span className="text-sm text-foreground">
                         {stage.items.join(", ")}
                       </span>
                     </li>
@@ -121,16 +121,16 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
               )}
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+            <section className="rounded-xl border border-border bg-card p-5">
+              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Dependencies
               </h2>
               {deps.length === 0 ? (
-                <p className="text-sm text-slate-600 dark:text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   No inter-component dependencies.
                 </p>
               ) : (
-                <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                <ul className="space-y-2 text-sm text-foreground">
                   {deps.map((d) => (
                     <li key={d.node}>
                       <span className="font-medium">{d.node}</span> depends on{" "}

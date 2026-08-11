@@ -24,7 +24,9 @@ function FilterSelect({
     <label className="block text-sm">
       <span className="mb-1 block text-muted-foreground">
         {label}
-        {hint && <span className="ml-1 text-xs text-slate-500">({hint})</span>}
+        {hint && (
+          <span className="ml-1 text-xs text-muted-foreground">({hint})</span>
+        )}
       </span>
       <select
         className={SELECT_CLASS}
@@ -65,7 +67,7 @@ export function NetworkFilters({
     onChange({ ...filters, [key]: value || undefined });
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+    <div className="space-y-3 rounded-xl border border-border bg-card p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Filters</h2>
         {activeCount > 0 && (
@@ -107,7 +109,10 @@ export function NetworkFilters({
           label="Process"
           value={filters.process}
           allLabel="All processes"
-          options={options.processes.map((p) => ({ value: p.id, label: p.label }))}
+          options={options.processes.map((p) => ({
+            value: p.id,
+            label: p.label,
+          }))}
           onChange={(v) => set("process", v)}
         />
         <FilterSelect

@@ -16,17 +16,18 @@ export function SyncedFacilityBanner({
   return (
     <div
       role="status"
-      className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+      className="rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground"
     >
       <p className="font-medium">Synced from a federation peer</p>
-      <p className="mt-1 text-xs opacity-90">
+      <p className="mt-1 text-xs">
         {publishedBy ? (
           <>
-            Publisher{" "}
-            <code className="break-all text-xs">{publishedBy}</code>.{" "}
+            Publisher <code className="break-all text-xs">{publishedBy}</code>
+            .{" "}
           </>
         ) : null}
-        You can edit or delete this copy on this node; changes are not pushed back to the peer.
+        You can edit or delete this copy on this node; changes are not pushed
+        back to the peer.
       </p>
     </div>
   );

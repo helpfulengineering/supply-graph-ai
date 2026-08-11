@@ -94,10 +94,8 @@ export function PackageListView() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-            Packages
-          </h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <h1 className="text-2xl font-bold text-foreground">Packages</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Point-in-time archives of OKH design files. Each package is a{" "}
             <span className="font-mono text-xs">.tar.gz</span>; multi-select
             downloads a server-built zip of those tarballs.
@@ -107,22 +105,22 @@ export function PackageListView() {
           type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="shrink-0 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+          className="shrink-0 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background disabled:opacity-50"
         >
           {isFetching ? "Refreshing…" : "↻ Refresh"}
         </button>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-700 dark:bg-slate-900">
-        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+      <div className="rounded-xl border border-border bg-background px-5 py-4">
+        <p className="text-sm font-medium text-foreground">
           Building a package
         </p>
-        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+        <p className="mt-1 text-sm text-foreground">
           Open a design and use{" "}
           <button
             type="button"
             onClick={() => router.push("/okh")}
-            className="font-semibold text-indigo-700 underline hover:no-underline dark:text-indigo-300"
+            className="font-semibold text-primary underline hover:no-underline"
           >
             Build on server
           </button>{" "}
@@ -152,7 +150,7 @@ export function PackageListView() {
       )}
 
       {isLoading && (
-        <div className="rounded-xl border border-slate-100 bg-slate-50 p-8 dark:border-slate-800">
+        <div className="rounded-xl border border-border bg-background p-8">
           <LoadingSpinner message="Loading packages…" />
         </div>
       )}
@@ -177,7 +175,7 @@ export function PackageListView() {
                   <button
                     type="button"
                     onClick={() => router.push("/okh")}
-                    className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-accent"
                   >
                     Browse Designs
                   </button>
@@ -186,7 +184,7 @@ export function PackageListView() {
             />
           ) : (
             <div className="space-y-6">
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 {filtered.length} package{filtered.length !== 1 ? "s" : ""}
                 {filter.trim() ? " (filtered)" : ""}
               </p>
@@ -201,7 +199,7 @@ export function PackageListView() {
                         <button
                           key={selectionKey(pkg)}
                           type="button"
-                          className="rounded-full border border-slate-300 px-2 py-0.5 font-mono text-xs text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300"
+                          className="rounded-full border border-border px-2 py-0.5 font-mono text-xs text-foreground hover:bg-background"
                           onClick={() =>
                             router.push(
                               packageDetailPath(pkg.package_name, pkg.version),

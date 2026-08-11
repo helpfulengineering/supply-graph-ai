@@ -38,32 +38,33 @@ export function SeedPeerCta() {
     <div
       role="region"
       aria-label="Seed facilities from peer"
-      className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-md border border-border bg-background px-4 py-3 text-sm"
     >
-      <p className="font-medium text-foreground">Seed local facilities from a public peer</p>
+      <p className="font-medium text-foreground">
+        Seed local facilities from a public peer
+      </p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Follow{" "}
-        <code className="text-xs">{seedUrl}</code> and sync OKW copies you can edit on this
-        node. Edits stay local — peers keep their own copies.
+        Follow <code className="text-xs">{seedUrl}</code> and sync OKW copies
+        you can edit on this node. Edits stay local — peers keep their own
+        copies.
       </p>
       {!hasWrite && (
-        <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
+        <p className="mt-2 text-xs text-warning">
           Syncing requires a write-capable API key.
         </p>
       )}
       {seed.isError && (
-        <p className="mt-2 text-xs text-red-600" role="alert">
-          {seed.error instanceof Error ? seed.error.message : "Seed sync failed."}
+        <p className="mt-2 text-xs text-destructive" role="alert">
+          {seed.error instanceof Error
+            ? seed.error.message
+            : "Seed sync failed."}
         </p>
       )}
       {seed.isSuccess && (
-        <p className="mt-2 text-xs text-green-700 dark:text-green-300" role="status">
+        <p className="mt-2 text-xs text-success" role="status">
           Synced {seed.data.okwPulled} OKW record
           {seed.data.okwPulled === 1 ? "" : "s"}
-          {seed.data.okhPulled
-            ? ` (+ ${seed.data.okhPulled} OKH)`
-            : ""}
-          .
+          {seed.data.okhPulled ? ` (+ ${seed.data.okhPulled} OKH)` : ""}.
         </p>
       )}
       <div className="mt-3">

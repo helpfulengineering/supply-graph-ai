@@ -1,5 +1,10 @@
 import { Button } from "../../components/ui/button";
-import { PRIMARY_FACET, type FacetGroup, type FacetKey, type FacetSelections } from "./facets";
+import {
+  PRIMARY_FACET,
+  type FacetGroup,
+  type FacetKey,
+  type FacetSelections,
+} from "./facets";
 
 interface Props {
   groups: FacetGroup[];
@@ -36,7 +41,7 @@ export function FacetPanel({
               {group.key === PRIMARY_FACET && (
                 <span
                   title="Provisional categories derived from design text; a curated taxonomy is coming."
-                  className="rounded bg-muted px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-slate-600 dark:text-slate-300"
+                  className="rounded bg-muted px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-muted-foreground"
                 >
                   provisional
                 </span>
@@ -54,7 +59,9 @@ export function FacetPanel({
                         onChange={() => onToggle(group.key, opt.value)}
                         className="h-4 w-4 accent-primary"
                       />
-                      <span className="flex-1 truncate text-foreground">{opt.value}</span>
+                      <span className="flex-1 truncate text-foreground">
+                        {opt.value}
+                      </span>
                       <span className="tabular-nums text-xs text-muted-foreground">
                         {opt.count}
                       </span>

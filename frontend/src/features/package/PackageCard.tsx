@@ -40,7 +40,7 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
   const detail = packageDetailPath(pkg.package_name, pkg.version);
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-start sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between">
       <div className="flex min-w-0 gap-3">
         {onToggle && (
           <input
@@ -57,14 +57,14 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
             className="text-left"
             onClick={() => router.push(detail)}
           >
-            <h3 className="font-semibold text-slate-800 break-all hover:text-indigo-600 dark:text-slate-100">
+            <h3 className="font-semibold text-foreground break-all hover:text-primary">
               {pkg.package_name}
             </h3>
-            <p className="font-mono text-xs text-slate-600 dark:text-slate-400">
+            <p className="font-mono text-xs text-muted-foreground">
               v{pkg.version}
             </p>
           </button>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span>
               {pkg.total_files} file{pkg.total_files !== 1 ? "s" : ""}
             </span>

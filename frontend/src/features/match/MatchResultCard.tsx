@@ -32,8 +32,8 @@ export function MatchResultCard({
     <div
       className={
         selected
-          ? "rounded-xl border border-indigo-300 bg-indigo-50/40 p-5 dark:border-indigo-700 dark:bg-indigo-950/30"
-          : "rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+          ? "rounded-xl border border-primary/30 bg-accent/40 p-5"
+          : "rounded-xl border border-border bg-card p-5"
       }
     >
       <div className="flex items-start gap-3">
@@ -49,15 +49,15 @@ export function MatchResultCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-500 dark:text-slate-500">
+                <span className="text-xs text-muted-foreground">
                   #{solution.rank}
                 </span>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+                <h3 className="font-semibold text-foreground">
                   {solution.facilityName}
                 </h3>
               </div>
               {firstLine && (
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {firstLine}
                 </p>
               )}
@@ -75,7 +75,7 @@ export function MatchResultCard({
               >
                 {coverageLabel(solution.coverage)}
               </Badge>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-muted-foreground">
                 confidence {confidencePct(solution.confidence)}%
               </span>
             </div>
@@ -84,7 +84,7 @@ export function MatchResultCard({
             <div className="mt-3">
               <Link
                 href={treeHref}
-                className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                className="text-sm font-medium text-primary hover:underline"
               >
                 View supply tree →
               </Link>

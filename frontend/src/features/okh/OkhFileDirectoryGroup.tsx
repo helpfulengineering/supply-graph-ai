@@ -2,7 +2,11 @@ import { useState } from "react";
 import { okhFileHref } from "./okhFileHref";
 import type { DirectoryTreeNode } from "./okhFilePath";
 import type { OkhFileRef } from "../../types/okh";
-import { canPreviewFile, filePrimaryLabel, ROOT_DIRECTORY_LABEL } from "./okhFilePath";
+import {
+  canPreviewFile,
+  filePrimaryLabel,
+  ROOT_DIRECTORY_LABEL,
+} from "./okhFilePath";
 
 interface FileRowProps {
   okhId: string;
@@ -19,27 +23,23 @@ function FileRow({ okhId, file, selected, onPreview }: FileRowProps) {
   return (
     <li
       className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
-        selected
-          ? "border-indigo-300 bg-indigo-50 dark:border-indigo-700 dark:bg-indigo-950/30"
-          : "border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50"
+        selected ? "border-primary/30 bg-accent" : "border-border bg-background"
       }`}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
-          {label}
-        </p>
-        <p className="truncate font-mono text-xs text-slate-500 dark:text-slate-400">
+        <p className="truncate text-sm font-medium text-foreground">{label}</p>
+        <p className="truncate font-mono text-xs text-muted-foreground">
           {file.display_path ?? file.path}
         </p>
         {file.metadata && Object.keys(file.metadata).length > 0 && (
-          <p className="text-xs text-slate-500 dark:text-slate-500">
+          <p className="text-xs text-muted-foreground">
             {Object.entries(file.metadata)
               .map(([k, v]) => `${k}: ${v}`)
               .join(" · ")}
           </p>
         )}
         {typeBadge && (
-          <p className="mt-0.5 text-xs text-slate-400">{typeBadge}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{typeBadge}</p>
         )}
       </div>
       <div className="flex shrink-0 gap-1.5">
@@ -47,7 +47,7 @@ function FileRow({ okhId, file, selected, onPreview }: FileRowProps) {
           <button
             type="button"
             onClick={() => onPreview(file)}
-            className="rounded bg-white px-2 py-0.5 text-xs font-medium text-indigo-600 shadow-sm ring-1 ring-slate-200 hover:ring-indigo-300 dark:bg-slate-700 dark:text-indigo-400 dark:ring-slate-600"
+            className="rounded bg-card px-2 py-0.5 text-xs font-medium text-primary shadow-sm ring-1 ring-ring hover:ring-ring"
           >
             Preview
           </button>
@@ -55,7 +55,7 @@ function FileRow({ okhId, file, selected, onPreview }: FileRowProps) {
         <a
           href={href}
           download
-          className="rounded bg-white px-2 py-0.5 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200 hover:text-indigo-600 hover:ring-indigo-300 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600"
+          className="rounded bg-card px-2 py-0.5 text-xs font-medium text-muted-foreground shadow-sm ring-1 ring-ring hover:text-primary hover:ring-ring"
         >
           Download
         </a>
@@ -95,17 +95,19 @@ export function OkhFileDirectoryGroup({
     node.children.reduce((sum, child) => sum + countFiles(child), 0);
 
   return (
-    <div className={depth > 0 ? "ml-3 border-l border-slate-200 pl-3 dark:border-slate-700" : ""}>
+    <div className={depth > 0 ? "ml-3 border-l border-border pl-3" : ""}>
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
         title={isRoot ? "/" : `${node.directory}/`}
-        className="flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-left text-xs font-semibold tracking-wide text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+        className="flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-left text-xs font-semibold tracking-wide text-muted-foreground hover:bg-muted"
         aria-expanded={!collapsed}
       >
         <span aria-hidden="true">{collapsed ? "▸" : "▾"}</span>
         <span className="truncate font-mono">{dirLabel}</span>
-        <span className="ml-auto shrink-0 text-slate-400">{fileCount}</span>
+        <span className="ml-auto shrink-0 text-muted-foreground">
+          {fileCount}
+        </span>
       </button>
       {!collapsed && (
         <div className="mt-1.5 space-y-1.5">

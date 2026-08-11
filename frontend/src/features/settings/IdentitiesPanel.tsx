@@ -69,14 +69,15 @@ export function IdentitiesPanel() {
     <div className="space-y-8">
       <section
         aria-labelledby="mint-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+        className="rounded-xl border border-border bg-card p-5"
       >
         <h2 id="mint-heading" className="text-lg font-semibold text-foreground">
           Mint identity
         </h2>
         {!mintAllowed && (
-          <p className="mt-2 text-sm text-amber-800 dark:text-amber-200" role="status">
-            Custodial key minting is disabled by this node&apos;s security policy.
+          <p className="mt-2 text-sm text-warning" role="status">
+            Custodial key minting is disabled by this node&apos;s security
+            policy.
           </p>
         )}
         <form
@@ -91,7 +92,7 @@ export function IdentitiesPanel() {
             <select
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 block w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
               required
               disabled={!mintAllowed}
             >
@@ -110,7 +111,7 @@ export function IdentitiesPanel() {
             <select
               value={kind}
               onChange={(e) => setKind(e.target.value as "person" | "space")}
-              className="mt-1 block rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 block rounded-md border border-border px-3 py-2 text-sm bg-background"
               disabled={!mintAllowed}
             >
               <option value="person">person</option>
@@ -122,19 +123,19 @@ export function IdentitiesPanel() {
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="mt-1 w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 text-sm bg-background"
               disabled={!mintAllowed}
             />
           </label>
           <button
             type="submit"
             disabled={!mintAllowed || mint.isPending || !accountId}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
           >
             Mint
           </button>
           {mint.isError && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-destructive" role="alert">
               {mint.error instanceof Error ? mint.error.message : "Mint failed"}
             </p>
           )}
@@ -143,9 +144,12 @@ export function IdentitiesPanel() {
 
       <section
         aria-labelledby="lookup-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+        className="rounded-xl border border-border bg-card p-5"
       >
-        <h2 id="lookup-heading" className="text-lg font-semibold text-foreground">
+        <h2
+          id="lookup-heading"
+          className="text-lg font-semibold text-foreground"
+        >
           Look up DID
         </h2>
         <form
@@ -161,21 +165,23 @@ export function IdentitiesPanel() {
               value={lookupDid}
               onChange={(e) => setLookupDid(e.target.value)}
               placeholder="did:key:…"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
               required
             />
           </label>
           <button
             type="submit"
             disabled={lookup.isPending || !lookupDid.trim()}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
           >
             Show
           </button>
         </form>
         {lookup.isError && (
-          <p className="mt-2 text-sm text-red-600" role="alert">
-            {lookup.error instanceof Error ? lookup.error.message : "Lookup failed"}
+          <p className="mt-2 text-sm text-destructive" role="alert">
+            {lookup.error instanceof Error
+              ? lookup.error.message
+              : "Lookup failed"}
           </p>
         )}
       </section>
@@ -183,20 +189,28 @@ export function IdentitiesPanel() {
       {known.length > 0 && (
         <section
           aria-labelledby="known-heading"
-          className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+          className="rounded-xl border border-border bg-card p-5"
         >
-          <h2 id="known-heading" className="text-lg font-semibold text-foreground">
+          <h2
+            id="known-heading"
+            className="text-lg font-semibold text-foreground"
+          >
             Identities
           </h2>
           {lookup.isPending && <LoadingSpinner message="Loading…" />}
-          <ul className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="mt-4 divide-y divide-border">
             {known.map((id) => (
-              <li key={id.did} className="flex flex-wrap items-start justify-between gap-2 py-3">
+              <li
+                key={id.did}
+                className="flex flex-wrap items-start justify-between gap-2 py-3"
+              >
                 <div className="min-w-0">
                   <p className="font-medium text-foreground">
                     {id.display_name || "(unnamed)"}
                   </p>
-                  <p className="break-all font-mono text-xs text-slate-500">{id.did}</p>
+                  <p className="break-all font-mono text-xs text-muted-foreground">
+                    {id.did}
+                  </p>
                   <div className="mt-1 flex flex-wrap gap-1">
                     <Badge variant="blue">{id.kind}</Badge>
                     {id.custodial && <Badge variant="default">custodial</Badge>}
@@ -204,7 +218,7 @@ export function IdentitiesPanel() {
                 </div>
                 <button
                   type="button"
-                  className="rounded-md border border-slate-300 px-2 py-1 text-sm dark:border-slate-600"
+                  className="rounded-md border border-border px-2 py-1 text-sm"
                   disabled={rotate.isPending}
                   onClick={() => {
                     if (
@@ -222,8 +236,10 @@ export function IdentitiesPanel() {
             ))}
           </ul>
           {rotate.isError && (
-            <p className="mt-2 text-sm text-red-600" role="alert">
-              {rotate.error instanceof Error ? rotate.error.message : "Rotate failed"}
+            <p className="mt-2 text-sm text-destructive" role="alert">
+              {rotate.error instanceof Error
+                ? rotate.error.message
+                : "Rotate failed"}
             </p>
           )}
         </section>

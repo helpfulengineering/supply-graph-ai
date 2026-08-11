@@ -20,7 +20,10 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
 
   useEffect(() => {
     if (previewFile && previewRef.current) {
-      previewRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      previewRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
     }
   }, [previewFile]);
 
@@ -28,10 +31,10 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
 
   return (
     <div>
-      <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-300">
+      <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
         <span aria-hidden="true">{icon}</span>
         {title}
-        <span className="ml-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+        <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
           {files.length}
         </span>
       </h3>
@@ -41,7 +44,7 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
           <button
             type="button"
             onClick={() => setPreviewFile(null)}
-            className="absolute right-2 top-2 z-10 rounded-md px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="absolute right-2 top-2 z-10 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
             aria-label="Close preview"
           >
             ✕

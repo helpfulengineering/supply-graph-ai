@@ -5,9 +5,9 @@ interface Props {
 
 export function LoadingSpinner({ message = "Loading…", className = "" }: Props) {
   return (
-    <div className={`flex flex-col items-center justify-center gap-3 py-16 text-slate-500 dark:text-slate-400 ${className}`}>
+    <div className={`flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground ${className}`}>
       <svg
-        className="h-8 w-8 animate-spin text-indigo-500"
+        className="h-8 w-8 animate-spin text-primary"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

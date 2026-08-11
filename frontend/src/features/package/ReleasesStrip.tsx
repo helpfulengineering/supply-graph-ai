@@ -26,11 +26,11 @@ export function ReleasesStrip({ okhId }: { okhId: string }) {
   return (
     <section
       aria-labelledby="releases-heading"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-xl border border-border bg-card p-5"
     >
       <h2
         id="releases-heading"
-        className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500"
+        className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
       >
         Package releases
       </h2>
@@ -39,10 +39,10 @@ export function ReleasesStrip({ okhId }: { okhId: string }) {
           <li key={`${p.package_name}@${p.version}`}>
             <Link
               href={packageDetailPath(p.package_name, p.version)}
-              className="text-sm text-indigo-600 hover:underline dark:text-indigo-400"
+              className="text-sm text-primary hover:underline"
             >
               {p.package_name}
-              <span className="ml-2 font-mono text-xs text-slate-500">
+              <span className="ml-2 font-mono text-xs text-muted-foreground">
                 v{p.version}
               </span>
             </Link>

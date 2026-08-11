@@ -37,12 +37,12 @@ export function OkhCard({ okh }: Props) {
   const license = normalizeHardwareLicense(okh.license?.hardware);
 
   return (
-    <div className="group flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+    <div className="group flex flex-col rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
       <Link
         href={`/okh/${okh.id}`}
         className="flex flex-1 flex-col gap-3 p-5 no-underline"
       >
-        <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors dark:text-slate-100 dark:group-hover:text-indigo-400 break-words">
+        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors break-words">
           {title}
         </h3>
 
@@ -66,20 +66,20 @@ export function OkhCard({ okh }: Props) {
           </div>
         )}
 
-        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-500">
+        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {author && <span className="truncate max-w-[180px]">{author}</span>}
           {okh.version && <span>v{okh.version}</span>}
           {license && <span className="truncate max-w-[140px]">{license}</span>}
         </div>
       </Link>
 
-      <div className="flex items-center justify-end border-t border-slate-100 px-5 py-3 dark:border-slate-800">
+      <div className="flex items-center justify-end border-t border-border px-5 py-3">
         <button
           onClick={(e) => {
             e.stopPropagation();
             router.push(`/match?okh_id=${okh.id}`);
           }}
-          className="rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900"
+          className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-primary hover:bg-accent transition-colors"
         >
           Run Match ⚡
         </button>

@@ -91,23 +91,26 @@ export function DesignPicker({
     setQ("");
   }
 
-  const hasFilters = !!q.trim() || Object.values(selections).some((v) => (v?.length ?? 0) > 0);
+  const hasFilters =
+    !!q.trim() || Object.values(selections).some((v) => (v?.length ?? 0) > 0);
 
   return (
     <fieldset className="rounded-lg border border-input p-4">
-      <legend className="px-1 text-sm font-medium text-foreground">Design</legend>
+      <legend className="px-1 text-sm font-medium text-foreground">
+        Design
+      </legend>
 
       {selected ? (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-indigo-200 bg-indigo-50/70 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/30">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-primary/30 bg-accent/70 px-3 py-2">
           <div className="min-w-0">
-            <p className="text-xs text-indigo-700 dark:text-indigo-400">Selected design</p>
-            <p className="truncate font-medium text-indigo-950 dark:text-indigo-100">
+            <p className="text-xs text-primary">Selected design</p>
+            <p className="truncate font-medium text-primary">
               {formatOkhDisplayTitle(selected.title)}
             </p>
           </div>
           <button
             type="button"
-            className="shrink-0 text-xs text-indigo-700 hover:underline dark:text-indigo-300"
+            className="shrink-0 text-xs text-primary hover:underline"
             onClick={() => onSelect("")}
           >
             Clear
@@ -123,7 +126,7 @@ export function DesignPicker({
         <p className="text-sm text-muted-foreground">Loading designs…</p>
       )}
       {isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
+        <p className="text-sm text-destructive">
           Couldn’t load designs. Try refreshing the page.
         </p>
       )}
@@ -142,7 +145,9 @@ export function DesignPicker({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {facetGroups.map((group) => (
               <label key={group.key} className="block text-sm">
-                <span className="mb-1 block text-muted-foreground">{group.label}</span>
+                <span className="mb-1 block text-muted-foreground">
+                  {group.label}
+                </span>
                 <select
                   aria-label={group.label}
                   className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -171,7 +176,7 @@ export function DesignPicker({
           {hasFilters && (
             <button
               type="button"
-              className="text-xs text-indigo-600 hover:underline dark:text-indigo-400"
+              className="text-xs text-primary hover:underline"
               onClick={clearFilters}
             >
               Clear design filters
@@ -202,7 +207,7 @@ export function DesignPicker({
                     onClick={() => onSelect(d.id)}
                     className={
                       active
-                        ? "flex w-full flex-col items-start rounded-md bg-indigo-100 px-3 py-2 text-left dark:bg-indigo-950/50"
+                        ? "flex w-full flex-col items-start rounded-md bg-accent px-3 py-2 text-left"
                         : "flex w-full flex-col items-start rounded-md px-3 py-2 text-left hover:bg-accent"
                     }
                   >
@@ -217,13 +222,15 @@ export function DesignPicker({
                     <span
                       className={
                         active
-                          ? "mt-0.5 text-xs text-indigo-900 dark:text-indigo-200"
+                          ? "mt-0.5 text-xs text-primary"
                           : "mt-0.5 text-xs text-muted-foreground"
                       }
                     >
                       {[
                         category,
-                        (d.manufacturing_processes ?? []).slice(0, 2).join(", ") || null,
+                        (d.manufacturing_processes ?? [])
+                          .slice(0, 2)
+                          .join(", ") || null,
                         license,
                       ]
                         .filter(Boolean)
@@ -236,7 +243,8 @@ export function DesignPicker({
           )}
           <p className="text-xs text-muted-foreground">
             Showing {shown.length}
-            {matched.length > RESULT_LIMIT ? ` of ${matched.length}` : ""} design
+            {matched.length > RESULT_LIMIT ? ` of ${matched.length}` : ""}{" "}
+            design
             {matched.length !== 1 ? "s" : ""}
             {hasFilters ? " (filtered)" : ""}
           </p>

@@ -86,10 +86,7 @@ export function BuildPackageButton({ okh, className }: Props) {
       </div>
 
       {serverBuild.isSuccess && (
-        <p
-          className="mt-1.5 max-w-sm text-xs text-emerald-700 dark:text-emerald-400"
-          role="status"
-        >
+        <p className="mt-1.5 max-w-sm text-xs text-success" role="status">
           Built {serverBuild.data.package_name}@{serverBuild.data.version}.{" "}
           {serverLink && (
             <Link href={serverLink} className="font-semibold underline">
@@ -99,7 +96,7 @@ export function BuildPackageButton({ okh, className }: Props) {
         </p>
       )}
       {serverBuild.isError && (
-        <p className="mt-1.5 max-w-sm text-xs text-red-600" role="alert">
+        <p className="mt-1.5 max-w-sm text-xs text-destructive" role="alert">
           {serverBuild.error instanceof Error
             ? serverBuild.error.message
             : "Server build failed."}
@@ -110,10 +107,10 @@ export function BuildPackageButton({ okh, className }: Props) {
         <p
           className={`mt-1.5 max-w-sm text-xs ${
             localStatus === "error"
-              ? "text-red-600"
+              ? "text-destructive"
               : localStatus === "partial"
-                ? "text-amber-700"
-                : "text-emerald-700"
+                ? "text-warning"
+                : "text-success"
           }`}
           role="status"
         >

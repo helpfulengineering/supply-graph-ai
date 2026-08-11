@@ -65,7 +65,12 @@ export function SupplyTreeGraph({ data }: Props) {
               spacingFactor: 1.4,
               animate: false,
             }
-          : { name: "cose", padding: 40, nodeRepulsion: () => 8000, animate: false };
+          : {
+              name: "cose",
+              padding: 40,
+              nodeRepulsion: () => 8000,
+              animate: false,
+            };
 
     cyRef.current = cytoscape({
       container: containerRef.current,
@@ -141,50 +146,59 @@ export function SupplyTreeGraph({ data }: Props) {
   }, [nodes, edges]);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 dark:border-slate-800">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+    <div className="rounded-xl border border-border bg-card">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3">
+        <h3 className="text-sm font-semibold text-foreground">
           Supply Tree Graph
         </h3>
         <div className="flex items-center gap-3">
-          {DEPTH_COLORS.slice(0, Math.max(1, new Set(nodes.map((n) => n.depth)).size)).map(
-            (color, i) => (
-              <span key={i} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
-                <span
-                  className="inline-block h-3 w-3 rounded-full"
-                  style={{ background: color }}
-                  aria-hidden="true"
-                />
-                Depth {i}
-              </span>
-            )
-          )}
+          {DEPTH_COLORS.slice(
+            0,
+            Math.max(1, new Set(nodes.map((n) => n.depth)).size),
+          ).map((color, i) => (
+            <span
+              key={i}
+              className="flex items-center gap-1 text-xs text-muted-foreground"
+            >
+              <span
+                className="inline-block h-3 w-3 rounded-full"
+                style={{ background: color }}
+                aria-hidden="true"
+              />
+              Depth {i}
+            </span>
+          ))}
         </div>
       </div>
 
       {isSingleNode ? (
         <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
           <div
-            className="flex h-16 w-16 items-center justify-center rounded-full text-white text-lg font-bold"
+            className="flex h-16 w-16 items-center justify-center rounded-full text-on-accent text-lg font-bold"
             style={{ background: depthColor(0) }}
           >
             {nodes[0]?.facility_name?.charAt(0) ?? "?"}
           </div>
-          <p className="font-medium text-slate-700 dark:text-slate-200">
+          <p className="font-medium text-foreground">
             {nodes[0]?.facility_name ?? "Facility"}
           </p>
-          <p className="text-sm text-slate-600 dark:text-slate-600">
+          <p className="text-sm text-muted-foreground">
             Single-facility solution — no dependency edges
           </p>
-          <p className="text-xs text-slate-600 dark:text-slate-600">
-            Run a match with <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">auto_detect_depth=true</code> for a richer graph
+          <p className="text-xs text-muted-foreground">
+            Run a match with{" "}
+            <code className="rounded bg-muted px-1">
+              auto_detect_depth=true
+            </code>{" "}
+            for a richer graph
           </p>
         </div>
       ) : (
         <div
           ref={containerRef}
           className="h-80 w-full"
-          role="img" aria-label="Supply tree dependency graph"
+          role="img"
+          aria-label="Supply tree dependency graph"
         />
       )}
     </div>

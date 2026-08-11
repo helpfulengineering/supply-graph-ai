@@ -61,7 +61,7 @@ export function SettingsPage() {
       </div>
 
       <nav
-        className="flex flex-wrap gap-1 border-b border-slate-200 dark:border-slate-700"
+        className="flex flex-wrap gap-1 border-b border-border"
         aria-label="Settings"
       >
         {tabs.map(({ to, label }) => {
@@ -74,8 +74,8 @@ export function SettingsPage() {
               className={[
                 "border-b-2 px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "border-indigo-600 text-indigo-700 dark:border-indigo-400 dark:text-indigo-300"
-                  : "border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100",
+                  ? "border-primary/30 text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
               ].join(" ")}
             >
               {label}
@@ -86,8 +86,8 @@ export function SettingsPage() {
 
       {panelFor(pathname)}
 
-      <footer className="border-t border-slate-200 pt-4 dark:border-slate-700">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+      <footer className="border-t border-border pt-4">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Security policy
         </p>
         <SecurityPolicyBadge />
