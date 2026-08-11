@@ -110,6 +110,9 @@ test("navigating from the drawer closes it", async ({ page }) => {
     .getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: /Designs/ })
     .click();
-  await expect(page).toHaveURL(/\/okh$/);
+  // Path, not the whole URL: the look rides in the query string on every
+  // route now, so `/okh?theme=…&mode=…` is the expected shape of "went to
+  // the designs page".
+  await expect(page).toHaveURL(/\/okh(\?|$)/);
   await expect(page.getByRole("dialog", { name: "Site menu" })).toHaveCount(0);
 });

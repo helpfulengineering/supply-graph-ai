@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { isTypingTarget, CHORD_ROUTES, SHORTCUTS } from "./shortcuts";
+import { ACCOUNT_GROUP, NAV_GROUPS } from "./nav";
 
 /** The guard that keeps shortcuts out of text entry. */
 function keyEvent(target: Partial<HTMLElement>, init: Partial<KeyboardEvent> = {}) {
@@ -32,6 +33,28 @@ describe("isTypingTarget", () => {
 });
 
 describe("the documented contract", () => {
+  it("binds a chord for every route in the menu", () => {
+    // The gap this closes: the Create group and Reference had menu entries and
+    // no keys, so the keyboard contract covered seven of twelve destinations
+    // and nothing said so. Read from the nav rather than restated, so adding a
+    // route fails here until it has a chord.
+    const bound = new Set(Object.values(CHORD_ROUTES));
+    const unbound = [...NAV_GROUPS, ACCOUNT_GROUP]
+      .flatMap((group) => group.entries)
+      .filter((entry) => !bound.has(entry.href))
+      .map((entry) => `${entry.name} (${entry.href})`);
+
+    expect(
+      unbound,
+      `menu routes with no keyboard chord (add one to CHORD_ROUTES):\n${unbound.join("\n")}`,
+    ).toEqual([]);
+  });
+
+  it("binds each key once", () => {
+    const keys = Object.keys(CHORD_ROUTES);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
   it("documents every chord it binds", () => {
     for (const key of Object.keys(CHORD_ROUTES)) {
       expect(

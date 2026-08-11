@@ -144,9 +144,10 @@ export function HelpView() {
                 className="flex items-baseline gap-2 text-sm"
               >
                 <span className="flex shrink-0 gap-1">
-                  {s.keys.map((k) => (
+                  {/* Indexed: a chord can repeat a key — `g` then `g` opens Generate. */}
+                  {s.keys.map((k, i) => (
                     <kbd
-                      key={k}
+                      key={`${k}-${i}`}
                       className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground"
                     >
                       {k}
