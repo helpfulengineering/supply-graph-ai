@@ -5,7 +5,6 @@ import { PageHero } from "../../components/layout/PageHero";
 import { ACCOUNT_GROUP, NAV_GROUPS } from "../../components/layout/nav";
 import { SHORTCUTS } from "../../components/layout/shortcuts";
 import {
-  CARD_TITLE,
   SECTION_LABEL,
   SECTION_LABEL_SM,
 } from "../../components/ui/typography";
@@ -22,49 +21,47 @@ import { cn } from "@/lib/utils";
  */
 
 /**
- * What a reader can DO, not what the build was measured against.
+ * How to drive this app without a mouse, without motion, without small text.
  *
- * This section used to be a conformance report — "twenty variants, measured
- * from the runtime-resolved token values rather than numbers copied into a
- * test". All true, and all addressed to an auditor or a contributor. The
- * person who opens Help looking for the accessibility section is usually the
- * person who needs it to work, and none of it told them a single thing they
- * could do: not which key skips the navigation, not where to turn the motion
- * off, not that there is a high-contrast world one keypress away.
+ * This section has been rewritten twice and the reason is worth keeping. It
+ * began as a conformance report — "twenty variants, measured from the
+ * runtime-resolved token values rather than numbers copied into a test" — which
+ * is true, and addressed to an auditor. The rewrite turned it into prose about
+ * features, which was closer and still not usable: a person who needs to skip a
+ * navigation block does not want a paragraph, they want the key.
  *
- * So every entry now names a control and what it does. The compliance claims
- * are not lost, they are just not the headline — they belong to the last card,
- * which is the one an auditor would have come for, and to the CI lanes that
- * actually hold them (e2e/themes.spec.ts, e2e/responsive.spec.ts).
- *
- * Keys are written the way the shortcuts table writes them, because they ARE
- * that table — a reader who tries `g` `h` from this paragraph must land on the
- * page the row below promises.
+ * So each row is a control and its effect, in the same key-chip shape the
+ * shortcuts table above uses, because these ARE shortcuts — they just answer
+ * "how do I cope with this page" rather than "where do I go next". `keys` is
+ * rendered as <kbd>; `hint` is the plain-language alternative for anything that
+ * is a setting rather than a keystroke.
  */
-const A11Y = [
+const A11Y: Array<{ keys?: string[]; hint?: string; desc: string }> = [
   {
-    title: "Skip past the navigation",
-    body: "Press Tab as soon as a page loads: the first stop is a “Skip to content” link that jumps straight to the main region, past the header and the menu button. Everything after it follows the order the page reads in.",
+    keys: ["Tab"],
+    desc: "from the top of any page, jumps to “Skip to content” — past the header and the menu, straight into the page itself",
+  },
+  { keys: ["?"], desc: "every shortcut, without leaving the page" },
+  {
+    keys: ["Esc"],
+    desc: "closes any menu or dialog and puts focus back on the control that opened it",
+  },
+  { keys: ["m"], desc: "light / dark, immediately" },
+  {
+    keys: ["t"],
+    desc: "next theme. Mono and Terminal are the plainest of the ten; every one is contrast-checked in both light and dark",
   },
   {
-    title: "Move around without a mouse",
-    body: "Press ? for the full list of shortcuts. g then a letter jumps to a section — g d for the dashboard, g k for designs, g f for facilities, g h for this page. Esc closes any menu or dialog and returns you to the control that opened it.",
+    keys: ["Ctrl", "+"],
+    desc: "browser zoom, up to 200% — the layout reflows instead of clipping or scrolling sideways (⌘ on a Mac)",
   },
   {
-    title: "If a theme is hard to read",
-    body: "Press m to switch between light and dark, and t to move to the next of the ten themes — Mono and Terminal are the plainest. Every theme is checked for text contrast in both light and dark before release, so none of them is the one that only half works.",
+    hint: "System setting",
+    desc: "turn on “reduce motion” in your OS accessibility settings and this app follows: the loading mark stops, menus stop sliding, nothing moves on its own",
   },
   {
-    title: "If motion is a problem",
-    body: "Turn on “reduce motion” in your operating system’s accessibility settings and this app follows it: the loading mark stops animating, menus and dialogs appear without sliding, and nothing else moves on its own. Nothing here animates without being asked to.",
-  },
-  {
-    title: "If text is too small",
-    body: "Zoom with your browser (Ctrl or ⌘ with + and −) up to 200% and the layout reflows rather than clipping or scrolling sideways. Raising your browser’s default font size works too, and the charts and labels grow with it.",
-  },
-  {
-    title: "With a screen reader",
-    body: "Each page starts with one heading naming it, and panels are labelled regions you can jump between. The current page is marked in the menu. Icons are decorative and never carry meaning on their own — the words beside them say the same thing. Results of an action, such as a saved change or a failed request, are announced when they happen.",
+    hint: "Screen reader",
+    desc: "one heading names each page, panels are labelled regions you can jump between, the current page is marked in the menu, and the result of an action is announced when it happens",
   },
 ];
 
@@ -205,13 +202,32 @@ export function HelpView() {
 
       <section aria-labelledby="h-a11y" className="space-y-3">
         <SectionHeading id="h-a11y">Accessibility</SectionHeading>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {A11Y.map((item) => (
-            <div key={item.title} className={PANEL}>
-              <h3 className={CARD_TITLE}>{item.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{item.body}</p>
-            </div>
-          ))}
+        <div className={PANEL}>
+          <ul className="m-0 grid list-none gap-x-6 gap-y-2 p-0 sm:grid-cols-2">
+            {A11Y.map((item) => (
+              <li key={item.desc} className="flex items-baseline gap-2 text-sm">
+                <span className="flex shrink-0 gap-1">
+                  {item.keys?.map((k, i) => (
+                    <kbd
+                      key={`${k}-${i}`}
+                      className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground"
+                    >
+                      {k}
+                    </kbd>
+                  ))}
+                  {/* A setting rather than a keystroke: same column, no key cap,
+                    because a <kbd> around "System setting" would tell a screen
+                    reader it is a key to press. */}
+                  {item.hint && (
+                    <span className="rounded border border-dashed border-border px-1.5 py-0.5 text-xs text-muted-foreground">
+                      {item.hint}
+                    </span>
+                  )}
+                </span>
+                <span className="text-muted-foreground">{item.desc}</span>
+              </li>
+            ))}
+          </ul>
         </div>
         {/* Kept, and moved to the end where it reads as an invitation rather
             than as the section's subject. It is the one line here addressed to
