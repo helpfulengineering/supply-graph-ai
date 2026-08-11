@@ -50,7 +50,7 @@ export function useSiteLayer(): SiteLayerState {
   // state below, and a second page_view for the same visit would be a lie.
   useEffect(() => {
     if (!siteConfig.enabled) return;
-    track("page_view", { path: window.location.pathname });
+    track("page_view");
   }, []);
 
   useEffect(() => {

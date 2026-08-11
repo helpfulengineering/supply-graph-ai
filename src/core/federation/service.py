@@ -11,7 +11,7 @@ from src.config.security_policy import get_security_policy
 
 from ..services.base import BaseService, ServiceConfig
 from ..utils.logging import get_logger
-from .catalog import CatalogIndex, build_catalog_index
+from .catalog import CatalogIndex, build_catalog_index, build_catalog_summary
 from .discovery import MdnsAdvertiser, browse_mdns_peers
 from .identity import NodeIdentity, load_or_create_identity
 from .metrics import FederationMetricsCollector
@@ -108,6 +108,14 @@ class FederationService(BaseService["FederationService"]):
 
         okh_service = await OKHService.get_instance()
         return await build_catalog_index(okh_service, identity)
+
+    async def catalog_summary(self) -> tuple[int, str]:
+        """``(record_count, merkle_root)`` without building the signed index."""
+        await self.ensure_federation_ready()
+        from ..services.okh_service import OKHService
+
+        okh_service = await OKHService.get_instance()
+        return await build_catalog_summary(okh_service)
 
     async def build_okw_catalog_index(self):
         """Build a signed OKW catalog snapshot (separate Merkle root)."""
@@ -258,7 +266,7 @@ class FederationService(BaseService["FederationService"]):
         """Dashboard-friendly federation status snapshot."""
         await self.ensure_federation_ready()
         identity, _store = self.federation_context()
-        index = await self.build_catalog_index()
+        record_count, root = await self.catalog_summary()
         peers = self.list_peers()
         followed = [p for p in peers if p.followed or self.is_followed(p.did)]
         metrics = self.federation_metrics.snapshot
@@ -266,8 +274,8 @@ class FederationService(BaseService["FederationService"]):
             "did": identity.did,
             "display_name": identity.display_name,
             "role": self.role.value,
-            "catalog_record_count": index.record_count,
-            "merkle_root": index.merkle_root,
+            "catalog_record_count": record_count,
+            "merkle_root": root,
             "peer_count": len(peers),
             "followed_peer_count": len(followed),
             "sync_interval_sec": settings.OHM_FEDERATION_SYNC_INTERVAL_SEC,
