@@ -22,19 +22,60 @@ const HOP_BY_HOP = new Set([
   "host",
 ]);
 
-function upstreamBase(): string {
+function upstreamBase(): string | null {
   const url = process.env.API_UPSTREAM_URL || process.env.OHM_API_BASE_URL;
-  if (!url) {
-    // nginx failed loudly at startup on an unset upstream; the entry script
-    // preserves that for containers. In dev, default to the local API.
-    return "http://localhost:8001";
-  }
-  return url.replace(/\/+$/, "");
+  if (url) return url.replace(/\/+$/, "");
+
+  // Localhost is a reasonable guess for a developer and a wrong one anywhere
+  // else. nginx failed loudly at startup on an unset upstream and entry.sh
+  // preserves that for our container — but a platform that runs `next start`
+  // directly (Vercel, and anything else without our entrypoint) never sees
+  // that check, so the fallback silently produced 502s that read as "the API
+  // is down" when the real fault was missing configuration.
+  if (process.env.NODE_ENV !== "production") return "http://localhost:8001";
+  return null;
 }
 
 async function proxy(request: Request): Promise<Response> {
   const url = new URL(request.url);
-  const target = `${upstreamBase()}${url.pathname}${url.search}`;
+  const base = upstreamBase();
+  if (!base) {
+    // Distinguished from "unreachable" on purpose: an operator reading a log
+    // needs to know which of the two it is.
+    return new Response(
+      "API upstream is not configured. Set API_UPSTREAM_URL to the OHM API " +
+        "origin (scheme + host, no /v1 path) for this deployment.\n",
+      { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } },
+    );
+  }
+  // Self-reference guard. Pointing API_UPSTREAM_URL at this deployment's own
+  // origin makes /v1/* proxy to itself: the platform answers 508 INFINITE_LOOP
+  // after burning an invocation per hop, and the message names neither the
+  // variable nor the value. Cheap to detect, so detect it.
+  const forwardedHost =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (forwardedHost) {
+    let upstreamHost: string;
+    try {
+      upstreamHost = new URL(base).host;
+    } catch {
+      return new Response(
+        `API upstream is not a valid URL: ${base}\nSet API_UPSTREAM_URL to the ` +
+          "OHM API origin (scheme + host, no /v1 path).\n",
+        { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } },
+      );
+    }
+    if (upstreamHost === forwardedHost) {
+      return new Response(
+        `API upstream points at this deployment (${forwardedHost}), so /v1 ` +
+          "would proxy to itself.\nSet API_UPSTREAM_URL to the OHM API origin, " +
+          "not the frontend's own URL.\n",
+        { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } },
+      );
+    }
+  }
+
+  const target = `${base}${url.pathname}${url.search}`;
 
   const headers = new Headers();
   request.headers.forEach((value, key) => {
