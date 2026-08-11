@@ -23,6 +23,7 @@ from src.core.api.models.federation.response import (
     SyncPeerResultResponse,
     SyncRunResponse,
 )
+from src.core.api.dependencies import require_write
 from src.core.federation.models import SyncDigest, SyncDigestResponse
 from src.core.federation.package_fetch import PEER_DID_HEADER, fetch_package_from_peer
 from src.core.federation.package_pointer import (
@@ -62,6 +63,21 @@ async def require_federation_api(
             detail="Federation API is not exposed for this node role",
         )
     return service
+
+
+# Two kinds of caller reach this router, and they authorize differently.
+#
+# The PEER PROTOCOL is anonymous by necessity: a peer identifies itself with a
+# DID it signs for, not with one of our API keys, so /identify, /catalog,
+# /records, the CAS blob read and the digest exchanges stay open and are bounded
+# by _enforce_peer_rate_limit instead.
+#
+# OPERATOR ACTIONS are ordinary local writes wearing federation clothing —
+# following a DID, pointing the node at a URL to sync from, pulling a package.
+# They mutate local trust and local storage, so they take require_write like any
+# other write (see routes/okh.py). Without it, `POST /sync/run?peer_url=` is an
+# unauthenticated request that makes this node fetch an arbitrary URL, auto-
+# follow whatever DID it claims, and ingest its manifests.
 
 
 def _enforce_peer_rate_limit(
@@ -108,7 +124,7 @@ async def federation_status(
 async def identify(
     service: FederationService = Depends(require_federation_api),
 ) -> IdentifyResponse:
-    index = await service.build_catalog_index()
+    record_count, root = await service.catalog_summary()
     if service.identity is None:
         raise RuntimeError("Federation identity not loaded")
     return IdentifyResponse(
@@ -116,8 +132,8 @@ async def identify(
         display_name=service.identity.display_name,
         role=service.role.value,
         ohm_version=get_version(),
-        catalog_record_count=index.record_count,
-        merkle_root=index.merkle_root,
+        catalog_record_count=record_count,
+        merkle_root=root,
     )
 
 
@@ -199,6 +215,7 @@ async def list_peers(
 )
 async def discover_peers(
     service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_write),
 ) -> PeerDiscoverResponse:
     updated = await service.refresh_peers()
     peers = service.list_peers()
@@ -231,6 +248,7 @@ async def sync_digest(
 async def run_sync(
     peer_url: str | None = Query(None, description="Optional single peer base URL"),
     service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_write),
 ) -> SyncRunResponse:
     if peer_url:
         result = await service.sync_with_url(peer_url)
@@ -261,6 +279,7 @@ async def run_sync(
 async def follow_peer(
     did: str,
     service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_write),
 ) -> FollowResponse:
     service.follow_peer(did)
     return FollowResponse(did=did, followed=True)
@@ -274,6 +293,7 @@ async def follow_peer(
 async def unfollow_peer(
     did: str,
     service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_write),
 ) -> FollowResponse:
     service.unfollow_peer(did)
     return FollowResponse(did=did, followed=False)
@@ -318,6 +338,7 @@ async def get_package_blob(
 async def fetch_package(
     body: PackageFetchRequest,
     service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_write),
 ) -> PackageFetchResponse:
     manifest_id = UUID(body.manifest_id) if body.manifest_id else None
     result = await fetch_package_from_peer(
@@ -405,6 +426,7 @@ async def okw_sync_digest(
 )
 async def run_okw_sync(
     service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_write),
 ) -> SyncRunResponse:
     results = await service.sync_okw_all_followed()
     response_results = [

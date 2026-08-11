@@ -213,6 +213,27 @@ class TestDeployEnvVars:
         assert env["GUNICORN_WORKERS"] == "1"
         assert env["GUNICORN_TIMEOUT"] == "300"
 
+    def test_staging_enables_federation_under_the_names_settings_reads(self):
+        # settings.py reads OHM_FEDERATION_*, and deploy_env_vars only uppercases
+        # each key. A TOML key named `federation_enabled` would therefore set
+        # FEDERATION_ENABLED, which nothing reads — a silent no-op that looks
+        # correct in the diff. This test is here to catch that specific mistake.
+        env = deploy_env_vars("staging")
+        assert env["OHM_FEDERATION_ENABLED"] == "True"
+        assert env["OHM_FEDERATION_NODE_ROLE"] == "peer"
+        # Without an explicit data dir the default is ~/.ohm/federation, and the
+        # container's ohm user has no home — every federation route would 500.
+        assert env["OHM_FEDERATION_DATA_DIR"] == "/app/storage/federation"
+        assert env["OHM_FEDERATION_MDNS_ENABLED"] == "False"
+
+    def test_staging_federation_makes_no_outbound_peer_calls(self):
+        # The read-only posture is a consequence of having nothing to sync with,
+        # not a separate switch: no manual peers and no seed URL means the
+        # background loop iterates an empty registry.
+        env = deploy_env_vars("staging")
+        assert "OHM_FEDERATION_MANUAL_PEERS" not in env
+        assert "OHM_FEDERATION_SEED_PEER_URL" not in env
+
     def test_development_is_local(self):
         assert deploy_env_vars("development") == {"STORAGE_PROVIDER": "local"}
 
