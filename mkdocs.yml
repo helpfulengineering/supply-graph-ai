@@ -57,6 +57,7 @@ nav:
     - File type taxonomy ADR: architecture/file-type-taxonomy-adr.md
     - Identity Model: architecture/identity-model.md
     - Security Modes: architecture/security-modes.md
+    - Optional Site Layer: architecture/site-layer.md
     - Source Platforms: architecture/source-platforms.md
   - Ops:
     - Async Generation: ops/async-generation.md

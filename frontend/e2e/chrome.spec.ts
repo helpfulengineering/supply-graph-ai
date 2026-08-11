@@ -71,10 +71,16 @@ test("skip link is the first focusable element and lands on main", async ({ page
   // the app, and its shadow root swallows focus in a way that makes
   // activeElement unreliable. Document order is the contract that actually
   // matters and it holds in both dev and production.
+  // Wait for the app to be in the DOM before reading document order, or the
+  // evaluate can run against a shell that holds only the dev overlay.
+  await page.getByRole("link", { name: "Skip to content" }).waitFor({ state: "attached" });
+
   const firstFocusable = await page.evaluate(() => {
-    const focusable = document.body.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    );
+    const focusable = [
+      ...document.body.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ].filter((el) => !el.closest("nextjs-portal"));
     return focusable[0]?.textContent?.trim() ?? null;
   });
   expect(firstFocusable).toBe("Skip to content");
