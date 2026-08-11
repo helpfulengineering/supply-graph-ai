@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { siteConfig } from "./config";
-import { isOperator, track, visitor, type Visitor } from "./stack";
+import {
+  adminStats,
+  clearOperatorToken,
+  isOperator,
+  setOperatorToken,
+  visitor,
+  type Visitor,
+} from "./stack";
 
 export interface SiteLayerState {
   /** Whether this instance opted into the site layer at all. */
@@ -24,6 +31,14 @@ export interface SiteLayerState {
    * application authorization from the backend's whoami.
    */
   isOperator: boolean;
+  /**
+   * Verifies a token server-side and, if it holds, keeps it for this tab.
+   * Resolves to the failure message so the form can render it, or null on
+   * success. A rejected token is not stored.
+   */
+  unlock: (token: string) => Promise<string | null>;
+  /** Forgets the operator token. Leaves the visitor record alone. */
+  lock: () => void;
   /** Re-read after a sign-in or sign-out. Does not re-count the page view. */
   refresh: () => void;
 }
@@ -37,7 +52,7 @@ export interface SiteLayerState {
  * not a misconfiguration.
  */
 export function useSiteLayer(): SiteLayerState {
-  const [state, setState] = useState<Omit<SiteLayerState, "refresh">>({
+  const [state, setState] = useState<Omit<SiteLayerState, "refresh" | "unlock" | "lock">>({
     enabled: siteConfig.enabled,
     // Nothing to wait for with the layer off: every field is already final.
     ready: !siteConfig.enabled,
@@ -46,13 +61,11 @@ export function useSiteLayer(): SiteLayerState {
   });
   const [reads, setReads] = useState(0);
 
-  // Telemetry is per mount, not per read: signing in at the gate refreshes the
-  // state below, and a second page_view for the same visit would be a lie.
-  useEffect(() => {
-    if (!siteConfig.enabled) return;
-    track("page_view");
-  }, []);
-
+  // No page_view here. This hook used to record one on mount, which made the
+  // count a count of *mounts of this hook* — once per hard load from the nav
+  // drawer, twice on the operator page, and never on a client-side navigation.
+  // Page views belong to the router, not to a hook two components happen to
+  // call; see RouteTelemetry.
   useEffect(() => {
     if (!siteConfig.enabled) return;
     let cancelled = false;
@@ -69,5 +82,23 @@ export function useSiteLayer(): SiteLayerState {
 
   const refresh = useCallback(() => setReads((n) => n + 1), []);
 
-  return { ...state, refresh };
+  // Stores only after the server accepts it, so a mistyped token never leaves
+  // the tab believing it is unlocked — and never leaves a bad secret sitting
+  // in sessionStorage for the next call to retry with.
+  const unlock = useCallback(async (token: string): Promise<string | null> => {
+    const trimmed = token.trim();
+    if (!trimmed) return "Enter the operator token.";
+    const probe = await adminStats(trimmed);
+    if (!probe.ok) return probe.error;
+    setOperatorToken(trimmed);
+    setState((s) => ({ ...s, isOperator: true }));
+    return null;
+  }, []);
+
+  const lock = useCallback(() => {
+    clearOperatorToken();
+    setState((s) => ({ ...s, isOperator: false }));
+  }, []);
+
+  return { ...state, unlock, lock, refresh };
 }

@@ -239,13 +239,13 @@ AREAS: tuple[Area, ...] = (
         None,
         None,
         "internal",
-        note="Optional site layer (visitor gate, telemetry, whitelabel, Mission "
-        "Control) backed by Supabase ohmgr_* and OFF by default. Frontend-only "
+        note="Optional site layer (visitor gate, telemetry, whitelabel, Operator "
+        "Tools) backed by Supabase ohmgr_* and OFF by default. Frontend-only "
         "by design: it is the SITE layer, never an authorization source, so it "
         "has no Python service, API tag, or CLI group. Application permissions "
         "stay with the identity area's whoami. See "
         "docs/architecture/site-layer.md.",
-        fe_routes=("/mission-control",),
+        fe_routes=("/operator-tools",),
     ),
     # --- Internal services: no API and no CLI by design -------------------
     Area("cache", "cache", None, None, "internal", note="Caching internals."),

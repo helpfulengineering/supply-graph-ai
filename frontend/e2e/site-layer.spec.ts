@@ -35,7 +35,7 @@ async function layerEnabled(page: Page): Promise<boolean> {
   return posture === "on";
 }
 
-test("the sitemap advertises Mission Control only when the layer is on", async ({
+test("the sitemap advertises Operator Tools only when the layer is on", async ({
   page,
 }) => {
   await page.goto("/");
@@ -43,7 +43,7 @@ test("the sitemap advertises Mission Control only when the layer is on", async (
   await page.getByRole("button", { name: "Site menu" }).click();
   const entry = page
     .getByRole("navigation", { name: "Primary navigation" })
-    .getByRole("link", { name: /Mission Control/ });
+    .getByRole("link", { name: /Operator Tools/ });
 
   if (enabled) {
     await expect(entry).toHaveCount(1);
@@ -54,15 +54,15 @@ test("the sitemap advertises Mission Control only when the layer is on", async (
   }
 });
 
-test("the Mission Control route exists only when the layer is on", async ({
+test("the Operator Tools route exists only when the layer is on", async ({
   page,
 }) => {
   const enabled = await layerEnabled(page);
-  const response = await page.goto("/mission-control");
+  const response = await page.goto("/operator-tools");
   if (enabled) {
     expect(response?.status()).toBe(200);
     await expect(
-      page.getByRole("heading", { name: /mission control/i }),
+      page.getByRole("heading", { name: /operator tools/i }),
     ).toBeVisible();
   } else {
     // A real 404, not a 200 rendering a "not found" body — an undeployed
@@ -71,14 +71,14 @@ test("the Mission Control route exists only when the layer is on", async ({
   }
 });
 
-test("Mission Control gates entry, and dismissal is not a dead end", async ({ page }) => {
+test("Operator Tools gates entry, and dismissal is not a dead end", async ({ page }) => {
   // The default posture has no route to gate: the test above asserts it 404s,
   // and the one below asserts — in both postures — that no gate ever blocks
   // the app itself. Re-navigating to the 404 here would add nothing.
   const enabled = await layerEnabled(page);
-  test.skip(!enabled, "no Mission Control route on a default instance");
+  test.skip(!enabled, "no Operator Tools route on a default instance");
 
-  await page.goto("/mission-control");
+  await page.goto("/operator-tools");
   const gate = page.getByRole("dialog");
 
   // Arriving without a visitor record on this device puts the gate in front of
@@ -109,7 +109,7 @@ test("no gate, and no site-layer console errors, on a default instance", async (
     page.getByRole("heading", { name: /open hardware manager/i }),
   ).toBeVisible();
   // No sign-in gate blocks the app. Asserted in BOTH postures, deliberately:
-  // the gate belongs in front of Mission Control and nowhere else, so an
+  // the gate belongs in front of Operator Tools and nowhere else, so an
   // enabled instance must still open the dashboard to anyone.
   await expect(page.getByRole("dialog", { name: /sign in/i })).toHaveCount(0);
 

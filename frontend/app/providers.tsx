@@ -11,6 +11,7 @@ import { Layout } from "@/components/layout/Layout";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import { installDemoFetch } from "@/lib/demo/demoFetch";
 import { siteConfig } from "@/lib/site/config";
+import { RouteTelemetry } from "@/lib/site/RouteTelemetry";
 
 /**
  * The client provider stack, mounted once by the root layout.
@@ -74,6 +75,12 @@ function MountedProviders({ children }: { children: ReactNode }) {
       >
         <AuthProvider>
           <TooltipProvider>
+            {/*
+              Above the routed subtree and rendered once, so a page view
+              belongs to the router rather than to whichever component
+              happened to mount. Renders nothing; a no-op with the layer off.
+            */}
+            <RouteTelemetry />
             <Layout>{children}</Layout>
           </TooltipProvider>
         </AuthProvider>

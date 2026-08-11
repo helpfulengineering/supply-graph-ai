@@ -17,7 +17,7 @@
 --   - anon key in the browser can only call whitelisted RPCs
 --   - writes go through SECURITY DEFINER functions with validation + caps
 --   - visitor PII is NEVER readable with the anon key
---   - operator reads/writes (Mission Control) require the OPERATOR TOKEN —
+--   - operator reads/writes (Operator Tools) require the OPERATOR TOKEN —
 --     a secret set once below; the UI asks for it and keeps it in
 --     sessionStorage only
 --   - is_admin can only be granted here in the SQL editor, never from a client
@@ -194,14 +194,29 @@ end;
 $$;
 grant execute on function public.ohmgr_admin_visitors(text) to anon, authenticated;
 
+-- Returns props, which no read function used to. ohmgr_track has always
+-- stored it and nothing ever selected it, so every event's payload was
+-- write-only: `match_run` could record that a match returned zero solutions
+-- and no operator could ever see it. Props is the outcome half of an event,
+-- and an outcome nobody can read is not telemetry.
+--
+-- Operator tier only. The masked read stays as it is: props carries public
+-- catalogue ids and counts, which is right for a token holder and is not a
+-- widening the self-service tier asked for.
+--
+-- Dropped first because Postgres will not let `create or replace` change a
+-- function's return type — without this an operator re-running the file, as
+-- the guide tells them it is safe to do, gets "cannot change return type of
+-- existing function" instead of an upgrade.
+drop function if exists public.ohmgr_admin_events(text, int);
 create or replace function public.ohmgr_admin_events(p_token text, p_limit int default 100)
-returns table (ts timestamptz, event text, page text, session_id text, visitor_email text)
+returns table (ts timestamptz, event text, page text, session_id text, visitor_email text, props jsonb)
 language plpgsql stable security definer set search_path = public
 as $$
 begin
   if not ohmgr_check_admin(p_token) then raise exception 'unauthorized'; end if;
   return query
-    select t.ts, t.event, t.page, t.session_id, t.visitor_email
+    select t.ts, t.event, t.page, t.session_id, t.visitor_email, t.props
     from ohmgr_telemetry_events t
     order by t.ts desc limit least(greatest(coalesce(p_limit, 100), 1), 1000);
 end;

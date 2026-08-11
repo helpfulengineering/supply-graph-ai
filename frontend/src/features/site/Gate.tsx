@@ -4,7 +4,7 @@ import { useId, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { FIELD, HINT, LABEL } from "../../components/ui/field";
 import { PANEL } from "../../components/ui/surface";
-import { SECTION_TITLE } from "../../components/ui/typography";
+import { BODY_MUTED, CAPTION, SECTION_TITLE } from "../../components/ui/typography";
 import { cn } from "@/lib/utils";
 import { useDialogFocus } from "../../lib/useDialogFocus";
 import { signIn, type GateCopy } from "../../lib/site/stack";
@@ -29,7 +29,7 @@ interface GateProps {
  * isOperator out of isAdmin. Nothing here grants an application permission,
  * and the fine print says so where a visitor will actually read it.
  *
- * It is dismissible, and dismissal is not a dead end: Mission Control keeps a
+ * It is dismissible, and dismissal is not a dead end: Operator Tools keeps a
  * sign-in button, so the escape hatch every modal needs (Esc, the backdrop,
  * "Not now") costs nobody the page they came for. Only the parts that are
  * genuinely per-visitor — your own record — need the record to exist.
@@ -87,7 +87,7 @@ export function Gate({ copy, onSignedIn, onDismiss }: GateProps) {
         <h2 id={titleId} className={SECTION_TITLE}>
           {copy.title}
         </h2>
-        <p id={bodyId} className="mt-1 text-sm text-muted-foreground">
+        <p id={bodyId} className={cn("mt-1", BODY_MUTED)}>
           {copy.body}
         </p>
 
@@ -161,7 +161,7 @@ export function Gate({ copy, onSignedIn, onDismiss }: GateProps) {
           </div>
         </form>
 
-        <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">
+        <p className={cn("mt-4 border-t border-border pt-3", CAPTION)}>
           {copy.fine}
         </p>
       </div>
