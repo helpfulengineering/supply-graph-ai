@@ -61,7 +61,7 @@ function ScalarField({
           onChange={(e) =>
             onChange(setPath(manifest, field.path, e.target.value))
           }
-          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       ) : (
         <input
@@ -71,7 +71,7 @@ function ScalarField({
           onChange={(e) =>
             onChange(setPath(manifest, field.path, e.target.value))
           }
-          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       )}
     </label>
@@ -140,7 +140,7 @@ function ListField({
               setDraft("");
             }
           }}
-          className="flex-1 rounded-md border border-border bg-card px-3 py-1.5 text-sm"
+          className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
         <button
           type="button"
@@ -239,7 +239,7 @@ export function TieredEditor({ manifest, onChange }: EditorProps) {
   const extras = tier3Fields(manifest);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <section aria-labelledby="tier1">
         <h3 id="tier1" className="text-sm font-semibold text-foreground">
           Required

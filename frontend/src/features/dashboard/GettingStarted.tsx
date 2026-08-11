@@ -40,7 +40,7 @@ export function GettingStarted() {
         {STEPS.map((s) => (
           <li
             key={s.n}
-            className="flex gap-3 rounded-xl border border-border bg-card p-4"
+            className="flex gap-3 rounded-xl border border-border bg-card p-5"
           >
             <span
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-on-accent"

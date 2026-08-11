@@ -119,7 +119,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         id="site-menu"
         className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-border bg-card shadow-xl animate-in slide-in-from-right duration-200 motion-reduce:animate-none"
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Menu
           </span>

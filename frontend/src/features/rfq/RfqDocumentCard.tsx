@@ -94,13 +94,13 @@ export function RfqDocumentCard({ doc }: Props) {
         <div className="flex shrink-0 gap-2">
           <button
             onClick={handleCopy}
-            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
+            className="rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
           >
             {copied ? "Copied" : "Copy text"}
           </button>
           <button
             onClick={handleDownloadText}
-            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
+            className="rounded-md border border-input bg-background px-2 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
           >
             ↓ .txt
           </button>

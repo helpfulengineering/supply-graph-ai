@@ -218,9 +218,6 @@ export function MatchView({
     <div className="space-y-6">
       <div>
         <PageHero title="Match a Design" crumb="design · facilities · solutions" />
-        <p className="mt-1 text-sm text-muted-foreground">
-          Choose a design and the facilities to compare, then run a match.
-        </p>
       </div>
 
       <div className="space-y-4">

@@ -16,7 +16,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </a>
       <SiteHeader />
       <AuthBanner />
-      <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">
+      <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-6 py-5">
         {children}
       </main>
       <SiteFooter />

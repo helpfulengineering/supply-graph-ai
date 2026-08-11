@@ -80,7 +80,7 @@ export function BindingsPanel() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <section
         aria-labelledby="domain-bind-heading"
         className="rounded-xl border border-border bg-card p-5"

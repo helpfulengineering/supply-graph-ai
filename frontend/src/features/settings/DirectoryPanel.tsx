@@ -38,7 +38,7 @@ export function DirectoryPanel() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <section
         aria-labelledby="directory-publish-heading"
         className="rounded-xl border border-border bg-card p-5"

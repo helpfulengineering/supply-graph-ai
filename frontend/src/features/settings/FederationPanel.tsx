@@ -63,7 +63,7 @@ export function FederationPanel() {
   const mdnsAdvertise = policy.data?.mdns_advertise !== false;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {disabled && (
         <p className="rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
           Federation is not enabled on this server (set{" "}

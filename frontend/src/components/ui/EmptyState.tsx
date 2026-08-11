@@ -1,7 +1,10 @@
-import { Inbox, type LucideIcon } from "lucide-react";
+import { Inbox } from "lucide-react";
+
+/** Any icon component that renders an svg — lucide glyph or illustration. */
+type IconComponent = (props: { className?: string }) => React.ReactNode;
 
 interface Props {
-  icon?: LucideIcon;
+  icon?: IconComponent;
   heading: string;
   body?: string;
   action?: React.ReactNode;
@@ -19,7 +22,7 @@ export function EmptyState({
     <div
       className={`flex flex-col items-center justify-center gap-3 py-20 text-center ${className}`}
     >
-      <Icon aria-hidden="true" className="h-10 w-10 text-text-faint" strokeWidth={1.5} />
+      <Icon className="h-10 w-10 text-text-faint" />
       <p className="text-base font-medium text-foreground">{heading}</p>
       {body && <p className="max-w-sm text-sm text-muted-foreground">{body}</p>}
       {action && <div className="mt-2">{action}</div>}

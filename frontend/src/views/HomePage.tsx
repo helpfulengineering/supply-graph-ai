@@ -15,7 +15,7 @@ import {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-xl border border-border bg-card p-5">
       <p className="text-2xl font-bold text-foreground">{value}</p>
       <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
@@ -54,16 +54,12 @@ export function HomePage() {
   const m = map.data;
 
   return (
-    <div className="space-y-10 py-4">
+    <div className="space-y-6">
       <div>
         <PageHero
           title="Open Hardware Manager"
           crumb="designs · facilities · supply chains"
         />
-        <p className="mt-2 max-w-2xl text-muted-foreground">
-          Match open hardware designs to manufacturing facilities and explore
-          the resulting supply chains.
-        </p>
       </div>
 
       {/* Hero: the manufacturing network map. */}
@@ -130,7 +126,7 @@ export function HomePage() {
           <GettingStarted />
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           <section aria-labelledby="system-heading">
             <h2
               id="system-heading"

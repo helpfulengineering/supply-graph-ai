@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { NavDrawer } from "./NavDrawer";
+import { Logo } from "./Logo";
 
 /**
  * The universal header, in the TTM chrome idiom: a slim bar that carries the
@@ -18,17 +19,12 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-card shadow-sm">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <Link
-          href="/"
-          className="flex items-baseline gap-2 no-underline"
-        >
-          <span className="text-lg font-bold tracking-tight text-primary-ink">
-            OHM
-          </span>
-          <span className="hidden text-xs text-muted-foreground sm:inline">
-            Open Hardware Manager
-          </span>
-          <span className="sr-only">home</span>
+        {/* Mark only. The bar carries no wordmark because every page's hero
+            states its own identity — on the dashboard the two would sit one
+            above the other saying the same words. */}
+        <Link href="/" className="flex items-center no-underline">
+          <Logo className="h-7 w-7" />
+          <span className="sr-only">Open Hardware Manager — home</span>
         </Link>
 
         <div className="flex items-center gap-1">

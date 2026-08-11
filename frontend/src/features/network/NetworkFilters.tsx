@@ -67,7 +67,7 @@ export function NetworkFilters({
     onChange({ ...filters, [key]: value || undefined });
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+    <div className="space-y-3 rounded-xl border border-border bg-card p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Filters</h2>
         {activeCount > 0 && (

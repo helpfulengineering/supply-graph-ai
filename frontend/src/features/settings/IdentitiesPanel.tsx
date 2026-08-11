@@ -66,7 +66,7 @@ export function IdentitiesPanel() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <section
         aria-labelledby="mint-heading"
         className="rounded-xl border border-border bg-card p-5"

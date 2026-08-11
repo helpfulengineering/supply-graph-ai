@@ -15,7 +15,13 @@ test("lists spaces from both sources with badges (mocked)", async ({ page }, tes
   await expect(page.getByRole("heading", { name: "Laser Fab Lab" })).toBeVisible();
   // A Maps of Making space is included in the same list.
   await expect(page.getByRole("heading", { name: "FabLab Lazio Roma" })).toBeVisible();
-  await expect(page.getByText("Maps of Making").first()).toBeVisible();
+  // The source Badge itself, not any text that happens to say it: this used to
+  // match a sentence of page copy, so removing that copy sent .first() to the
+  // hidden <option> in the source filter and the test failed for a reason that
+  // had nothing to do with badges.
+  await expect(
+    page.locator("span.rounded-full").filter({ hasText: "Maps of Making" }).first(),
+  ).toBeVisible();
 });
 
 test("toggling to the map view renders the map (mocked)", async ({ page }, testInfo) => {

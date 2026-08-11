@@ -174,7 +174,7 @@ export function OkhDetailView({ id }: Props) {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/okh" className="hover:text-primary-ink">
           Designs

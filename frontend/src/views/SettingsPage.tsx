@@ -52,11 +52,6 @@ export function SettingsPage() {
     <div className="space-y-6">
       <div>
         <PageHero title="Settings" crumb="session · keys · identities" />
-        <p className="mt-1 text-sm text-muted-foreground">
-          {isAdmin
-            ? "Manage session, keys, LLM providers, identities, grants, spaces, bindings, directory, and federation for this OHM instance."
-            : "Paste an API key to authenticate this browser tab. Admin tabs appear after whoami reports admin."}
-        </p>
       </div>
 
       <nav
