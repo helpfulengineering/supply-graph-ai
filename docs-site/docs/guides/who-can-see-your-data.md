@@ -26,6 +26,13 @@ Every record has one of three settings.
 **New records are private.** Nothing is shared because you created it — sharing
 is a decision you make afterwards.
 
+Visibility governs **both** ways a record can leave: the federation catalogue
+that peer instances read, and this instance's own public API. A private record
+is not returned to an unauthenticated caller on either — it is not listed, not
+searchable, and fetching its id directly answers "not found" rather than
+confirming it exists. Signing in to the instance that holds the record still
+shows it to you; visibility decides who *else* can see it, not whether you can.
+
 ## Disclosure profiles: how much
 
 This is the part that matters most, and the part most systems get wrong. Being
@@ -48,6 +55,15 @@ trust**, or with nobody.
 
 The default is deliberately conservative: identity only, unless you say
 otherwise.
+
+**Scope, stated plainly:** disclosure profiles currently shape what goes to
+**peer instances** over federation. They do not yet redact what this instance's
+own public API returns for a shareable record — there, visibility decides
+whether the record is served, and a served record is served whole. Two
+consequences worth knowing before you publish an address: marking a record
+`followers` or `public` on an instance with a public API means its address is
+readable from that API, and `location` is presently one group, so a profile
+cannot yet keep coordinates while withholding the street.
 
 ## Seeing what others see
 

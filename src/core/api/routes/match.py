@@ -44,6 +44,8 @@ from ...models.okw import ManufacturingFacility
 from ...registry.domain_registry import DomainRegistry
 from ...services.domain_service import DomainDetector
 from ...services.matching_service import MatchingService
+from ...models.auth import AuthenticatedUser
+from ..dependencies import get_viewer
 from ...services.okh_service import OKHService
 from ...services.okw_service import (
     OKWService,
@@ -1051,6 +1053,7 @@ async def match_designs_for_facility(
     matching_service: MatchingService = Depends(get_matching_service),
     okh_service: OKHService = Depends(get_okh_service),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> dict[str, Any]:
     """Return the designs a given facility can produce, ranked by confidence."""
     request_id = getattr(http_request.state, "request_id", None)
@@ -1070,7 +1073,9 @@ async def match_designs_for_facility(
         page = 1
         page_size = 200
         while True:
-            summaries, _ = await okh_service.list(page=page, page_size=page_size)
+            summaries, _ = await okh_service.list(
+                page=page, page_size=page_size, include_private=user is not None
+            )
             if not summaries:
                 break
             for summary in summaries:

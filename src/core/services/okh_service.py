@@ -23,6 +23,7 @@ from ..models.visibility import (
     DEFAULT_VISIBILITY,
     LEGACY_VISIBILITY,
     VisibilityLevel,
+    is_shareable,
 )
 from ..storage.provenance_store import ProvenanceStore
 from ..storage.visibility_store import VisibilityStore
@@ -422,6 +423,8 @@ class OKHService(BaseService["OKHService"]):
         page: int = 1,
         page_size: int = 100,
         filter_params: Optional[Dict[str, Any]] = None,
+        *,
+        include_private: bool = True,
     ) -> Tuple[List[OKHManifest], int]:
         """Return a page of minimal OKH manifests discovered under the ``okh/`` prefix.
 
@@ -429,6 +432,10 @@ class OKHService(BaseService["OKHService"]):
             page: 1-based page index.
             page_size: Page length.
             filter_params: Reserved for future filtering (currently unused).
+            include_private: When False, drop records whose visibility is not
+                shareable. Filtering happens before pagination so ``total`` and
+                the page contents agree; doing it in the caller would return
+                short pages against an inflated count.
 
         Returns:
             ``(manifests, total_count)`` after deduplication by manifest id (newest file wins).
@@ -453,6 +460,8 @@ class OKHService(BaseService["OKHService"]):
             entries = await self._catalog_entries()
 
             all_manifests = [OKHManifest.from_dict(e["manifest"]) for e in entries]
+            if not include_private:
+                all_manifests = await self.filter_shareable(all_manifests)
             total = len(all_manifests)
 
             start_idx = (page - 1) * page_size
@@ -525,6 +534,18 @@ class OKHService(BaseService["OKHService"]):
         recipes = list(recipes_by_id.values())
         logger.info(f"Found {len(recipes)} unique recipes")
         return recipes
+
+    async def filter_shareable(self, manifests: List[OKHManifest]) -> List[OKHManifest]:
+        """Drop records that must not be served to an unauthenticated caller.
+
+        ``private`` is the create default, so this is the difference between a
+        record staying on the instance and being readable by anyone who asks.
+        """
+        allowed: List[OKHManifest] = []
+        for manifest in manifests:
+            if is_shareable(await self.get_visibility(manifest.id)):
+                allowed.append(manifest)
+        return allowed
 
     def _invalidate_catalog_cache(self) -> None:
         """Drop the cached catalogue after a write.

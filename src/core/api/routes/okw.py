@@ -26,11 +26,17 @@ from ...models.disclosure import (
     DisclosurePreviewResponse,
     DisclosureResponse,
 )
-from ...models.visibility import VisibilityBody, VisibilityResponse
+from ...models.visibility import VisibilityBody, VisibilityResponse, is_shareable
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
-from ..dependencies import created_by, require_write, resolve_provenance
+from ..dependencies import (
+    created_by,
+    get_optional_user,
+    get_viewer,
+    require_write,
+    resolve_provenance,
+)
 from ..constants.client_errors import (
     ERROR_NO_FILE_PROVIDED,
     ERROR_UNSUPPORTED_YAML_JSON_FILE,
@@ -97,6 +103,7 @@ async def search_okw(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Results per page"),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """Search for facilities by criteria. Uses OKWService so only objects under okw/ are considered."""
     try:
@@ -106,7 +113,10 @@ async def search_okw(
         fetch_page_size = 500
         while True:
             batch, total = await okw_service.list(
-                page=fetch_page, page_size=fetch_page_size, filter_params=None
+                page=fetch_page,
+                page_size=fetch_page_size,
+                filter_params=None,
+                include_private=user is not None,
             )
             facilities.extend(batch)
             if len(batch) < fetch_page_size or len(facilities) >= total:
@@ -538,11 +548,20 @@ async def list_kitchens(
 async def get_okw(
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """Get an OKW facility by ID"""
     try:
         facility = await okw_service.get(id)
         if not facility:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKW facility with ID {id} not found",
+            )
+
+        # A private facility must not leave the instance. 404 rather than 403 so
+        # the response does not confirm that the id exists.
+        if user is None and not is_shareable(await okw_service.get_visibility(id)):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKW facility with ID {id} not found",
@@ -668,6 +687,7 @@ async def list_okw(
     filter: Optional[str] = Query(None, description="Filter criteria"),
     okw_service: OKWService = Depends(get_okw_service),
     http_request: Request = None,
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """Enhanced OKW facility listing with pagination and metrics."""
     request_id = (
@@ -677,7 +697,10 @@ async def list_okw(
     try:
         # Call service to list OKW facilities
         facilities, total = await okw_service.list(
-            pagination.page, pagination.page_size, None
+            pagination.page,
+            pagination.page_size,
+            None,
+            include_private=user is not None,
         )
 
         # Convert ManufacturingFacility objects to dict format
