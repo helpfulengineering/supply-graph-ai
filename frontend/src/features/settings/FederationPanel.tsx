@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FIELD, FIELD_SM } from "../../components/ui/field";
 import {
   discoverFederationPeers,
-  fetchFederationStatus,
+  federationStatusQuery,
   followFederationPeer,
   listFederationPeers,
   runFederationSync,
@@ -21,11 +21,7 @@ export function FederationPanel() {
   const queryClient = useQueryClient();
   const { reportAuthFailure } = useAuth();
 
-  const status = useQuery({
-    queryKey: ["federation", "status"],
-    queryFn: fetchFederationStatus,
-    retry: false,
-  });
+  const status = useQuery(federationStatusQuery);
   const peers = useQuery({
     queryKey: ["federation", "peers"],
     queryFn: listFederationPeers,

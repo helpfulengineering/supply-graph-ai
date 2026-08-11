@@ -1,5 +1,7 @@
 "use client";
 
+import { clearToken, getToken } from "../../features/auth/tokenStorage";
+
 /**
  * Demo mode — an optional data SOURCE, not a branch through the app.
  *
@@ -20,6 +22,16 @@
 
 const KEY = "ohm-demo-mode";
 
+/**
+ * The session token demo mode holds while it is on.
+ *
+ * Named rather than random so it is obvious in devtools what it is and that it
+ * authorises nothing: in demo mode no request reaches the network, and the
+ * sample world refuses every write regardless of what the header says. See
+ * `seedDemoToken` in demoFetch.ts for why a token has to exist at all.
+ */
+export const DEMO_TOKEN = "demo-mode-not-a-real-key";
+
 export function demoModeEnabled(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -33,6 +45,15 @@ export function setDemoMode(on: boolean): void {
   try {
     if (on) localStorage.setItem(KEY, "1");
     else localStorage.removeItem(KEY);
+  } catch {
+    // ignore
+  }
+  // Switching off takes the demo token with it. Left behind, it would be sent
+  // as a Bearer header to a real instance on the very next request — which
+  // would be rejected, but as a puzzling 401 on a session the visitor never
+  // knowingly started.
+  try {
+    if (!on && getToken() === DEMO_TOKEN) clearToken();
   } catch {
     // ignore
   }

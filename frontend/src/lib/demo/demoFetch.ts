@@ -1,43 +1,66 @@
 "use client";
 
-import { fixturesByPath } from "../../test/fixtures";
-import {
-  demoNetworkSpaces,
-  demoOkhDetail,
-  demoOkhList,
-  demoOkwDetail,
-  demoOkwSearch,
-} from "./world";
-import { demoModeEnabled } from "./demoMode";
+import { resolveDemoRoute } from "./routes";
+import { DEMO_TOKEN, demoModeEnabled } from "./demoMode";
+import { getToken, setToken } from "../../features/auth/tokenStorage";
 
 /**
  * The demo data source: one fetch wrapper, installed once.
  *
- * The catalog comes from `world.ts`, generated from scripts/seed_demo_data.py,
- * so the toggle shows exactly what `make seed-demo` puts in an instance — a
- * visitor comparing a hosted demo against their own seeded instance must not
- * find two different catalogs.
+ * All the decisions are in `routes.ts` — which request the demo world answers
+ * and with what — so that they can be tested without replacing
+ * `globalThis.fetch`. What is left here is the boundary itself: read the method
+ * and the path off whatever shape the caller passed, hand them over, and turn
+ * the answer back into a `Response`.
  *
- * Everything else falls back to `fixturesByPath`, the sample world the mocked
- * Playwright lane and the MSW unit tests already run against, which covers the
- * settings, identity, package, and supply-tree surfaces the seed dataset has no
- * opinion about. Anything neither map covers falls through to the real network,
- * so an instance that *does* have data still serves it.
+ * The swap happens once, at this boundary, so no component, hook, or query
+ * knows the source changed. Every `if (demo)` avoided is a divergence never
+ * debugged.
  */
 
-function json(value: unknown): Response {
+function json(value: unknown, status = 200): Response {
   return new Response(JSON.stringify(value), {
-    status: 200,
+    status,
     headers: { "content-type": "application/json" },
   });
 }
 
 let installed = false;
 
+/**
+ * Give the demo session a token, so the pages behind the admin gate are
+ * reachable at all.
+ *
+ * `RequireAdmin` gates on a stored token — with none, `whoami` is never asked
+ * and every /settings subtab redirects to the dashboard. So the demo world had
+ * fixtures for keys, accounts, grants, identities, bindings and the rest that
+ * no visitor could ever get to; toggling "Demo data" and clicking Settings
+ * bounced you home.
+ *
+ * This is not a way past authentication. It is only set when the visitor has
+ * explicitly switched the data source to the sample world, and in that mode
+ * `resolveDemoRoute` is the only thing that ever sees the header: no request
+ * leaves the browser, the whoami it answers is a fixture, and every write is
+ * refused. `setDemoMode(false)` clears it before the reload, so the token
+ * cannot outlive the demo and be sent to a real instance.
+ *
+ * It does not overwrite a real key. Someone with a live session who toggles
+ * demo data on and back off keeps the session they arrived with.
+ */
+function seedDemoToken(): void {
+  try {
+    if (!getToken()) setToken(DEMO_TOKEN);
+  } catch {
+    // sessionStorage can be unavailable (private mode, blocked cookies). The
+    // catalogue still works; only the admin subtabs stay out of reach.
+  }
+}
+
 export function installDemoFetch(): void {
   if (installed || typeof window === "undefined") return;
   if (!demoModeEnabled()) return;
   installed = true;
+  seedDemoToken();
 
   const realFetch = globalThis.fetch.bind(globalThis);
 
@@ -49,27 +72,20 @@ export function installDemoFetch(): void {
           ? input.href
           : input.url;
     const { pathname } = new URL(url, window.location.origin);
+    // A Request carries its own method; a string URL leaves it to `init`, and
+    // the default is GET. Reading it from the wrong place is how every write
+    // in demo mode came back as a read of the same path.
+    const method =
+      init?.method ??
+      (typeof input === "object" && "method" in input ? input.method : "GET");
 
-    // Detail routes first: they are parameterised, so they cannot be plain
-    // keys in a lookup table.
-    const okhDetail = pathname.match(/^\/v1\/api\/okh\/([^/]+)$/)?.[1];
-    if (okhDetail && okhDetail in demoOkhDetail) {
-      return json((demoOkhDetail as Record<string, unknown>)[okhDetail]);
+    const route = resolveDemoRoute(method, pathname);
+    if (route.kind === "json") return json(route.body);
+    if (route.kind === "error") {
+      // The envelope the API uses for a refusal, so `errorMessage` reads the
+      // detail out of it exactly as it would from a real instance.
+      return json({ detail: route.detail }, route.status);
     }
-    const okwDetail = pathname.match(/^\/v1\/api\/okw\/([^/]+)$/)?.[1];
-    if (okwDetail && okwDetail in demoOkwDetail) {
-      return json((demoOkwDetail as Record<string, unknown>)[okwDetail]);
-    }
-
-    const seeded: Record<string, unknown> = {
-      "/v1/api/okh": demoOkhList,
-      "/v1/api/okw/search": demoOkwSearch,
-      "/v1/api/okw/spaces": demoNetworkSpaces,
-    };
-    if (pathname in seeded) return json(seeded[pathname]);
-
-    const fixture = fixturesByPath[pathname];
-    if (fixture !== undefined) return json(fixture);
     return realFetch(input, init);
   };
 }
