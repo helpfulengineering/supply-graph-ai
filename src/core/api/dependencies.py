@@ -85,6 +85,29 @@ async def get_optional_user(
     return await get_current_user(auth_header)
 
 
+async def get_viewer(
+    auth_header: Optional[str] = Depends(API_KEY_HEADER),
+) -> Optional[AuthenticatedUser]:
+    """Resolve the caller on a READ endpoint, without ever rejecting them.
+
+    Reads decide *how much* to return rather than whether to answer: an
+    unauthenticated caller gets the shareable subset, a recognised one gets
+    everything. So an unusable credential means "treat as anonymous", not 401 —
+    unlike :func:`get_optional_user`, which fails a supplied-but-invalid header.
+
+    That distinction matters because these endpoints were previously open. A
+    browser holding an expired key would otherwise stop being able to read
+    public data at all, turning a stale token into a site-wide outage for that
+    visitor.
+    """
+    if not auth_header:
+        return None
+    try:
+        return await get_current_user(auth_header)
+    except HTTPException:
+        return None
+
+
 def require_permission(permission: str):
     """Build a dependency that authorizes a mutating request, gated by policy.
 

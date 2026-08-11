@@ -1,0 +1,14 @@
+/* Touch-sized map controls.
+   Leaflet ships 26px zoom buttons (30px once it detects touch itself) — under
+   the 44px a thumb wants, and on a device with no scroll wheel they are the
+   only way to zoom that is not a pinch. Gated on the pointer so the desktop
+   control keeps its compact size. */
+@media (pointer: coarse) {
+  .leaflet-bar a,
+  .leaflet-touch .leaflet-bar a {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    font-size: 22px;
+  }
+}

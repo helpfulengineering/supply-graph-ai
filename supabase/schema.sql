@@ -22,7 +22,10 @@
 --     sessionStorage only
 --   - is_admin can only be granted here in the SQL editor, never from a client
 
-create extension if not exists pgcrypto;
+-- No extensions required. Hashing uses core sha256() (Postgres 11+) rather than
+-- pgcrypto's digest(): on Supabase, pgcrypto is installed into the `extensions`
+-- schema, so `digest` is unresolvable from the SECURITY DEFINER functions below,
+-- which pin `search_path = public` precisely so nothing can be shadowed.
 
 -- ── tables ──────────────────────────────────────────────────────────────────
 
@@ -81,6 +84,8 @@ drop policy if exists "anon can read ohm telemetry (demo)"  on public.ohmgr_tele
 drop policy if exists "anon can insert site_config (demo)"  on public.ohmgr_site_config;
 drop policy if exists "anon can update site_config (demo)"  on public.ohmgr_site_config;
 drop policy if exists "anon can read site_config"           on public.ohmgr_site_config;
+-- and the one this file itself creates, so a re-run replaces rather than fails
+drop policy if exists "anyone can read site_config"         on public.ohmgr_site_config;
 
 -- whitelabel config is public by nature — read-only for everyone
 create policy "anyone can read site_config" on public.ohmgr_site_config
@@ -91,7 +96,7 @@ create policy "anyone can read site_config" on public.ohmgr_site_config
 -- random, e.g. from a password manager. The admin UI will ask for this value.
 --
 --   insert into public.ohmgr_admin_secrets (id, token_hash)
---   values (1, encode(digest('PASTE-A-LONG-RANDOM-TOKEN-HERE', 'sha256'), 'hex'))
+--   values (1, encode(sha256(convert_to('PASTE-A-LONG-RANDOM-TOKEN-HERE', 'UTF8')), 'hex'))
 --   on conflict (id) do update
 --     set token_hash = excluded.token_hash, updated_at = now();
 
@@ -101,7 +106,7 @@ language sql stable security definer set search_path = public
 as $$
   select exists (
     select 1 from ohmgr_admin_secrets
-    where token_hash = encode(digest(coalesce(p_token, ''), 'sha256'), 'hex')
+    where token_hash = encode(sha256(convert_to(coalesce(p_token, ''), 'UTF8')), 'hex')
   );
 $$;
 revoke execute on function public.ohmgr_check_admin(text) from public, anon, authenticated;

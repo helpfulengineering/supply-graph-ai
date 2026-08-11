@@ -6,7 +6,9 @@ import { queryClient, persistOptions } from "@/queryClient";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { useLookInUrl } from "@/hooks/useLookInUrl";
 import { Layout } from "@/components/layout/Layout";
+import { TooltipProvider } from "@/components/ui/Tooltip";
 import { installDemoFetch } from "@/lib/demo/demoFetch";
 import { siteConfig } from "@/lib/site/config";
 
@@ -62,6 +64,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
 function MountedProviders({ children }: { children: ReactNode }) {
   const theme = useDarkMode();
+  useLookInUrl(theme.theme, theme.isDark);
 
   return (
     <ThemeContext.Provider value={theme}>
@@ -70,7 +73,9 @@ function MountedProviders({ children }: { children: ReactNode }) {
         persistOptions={persistOptions}
       >
         <AuthProvider>
-          <Layout>{children}</Layout>
+          <TooltipProvider>
+            <Layout>{children}</Layout>
+          </TooltipProvider>
         </AuthProvider>
       </PersistQueryClientProvider>
     </ThemeContext.Provider>

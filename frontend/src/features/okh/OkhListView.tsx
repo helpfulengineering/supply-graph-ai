@@ -153,7 +153,7 @@ export function OkhListView() {
   const router = useRouter();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <PageHero
@@ -185,12 +185,17 @@ export function OkhListView() {
         </div>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex gap-4 sm:gap-8">
         <aside className="hidden w-60 shrink-0 lg:block">{panel}</aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:gap-3">
+            {/*
+              Search and Filters share a row at every width. Stacked, the two
+              controls plus the view/sort/group row below them spent four rows
+              and most of a phone screen before a single design appeared.
+            */}
+            <div className="flex items-center gap-2 sm:justify-between">
               <input
                 type="search"
                 aria-label="Search designs"
@@ -202,14 +207,14 @@ export function OkhListView() {
               <Button
                 variant="outline"
                 size="sm"
-                className="lg:hidden"
+                className="shrink-0 lg:hidden"
                 onClick={() => setShowFilters((v) => !v)}
               >
                 Filters{selectedCount > 0 ? ` (${selectedCount})` : ""}
               </Button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <ViewToggle view={view} onChange={setView} />
               <SelectControl<CatalogSort>
                 label="Sort by"

@@ -96,6 +96,18 @@ a {
     var(--ttm-text)
   );
 
+  /* Heading ink. Every heading in the app read --foreground, which is near-
+     black in light and near-white in dark — so ten worlds produced two
+     headings, and the one piece of text a reader looks at first was the one
+     piece carrying no world at all.
+
+     A tint, not the accent: at 20% the hue is present and the colour is still
+     unmistakably ink, so the heading reads as text in a world rather than as a
+     link. Small enough that it barely moves the contrast ratio off --ttm-text,
+     which is the value each world already tunes to clear AA — and the twenty-
+     variant axe matrix in e2e/themes.spec.ts is what holds that claim. */
+  --color-heading: color-mix(in srgb, var(--ttm-accent-cta) 20%, var(--ttm-text));
+
   /* Surface steps between --background and --card, for the layered panels the
      app already had (page > section > inset). */
   --color-surface: var(--ttm-surface);

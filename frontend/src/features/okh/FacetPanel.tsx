@@ -6,6 +6,8 @@ import {
   type FacetKey,
   type FacetSelections,
 } from "./facets";
+import { CARD_TITLE, SECTION_LABEL_SM } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   groups: FacetGroup[];
@@ -25,7 +27,7 @@ export function FacetPanel({
   return (
     <nav aria-label="Filters" className="space-y-6 text-sm">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-foreground">Filters</h2>
+        <h2 className={CARD_TITLE}>Filters</h2>
         {selectedCount > 0 && (
           <Button variant="ghost" size="sm" onClick={onClear}>
             Clear all
@@ -37,7 +39,12 @@ export function FacetPanel({
         const selected = selections[group.key] ?? [];
         return (
           <div key={group.key}>
-            <h3 className="mb-2 flex items-center gap-1.5 font-medium text-muted-foreground">
+            <h3
+              className={cn(
+                SECTION_LABEL_SM,
+                "mb-2 flex items-center gap-1.5",
+              )}
+            >
               {group.label}
               {group.key === PRIMARY_FACET && (
                 <span

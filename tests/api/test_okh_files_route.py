@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
+
+from src.core.models.visibility import VisibilityLevel
 from uuid import UUID
 
 import httpx
@@ -55,6 +57,8 @@ async def test_get_okh_enriches_design_file_urls():
     app, api_v1 = _get_app()
     svc = MagicMock()
     svc.get = AsyncMock(return_value=manifest)
+    # Anonymous reads consult visibility before returning a record.
+    svc.get_visibility = AsyncMock(return_value=VisibilityLevel.PUBLIC)
     api_v1.dependency_overrides[get_okh_service] = lambda: svc
 
     try:

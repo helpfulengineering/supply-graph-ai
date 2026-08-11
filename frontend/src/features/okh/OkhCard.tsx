@@ -7,6 +7,8 @@ import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "./categories";
 import { formatOkhDisplayTitle } from "./formatOkhDisplayTitle";
 import { normalizeHardwareLicense } from "./normalizeHardwareLicense";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   okh: OkhManifest;
@@ -42,7 +44,12 @@ export function OkhCard({ okh }: Props) {
         href={`/okh/${okh.id}`}
         className="flex flex-1 flex-col gap-3 p-5 no-underline"
       >
-        <h3 className="font-semibold text-foreground group-hover:text-primary-ink transition-colors break-words">
+        <h3
+          className={cn(
+            CARD_TITLE,
+            "break-words transition-colors group-hover:text-primary-ink",
+          )}
+        >
           {title}
         </h3>
 

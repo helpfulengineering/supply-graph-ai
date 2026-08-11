@@ -1,13 +1,34 @@
-import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import "./networkMap.css";
 import type { NetworkSpace } from "../../api/ohm/network";
 import { SOURCE_STYLES, sourceColor } from "./networkSummary";
+import { denseBounds, fillZoom, fitPadding } from "./mapFraming";
 import { displayCountryName } from "../match/geoDisplay";
+
+/**
+ * `leaflet.markercluster` ships no type definitions — its dist folder contains
+ * a file named WhereAreTheJavascriptFiles.txt and no .d.ts — and it augments
+ * the L namespace at runtime. The two members used here are named rather than
+ * reached for through `any`, which is the whole difference between "untyped
+ * dependency" and "untyped code".
+ */
+interface ClusterGroup extends L.Layer {
+  addLayers(layers: L.Layer[]): this;
+  clearLayers(): this;
+}
+interface WithMarkerCluster {
+  MarkerClusterGroup: new () => ClusterGroup;
+}
+function markerClusterGroup(): ClusterGroup {
+  const { MarkerClusterGroup } = L as unknown as WithMarkerCluster;
+  return new MarkerClusterGroup();
+}
 
 // Vector div-icons (a colored dot) avoid Leaflet's broken default-marker asset
 // paths under Vite, are colorable by source, and are still real L.Markers so
@@ -37,53 +58,213 @@ function dotIcon(source: NetworkSpace["source"]): L.DivIcon {
   return _iconCache[key]!;
 }
 
+/**
+ * The popup for one space, built when it is opened rather than when the map is
+ * drawn.
+ *
+ * Composed with textContent, not an HTML string: these names and cities come
+ * from federated peers, so they are user-supplied text and must reach the DOM
+ * as text.
+ */
+function popupContent(space: NetworkSpace): HTMLElement {
+  const root = document.createElement("div");
+
+  const name = document.createElement("strong");
+  name.textContent = space.name;
+  root.append(name, document.createElement("br"));
+
+  const source = document.createElement("span");
+  source.textContent = SOURCE_STYLES[space.source].label;
+  root.append(source);
+
+  if (space.city) {
+    const place = document.createElement("span");
+    place.textContent = [
+      space.city,
+      space.country ? displayCountryName(space.country) : null,
+    ]
+      .filter(Boolean)
+      .join(", ");
+    root.append(document.createElement("br"), place);
+  }
+
+  return root;
+}
+
+/**
+ * Every space as one clustered marker layer, built imperatively.
+ *
+ * This was 3,202 <Marker> elements each wrapping a <Popup>, and the cost was
+ * measurable: mounting the map blocked the main thread for ~390ms in two long
+ * tasks, on the dashboard at load and again on every switch into map view.
+ * Almost none of that was Leaflet. It was React creating and reconciling four
+ * elements per space, and react-leaflet rendering 3,202 popup bodies for the
+ * at most one a visitor ever opens.
+ *
+ * The markers are not interactive React content — they are a projection of an
+ * array onto a canvas-like layer — so they are built directly, and the popup
+ * body is deferred to a function Leaflet calls on open. Same clustering (the
+ * plugin underneath react-leaflet-cluster), same icons, no React in the
+ * per-space path.
+ */
+function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
+  const map = useMap();
+  useEffect(() => {
+    const markers = spaces.map((space) => {
+      const marker = L.marker([space.lat, space.lon], {
+        icon: dotIcon(space.source),
+        title: space.name,
+        alt: space.name,
+      });
+      marker.bindPopup(() => popupContent(space));
+      return marker;
+    });
+
+    // addLayers, not addLayer in a loop, and no chunked loading. Chunked
+    // loading spreads the insert across animation frames, which puts it in a
+    // race with the fit below — and losing that race is silent: the cluster
+    // tree is built against a zoom that changed underneath it and the layer
+    // comes up holding a handful of the 3,202 markers. The bulk insert is one
+    // synchronous pass with nothing to interleave with.
+    const group = markerClusterGroup();
+    group.addLayers(markers);
+    map.addLayer(group);
+
+    return () => {
+      map.removeLayer(group);
+      group.clearLayers();
+    };
+  }, [map, spaces]);
+  return null;
+}
+
 /** Fit the viewport to the loaded spaces whenever the set changes. */
 function FitBounds({ spaces }: { spaces: NetworkSpace[] }) {
   const map = useMap();
   useEffect(() => {
     if (spaces.length === 0) return;
-    const bounds = L.latLngBounds(spaces.map((s) => [s.lat, s.lon] as [number, number]));
-    map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) return;
+
+    const pad = fitPadding(size.x, size.y);
+    const floor = fillZoom(size.x, size.y);
+    const full = L.latLngBounds(
+      spaces.map((s) => [s.lat, s.lon] as [number, number]),
+    );
+    // A worldwide set fits a desktop panel at zoom 2 and a phone only at zoom
+    // 0 — a 256px world adrift in grey, which is what "loads zoomed way out"
+    // is. When the whole extent cannot be framed at a zoom that at least fills
+    // the container, frame where the network is densest instead and leave the
+    // rest one pinch away: the floor below is exactly the zoom that shows as
+    // much of the world as the container can hold.
+    //
+    // Measured with the floor lifted: getBoundsZoom clamps its answer to the
+    // map's current minZoom, so once a previous run has raised it, every later
+    // run is told the world fits — a background refetch was enough to undo the
+    // framing and leave the phone back at a whole-world view.
+    map.setMinZoom(0);
+    const fits = map.getBoundsZoom(full, false, L.point(pad, pad)) >= floor;
+    // Raised before fitting so fitBounds clamps to it rather than being undone.
+    map.setMinZoom(floor);
+    map.fitBounds(fits ? full : L.latLngBounds(denseBounds(spaces)), {
+      padding: [pad, pad],
+      maxZoom: 12,
+    });
   }, [map, spaces]);
+
+  // A phone rotated to landscape is a differently-shaped container, and the
+  // floor computed for the portrait one would let it zoom back out into grey.
+  useEffect(() => {
+    const onResize = () => {
+      const size = map.getSize();
+      if (size.x > 0 && size.y > 0) map.setMinZoom(fillZoom(size.x, size.y));
+    };
+    map.on("resize", onResize);
+    return () => {
+      map.off("resize", onResize);
+    };
+  }, [map]);
+
   return null;
 }
 
+/**
+ * One finger scrolls the page, two fingers move the map.
+ *
+ * Leaflet's default — one-finger drag pans — makes a map embedded in a
+ * scrolling page a trap on a phone: on the dashboard the map is the first
+ * thing under the heading, so the swipe that meant "scroll down" drags the map
+ * and the page never moves. Dropping the drag handler hands that gesture back
+ * to the browser (Leaflet's own CSS switches the container to
+ * `touch-action: pan-x pan-y` the moment dragging is off) and leaves panning
+ * on the two-finger gesture, which its touch-zoom handler already re-centres
+ * on the moving midpoint.
+ *
+ * Gated on the pointer, not the user agent: a narrow desktop window is not a
+ * touch device, and that is the width the responsive lane measures.
+ */
+function TouchGestures({ onOneFinger }: { onOneFinger: () => void }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!window.matchMedia("(pointer: coarse)").matches) return;
+    map.dragging.disable();
+    const el = map.getContainer();
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1) onOneFinger();
+    };
+    el.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      el.removeEventListener("touchmove", onTouchMove);
+      map.dragging.enable();
+    };
+  }, [map, onOneFinger]);
+  return null;
+}
+
+/** A flag that raises itself on demand and lowers itself a moment later. */
+function useTransientFlag(ms: number): [boolean, () => void] {
+  const [on, setOn] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const raise = useCallback(() => {
+    setOn(true);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setOn(false), ms);
+  }, [ms]);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+  return [on, raise];
+}
+
 export function NetworkMap({ spaces }: { spaces: NetworkSpace[] }) {
+  const [showHint, raiseHint] = useTransientFlag(2400);
   return (
-    <MapContainer center={[20, 0]} zoom={2} scrollWheelZoom className="h-full w-full">
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {/* Re-key on the space count so the cluster layer rebuilds when data changes. */}
-      <MarkerClusterGroup key={spaces.length} chunkedLoading>
-        {spaces.map((s) => (
-          <Marker
-            key={`${s.source}-${s.id}`}
-            position={[s.lat, s.lon]}
-            icon={dotIcon(s.source)}
-            title={s.name}
-            alt={s.name}
-          >
-            <Popup>
-              <strong>{s.name}</strong>
-              <br />
-              <span>{SOURCE_STYLES[s.source].label}</span>
-              {s.city && (
-                <>
-                  <br />
-                  <span>
-                    {[s.city, s.country ? displayCountryName(s.country) : null]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </span>
-                </>
-              )}
-            </Popup>
-          </Marker>
-        ))}
-      </MarkerClusterGroup>
-      <FitBounds spaces={spaces} />
-    </MapContainer>
+    <div className="relative h-full w-full">
+      <MapContainer
+        center={[20, 0]}
+        zoom={2}
+        scrollWheelZoom
+        className="h-full w-full"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <SpaceMarkers spaces={spaces} />
+        <FitBounds spaces={spaces} />
+        <TouchGestures onOneFinger={raiseHint} />
+      </MapContainer>
+      {showHint && (
+        <p
+          role="status"
+          className="pointer-events-none absolute inset-x-4 bottom-4 z-[1000] rounded-md border border-border bg-card/95 px-3 py-2 text-center text-sm text-foreground shadow-md"
+        >
+          Use two fingers to move the map
+        </p>
+      )}
+    </div>
   );
 }

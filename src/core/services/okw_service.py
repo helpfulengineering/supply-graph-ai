@@ -18,6 +18,7 @@ from ..models.visibility import (
     DEFAULT_VISIBILITY,
     LEGACY_VISIBILITY,
     VisibilityLevel,
+    is_shareable,
 )
 from ..storage.disclosure_store import DisclosureStore
 from ..storage.provenance_store import ProvenanceStore
@@ -579,6 +580,8 @@ class OKWService(BaseService["OKWService"]):
         page: int = 1,
         page_size: int = 100,
         filter_params: Optional[Dict[str, Any]] = None,
+        *,
+        include_private: bool = True,
     ) -> Tuple[List[ManufacturingFacility], int]:
         """List manufacturing facilities found under the ``okw/`` prefix.
 
@@ -595,6 +598,10 @@ class OKWService(BaseService["OKWService"]):
             page: 1-based page index.
             page_size: Page length.
             filter_params: Reserved for future server-side filtering.
+            include_private: When False, drop records whose visibility is not
+                shareable. Filtering happens before pagination so ``total`` and
+                the page contents agree; doing it in the caller would return
+                short pages against an inflated count.
         """
         await self.ensure_initialized()
         logger.info(
@@ -668,6 +675,8 @@ class OKWService(BaseService["OKWService"]):
 
         # Convert dict values to list and apply pagination
         unique_facilities = list(facilities_by_id.values())
+        if not include_private:
+            unique_facilities = await self.filter_shareable(unique_facilities)
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
         paginated_facilities = unique_facilities[start_idx:end_idx]
@@ -677,6 +686,21 @@ class OKWService(BaseService["OKWService"]):
         )
 
         return paginated_facilities, len(unique_facilities)
+
+    async def filter_shareable(
+        self, facilities: List[ManufacturingFacility]
+    ) -> List[ManufacturingFacility]:
+        """Drop records that must not be served to an unauthenticated caller.
+
+        ``private`` is the create default, so this is the difference between a
+        facility staying on the instance and its address being readable by
+        anyone who asks.
+        """
+        allowed: List[ManufacturingFacility] = []
+        for facility in facilities:
+            if is_shareable(await self.get_visibility(facility.id)):
+                allowed.append(facility)
+        return allowed
 
     async def list_facilities(
         self,

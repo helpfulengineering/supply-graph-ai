@@ -4,9 +4,9 @@ import ReactECharts from "echarts-for-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useChartTokens } from "../../lib/chartTokens";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { NARROW, useMediaQuery } from "../../hooks/useMediaQuery";
+import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
 import { PANEL } from "../../components/ui/surface";
-import { BODY_MUTED } from "../../components/ui/typography";
 import { cn } from "@/lib/utils";
 import type { Row } from "./networkStats";
 
@@ -65,6 +65,7 @@ export function NetworkBarChart({
   noun = "rows",
 }: NetworkBarChartProps) {
   const t = useChartTokens();
+  const narrow = useMediaQuery(NARROW);
   const router = useRouter();
   if (rows.length === 0) return null;
 
@@ -84,15 +85,24 @@ export function NetworkBarChart({
       textStyle: { color: t.text },
     },
     grid: { left: 8, right: 28, top: 8, bottom: 4, containLabel: true },
+    // On a phone the value axis is noise twice over: its ticks collide into an
+    // unreadable run ("0 5001 0001 500"), and every bar already carries its own
+    // number at the end. Gridlines that cross the labels cost legibility for
+    // precision nobody reads off a 360px chart.
     xAxis: {
       type: "value",
-      splitLine: { lineStyle: { color: t.border } },
+      show: !narrow,
+      splitLine: { show: !narrow, lineStyle: { color: t.border } },
       axisLabel: { color: t.textFaint },
     },
     yAxis: {
       type: "category",
       data: ordered.map((r) => r.label),
-      axisLabel: { color: t.textMuted, width: 130, overflow: "truncate" },
+      axisLabel: {
+        color: t.textMuted,
+        width: narrow ? 96 : 130,
+        overflow: "truncate",
+      },
       axisLine: { lineStyle: { color: t.border } },
       axisTick: { show: false },
       // The name is as much a target as the bar it belongs to.
@@ -104,7 +114,12 @@ export function NetworkBarChart({
         data: ordered.map((r) => r.value),
         itemStyle: { color: colour, borderRadius: [0, 3, 3, 0] },
         barMaxWidth: 18,
-        label: { show: true, position: "right", color: t.textMuted, fontSize: 11 },
+        label: {
+          show: true,
+          position: "right",
+          color: t.textMuted,
+          fontSize: t.fontSizeCaption,
+        },
         cursor: hrefFor ? "pointer" : "default",
       },
     ],
@@ -162,7 +177,12 @@ export function NetworkBarChart({
       */}
       {hrefFor && (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <summary
+            className={cn(
+              CAPTION,
+              "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            )}
+          >
             All {rows.length.toLocaleString()} {noun} as links
           </summary>
           <ul className={cn(SCROLLABLE, "mt-1 max-h-48 space-y-0.5 text-sm")}>

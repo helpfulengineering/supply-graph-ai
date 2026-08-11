@@ -146,6 +146,11 @@ for that recipe and its limits.
 A fresh instance talks to nobody. It holds your records, serves your users, and
 makes no outbound connections to peers.
 
+(The hosted instance at openhardwaremanager.org is configured differently: it
+answers federation *reads* so other nodes can identify it and see its public
+catalog. It still follows nobody and syncs from nobody. That is a choice made
+for that deployment, not the default you get here.)
+
 Turn it on only when you actually intend to connect to other instances — at which
 point you decide who to follow, and what leaves your instance, per record. See
 [federation and sovereignty](../about/federation-and-sovereignty.md) and

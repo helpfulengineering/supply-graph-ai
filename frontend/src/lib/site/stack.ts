@@ -56,10 +56,21 @@ const OPERATOR_KEY = "ohm_site_operator";
 const FLUSH_MS = 4000;
 const MAX_BATCH = 25;
 
-interface TelemetryEvent {
+/**
+ * One event as ohmgr_track reads it.
+ *
+ * The key names are the RPC's, not the client's: supabase/schema.sql reads
+ * session_id / page / visitor_email and inserts them into columns of those
+ * names. They are optional because an absent key stores NULL, while an empty
+ * string stores an empty string — and the readers cannot tell the latter from
+ * a real value.
+ */
+export interface TelemetryEvent {
   event: string;
   props: Record<string, unknown>;
-  session: string;
+  session_id?: string;
+  page?: string;
+  visitor_email?: string;
   ts: string;
 }
 
@@ -118,6 +129,15 @@ function sessionId(): string {
       sessionStorage.setItem(SESSION_KEY, id);
     }
     return id;
+  } catch {
+    return "";
+  }
+}
+
+function currentPath(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return window.location.pathname;
   } catch {
     return "";
   }
@@ -191,9 +211,49 @@ function isMissingSchema(error: unknown): boolean {
   return code === "PGRST202" || code === "404" || /not exist|not found/i.test(message ?? "");
 }
 
+export interface TelemetryContext {
+  sessionId: string;
+  page: string;
+  visitor: Visitor | null;
+  ts: string;
+}
+
+/**
+ * Builds one wire event for ohmgr_track.
+ *
+ * `ts` is carried for ordering but the RPC ignores it — the column default
+ * now() is authoritative, and flush latency is capped at FLUSH_MS, so a
+ * client-supplied timestamp would buy four seconds of accuracy at the cost of
+ * letting a client backdate rows.
+ *
+ * visitor_email is lowercased and trimmed to match how ohmgr_gate_signin
+ * stores it. ohmgr_delete_own erases telemetry with `where visitor_email = e`,
+ * so a row written in another case is a row "erase everything attributed to
+ * me" silently misses.
+ */
+export function buildTelemetryEvent(
+  event: string,
+  props: Record<string, unknown>,
+  ctx: TelemetryContext,
+): TelemetryEvent {
+  const e: TelemetryEvent = { event, props, ts: ctx.ts };
+  if (ctx.sessionId) e.session_id = ctx.sessionId;
+  if (ctx.page) e.page = ctx.page;
+  const email = ctx.visitor?.email.trim().toLowerCase();
+  if (email) e.visitor_email = email;
+  return e;
+}
+
 export function track(event: string, props: Record<string, unknown> = {}): void {
   if (!siteConfig.enabled || schemaMissing) return;
-  queue.push({ event, props, session: sessionId(), ts: new Date().toISOString() });
+  queue.push(
+    buildTelemetryEvent(event, props, {
+      sessionId: sessionId(),
+      page: currentPath(),
+      visitor: visitor(),
+      ts: new Date().toISOString(),
+    }),
+  );
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => void flush(), FLUSH_MS);
 }
