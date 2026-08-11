@@ -16,7 +16,7 @@ const SOURCE_URL = `${REPO}/tree/${BRANCH}`;
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="border-t border-border bg-card/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-3 text-sm text-muted-foreground sm:justify-between sm:px-6">
         {/* The wordmark's one home. The header carries the mark alone, because
             on the dashboard a bar wordmark would sit directly above an h1

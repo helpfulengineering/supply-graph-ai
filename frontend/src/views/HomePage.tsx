@@ -79,13 +79,7 @@ function StatCard({
   );
 }
 
-function LegendDot({
-  color,
-  label,
-}: {
-  color: string;
-  label: string;
-}) {
+function LegendDot({ color, label }: { color: string; label: string }) {
   return (
     <span className={cn(CAPTION, "inline-flex items-center gap-1.5")}>
       {/*
@@ -182,10 +176,7 @@ export function HomePage() {
                 color={colors.local}
                 label={SOURCE_STYLES.local.label}
               />
-              <LegendDot
-                color={colors.mom}
-                label={SOURCE_STYLES.mom.label}
-              />
+              <LegendDot color={colors.mom} label={SOURCE_STYLES.mom.label} />
               {m.dropped_no_coords > 0 && (
                 <LegendDot
                   color={colors.unplotted}
@@ -236,8 +227,14 @@ export function HomePage() {
         border, a margin and 16px of padding each to carry a number and a
         glyph — the whole band below the map for four values that fit on one
         line. They are a readout, not four sections.
+
+        It does get a surface, though — the same 90% glass every panel on the
+        page now carries. Without one this band was the only content sitting
+        directly on the blueprint grid, so four large figures read against a
+        ruling while everything above and below them rested on a sheet. Still
+        no boxes: one surface for the row, not four.
       */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-panel-border bg-card/90 px-3 py-2 backdrop-blur-md">
         <StatCard
           icon={SmartFactoryIcon}
           label="OHM facilities"

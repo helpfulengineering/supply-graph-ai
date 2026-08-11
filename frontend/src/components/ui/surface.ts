@@ -1,6 +1,18 @@
 /**
  * Canonical panel surfaces.
  *
+ * GLASS, NOT PAINT. Every panel here is 90% card over a backdrop blur rather
+ * than a solid fill. The page now carries a blueprint grid on `body`, and an
+ * opaque panel sitting on it is a card that has punched a hole in the paper —
+ * ten percent of the ground showing through, blurred, is what makes the panel
+ * read as resting ON the page instead of replacing a rectangle of it.
+ *
+ * The blur is what keeps that honest. Translucency alone would let the grid's
+ * hard 1px ruling run straight under the text; blurring the backdrop turns it
+ * into a wash, so the surface stays quiet enough to read on. Where a browser
+ * does not support `backdrop-filter` the 90% fill degrades to very nearly the
+ * old opaque panel, which is the correct fallback.
+ *
  * The companion to `field.ts`, and the same problem one level up: Phase 7 of
  * the overhaul collapsed six spellings of one form control onto one, but the
  * *panel* — the bordered box almost every section is drawn in — was never
@@ -38,14 +50,15 @@
  * inside is set to.
  */
 export const PANEL =
-  "rounded-lg border border-panel-border bg-card px-3 py-2.5 sm:px-4 sm:py-3";
+  "rounded-lg border border-panel-border bg-card/90 backdrop-blur-md px-3 py-2.5 sm:px-4 sm:py-3";
 
 /**
  * PANEL with no padding of its own, for a card that draws its own divisions —
  * a titled header rule over a chart or a link list. The three visualization
  * cards had all spelled it out inline, one of them differently.
  */
-export const PANEL_FLUSH = "rounded-lg border border-panel-border bg-card";
+export const PANEL_FLUSH =
+  "rounded-lg border border-panel-border bg-card/90 backdrop-blur-md";
 
 /** The titled header rule inside a PANEL_FLUSH card. */
 export const PANEL_HEADER = "border-b border-border px-5 py-3";
@@ -58,7 +71,7 @@ export const PANEL_BODY = "p-4";
  * One step down in radius and padding so nesting reads as depth rather than
  * as two cards that happen to touch.
  */
-export const PANEL_INSET = "rounded-lg border border-border bg-background p-3";
+export const PANEL_INSET = "rounded-lg border border-border bg-background/90 backdrop-blur-md p-3";
 
 /** A quieter panel for supporting detail that should recede. */
 export const PANEL_MUTED =

@@ -149,7 +149,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const { isAdmin, token } = useAuth();
   const site = useSiteLayer();
   const { isDark, toggle, theme, setTheme, themes, shareUrl } = useTheme();
-  const swatches = useThemeSwatches();
+  // Only while the picker is on screen — see the hook: resolving costs ten
+  // forced style recalcs, and a closed drawer has nothing to draw with them.
+  const swatches = useThemeSwatches(open);
   const queryClient = useQueryClient();
   const isFetching = useIsFetching() > 0;
   const panelRef = useRef<HTMLDivElement>(null);
