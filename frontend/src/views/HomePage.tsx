@@ -24,12 +24,14 @@ import { PANEL } from "../components/ui/surface";
 import { Tooltip } from "../components/ui/Tooltip";
 import { cn } from "@/lib/utils";
 import {
+  CAPTION,
   SECTION_LABEL_SM,
   SECTION_TITLE,
   STAT_VALUE,
 } from "../components/ui/typography";
 import {
   buildNetworkSummary,
+  unplottedColor,
   SOURCE_STYLES,
   sourceColor,
 } from "../features/network/networkSummary";
@@ -60,13 +62,7 @@ function StatCard({
       tabIndex={0}
       role="group"
       aria-label={`${label}: ${value}`}
-      className={cn(
-        PANEL,
-        // Vertical padding pulled off PANEL: these cards are one line of
-        // content, and the panel's 12/16px top and bottom made a row of four
-        // short figures twice as tall as it needed to be.
-        "flex w-full items-center gap-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-      )}
+      className="flex items-center gap-2 rounded-md px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* The world's accent as ink, not a flat grey: the figure beside it
           already carries the theme, and a muted icon read as a disabled
@@ -84,15 +80,31 @@ function StatCard({
   );
 }
 
-function LegendDot({ source }: { source: "local" | "mom" }) {
+function LegendDot({
+  color,
+  label,
+}: {
+  color: string;
+  label: string;
+}) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+    <span className={cn(CAPTION, "inline-flex items-center gap-1.5")}>
+      {/*
+        Lit, not printed. The dot is the key to the map's two colours and it
+        was a flat 10px circle next to grey text — the same hue the markers
+        use, with none of their presence. The halo is the source colour at 45%,
+        which is decoration and carries no contrast requirement, so it can use
+        the undiluted colour the label beside it could not.
+      */}
       <span
         className="h-2.5 w-2.5 rounded-full"
-        style={{ backgroundColor: sourceColor(source) }}
+        style={{
+          backgroundColor: color,
+          boxShadow: `0 0 8px color-mix(in srgb, ${color} 45%, transparent)`,
+        }}
         aria-hidden="true"
       />
-      {SOURCE_STYLES[source].label}
+      {label}
     </span>
   );
 }
@@ -115,7 +127,7 @@ export function HomePage() {
   const m = map.data;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       <div>
         <PageHero
           title="Open Hardware Manager"
@@ -123,19 +135,18 @@ export function HomePage() {
         />
       </div>
 
-      {/* Hero: the manufacturing network map. */}
-      <section aria-labelledby="network-heading">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 id="network-heading" className={SECTION_TITLE}>
-            Manufacturing network
-          </h2>
-          <div className="flex gap-3">
-            <LegendDot source="local" />
-            <LegendDot source="mom" />
-          </div>
-        </div>
-
-        <div className="h-[440px] overflow-hidden rounded-xl border border-border">
+      {/*
+        Hero: the manufacturing network map, straight under the page title.
+        Named by aria-label rather than a visible heading — a title reading
+        "Manufacturing network" above a map of the manufacturing network is a
+        caption for something that needs no caption, and it pushed the map down
+        the fold. The landmark keeps its name for anyone navigating by one.
+      */}
+      <section aria-label="Manufacturing network">
+        {/* `relative` here and not on the section: the section also holds the
+            summary line under the map, so anchoring to it put the legend at
+            the bottom of both. */}
+        <div className="relative h-[440px] overflow-hidden rounded-lg border border-panel-border">
           {map.isLoading && <LoadingState message="Loading the network map…" />}
           {map.isError && (
             <ErrorState
@@ -150,6 +161,66 @@ export function HomePage() {
           {m && !map.isLoading && !map.isError && (
             <NetworkMap spaces={m.spaces} />
           )}
+
+          {/*
+            The key, on the map it describes. In the heading row it aligned to
+            nothing — the right edge of a container the map did not share — and
+            asked the reader to carry two colours down the page. Here each dot
+            sits beside the dots it names.
+
+            Bottom-right, lifted clear of Leaflet's attribution, which owns
+            that corner. `pointer-events-none` so it never takes a click meant
+            for a marker underneath, and a z-index above the tile and marker
+            panes but below the zoom control.
+          */}
+          {m && !map.isLoading && !map.isError && (
+            <div
+              className="pointer-events-none absolute bottom-7 right-2 flex gap-3 rounded-md border border-panel-border bg-card/90 px-2 py-1"
+              style={{ zIndex: 500 }}
+            >
+              <LegendDot
+                color={sourceColor("local")}
+                label={SOURCE_STYLES.local.label}
+              />
+              <LegendDot
+                color={sourceColor("mom")}
+                label={SOURCE_STYLES.mom.label}
+              />
+              {m.dropped_no_coords > 0 && (
+                <LegendDot
+                  color={unplottedColor()}
+                  label="Without coordinates"
+                />
+              )}
+            </div>
+          )}
+
+          {/*
+            The spaces the map cannot plot, drawn on the map anyway.
+
+            They are in every count and at no coordinate, so a key entry alone
+            described a colour that appeared nowhere. A bucket pinned to the
+            corner gives them the one position that is honest — off the map,
+            still on it — and puts the key's third colour where a reader can
+            match it. Sized and shaped like a cluster, because that is what it
+            is: a group of spaces that do not resolve to a point.
+          */}
+          {m && !map.isLoading && !map.isError && m.dropped_no_coords > 0 && (
+            <span
+              title={`${m.dropped_no_coords.toLocaleString()} ${
+                m.dropped_no_coords === 1 ? "space has" : "spaces have"
+              } no coordinates and cannot be placed`}
+              className="absolute bottom-7 left-2 flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs font-semibold tabular-nums"
+              style={{
+                zIndex: 500,
+                backgroundColor: unplottedColor(),
+                color: "var(--card)",
+                boxShadow: `0 0 0 2px color-mix(in srgb, ${unplottedColor()} 35%, transparent)`,
+              }}
+            >
+              {m.dropped_no_coords.toLocaleString()}
+            </span>
+          )}
         </div>
 
         {m && (
@@ -160,9 +231,13 @@ export function HomePage() {
       </section>
 
       {/* Network + system stats. */}
-      {/* Two-up from the narrowest width: these are four short figures, and one
-          per row turned the most scannable thing on the page into a scroll. */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      {/*
+        One row, no boxes. Four short figures in four bordered cards spent a
+        border, a margin and 16px of padding each to carry a number and a
+        glyph — the whole band below the map for four values that fit on one
+        line. They are a readout, not four sections.
+      */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <StatCard
           icon={SmartFactoryIcon}
           label="OHM facilities"
@@ -211,12 +286,12 @@ export function HomePage() {
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <GettingStarted />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <section aria-labelledby="system-heading">
             <h2 id="system-heading" className={cn(SECTION_TITLE, "mb-3")}>
               System

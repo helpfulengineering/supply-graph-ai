@@ -64,7 +64,7 @@ export function PageHero({
   const tone = accent ?? resolved?.group.accent ?? "text-muted-foreground";
 
   return (
-    <header className="mb-4">
+    <header className="mb-3">
       {breadcrumb && (
         <nav
           aria-label="Breadcrumb"

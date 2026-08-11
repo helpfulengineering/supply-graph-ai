@@ -22,13 +22,24 @@ interface ClusterGroup extends L.Layer {
   addLayers(layers: L.Layer[]): this;
   clearLayers(): this;
 }
+/** What `iconCreateFunction` is handed: the cluster, and what is inside it. */
+interface Cluster {
+  getChildCount(): number;
+  getAllChildMarkers(): SourcedMarker[];
+}
+interface ClusterOptions {
+  iconCreateFunction(cluster: Cluster): L.DivIcon;
+}
 interface WithMarkerCluster {
-  MarkerClusterGroup: new () => ClusterGroup;
+  MarkerClusterGroup: new (options: ClusterOptions) => ClusterGroup;
 }
-function markerClusterGroup(): ClusterGroup {
+function markerClusterGroup(options: ClusterOptions): ClusterGroup {
   const { MarkerClusterGroup } = L as unknown as WithMarkerCluster;
-  return new MarkerClusterGroup();
+  return new MarkerClusterGroup(options);
 }
+
+/** A marker that remembers which source it came from, for the cluster colour. */
+type SourcedMarker = L.Marker & { ohmSource?: NetworkSpace["source"] };
 
 // Vector div-icons (a colored dot) avoid Leaflet's broken default-marker asset
 // paths under Vite, are colorable by source, and are still real L.Markers so
@@ -56,6 +67,53 @@ function dotIcon(source: NetworkSpace["source"]): L.DivIcon {
     });
   }
   return _iconCache[key]!;
+}
+
+/**
+ * A cluster bubble, drawn in the colour of what is inside it.
+ *
+ * The plugin ships its own green/amber/orange palette keyed to how many points
+ * a bubble holds. That put three colours on a map whose key names two, none of
+ * them matching either — the legend described markers the reader could barely
+ * find among the bubbles, and the bubbles encoded a quantity the number in the
+ * middle already gives. Size carries the count; colour carries the source,
+ * which is the one thing the key is about.
+ *
+ * A cluster holding any local facility is drawn as local. Majority would be
+ * the obvious rule and is the wrong one here: an instance has nine facilities
+ * against three thousand federated spaces, so local never wins a bubble and
+ * the key's first colour never appears on the map at all. The question this
+ * map answers is "where are ours", and the rare thing has to survive being
+ * grouped with the common one.
+ */
+function clusterIcon(cluster: Cluster): L.DivIcon {
+  const count = cluster.getChildCount();
+  const hasLocal = cluster
+    .getAllChildMarkers()
+    .some((marker) => marker.ohmSource === "local");
+  const color = sourceColor(hasLocal ? "local" : "mom");
+
+  // Area, not radius, tracks the count: doubling the points should look like
+  // twice as much, and a linear radius makes a 2,000-point bubble swallow the
+  // continent it sits on. Clamped either end so a pair is still hittable and a
+  // continent-sized cluster stays a marker.
+  const size = Math.round(
+    Math.min(56, Math.max(28, 24 + Math.sqrt(count) * 2.2)),
+  );
+
+  return L.divIcon({
+    className: "ohm-cluster",
+    html:
+      `<span style="display:flex;align-items:center;justify-content:center;` +
+      `width:${size}px;height:${size}px;border-radius:9999px;` +
+      `background:${color};color:var(--ttm-on-accent);` +
+      `border:2px solid var(--card);` +
+      `box-shadow:0 0 0 2px color-mix(in srgb, ${color} 35%, transparent);` +
+      `font:600 ${size < 34 ? 11 : 12}px/1 var(--ttm-font-sans);` +
+      `">${count.toLocaleString()}</span>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
 }
 
 /**
@@ -111,11 +169,14 @@ function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
   const map = useMap();
   useEffect(() => {
     const markers = spaces.map((space) => {
-      const marker = L.marker([space.lat, space.lon], {
+      const marker: SourcedMarker = L.marker([space.lat, space.lon], {
         icon: dotIcon(space.source),
         title: space.name,
         alt: space.name,
       });
+      // Stashed on the marker so a cluster can colour itself by what it holds
+      // without a second lookup structure to keep in step with the layer.
+      marker.ohmSource = space.source;
       marker.bindPopup(() => popupContent(space));
       return marker;
     });
@@ -126,7 +187,7 @@ function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
     // tree is built against a zoom that changed underneath it and the layer
     // comes up holding a handful of the 3,202 markers. The bulk insert is one
     // synchronous pass with nothing to interleave with.
-    const group = markerClusterGroup();
+    const group = markerClusterGroup({ iconCreateFunction: clusterIcon });
     group.addLayers(markers);
     map.addLayer(group);
 

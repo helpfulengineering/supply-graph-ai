@@ -18,6 +18,24 @@ export function sourceColor(source: NetworkSource): string {
 }
 
 /**
+ * The ink for spaces the map cannot plot — the ones with no coordinates.
+ *
+ * They are in the counts and nowhere on the map, which is the one thing a
+ * reader cannot work out from looking at it. A key entry in a colour that
+ * appears nowhere else says "these exist and are not here", which is honest;
+ * giving them a marker would not be.
+ *
+ * Kept beside `sourceColor` because the map and the legend must not be able to
+ * disagree about a colour.
+ */
+export function unplottedColor(): string {
+  if (typeof window === "undefined") return "";
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue("--ttm-text-secondary")
+    .trim();
+}
+
+/**
  * Human-readable one-line summary of the network's point set (pure, unit-tested).
  * Communicates coverage + the two graceful-degradation cases: local facilities
  * dropped for missing coordinates, and MoM being unavailable.
