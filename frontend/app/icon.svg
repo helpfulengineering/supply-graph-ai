@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="OHM">
+  <!-- Iridescent pearl mark, tuned for dark browser chrome: the dark ground is
+       baked in so the glyph reads on a dark tab strip, where a transparent
+       favicon would leave the letterform fighting the browser's own bar.
+       Stops mirror the ttm-irid ramp in styles/tokens.css; SVG favicons cannot
+       read CSS variables, so these are the one deliberate exception to the
+       tokens-only rule, and the two must be changed together. -->
+  <defs>
+    <linearGradient id="pearl" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff9a9e" />
+      <stop offset="25%" stop-color="#fecfef" />
+      <stop offset="50%" stop-color="#a1c4fd" />
+      <stop offset="75%" stop-color="#c2e9fb" />
+      <stop offset="100%" stop-color="#d4fc79" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0f0b08" />
+  <!-- Omega: the unit the project is named for, drawn as a stroked arc with
+       two feet rather than a glyph, so it renders identically without fonts. -->
+  <path
+    d="M20 46 h8 v-4 a16 16 0 1 1 8 0 v4 h8"
+    fill="none"
+    stroke="url(#pearl)"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

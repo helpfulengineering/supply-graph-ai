@@ -1,9 +1,21 @@
 import type { NetworkData } from "../../api/ohm/network";
 
+// Source hues come from the world's chart ramp, resolved at call time —
+// leaflet div-icons are HTML strings and CSS custom properties do not survive
+// the inline style, so the map reads concrete values like the canvas renderers.
 export const SOURCE_STYLES = {
-  local: { color: "#4f46e5", label: "OHM facilities" },
-  mom: { color: "#0d9488", label: "Maps of Making" },
+  local: { token: "--chart-1", label: "OHM facilities" },
+  mom: { token: "--chart-2", label: "Maps of Making" },
 } as const;
+
+export type NetworkSource = keyof typeof SOURCE_STYLES;
+
+export function sourceColor(source: NetworkSource): string {
+  if (typeof window === "undefined") return "";
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(SOURCE_STYLES[source].token)
+    .trim();
+}
 
 /**
  * Human-readable one-line summary of the network's point set (pure, unit-tested).

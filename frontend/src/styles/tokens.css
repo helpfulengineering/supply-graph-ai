@@ -37,7 +37,7 @@
   --z-header: 50;
   --z-modal: 60;
   --z-overlay: 9999;
-  --ttm-radius: 0.7rem;
+  --ttm-radius: 0.375rem;
   --ttm-radius-sm: calc(var(--ttm-radius) - 4px);
   --ttm-radius-md: calc(var(--ttm-radius) - 2px);
   --ttm-radius-lg: var(--ttm-radius);
@@ -180,7 +180,7 @@
   --ttm-pink: #e904e5;
   --ttm-pink-hover: #c903c5;
   --ttm-plum: #21262d;
-  --ttm-radius: 0.7rem;
+  --ttm-radius: 0.375rem;
   --ttm-scrollbar-thumb: color-mix(in srgb, var(--ttm-cyan) 30%, transparent);
   --ttm-scrollbar-thumb-hover: color-mix(
     in srgb,
@@ -1216,11 +1216,17 @@
   --ring: var(--ttm-focus);
   --radius: var(--ttm-radius);
 
-  /* Charts read the world's own accents, so every series re-themes with the
-     world instead of carrying a private palette. Ordered for distinguishability
-     rather than by brand rank. */
-  --chart-1: var(--ttm-control);
-  --chart-2: var(--ttm-accent-cta);
+  /* Charts read the world's own hues, so every series re-themes with the world
+     instead of carrying a private palette.
+
+     These are the raw hue tokens, NOT the role tokens (--ttm-control /
+     --ttm-accent-cta). Most worlds point control and accent at the same colour
+     — perfectly sensible for chrome, fatal for a categorical ramp, because two
+     series would render identically. Measured: role tokens collided in 12 of
+     20 variants; hue tokens collide in none. e2e/chart-tokens.spec.ts holds
+     that line. */
+  --chart-1: var(--ttm-cyan);
+  --chart-2: var(--ttm-pink);
   --chart-3: var(--ttm-lime);
   --chart-4: var(--ttm-goldenrod);
   --chart-5: var(--ttm-hot-red);

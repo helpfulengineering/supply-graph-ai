@@ -6,24 +6,27 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import type { NetworkSpace } from "../../api/ohm/network";
-import { SOURCE_STYLES } from "./networkSummary";
+import { SOURCE_STYLES, sourceColor } from "./networkSummary";
 import { displayCountryName } from "../match/geoDisplay";
 
 // Vector div-icons (a colored dot) avoid Leaflet's broken default-marker asset
 // paths under Vite, are colorable by source, and are still real L.Markers so
 // react-leaflet-cluster can cluster them (CircleMarkers are not clustered).
-const _iconCache: Partial<Record<NetworkSpace["source"], L.DivIcon>> = {};
+// Keyed by source AND colour: keyed by source alone, the cache would pin the
+// first world's hue and the map would stop re-theming.
+const _iconCache: Record<string, L.DivIcon> = {};
 function dotIcon(source: NetworkSpace["source"]): L.DivIcon {
-  if (!_iconCache[source]) {
-    const color = SOURCE_STYLES[source].color;
-    _iconCache[source] = L.divIcon({
+  const color = sourceColor(source);
+  const key = `${source}:${color}`;
+  if (!_iconCache[key]) {
+    _iconCache[key] = L.divIcon({
       className: "",
       html: `<span style="display:block;width:12px;height:12px;border-radius:9999px;background:${color};border:1.5px solid white;box-shadow:0 0 3px rgba(0,0,0,0.5)"></span>`,
       iconSize: [12, 12],
       iconAnchor: [6, 6],
     });
   }
-  return _iconCache[source]!;
+  return _iconCache[key]!;
 }
 
 /** Fit the viewport to the loaded spaces whenever the set changes. */

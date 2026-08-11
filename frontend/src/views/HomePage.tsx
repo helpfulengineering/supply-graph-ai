@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { PageHero } from "../components/layout/PageHero";
 import { fetchDomains, fetchMetrics } from "../api/ohm/utility";
 import { fetchNetworkSpaces } from "../api/ohm/network";
 import { Badge } from "../components/ui/Badge";
@@ -9,6 +10,7 @@ import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import {
   buildNetworkSummary,
   SOURCE_STYLES,
+  sourceColor,
 } from "../features/network/networkSummary";
 
 function StatCard({ label, value }: { label: string; value: string }) {
@@ -27,7 +29,7 @@ function LegendDot({ source }: { source: "local" | "mom" }) {
     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
       <span
         className="h-2.5 w-2.5 rounded-full"
-        style={{ backgroundColor: SOURCE_STYLES[source].color }}
+        style={{ backgroundColor: sourceColor(source) }}
         aria-hidden="true"
       />
       {SOURCE_STYLES[source].label}
@@ -54,9 +56,10 @@ export function HomePage() {
   return (
     <div className="space-y-10 py-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Open Hardware Manager
-        </h1>
+        <PageHero
+          title="Open Hardware Manager"
+          crumb="designs · facilities · supply chains"
+        />
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Match open hardware designs to manufacturing facilities and explore
           the resulting supply chains.

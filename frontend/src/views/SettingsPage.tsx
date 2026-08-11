@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PageHero } from "../components/layout/PageHero";
 import { usePathname } from "next/navigation";
 import { SessionPanel } from "../features/settings/SessionPanel";
 import { KeysAccountsPanel } from "../features/settings/KeysAccountsPanel";
@@ -50,9 +51,7 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Settings
-        </h1>
+        <PageHero title="Settings" crumb="session · keys · identities" />
         <p className="mt-1 text-sm text-muted-foreground">
           {isAdmin
             ? "Manage session, keys, LLM providers, identities, grants, spaces, bindings, directory, and federation for this OHM instance."

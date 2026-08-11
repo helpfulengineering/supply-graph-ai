@@ -1,20 +1,22 @@
 import { useEffect, useRef } from "react";
 import cytoscape from "cytoscape";
+import { useChartTokens } from "../../lib/chartTokens";
 import type { VisualizationData } from "../../types/supply-tree";
 
 interface Props {
   data: VisualizationData;
 }
 
-// Depth → node background color (light/dark handled via cytoscape styles)
-const DEPTH_COLORS = ["#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444"];
-
-function depthColor(depth: number): string {
-  return DEPTH_COLORS[depth % DEPTH_COLORS.length];
+// Depth reads the world's own chart ramp, so the graph re-themes with
+// everything else instead of carrying a private palette.
+function depthColor(series: readonly string[], depth: number): string {
+  return series[depth % series.length];
 }
 
 export function SupplyTreeGraph({ data }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  // cytoscape paints to canvas and cannot evaluate var().
+  const t = useChartTokens();
   const cyRef = useRef<cytoscape.Core | null>(null);
 
   const nodes = data.supply_tree.nodes;
@@ -80,17 +82,17 @@ export function SupplyTreeGraph({ data }: Props) {
           selector: "node",
           style: {
             "background-color": (ele: cytoscape.NodeSingular) =>
-              depthColor(ele.data("depth") as number),
+              depthColor(t.series, ele.data("depth") as number),
             label: "data(label)",
             "text-valign": "bottom",
             "text-halign": "center",
             "font-size": "11px",
-            color: "#475569",
+            color: t.textMuted,
             "text-margin-y": 6,
             width: 50,
             height: 50,
             "border-width": 2,
-            "border-color": "#e2e8f0",
+            "border-color": t.border,
           },
         },
         {
@@ -104,20 +106,20 @@ export function SupplyTreeGraph({ data }: Props) {
           selector: "edge",
           style: {
             width: 2,
-            "line-color": "#94a3b8",
-            "target-arrow-color": "#94a3b8",
+            "line-color": t.border,
+            "target-arrow-color": t.textFaint,
             "target-arrow-shape": "triangle",
             "curve-style": "bezier",
             "font-size": "9px",
             label: "data(type)",
-            color: "#94a3b8",
+            color: t.textFaint,
           },
         },
         {
           selector: ":selected",
           style: {
             "border-width": 3,
-            "border-color": "#6366f1",
+            "border-color": t.ring,
           },
         },
       ],
@@ -143,7 +145,7 @@ export function SupplyTreeGraph({ data }: Props) {
       cyRef.current?.destroy();
       cyRef.current = null;
     };
-  }, [nodes, edges]);
+  }, [nodes, edges, t]);
 
   return (
     <div className="rounded-xl border border-border bg-card">
@@ -152,22 +154,21 @@ export function SupplyTreeGraph({ data }: Props) {
           Supply Tree Graph
         </h3>
         <div className="flex items-center gap-3">
-          {DEPTH_COLORS.slice(
-            0,
-            Math.max(1, new Set(nodes.map((n) => n.depth)).size),
-          ).map((color, i) => (
-            <span
-              key={i}
-              className="flex items-center gap-1 text-xs text-muted-foreground"
-            >
+          {t.series
+            .slice(0, Math.max(1, new Set(nodes.map((n) => n.depth)).size))
+            .map((color: string, i: number) => (
               <span
-                className="inline-block h-3 w-3 rounded-full"
-                style={{ background: color }}
-                aria-hidden="true"
-              />
-              Depth {i}
-            </span>
-          ))}
+                key={i}
+                className="flex items-center gap-1 text-xs text-muted-foreground"
+              >
+                <span
+                  className="inline-block h-3 w-3 rounded-full"
+                  style={{ background: color }}
+                  aria-hidden="true"
+                />
+                Depth {i}
+              </span>
+            ))}
         </div>
       </div>
 
@@ -175,7 +176,7 @@ export function SupplyTreeGraph({ data }: Props) {
         <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
           <div
             className="flex h-16 w-16 items-center justify-center rounded-full text-on-accent text-lg font-bold"
-            style={{ background: depthColor(0) }}
+            style={{ background: depthColor(t.series, 0) }}
           >
             {nodes[0]?.facility_name?.charAt(0) ?? "?"}
           </div>

@@ -16,7 +16,7 @@ export function SiteHeader() {
   const { isDark, toggle } = useTheme();
 
   return (
-    <header className="sticky top-0 z-40 bg-card shadow-sm">
+    <header className="sticky top-0 z-40 border-b border-border bg-card shadow-sm">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link
           href="/"
@@ -61,19 +61,6 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* The TTM brand signature: an iridescent pearl rule closing the bar.
-          Pure decoration, pure tokens — the five --ttm-irid-* stops come from
-          the token file, so worlds can retune it. Static (no shimmer): motion
-          stays inside the reduced-motion guard, and a permanent animation
-          would break the axe settling contract. */}
-      <div
-        aria-hidden="true"
-        className="h-0.5 w-full"
-        style={{
-          background:
-            "linear-gradient(90deg, var(--ttm-irid-a), var(--ttm-irid-b), var(--ttm-irid-c), var(--ttm-irid-d), var(--ttm-irid-e))",
-        }}
-      />
       <NavDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
     </header>
   );
