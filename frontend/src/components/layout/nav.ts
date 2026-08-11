@@ -3,23 +3,34 @@ import {
   FactoryIcon,
   FilePlus2,
   FileText,
+  Gauge,
   LayoutDashboard,
   LifeBuoy,
   MapPinned,
   Package,
+  Settings,
   Sparkles,
+  Waypoints,
   Wrench,
   Zap,
   type LucideIcon,
 } from "lucide-react";
 
 /**
- * The sitemap — single source for everything the drawer renders.
+ * The sitemap — single source for everything that names a route.
  *
  * Every navigable route is here, grouped by purpose, each entry carrying a
  * role line and an icon rather than a bare label. Adding a page means adding
  * one row; the chrome asks nothing else, and e2e/chrome.spec.ts walks this
  * list so a missing entry fails CI.
+ *
+ * "Everything" now means the drawer, the Help page's sitemap, AND each page's
+ * own hero — PageHero resolves the current route through `navEntryFor` and
+ * wears that entry's icon and accent. That is the point: the icon you clicked
+ * in the menu is the icon at the top of the page you land on, so the two read
+ * as one surface rather than as a menu and an unrelated document. It only
+ * holds while this table is the sole source, which is why the drawer's
+ * Account and Site rows moved here instead of staying inline in the drawer.
  *
  * Icons are lucide, not the Noun Project illustration set. That is measured,
  * not assumed: the illustrations carry 200–3000 units of path data drawn for
@@ -33,8 +44,22 @@ export interface NavEntry {
   name: string;
   desc: string;
   icon: LucideIcon;
+  /**
+   * Prefix that counts as "on this page", when it is wider than the link.
+   *
+   * Settings is the case that needs it: the menu links straight to the session
+   * subtab, but every /settings/* subtab is still the Settings page, and
+   * neither the active state nor the page's own hero should blink out when you
+   * move between them.
+   */
+  match?: string;
   /** Rendered as <a> not <Link> — targets outside the app router. */
   external?: boolean;
+}
+
+/** The prefix an entry claims: its explicit `match`, else its own href. */
+export function navEntryPath(entry: NavEntry): string {
+  return entry.match ?? entry.href;
 }
 
 export interface NavGroup {
@@ -140,14 +165,115 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
-// Deliberately absent: /visualization redirects home by design — supply
-// trees are per-match results, with no browse list. Detail routes
-// (/okh/[id], /facilities/[id], /packages/[org]/[project]/[version],
+// Deliberately absent from NAV_GROUPS: /visualization redirects home by
+// design — supply trees are per-match results, with no browse list. Detail
+// routes (/okh/[id], /facilities/[id], /packages/[org]/[project]/[version],
 // /okh/[id]/files/*) are reached from their lists, and /settings/* subtabs
 // from the Settings page's own tab strip. tests/parity guards the set.
+
+/**
+ * The account entry, in the sitemap rather than inline in the drawer.
+ *
+ * Its label is the one thing the drawer still decides for itself — Connect /
+ * Session / Settings depending on whether you hold an API key — but the
+ * route, the icon, and the accent belong here with every other destination,
+ * so Help and the page hero read the same row the drawer does.
+ */
+export const ACCOUNT_GROUP: NavGroup = {
+  label: "Account",
+  accent: "text-chart-4",
+  entries: [
+    {
+      href: "/settings/session",
+      match: "/settings",
+      name: "Settings",
+      desc: "your API session, and instance administration when your key allows it",
+      icon: Settings,
+    },
+  ],
+};
+
+/**
+ * The site layer, which most instances do not run.
+ *
+ * Absent from the drawer entirely unless the instance opted in — see
+ * NavDrawer — but its icon still has to resolve, because a page that IS
+ * mounted needs a hero.
+ */
+export const SITE_GROUP: NavGroup = {
+  label: "Site",
+  accent: "text-chart-5",
+  entries: [
+    {
+      href: "/mission-control",
+      name: "Mission Control",
+      desc: "telemetry and visitor records for this site",
+      icon: Gauge,
+    },
+  ],
+};
+
+/**
+ * Routes that have a page but no menu entry, so their heroes still resolve.
+ *
+ * A supply tree is a match result rather than a browsable collection, which
+ * is why it is not in the drawer — but it is a real page with a real
+ * identity, and leaving it iconless would make it the one surface where the
+ * connection between menu and page visibly breaks.
+ */
+export const UNLISTED_GROUP: NavGroup = {
+  label: "Results",
+  accent: "text-chart-2",
+  entries: [
+    {
+      href: "/visualization",
+      name: "Supply Tree",
+      desc: "the production plan a match resolved to",
+      icon: Waypoints,
+    },
+  ],
+};
+
+/** Every group that carries a resolvable route, menu-visible or not. */
+export const ALL_GROUPS: NavGroup[] = [
+  ...NAV_GROUPS,
+  ACCOUNT_GROUP,
+  SITE_GROUP,
+  UNLISTED_GROUP,
+];
 
 /** Matches the old NavLink prefix behaviour (no `end` prop). */
 export function isActivePath(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export interface ResolvedNavEntry {
+  entry: NavEntry;
+  group: NavGroup;
+}
+
+/**
+ * The sitemap row a pathname belongs to, or undefined outside the app.
+ *
+ * Longest match wins, which is what makes detail and sub-routes work: /okh/new
+ * is its own entry and must not resolve to /okh, while /okh/okh-0001 has no
+ * entry of its own and should resolve to the catalog it was reached from. A
+ * shortest-first scan gets both of those backwards.
+ *
+ * "/" is excluded from prefix matching by isActivePath, so it wins only on an
+ * exact match and does not swallow every route in the app.
+ */
+export function navEntryFor(pathname: string): ResolvedNavEntry | undefined {
+  let best: ResolvedNavEntry | undefined;
+  for (const group of ALL_GROUPS) {
+    for (const entry of group.entries) {
+      const path = navEntryPath(entry);
+      if (entry.external || !isActivePath(pathname, path)) continue;
+      if (!best || path.length > navEntryPath(best.entry).length) {
+        best = { entry, group };
+      }
+    }
+  }
+  return best;
 }

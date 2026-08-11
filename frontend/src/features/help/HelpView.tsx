@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { PageHero } from "../../components/layout/PageHero";
-import { NAV_GROUPS, type NavGroup } from "../../components/layout/nav";
+import { ACCOUNT_GROUP, NAV_GROUPS } from "../../components/layout/nav";
 import { SHORTCUTS } from "../../components/layout/shortcuts";
-import { Settings } from "lucide-react";
-import { PANEL } from "../../components/ui/surface";
 import {
   CARD_TITLE,
   SECTION_LABEL,
   SECTION_LABEL_SM,
 } from "../../components/ui/typography";
+import { PANEL } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,25 +20,6 @@ import { cn } from "@/lib/utils";
  * either appears here without anyone remembering to update a page. Help that
  * is hand-maintained drifts, and drifted help is worse than none.
  */
-
-/**
- * The drawer renders the account entry itself, because its label depends on
- * whether you hold an API key (Connect / Session / Settings). Help states the
- * route plainly — it is a real destination and `g` `s` goes there, so leaving
- * it out of the sitemap would make this page a partial map.
- */
-const ACCOUNT_GROUP: NavGroup = {
-  label: "Account",
-  accent: "text-chart-4",
-  entries: [
-    {
-      href: "/settings/session",
-      name: "Settings",
-      desc: "your API session, and instance administration when your key allows it",
-      icon: Settings,
-    },
-  ],
-};
 
 const A11Y = [
   {
@@ -81,8 +61,8 @@ function SectionHeading({
         inline-flex + min-h-6 so the permalink clears the 24x24 WCAG 2.5.8
         minimum. The anchor wraps the whole heading, so its accessible name is
         the heading text and 2.5.8's inline exception does not apply — there is
-        no surrounding non-target text constraining it. At `text-sm uppercase`
-        the line box was 18px, and the only thing holding it there was the type
+        no surrounding non-target text constraining it. At section-label scale
+        the line box was 21px, and the only thing holding it there was the type
         scale, which is the author's choice and therefore the author's problem.
       */}
       <a

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { siteConfig } from "../../src/lib/site/config";
 import { MissionControl } from "../../src/features/site/MissionControl";
 
-export const metadata: Metadata = { title: "Mission Control — OHM" };
+export const metadata: Metadata = { title: "Mission Control" };
 
 // Per-request, so notFound() below actually sets a 404 status. Prerendered,
 // Next bakes the not-found boundary into a static page and serves it 200 —

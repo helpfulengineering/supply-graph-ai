@@ -1,5 +1,5 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
+.PHONY: format format-check lint test check black ruff repo-map repo-map-check env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -76,6 +76,10 @@ check: lint format-check test
 repo-map:
 	uv run python scripts/generate_repo_map.py
 
+# Staleness gate (lockfile pattern): fails if .repo-map.md is out of date.
+repo-map-check:
+	uv run python scripts/generate_repo_map.py --check
+
 # Regenerate the schema-owned block of .env.example from src/config/schema.py.
 env-template:
 	uv run python scripts/generate_env_template.py
@@ -146,16 +150,17 @@ secrets-check:
 # Definition of done. Green tests are not "ready to merge"; this is.
 # Each step verifies (does not mutate) and fails fast. Run before any MR.
 ready:
-	@echo "==> [1/12] env verify";      $(MAKE) verify-env
-	@echo "==> [2/12] format check";    $(MAKE) format-check
-	@echo "==> [3/12] lint";            $(MAKE) lint
-	@echo "==> [4/12] unit tests";      $(MAKE) test
-	@echo "==> [5/12] service parity";  $(MAKE) parity
-	@echo "==> [6/12] docs ↔ code";     $(MAKE) validate-docs
-	@echo "==> [7/12] site docs status";$(MAKE) docs-status
-	@echo "==> [8/12] taxonomy sync";   $(MAKE) taxonomy-check
-	@echo "==> [9/12] version sync";    $(MAKE) version-check
-	@echo "==> [10/12] lockfile sync";  $(MAKE) lock-check
-	@echo "==> [11/12] script registry";$(MAKE) scripts-check
-	@echo "==> [12/12] demo world sync";$(MAKE) demo-world-check
+	@echo "==> [1/13] env verify";      $(MAKE) verify-env
+	@echo "==> [2/13] format check";    $(MAKE) format-check
+	@echo "==> [3/13] lint";            $(MAKE) lint
+	@echo "==> [4/13] unit tests";      $(MAKE) test
+	@echo "==> [5/13] service parity";  $(MAKE) parity
+	@echo "==> [6/13] docs ↔ code";     $(MAKE) validate-docs
+	@echo "==> [7/13] site docs status";$(MAKE) docs-status
+	@echo "==> [8/13] taxonomy sync";   $(MAKE) taxonomy-check
+	@echo "==> [9/13] version sync";    $(MAKE) version-check
+	@echo "==> [10/13] lockfile sync";  $(MAKE) lock-check
+	@echo "==> [11/13] script registry";$(MAKE) scripts-check
+	@echo "==> [12/13] demo world sync";$(MAKE) demo-world-check
+	@echo "==> [13/13] repo map sync";  $(MAKE) repo-map-check
 	@echo "==> READY: all gates passed."

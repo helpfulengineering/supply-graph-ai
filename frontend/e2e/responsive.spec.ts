@@ -29,16 +29,19 @@ import { networkSpacesFixture } from "../src/test/fixtures";
  * Routes with enough interactive surface for the properties to mean something.
  *
  * Every entry is asserted to answer 200 before it is measured. That is not
- * defensive padding: the first draft of this list guessed three route names
- * that do not exist — `/network` (the facilities view lives at `/facilities`),
- * `/create` (it is `/okh/new`), and `/packages` (declared in
- * `tests/parity/manifest.py` but absent from `app/`, which is a pre-existing
- * failure of `make parity` on main). All three "passed", because a 404 page
- * has nothing on it to overflow and no controls to undersize. A layout gate
- * that quietly measures the error page is worse than no gate, so a typo in
- * this list now fails loudly instead of reading green.
+ * defensive padding: the first draft of this list named three routes that did
+ * not answer — `/network` (the facilities view lives at `/facilities`),
+ * `/create` (it is `/okh/new`), and `/packages`. All three "passed", because a
+ * 404 page has nothing on it to overflow and no controls to undersize. A
+ * layout gate that quietly measures the error page is worse than no gate, so a
+ * typo in this list now fails loudly instead of reading green.
  *
- * `/packages` belongs here once the route exists again.
+ * The first two were mine. The third was not: `/packages` had a view, a menu
+ * entry, e2e specs and a parity row, and `.gitignore`'s unanchored `packages/`
+ * had kept `app/packages/` out of every clone. Two changes found the same
+ * missing route from opposite ends within a day — this check because a layout
+ * assertion passed on an error page, and the sitemap work because a menu entry
+ * led nowhere. Neither would have found it alone.
  */
 const ROUTES = [
   "/",
@@ -53,6 +56,7 @@ const ROUTES = [
   "/settings",
   "/settings/keys",
   "/help",
+  "/packages",
   "/visualization/sol-1",
 ];
 

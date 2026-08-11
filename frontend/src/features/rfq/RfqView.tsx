@@ -14,8 +14,8 @@ import { ErrorMessage } from "../../components/ui/ErrorMessage";
 import { EmptyState } from "../../components/ui/EmptyState";
 import type { RfqNavigationState, RFQDocument } from "../../types/rfq";
 import { displayCountryName } from "../match/geoDisplay";
-import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
 import { SECTION_LABEL } from "../../components/ui/typography";
+import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -129,28 +129,27 @@ export function RfqView({ navState }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <PageHero
-            title="RFQ Generation"
-            crumb="facilities · quotes · documents"
-          />
-          <p className="mt-1 text-sm text-muted-foreground">
+      <PageHero
+        title="RFQ Generation"
+        crumb="facilities · quotes · documents"
+        description={
+          <>
             Generating requests for quotation for{" "}
             <span className="font-medium text-foreground">{okhTitle}</span>
             {okhVersion && (
               <span className="ml-1 text-muted-foreground">v{okhVersion}</span>
             )}
-          </p>
-        </div>
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back
-        </button>
-      </div>
+          </>
+        }
+        actions={
+          <button
+            onClick={() => router.back()}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            ← Back
+          </button>
+        }
+      />
 
       {/* Generation form */}
       {!generated && (
@@ -236,7 +235,7 @@ export function RfqView({ navState }: Props) {
 
       {/* Loading */}
       {isPending && (
-        <div className={PANEL_ACCENT}>
+        <div className={cn(PANEL_ACCENT, "p-8")}>
           <LoadingSpinner message="Generating RFQ documents…" />
         </div>
       )}

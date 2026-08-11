@@ -9,7 +9,12 @@ repos:
     hooks:
       - id: update-repo-map
         name: update repository map
-        entry: bash -c 'python scripts/generate_repo_map.py && git add .repo-map.md'
+        # `uv run`, not bare `python`: the map is built by parsing every tracked
+        # source with ast, so an interpreter older than the project's
+        # requires-python (>=3.12) fails on newer syntax and silently writes
+        # "# Error:" placeholders instead of the symbols. That map then differs
+        # from the one CI regenerates, and the drift gate fails.
+        entry: bash -c 'uv run python scripts/generate_repo_map.py && git add .repo-map.md'
         language: system
         pass_filenames: false
         always_run: true

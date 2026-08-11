@@ -32,8 +32,8 @@ import {
   ErrorState,
 } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
-import { PANEL } from "../../components/ui/surface";
 import { SECTION_LABEL } from "../../components/ui/typography";
+import { PANEL } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 
 export function VisualizationView({ solutionId }: { solutionId: string }) {
@@ -66,20 +66,18 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <button
-          onClick={() => router.back()}
-          className="mb-2 text-sm text-muted-foreground hover:text-primary-ink"
-        >
-          ← Back
-        </button>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <PageHero
-              title="Supply Tree"
-              crumb="plan · facilities · dependencies"
-            />
-          </div>
+      <PageHero
+        title="Supply Tree"
+        crumb="plan · facilities · dependencies"
+        breadcrumb={
+          <button
+            onClick={() => router.back()}
+            className="hover:text-primary-ink"
+          >
+            ← Back
+          </button>
+        }
+        actions={
           <Button
             variant="outline"
             size="sm"
@@ -87,8 +85,8 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
           >
             ⬇ Download JSON
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <KpiCards kpis={deriveKpis(data)} />
 

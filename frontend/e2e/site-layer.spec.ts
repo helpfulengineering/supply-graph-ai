@@ -7,27 +7,57 @@ import { expectNoA11yViolations } from "./a11y";
  * building a lovely signed-in experience and letting the default,
  * unconfigured instance become the broken-looking one.
  *
- * These specs run in the DEFAULT configuration (no Supabase env), which is the
- * deployment almost every operator will actually run. The enabled direction is
- * covered by running the suite again with the env vars set — see
- * docs/architecture/site-layer.md.
+ * The plan for this phase requires the suite to be green in BOTH postures —
+ * run once with no Supabase env (the default) and once with it set. So these
+ * specs read the posture rather than assuming one: each asserts the correct
+ * behaviour for however the instance under test is configured, and the pair of
+ * runs proves neither direction is the degraded one.
+ *
+ * Reading the same env the app reads (rather than a test-only flag) keeps the
+ * spec honest: if config.ts ever decided "enabled" differently, this would
+ * assert against the wrong posture and fail rather than quietly pass.
  */
 
-test("no Mission Control entry in the sitemap when the layer is off", async ({
+/** Mirrors the enabled test in src/lib/site/config.ts. */
+const LAYER_ENABLED = Boolean(
+  process.env.NEXT_PUBLIC_OHM_SUPABASE_URL &&
+  process.env.NEXT_PUBLIC_OHM_SUPABASE_ANON_KEY &&
+  !process.env.NEXT_PUBLIC_OHM_SUPABASE_URL.startsWith("%") &&
+  !process.env.NEXT_PUBLIC_OHM_SUPABASE_ANON_KEY.startsWith("%"),
+);
+
+test("the sitemap advertises Mission Control only when the layer is on", async ({
   page,
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Site menu" }).click();
-  const nav = page.getByRole("navigation", { name: "Primary navigation" });
-  await expect(nav.getByRole("link", { name: /Mission Control/ })).toHaveCount(0);
-  // Absent, not present-and-disabled: a disabled entry advertises a capability
-  // this instance does not have.
-  await expect(nav.getByText(/Site$/)).toHaveCount(0);
+  const entry = page
+    .getByRole("navigation", { name: "Primary navigation" })
+    .getByRole("link", { name: /Mission Control/ });
+
+  if (LAYER_ENABLED) {
+    await expect(entry).toHaveCount(1);
+  } else {
+    // Absent, not present-and-disabled: a disabled entry advertises a
+    // capability this instance does not have.
+    await expect(entry).toHaveCount(0);
+  }
 });
 
-test("Mission Control route 404s when the layer is off", async ({ page }) => {
+test("the Mission Control route exists only when the layer is on", async ({
+  page,
+}) => {
   const response = await page.goto("/mission-control");
-  expect(response?.status()).toBe(404);
+  if (LAYER_ENABLED) {
+    expect(response?.status()).toBe(200);
+    await expect(
+      page.getByRole("heading", { name: /mission control/i }),
+    ).toBeVisible();
+  } else {
+    // A real 404, not a 200 rendering a "not found" body — an undeployed
+    // capability that answers 200 is how a broken route goes unnoticed.
+    expect(response?.status()).toBe(404);
+  }
 });
 
 test("no gate, and no site-layer console errors, on a default instance", async ({
@@ -40,25 +70,36 @@ test("no gate, and no site-layer console errors, on a default instance", async (
   });
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /open hardware manager/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /open hardware manager/i }),
+  ).toBeVisible();
   // No sign-in gate blocks the app.
   await expect(page.getByRole("dialog", { name: /sign in/i })).toHaveCount(0);
 
-  const siteErrors = errors.filter((e) => /supabase|ohmgr_|site layer/i.test(e));
-  expect(siteErrors, `site-layer errors on a default instance:\n${siteErrors.join("\n")}`).toEqual(
-    [],
+  const siteErrors = errors.filter((e) =>
+    /supabase|ohmgr_|site layer/i.test(e),
   );
+  expect(
+    siteErrors,
+    `site-layer errors on a default instance:\n${siteErrors.join("\n")}`,
+  ).toEqual([]);
 });
 
 test("theme and mode still work with the layer off", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Site menu" }).click();
   await page.getByRole("radio", { name: "Terminal" }).check();
-  await expect(page.locator("html")).toHaveAttribute("data-ttm-theme", "terminal");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-ttm-theme",
+    "terminal",
+  );
 
   // Device-level preference persists without any backend.
   await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-ttm-theme", "terminal");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-ttm-theme",
+    "terminal",
+  );
 });
 
 test("default instance chrome passes the a11y scan", async ({ page }) => {

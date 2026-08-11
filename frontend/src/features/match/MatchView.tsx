@@ -33,12 +33,12 @@ import {
   ErrorState,
 } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
-import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import {
   PANEL_ACCENT,
   PANEL_MUTED,
   PANEL_WARNING,
 } from "../../components/ui/surface";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { humanizeProcessId } from "../network/deriveFilterOptions";
 import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
 import { cn } from "@/lib/utils";
@@ -223,12 +223,10 @@ export function MatchView({
 
   return (
     <div className="space-y-6">
-      <div>
-        <PageHero
-          title="Match a Design"
-          crumb="design · facilities · solutions"
-        />
-      </div>
+      <PageHero
+        title="Match a Design"
+        crumb="design · facilities · solutions"
+      />
 
       <div className="space-y-4">
         {inlineManifest ? (

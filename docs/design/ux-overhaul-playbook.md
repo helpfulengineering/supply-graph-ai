@@ -205,7 +205,54 @@ Worth recording: two of those guards were **wrong on first write** — a `<nav>`
 inside a facet panel is correct HTML, and a checkmark in a test fixture is not
 UI chrome. A guard that fails on correct code trains people to disable guards.
 
-### Phase 8 — The narrow viewport
+### Phase 8 — The mark reattached, the menu tightened
+
+Phase 4 gave the sitemap an icon per entry. It stopped at the drawer, so the
+menu and the pages it opened looked like two products: you clicked a wrench and
+arrived at an h1 with nothing beside it.
+
+`PageHero` now resolves the current route through the sitemap (`navEntryFor`)
+and wears that entry's icon and group accent. It is resolution, not a prop —
+choosing per page is exactly how a menu and a page drift apart — and prefix
+matching means a detail route inherits the icon of the list it came from, while
+`/okh/new` keeps its own because longest match wins. The drawer's Account and
+Site rows moved into `nav.ts` for the same reason: three surfaces were
+declaring the same routes, so two of them could be wrong.
+
+**The favicon was a hand-maintained copy of the logo's path data**, kept in step
+by a comment asking the next editor to remember. Geometry now lives once in
+`src/components/layout/mark.ts`; `<Logo>` draws it against the live token ramp,
+and `npm run gen:brand` emits `app/icon.svg` from the same module with the Warm
+dark ramp baked in, because a standalone file cannot resolve a `var()`.
+`src/test/brand.test.ts` asserts the checked-in file **is** the generator's
+output and that the baked values still equal the tokens they mirror — the
+comment became a test.
+
+The rest of the head was simply missing: no description, no theme colour, no
+manifest, no share card, and a `<title>` advertising "Open Hardware
+**Matchmaker**" while the mark, the README, and the dashboard all said
+*Manager*. `app/brand.ts` is now the one place a pre-cascade colour may live,
+and it is checked against `tokens.css` rather than trusted. The apple icon and
+the OG card are generated from the same mark through `next/og`, so neither can
+fall a redesign behind.
+
+**Two spacing bugs found by looking rather than by testing**: the header
+gutters (`px-4 sm:px-6`) and the page gutters (`px-6`) disagreed below 640px, so
+the mark and every h1 under it sat on different left edges on a phone; and the
+drawer spent a whole band on one copy-link button while Reference fell below the
+fold on a laptop. The density came out of the chrome between rows, never out of
+the rows — every control still clears 44px, and `min-h-11` is what says so.
+
+**And a route that existed only on its author's disk.** `/packages` had a menu
+entry, a view, e2e specs, and a parity row — but `.gitignore`'s unanchored
+`packages/` (meant for local dev output) matched `frontend/app/packages/` at
+depth, so the route was never committed. It worked perfectly in the tree that
+wrote it and 404'd in every clone. The rule is now anchored to the repo root.
+The lesson is not about that rule: an ignore pattern is the one class of bug
+that hides itself from the person who introduced it, and only a fresh clone or
+CI can see it.
+
+### Phase 9 — The narrow viewport
 
 Phases 1–7 asserted a great deal and all of it at 1280px. Every Playwright lane
 was Desktop Chrome, so behaviour below `sm` was asserted nowhere, and the report
@@ -236,9 +283,11 @@ had to be fixed twice, both times because it was measuring the wrong thing:
 - **Three routes in the first list did not exist.** `/network`, `/create`, and
   `/packages` all "passed", because a 404 page has nothing to overflow and no
   controls to undersize. The list now asserts a 200 before measuring — a layout
-  gate that quietly measures the error page is worse than no gate. (`/packages`
-  is declared in `tests/parity/manifest.py` with no route in `app/`; that is a
-  real pre-existing failure of `make parity`, surfaced here, not caused here.)
+  gate that quietly measures the error page is worse than no gate. (`/packages` was
+  one of them, and the reason is Phase 8's closing note: the route was never
+  committed. Two phases found the same missing route from opposite ends —
+  this one because a layout check passed on an error page, that one because a
+  menu entry led nowhere.)
 
 A third correction was to the fixtures rather than the gate: the shared
 fixtures carry three facilities called things like "Laser Fab Lab", and the bug
@@ -270,6 +319,7 @@ shade. Rewording the prose works until the next comment, and it quietly
 pressures people not to write down why a rule exists. The guards now strip
 comments before matching, which is what all of them should have done from the
 start.
+
 
 ---
 

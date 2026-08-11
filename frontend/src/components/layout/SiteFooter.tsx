@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import { Logo } from "./Logo";
 
 /**
  * The repository this build came from.
@@ -16,16 +17,32 @@ const SOURCE_URL = `${REPO}/tree/${BRANCH}`;
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-card">
-      {/*
-        A sentence, laid out as one. It was a flex row of fragments, which
-        blockifies its children — so "OpenSource" stopped being a link inside a
-        line of text and became a standalone 81x20 target, under the 24x24
-        WCAG 2.5.8 minimum with no way to pad it without breaking the line.
-        As inline content in a <p> it is sized by the line-height of the text
-        around it, which is the condition 2.5.8's inline exception describes.
-      */}
-      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-        <p className="text-center text-sm text-muted-foreground">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-3 text-sm text-muted-foreground sm:justify-between sm:px-6">
+        {/* The wordmark's one home. The header carries the mark alone, because
+            on the dashboard a bar wordmark would sit directly above an h1
+            saying the same words — down here nothing competes with it, and the
+            app finally states its own name somewhere on every page. */}
+        <span className="flex items-center gap-2">
+          {/* Decorative here, unlike in the header: the mark's own accessible
+              name is the product name, and the words are right beside it. */}
+          <span aria-hidden="true" className="flex">
+            <Logo className="h-4 w-4" />
+          </span>
+          <span className="font-medium text-foreground">
+            Open Hardware Manager
+          </span>
+        </span>
+
+        {/*
+          A <p> of inline content, not a flex row of fragments. Flex blockifies
+          its children, so as a flex item "OpenSource" stops being a link
+          inside a line of text and becomes a standalone 81x20 target — under
+          the 24x24 WCAG 2.5.8 minimum, with no way to pad it that does not
+          break the line. Inline in a paragraph it is sized by the line-height
+          of the words around it, which is exactly the condition 2.5.8's inline
+          exception describes. e2e/responsive.spec.ts measures this.
+        */}
+        <p className="text-center">
           made with{" "}
           <Heart
             aria-hidden="true"
