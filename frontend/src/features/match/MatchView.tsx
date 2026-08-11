@@ -299,10 +299,10 @@ export function MatchView({
 
         {networkMode ? (
           <div className="rounded-lg border border-primary/30 bg-accent/60 p-3 text-sm">
-            <p className="font-medium text-primary">
+            <p className="font-medium text-primary-ink">
               Matching against the network
             </p>
-            <p className="mt-0.5 text-primary">
+            <p className="mt-0.5 text-primary-ink">
               {describeNetworkFilter(networkFilter!)}
             </p>
           </div>

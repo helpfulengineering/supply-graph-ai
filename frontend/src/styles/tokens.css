@@ -271,7 +271,10 @@
   --ttm-surface-alt: #ddd4c0;
   --ttm-text: #2b2a28;
   --ttm-text-faint: #a09a8c;
-  --ttm-text-muted: #635f57;
+  /* Darkened from the reference's #635f57: on this world's parchment
+     surface-alt (#ddd4c0) that value measures 4.31:1, under AA. The bench
+     (e2e/themes.spec.ts) is the arbiter here. */
+  --ttm-text-muted: #5a564e;
   --ttm-text-secondary: #4a4844;
   --ttm-warning: #8a5a00;
   --ttm-wash: rgba(43, 42, 40, 0.04);

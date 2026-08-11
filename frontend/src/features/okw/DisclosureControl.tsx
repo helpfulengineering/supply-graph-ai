@@ -69,7 +69,7 @@ function AudienceEditor({
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
         {active && (
-          <span className="ml-2 font-normal normal-case text-primary">
+          <span className="ml-2 font-normal normal-case text-primary-ink">
             (active for export)
           </span>
         )}

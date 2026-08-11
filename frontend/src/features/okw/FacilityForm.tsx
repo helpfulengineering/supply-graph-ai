@@ -159,7 +159,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/facilities" className="hover:text-primary">
+        <Link href="/facilities" className="hover:text-primary-ink">
           Facilities
         </Link>
         <span aria-hidden="true">›</span>
@@ -375,7 +375,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         <div>
           <button
             type="button"
-            className="text-sm font-medium text-primary hover:underline"
+            className="text-sm font-medium text-primary-ink hover:underline"
             onClick={() => setAdvancedOpen((o) => !o)}
             aria-expanded={advancedOpen}
           >

@@ -84,7 +84,7 @@ export function MatchResultCard({
             <div className="mt-3">
               <Link
                 href={treeHref}
-                className="text-sm font-medium text-primary hover:underline"
+                className="text-sm font-medium text-primary-ink hover:underline"
               >
                 View supply tree →
               </Link>

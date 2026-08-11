@@ -79,7 +79,7 @@ export function PackageDetailView({ org, project, version }: Props) {
   return (
     <div className="space-y-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/packages" className="hover:text-primary">
+        <Link href="/packages" className="hover:text-primary-ink">
           Packages
         </Link>
         <span aria-hidden="true">›</span>
@@ -144,7 +144,7 @@ export function PackageDetailView({ org, project, version }: Props) {
             </dt>
             <dd>
               <Link
-                className="font-mono text-primary hover:underline"
+                className="font-mono text-primary-ink hover:underline"
                 href={`/okh/${pkg.okh_manifest_id}`}
               >
                 {pkg.okh_manifest_id}

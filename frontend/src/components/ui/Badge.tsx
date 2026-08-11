@@ -10,7 +10,7 @@ const variantClasses: Record<Variant, string> = {
   yellow: "bg-warning/10 text-warning-ink",
   red: "bg-destructive/10 text-destructive-ink",
   blue: "bg-info/10 text-info-ink",
-  indigo: "bg-accent text-primary",
+  indigo: "bg-accent text-primary-ink",
 };
 
 interface Props {

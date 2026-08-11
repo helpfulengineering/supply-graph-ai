@@ -103,7 +103,7 @@ function PostCreateBanner({
   return (
     <div
       role="status"
-      className="rounded-md border border-primary/30 bg-accent px-4 py-3 text-sm text-primary"
+      className="rounded-md border border-primary/30 bg-accent px-4 py-3 text-sm text-primary-ink"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
@@ -230,7 +230,7 @@ export function OkwDetailView({ id }: { id: string }) {
   return (
     <div className="space-y-8">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/facilities" className="hover:text-primary">
+        <Link href="/facilities" className="hover:text-primary-ink">
           Facilities
         </Link>
         <span aria-hidden="true">›</span>

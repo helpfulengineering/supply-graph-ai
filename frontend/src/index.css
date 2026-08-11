@@ -55,6 +55,17 @@ a {
     var(--ttm-text)
   );
   --color-info-ink: color-mix(in srgb, var(--ttm-info) 62%, var(--ttm-text));
+
+  /* The accent used AS TEXT (links, wordmark, badge ink). Several worlds'
+     accents sit between 3.8:1 and 4.5:1 against tinted surfaces — fine as a
+     fill behind --primary-foreground, failing as ink. 80% keeps the hue
+     unmistakable and clears AA in the worst measured case (Terminal light,
+     4.65:1). Fills keep reading --primary; only ink reads this. */
+  --color-primary-ink: color-mix(
+    in srgb,
+    var(--ttm-accent-cta) 80%,
+    var(--ttm-text)
+  );
   --color-destructive-ink: color-mix(
     in srgb,
     var(--ttm-danger) 62%,

@@ -68,11 +68,11 @@ export function OkhFilePreviewPage() {
   return (
     <div className="space-y-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/okh" className="hover:text-primary">
+        <Link href="/okh" className="hover:text-primary-ink">
           Designs
         </Link>
         <span aria-hidden="true">›</span>
-        <Link href={`/okh/${id}`} className="truncate hover:text-primary">
+        <Link href={`/okh/${id}`} className="truncate hover:text-primary-ink">
           {title}
         </Link>
         <span aria-hidden="true">›</span>

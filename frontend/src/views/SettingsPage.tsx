@@ -74,7 +74,7 @@ export function SettingsPage() {
               className={[
                 "border-b-2 px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "border-primary/30 text-primary"
+                  ? "border-primary/30 text-primary-ink"
                   : "border-transparent text-muted-foreground hover:text-foreground",
               ].join(" ")}
             >

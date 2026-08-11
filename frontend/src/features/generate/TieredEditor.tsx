@@ -180,7 +180,7 @@ function NestedField({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="text-xs text-primary"
+          className="text-xs text-primary-ink"
         >
           {open ? "Done" : "Edit as JSON"}
         </button>
@@ -291,7 +291,7 @@ export function TieredEditor({ manifest, onChange }: EditorProps) {
             type="button"
             id="tier3"
             onClick={() => setShowTier3((s) => !s)}
-            className="text-sm font-semibold text-primary"
+            className="text-sm font-semibold text-primary-ink"
           >
             {showTier3 ? "Hide" : "Show"} everything else ({extras.length})
           </button>

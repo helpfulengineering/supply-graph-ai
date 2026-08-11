@@ -25,7 +25,7 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
     <>
       <div>
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-foreground group-hover:text-primary">
+          <h3 className="font-semibold text-foreground group-hover:text-primary-ink">
             {space.name || "Unnamed"}
           </h3>
           <Badge variant={space.source === "local" ? "indigo" : "green"}>
@@ -55,7 +55,7 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
         </div>
       )}
 
-      <span className="mt-auto text-sm font-medium text-primary">
+      <span className="mt-auto text-sm font-medium text-primary-ink">
         {space.source === "local" ? "View facility →" : "Visit space ↗"}
       </span>
     </>

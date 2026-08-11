@@ -103,7 +103,7 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
       )}
       {suggestions.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-primary">Suggestions</p>
+          <p className="text-xs font-semibold text-primary-ink">Suggestions</p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
             {suggestions.map((s, i) => (
               <li key={i}>{s}</li>
@@ -175,7 +175,7 @@ export function OkhDetailView({ id }: Props) {
   return (
     <div className="space-y-8">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/okh" className="hover:text-primary">
+        <Link href="/okh" className="hover:text-primary-ink">
           Designs
         </Link>
         <span aria-hidden="true">›</span>
@@ -250,7 +250,7 @@ export function OkhDetailView({ id }: Props) {
                       href={okh.repo}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block max-w-[180px] truncate text-primary hover:underline"
+                      className="block max-w-[180px] truncate text-primary-ink hover:underline"
                     >
                       {okh.repo.replace(/^https?:\/\//, "")}
                     </a>
