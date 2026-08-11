@@ -217,9 +217,7 @@ export function MatchView({
 
   return (
     <div className="space-y-6">
-      <div>
-        <PageHero title="Match a Design" crumb="design · facilities · solutions" />
-      </div>
+      <PageHero title="Match a Design" crumb="design · facilities · solutions" />
 
       <div className="space-y-4">
         {inlineManifest ? (

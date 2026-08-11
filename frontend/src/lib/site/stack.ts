@@ -1,6 +1,8 @@
 "use client";
 
 import { siteConfig } from "./config";
+// Type-only: erased at compile time, so the default build still ships no SDK.
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Site-layer client: visitor identity and batched telemetry.
@@ -36,6 +38,33 @@ export interface Visitor {
   name: string;
   email: string;
 }
+
+/**
+ * The gate as the operator configured it (ohmgr_site_config, key 'gate').
+ *
+ * `enabled` is the operator's switch for presenting the gate at all; it is not
+ * the layer's own on/off, which is siteConfig.enabled.
+ */
+export interface GateCopy {
+  enabled: boolean;
+  title: string;
+  body: string;
+  fine: string;
+}
+
+/**
+ * Copy used when the operator has expressed no preference.
+ *
+ * The seeded config row carries empty strings, which mean "no preference"
+ * rather than "render an empty heading" — so each field falls back on its own,
+ * and an operator who sets only a title keeps the default body and fine print.
+ */
+export const GATE_DEFAULTS: GateCopy = {
+  enabled: true,
+  title: "Sign in to Mission Control",
+  body: "Mission Control shows this site's own record of who visited and what they used. Sign in so your entry is yours: you can rename it, or erase it and everything attributed to it.",
+  fine: "Site sign-in is unverified and stays on this device. It grants nothing in OHM — creating designs, editing facilities, and administration all come from your OHM API session, which this does not touch.",
+};
 
 let queue: TelemetryEvent[] = [];
 let timer: ReturnType<typeof setTimeout> | null = null;
@@ -91,11 +120,23 @@ export function clearVisitor(): void {
   }
 }
 
-async function client() {
+/**
+ * One client per tab, created lazily.
+ *
+ * Memoised because the SDK warns — correctly — about multiple GoTrueClient
+ * instances sharing a storage key, and a page view now makes three calls
+ * (telemetry, gate copy, the operator probe). The promise is cached rather
+ * than the client so concurrent callers share one dynamic import too.
+ */
+let clientPromise: Promise<SupabaseClient> | null = null;
+
+async function client(): Promise<SupabaseClient | null> {
   if (!siteConfig.enabled) return null;
   // Dynamic so the SDK stays out of the default (disabled) bundle.
-  const { createClient } = await import("@supabase/supabase-js");
-  return createClient(siteConfig.url, siteConfig.anonKey);
+  clientPromise ??= import("@supabase/supabase-js").then(({ createClient }) =>
+    createClient(siteConfig.url, siteConfig.anonKey),
+  );
+  return clientPromise;
 }
 
 export async function flush(): Promise<void> {
@@ -144,6 +185,51 @@ export async function signIn(name: string, email: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Reads the operator's gate copy, falling back field-by-field to the defaults.
+ *
+ * Fail-soft like everything else here: an unconfigured, unreachable, or
+ * unprovisioned layer yields the default copy rather than an error, because a
+ * gate that cannot render its heading should still be a gate.
+ *
+ * This reads the table directly rather than through an RPC — whitelabel config
+ * is public by nature and is the one table with a select policy for anon.
+ */
+export async function gateCopy(): Promise<GateCopy> {
+  if (!siteConfig.enabled || schemaMissing) return GATE_DEFAULTS;
+  try {
+    const sb = await client();
+    if (!sb) return GATE_DEFAULTS;
+    const { data, error } = await sb
+      .from("ohmgr_site_config")
+      .select("value")
+      .eq("key", "gate")
+      .maybeSingle();
+    if (error || !data) return GATE_DEFAULTS;
+    return mergeGateCopy((data as { value?: unknown }).value);
+  } catch {
+    return GATE_DEFAULTS;
+  }
+}
+
+/** Applies a stored config value over the defaults, ignoring junk and blanks. */
+function mergeGateCopy(value: unknown): GateCopy {
+  if (!value || typeof value !== "object") return GATE_DEFAULTS;
+  const stored = value as Partial<Record<keyof GateCopy, unknown>>;
+  const text = (key: "title" | "body" | "fine"): string => {
+    const v = stored[key];
+    return typeof v === "string" && v.trim() !== "" ? v.trim() : GATE_DEFAULTS[key];
+  };
+  return {
+    // Absent or malformed means on: the seeded row says the gate is on, and a
+    // typo in one key should not quietly remove the sign-in path.
+    enabled: stored.enabled !== false,
+    title: text("title"),
+    body: text("body"),
+    fine: text("fine"),
+  };
 }
 
 /**

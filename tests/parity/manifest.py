@@ -423,6 +423,12 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         path="guides/configure-an-llm.md",
     ),
     SiteDoc(
+        "utility",
+        "Enable the site layer",
+        "deployed",
+        path="guides/enable-the-site-layer.md",
+    ),
+    SiteDoc(
         "selfhost",
         "Run your own node",
         "deployed",

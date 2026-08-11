@@ -15,6 +15,7 @@
     "e2e": "playwright test --project=mocked",
     "e2e:real": "playwright test --project=real-api",
     "gen:api": "node harness/gen-api-types.mjs",
+    "gen:brand": "node --experimental-strip-types scripts/gen-brand.ts",
     "frontend-ready": "node harness/run-gate.mjs",
     "start": "next start -p 5173"
   },

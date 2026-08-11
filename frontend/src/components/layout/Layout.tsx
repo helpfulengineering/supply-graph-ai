@@ -16,7 +16,14 @@ export function Layout({ children }: { children: ReactNode }) {
       </a>
       <SiteHeader />
       <AuthBanner />
-      <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-6 py-5">
+      {/* Gutters match the header's, which they did not: the bar stepped in at
+          px-4 on phones while the page below it stepped in at px-6, so the
+          mark and every h1 under it sat on two different left edges until the
+          viewport hit 640px. One rhythm, set here and in SiteFooter. */}
+      <main
+        id="main"
+        className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6"
+      >
         {children}
       </main>
       <SiteFooter />

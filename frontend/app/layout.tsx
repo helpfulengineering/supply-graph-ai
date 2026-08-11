@@ -4,14 +4,65 @@ import "@fontsource-variable/geist/index.css";
 import "@/index.css";
 import { Providers } from "./providers";
 import { ThemeScript } from "./theme-script";
+import {
+  BRAND_DESCRIPTION,
+  BRAND_GROUND_DARK,
+  BRAND_GROUND_LIGHT,
+  BRAND_NAME,
+  BRAND_SHORT,
+  BRAND_TITLE,
+} from "./brand";
+
+/**
+ * Where this instance is served from, for the absolute URLs share cards need.
+ *
+ * OHM is self-hosted, so there is no single canonical origin to hard-code —
+ * every deployment is somebody's own. Preview builds on Vercel get their own
+ * hostname injected; anything else states it, and a local build falls back to
+ * the dev server so `next build` never fails on an unset variable.
+ */
+function siteUrl(): URL {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  const vercel =
+    process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (explicit) return new URL(explicit);
+  if (vercel) return new URL(`https://${vercel}`);
+  return new URL("http://localhost:5173");
+}
 
 export const metadata: Metadata = {
-  title: "OHM — Open Hardware Matchmaker",
+  metadataBase: siteUrl(),
+  // A detail page sets only its own subject; the template keeps the product
+  // name in the tab without every page having to remember to say it.
+  title: { default: BRAND_TITLE, template: `%s · ${BRAND_SHORT}` },
+  description: BRAND_DESCRIPTION,
+  applicationName: BRAND_NAME,
+  // app/icon.svg is picked up by the file convention; naming it here as well
+  // would emit the tag twice.
+  appleWebApp: { capable: true, title: BRAND_SHORT, statusBarStyle: "default" },
+  openGraph: {
+    type: "website",
+    siteName: BRAND_NAME,
+    title: BRAND_TITLE,
+    description: BRAND_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: BRAND_TITLE,
+    description: BRAND_DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // The browser paints its own chrome (mobile address bar, tab strip) before
+  // the stylesheet lands, so this cannot be a token. Both polarities are
+  // declared: one value would flash the wrong ground for half the visitors.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: BRAND_GROUND_LIGHT },
+    { media: "(prefers-color-scheme: dark)", color: BRAND_GROUND_DARK },
+  ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

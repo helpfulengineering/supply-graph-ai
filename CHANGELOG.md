@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The site layer's visitor gate exists.** Mission Control told visitors to
+  "sign in at the gate" and there was no gate — the sign-in RPC was wired but
+  nothing ever called it, so the page's own instruction was unfollowable and
+  the operator-marker step in the enable guide had no way to happen. Entering
+  `/mission-control` without a visitor record on the device now raises a modal
+  sign-in whose heading, body and fine print come from the `gate` key of
+  `ohmgr_site_config` (empty strings fall back field-by-field; `enabled: false`
+  turns it off), with client-side validation mirroring `ohmgr_gate_signin` so a
+  typo lands under the field rather than as a swallowed failure. It gates that
+  surface and nothing else: the dashboard, catalog and matching stay open in
+  both postures, which `e2e/site-layer.spec.ts` now asserts in each. Dismissal
+  (Esc, backdrop, "Not now") leaves a sign-in button rather than a dead end,
+  and a signed-in visitor can sign out. The drawer's focus trap became
+  `useDialogFocus` rather than being copied.
+
 ## [0.10.7] - 2026-08-04
 
 ### Added

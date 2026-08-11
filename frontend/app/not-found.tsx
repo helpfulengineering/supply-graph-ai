@@ -14,7 +14,12 @@ import { PageHero } from "../src/components/layout/PageHero";
 export default function NotFound() {
   return (
     <div className="space-y-6">
-      <PageHero title="Not found" crumb="404 · no such page" />
+      {/* The one hero with no section mark. Every other page resolves its icon
+          from the sitemap, and this page is prerendered once at /_not-found and
+          then served for any unmatched path — so a resolved icon would appear
+          only after hydration, and would claim membership of a section the
+          address does not actually belong to. */}
+      <PageHero title="Not found" crumb="404 · no such page" icon={null} />
       <p className="max-w-prose text-sm text-muted-foreground">
         That address does not match anything on this instance. It may have moved,
         or it may be a capability this instance has not enabled.
