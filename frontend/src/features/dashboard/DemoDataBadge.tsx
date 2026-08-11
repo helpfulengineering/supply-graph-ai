@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { FlaskConical } from "lucide-react";
 import { fetchOkhList } from "../../api/ohm/okh";
+import { demoModeEnabled } from "../../lib/demo/demoMode";
 
 /**
  * "Demo data" indicator.
@@ -28,7 +29,9 @@ export function DemoDataBadge() {
     },
   });
 
-  if (!isDemo) return null;
+  // Either source counts: records seeded server-side (make seed-demo), or the
+  // visitor's own client-side demo mode.
+  if (!isDemo && !demoModeEnabled()) return null;
 
   return (
     <span

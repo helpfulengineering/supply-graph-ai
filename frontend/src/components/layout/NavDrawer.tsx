@@ -6,12 +6,13 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
+import { FlaskConical, RefreshCw } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { refreshLowVolatilityData } from "../../queryClient";
 import { NAV_GROUPS, isActivePath } from "./nav";
 import { useSiteLayer } from "../../lib/site/useSiteLayer";
+import { demoModeEnabled, setDemoMode } from "../../lib/demo/demoMode";
 
 interface NavDrawerProps {
   open: boolean;
@@ -222,6 +223,19 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Data
             </p>
+            <button
+              type="button"
+              onClick={() => setDemoMode(!demoModeEnabled())}
+              aria-pressed={demoModeEnabled()}
+              className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              <FlaskConical aria-hidden="true" className="h-4 w-4" />
+              Demo data
+              <span className="ml-auto text-xs font-normal text-muted-foreground">
+                {demoModeEnabled() ? "on — using sample world" : "explore with a sample world"}
+              </span>
+            </button>
+
             <button
               type="button"
               onClick={() => refreshLowVolatilityData(queryClient)}

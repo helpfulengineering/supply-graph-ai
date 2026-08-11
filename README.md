@@ -86,10 +86,18 @@ deciding nothing about its chrome.
   inconsistent focus rings. They now share canonical classes, so every field
   looks the same and is keyboard-visible in all twenty variants.
 
-Verification for the whole surface: **330 unit tests** and **105 Playwright E2E
+Verification for the whole surface: **330 unit tests** and **108 Playwright E2E
 specs**, including the twenty-variant accessibility matrix.
 
-Load the demo world yourself:
+**Two independent ways to get a demo world, both optional:**
+
+*As a visitor* — open the sitemap and switch on **Demo data**. The app swaps its
+data source to a bundled sample world, needs no backend at all, and switches
+back the same way. It is a source swap at the fetch boundary, not a mode the
+components know about, so everything you see runs the same code path real data
+does.
+
+*As an operator* — seed the records server-side:
 
 ```bash
 make seed-demo   # then restart the API — list responses are cached for an hour
