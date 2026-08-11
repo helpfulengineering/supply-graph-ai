@@ -44,8 +44,15 @@ import { useSourceColors } from "../features/network/useSourceColors";
  * spends, and gives the row something to scan by other than reading each
  * label.
  *
- * The label lives in the tooltip, which opens on tap as well as on hover — see
- * components/ui/Tooltip. `aria-label` carries it for assistive tech either way.
+ * The label is written, not hidden in the tooltip. On a phone the row was four
+ * icons and four bare figures — 9, 3,193, 361, 0 — and a glyph is not a unit:
+ * nothing on screen said which number was facilities and which was errors, and
+ * the tooltip that knew is a hover the reader does not have. It stays for the
+ * pointer, where it repeats the label rather than being the only place to find
+ * it.
+ *
+ * The figure steps down a size below `sm`, because four numbers at h3 on a
+ * 375px viewport wrapped to two lines and still left no room for their names.
  */
 function StatCard({
   icon: Icon,
@@ -61,14 +68,18 @@ function StatCard({
       tabIndex={0}
       role="group"
       aria-label={`${label}: ${value}`}
-      className="flex items-center gap-2 rounded-md px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="flex min-w-0 items-center gap-1.5 rounded-md px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-2"
     >
       {/* The world's accent as ink, not a flat grey: the figure beside it
           already carries the theme, and a muted icon read as a disabled
           control. --color-primary-ink is the accent tempered for use as text,
           which is what an icon at this weight is. */}
-      <Icon aria-hidden="true" className="h-5 w-5 shrink-0 text-primary-ink" />
-      <p className={STAT_VALUE}>{value}</p>
+      <Icon
+        aria-hidden="true"
+        className="h-4 w-4 shrink-0 text-primary-ink sm:h-5 sm:w-5"
+      />
+      <p className={cn(STAT_VALUE, "text-h4 sm:text-h3")}>{value}</p>
+      <p className={cn(CAPTION, "min-w-0 truncate leading-tight")}>{label}</p>
     </div>
   );
 

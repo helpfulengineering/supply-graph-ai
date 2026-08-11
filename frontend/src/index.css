@@ -24,6 +24,22 @@ a {
   transition-timing-function: ease;
 }
 
+/* The rule above is what made the theme picker expensive.
+   hooks/useThemeSwatches resolves each world by applying it to <html> and
+   reading the values back, so ten worlds are ten attribute flips — and against
+   a transition declared on `*`, each flip starts a colour transition on every
+   element in the document. Measured on the production home page: 1150ms of
+   blocked main thread, landing on the frame the menu opens, which is the whole
+   of "the button sticks and the drawer doesn't ease". With transitions off for
+   the length of the loop the same work is ~150ms.
+   Transitions only, not animations: the drawer's own entrance may be running
+   while this resolves, and it must not be cancelled. */
+:root[data-ttm-probing] *,
+:root[data-ttm-probing] *::before,
+:root[data-ttm-probing] *::after {
+  transition: none !important;
+}
+
 @theme inline {
   /* The type scale, as utilities.
      tokens.css has carried --ttm-fs-* since Phase 2 and nothing read them:

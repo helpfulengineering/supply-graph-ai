@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 interface DialogFocusOptions {
   /** Whether the dialog is currently mounted and modal. */
@@ -19,13 +19,26 @@ interface DialogFocusOptions {
  * Shift+Tab wrapping or focus restoration, and only the drawer has an e2e test
  * watching for it — so the behaviour is one function that both dialogs share.
  *
- * The dialog is expected to be rendered only while open (unmount is the exit
- * path), which is what makes focus restoration a cleanup and nothing more.
+ * `active` is the modal window, not the mounted window: a dialog that plays an
+ * exit animation stays in the DOM for a beat after it stops being modal, and
+ * releasing the trap at the start of that beat — rather than at unmount — is
+ * what hands focus back while the panel is still sliding out.
  */
 export function useDialogFocus(
   panelRef: RefObject<HTMLElement | null>,
   { active, onClose }: DialogFocusOptions,
 ): void {
+  // Through a ref, so the effect below runs ONCE per opening. It used to take
+  // onClose as a dependency, and every caller passes an inline arrow — so any
+  // re-render of the opener tore the trap down and built it again, and the
+  // teardown moves focus. Picking a theme inside the drawer re-rendered the
+  // header, which threw focus from the radio back to the close button; worse,
+  // the rebuild then recorded the drawer's own radio as the "opener", so
+  // closing returned focus to an element that no longer existed and it landed
+  // on <body>. Both were live in production.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (!active) return;
     const opener = document.activeElement as HTMLElement | null;
@@ -43,7 +56,7 @@ export function useDialogFocus(
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab") return;
@@ -67,5 +80,5 @@ export function useDialogFocus(
       document.body.style.overflow = "";
       opener?.focus();
     };
-  }, [active, onClose, panelRef]);
+  }, [active, panelRef]);
 }

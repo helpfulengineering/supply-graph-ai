@@ -69,6 +69,31 @@ test("each theme name is painted in its own world's accent", async ({
   );
   await page.getByRole("button", { name: "Site menu" }).click();
 
+  // The picker paints a beat after it opens, and waiting for it is the point:
+  // the resolver deliberately stands aside for the drawer's entrance rather
+  // than resolving on the frame the menu appears, which is what used to stall
+  // the open. Reading straight after the click was a race this spec happened
+  // to win.
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () =>
+            new Set(
+              Array.from(
+                document.querySelectorAll<HTMLInputElement>(
+                  'input[name="ohm-theme-pick"]',
+                ),
+              ).map((input) => {
+                const name = input.parentElement?.querySelector("span.truncate");
+                return name ? getComputedStyle(name).color : "";
+              }),
+            ).size,
+        ),
+      { message: "the picker never painted its worlds" },
+    )
+    .toBe(THEMES.length);
+
   // The truth: each world's accent as the live cascade resolves it, read the
   // long way round — one page state per world, no shared machinery with the
   // hook under test.
