@@ -3,7 +3,6 @@ import {
   DataProcessingIcon,
   InternetIcon,
   ReliabilityIcon,
-  AwarenessIcon,
   SmartFactoryIcon,
   type IconProps,
 } from "../components/icons";
@@ -32,6 +31,7 @@ import {
 } from "../components/ui/typography";
 import {
   buildNetworkSummary,
+  unplottedColor,
   SOURCE_STYLES,
   sourceColor,
 } from "../features/network/networkSummary";
@@ -80,7 +80,13 @@ function StatCard({
   );
 }
 
-function LegendDot({ source }: { source: "local" | "mom" }) {
+function LegendDot({
+  color,
+  label,
+}: {
+  color: string;
+  label: string;
+}) {
   return (
     <span className={cn(CAPTION, "inline-flex items-center gap-1.5")}>
       {/*
@@ -93,12 +99,12 @@ function LegendDot({ source }: { source: "local" | "mom" }) {
       <span
         className="h-2.5 w-2.5 rounded-full"
         style={{
-          backgroundColor: sourceColor(source),
-          boxShadow: `0 0 8px color-mix(in srgb, ${sourceColor(source)} 45%, transparent)`,
+          backgroundColor: color,
+          boxShadow: `0 0 8px color-mix(in srgb, ${color} 45%, transparent)`,
         }}
         aria-hidden="true"
       />
-      {SOURCE_STYLES[source].label}
+      {label}
     </span>
   );
 }
@@ -129,26 +135,18 @@ export function HomePage() {
         />
       </div>
 
-      {/* Hero: the manufacturing network map. */}
-      <section aria-labelledby="network-heading">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h2
-            id="network-heading"
-            className={cn(SECTION_TITLE, "flex items-center gap-2")}
-          >
-            <AwarenessIcon
-              aria-hidden="true"
-              className="h-5 w-5 shrink-0 text-primary-ink"
-            />
-            Manufacturing network
-          </h2>
-          <div className="flex gap-3">
-            <LegendDot source="local" />
-            <LegendDot source="mom" />
-          </div>
-        </div>
-
-        <div className="h-[440px] overflow-hidden rounded-xl border border-border">
+      {/*
+        Hero: the manufacturing network map, straight under the page title.
+        Named by aria-label rather than a visible heading — a title reading
+        "Manufacturing network" above a map of the manufacturing network is a
+        caption for something that needs no caption, and it pushed the map down
+        the fold. The landmark keeps its name for anyone navigating by one.
+      */}
+      <section aria-label="Manufacturing network">
+        {/* `relative` here and not on the section: the section also holds the
+            summary line under the map, so anchoring to it put the legend at
+            the bottom of both. */}
+        <div className="relative h-[440px] overflow-hidden rounded-lg border border-panel-border">
           {map.isLoading && <LoadingState message="Loading the network map…" />}
           {map.isError && (
             <ErrorState
@@ -162,6 +160,66 @@ export function HomePage() {
           )}
           {m && !map.isLoading && !map.isError && (
             <NetworkMap spaces={m.spaces} />
+          )}
+
+          {/*
+            The key, on the map it describes. In the heading row it aligned to
+            nothing — the right edge of a container the map did not share — and
+            asked the reader to carry two colours down the page. Here each dot
+            sits beside the dots it names.
+
+            Bottom-right, lifted clear of Leaflet's attribution, which owns
+            that corner. `pointer-events-none` so it never takes a click meant
+            for a marker underneath, and a z-index above the tile and marker
+            panes but below the zoom control.
+          */}
+          {m && !map.isLoading && !map.isError && (
+            <div
+              className="pointer-events-none absolute bottom-7 right-2 flex gap-3 rounded-md border border-panel-border bg-card/90 px-2 py-1"
+              style={{ zIndex: 500 }}
+            >
+              <LegendDot
+                color={sourceColor("local")}
+                label={SOURCE_STYLES.local.label}
+              />
+              <LegendDot
+                color={sourceColor("mom")}
+                label={SOURCE_STYLES.mom.label}
+              />
+              {m.dropped_no_coords > 0 && (
+                <LegendDot
+                  color={unplottedColor()}
+                  label="Without coordinates"
+                />
+              )}
+            </div>
+          )}
+
+          {/*
+            The spaces the map cannot plot, drawn on the map anyway.
+
+            They are in every count and at no coordinate, so a key entry alone
+            described a colour that appeared nowhere. A bucket pinned to the
+            corner gives them the one position that is honest — off the map,
+            still on it — and puts the key's third colour where a reader can
+            match it. Sized and shaped like a cluster, because that is what it
+            is: a group of spaces that do not resolve to a point.
+          */}
+          {m && !map.isLoading && !map.isError && m.dropped_no_coords > 0 && (
+            <span
+              title={`${m.dropped_no_coords.toLocaleString()} ${
+                m.dropped_no_coords === 1 ? "space has" : "spaces have"
+              } no coordinates and cannot be placed`}
+              className="absolute bottom-7 left-2 flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs font-semibold tabular-nums"
+              style={{
+                zIndex: 500,
+                backgroundColor: unplottedColor(),
+                color: "var(--card)",
+                boxShadow: `0 0 0 2px color-mix(in srgb, ${unplottedColor()} 35%, transparent)`,
+              }}
+            >
+              {m.dropped_no_coords.toLocaleString()}
+            </span>
           )}
         </div>
 

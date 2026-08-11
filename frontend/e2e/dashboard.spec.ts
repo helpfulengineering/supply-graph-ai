@@ -7,7 +7,10 @@ test("dashboard shows the network map and getting-started", async ({ page }) => 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /open hardware manager/i })).toBeVisible();
   // Map hero + onboarding replace the old nav-duplicate journey cards.
-  await expect(page.getByRole("heading", { name: /manufacturing network/i })).toBeVisible();
+  // The map's section is named by aria-label rather than a visible heading —
+  // a caption reading "Manufacturing network" over a map of it said nothing
+  // and pushed the map down the fold. The landmark still carries the name.
+  await expect(page.getByRole("region", { name: /manufacturing network/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: /getting started/i })).toBeVisible();
 });
 

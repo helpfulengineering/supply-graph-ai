@@ -12,3 +12,32 @@
     font-size: 22px;
   }
 }
+
+/* The plugin's own palette, switched off.
+   MarkerCluster.Default.css paints every bubble green, amber or orange by how
+   many points it holds — three colours on a map whose key names two, none of
+   them ours, encoding a count the number in the middle already states. The
+   bubble is drawn entirely by `clusterIcon`, so the defaults only have to stop
+   painting underneath it. */
+.ohm-cluster,
+.marker-cluster,
+.marker-cluster div {
+  background: none;
+  border-radius: 0;
+}
+
+/* Dark tiles, without a second tile provider.
+   OpenStreetMap's standard raster tiles are light, so in a dark world the map
+   was a lit panel in a dark page — the one surface the token layer could not
+   reach, because the pixels arrive from a server. Inverting and rotating the
+   hue turns them dark while keeping land and water distinguishable, and it
+   costs no new dependency, no new attribution, and no second set of tiles to
+   fetch on a theme switch.
+
+   Scoped to the tile pane on purpose: markers, cluster bubbles, popups and
+   controls are ours and already carry the world's colours, so inverting them
+   too would undo exactly the work the key depends on. */
+.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9)
+    saturate(0.85);
+}
