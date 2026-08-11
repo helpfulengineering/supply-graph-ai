@@ -1,5 +1,6 @@
 "use client";
 
+import { MapPin } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -253,7 +254,7 @@ export function OkwDetailView({ id }: { id: string }) {
             {f.name || "Unnamed facility"}
           </h1>
           {location && (
-            <p className="text-base text-muted-foreground">📍 {location}</p>
+            <p className="flex items-center gap-1.5 text-base text-muted-foreground"><MapPin aria-hidden="true" className="h-4 w-4 shrink-0" /> {location}</p>
           )}
           <div className="flex flex-wrap gap-1.5 pt-1">
             {f.access_type && <Badge variant="blue">{f.access_type}</Badge>}

@@ -72,7 +72,7 @@ export function BuildPackageButton({ okh, className }: Props) {
             serverBuild.mutate();
           }}
         >
-          {serverBuild.isPending ? "Building on server…" : "📦 Build on server"}
+          {serverBuild.isPending ? "Building on server…" : "Build on server"}
         </Button>
         <Button
           type="button"

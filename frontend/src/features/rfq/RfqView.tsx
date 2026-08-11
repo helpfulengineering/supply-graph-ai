@@ -1,5 +1,6 @@
 "use client";
 
+import { FileText } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -35,7 +36,7 @@ export function RfqView({ navState }: Props) {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-foreground">RFQ Generation</h1>
         <EmptyState
-          icon="📄"
+          icon={FileText}
           heading="No facilities selected"
           body="Return to the match results page, select one or more facilities, then click Contact selected facilities."
           action={

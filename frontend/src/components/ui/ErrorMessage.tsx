@@ -1,3 +1,5 @@
+import { AlertTriangle } from "lucide-react";
+
 interface Props {
   error: Error | unknown;
   retry?: () => void;
@@ -13,7 +15,7 @@ export function ErrorMessage({ error, retry, className = "" }: Props) {
   return (
     <div className={`rounded-lg border border-destructive bg-destructive/10 p-4 ${className}`}>
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 text-destructive" aria-hidden="true">⚠</span>
+        <AlertTriangle aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
         <div className="flex-1">
           <p className="text-sm font-medium text-destructive">Something went wrong</p>
           <p className="mt-1 text-sm text-destructive">{errorText(error)}</p>

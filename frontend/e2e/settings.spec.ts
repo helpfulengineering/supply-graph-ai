@@ -8,7 +8,11 @@ test("settings session is reachable without an admin key (paste bootstrap)", asy
   await page.goto("/settings/session");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "API key" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Connect" })).toBeVisible();
+  // The account entry lives in the hamburger sitemap and reads "Connect"
+  // when no API key is present — the paste-bootstrap affordance.
+  await page.getByRole("button", { name: "Site menu" }).click();
+  await expect(page.getByRole("link", { name: /Connect/ })).toBeVisible();
+  await page.getByRole("button", { name: "Close menu" }).click();
   await expect(page.getByRole("link", { name: "Keys & accounts" })).toHaveCount(0);
 });
 
@@ -20,7 +24,10 @@ test("settings session a11y with mocked admin whoami", async ({ page }, testInfo
   await page.goto("/settings/session");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "API key" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
+  // With an admin whoami the sitemap's account entry reads "Settings".
+  await page.getByRole("button", { name: "Site menu" }).click();
+  await expect(page.getByRole("link", { name: /^Settings/ })).toBeVisible();
+  await page.getByRole("button", { name: "Close menu" }).click();
   await expectNoA11yViolations(page);
 });
 

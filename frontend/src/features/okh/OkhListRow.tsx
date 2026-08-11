@@ -39,7 +39,7 @@ export function OkhListRow({ okh }: Props) {
         onClick={() => router.push(`/match?okh_id=${okh.id}`)}
         className="shrink-0 self-start rounded-md bg-accent px-3 py-1 text-xs font-medium text-primary-ink hover:bg-accent transition-colors sm:self-center"
       >
-        Run Match ⚡
+        Run Match
       </button>
     </div>
   );

@@ -1,3 +1,4 @@
+import { FileText, FolderArchive, Package, type LucideIcon } from "lucide-react";
 import type { VisualizationData } from "../../types/supply-tree";
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
 
 interface ArtifactDef {
   label: string;
-  icon: string;
+  icon: LucideIcon;
   href: string | null;
   description: string;
   download?: boolean;
@@ -20,13 +21,13 @@ export function ArtifactLinks({ data, solutionId }: Props) {
   const links: ArtifactDef[] = [
     {
       label: "HTML Report",
-      icon: "📄",
+      icon: FileText,
       href: artifacts.html_report ? `${base}/report` : null,
       description: "Full interactive supply chain report",
     },
     {
       label: "GraphML Export",
-      icon: "🗂️",
+      icon: FolderArchive,
       href: artifacts.graphml_endpoint
         ? typeof artifacts.graphml_endpoint === "string"
           ? artifacts.graphml_endpoint
@@ -37,7 +38,7 @@ export function ArtifactLinks({ data, solutionId }: Props) {
     },
     {
       label: "JSON Bundle",
-      icon: "📦",
+      icon: Package,
       href: artifacts.json_bundle ? `${base}/export?format=json` : null,
       description: "Raw visualization data bundle",
       download: true,
@@ -55,14 +56,14 @@ export function ArtifactLinks({ data, solutionId }: Props) {
         </p>
       </div>
       <div className="divide-y divide-border">
-        {links.map(({ label, icon, href, description, download }) => (
+        {links.map(({ label, icon: Icon, href, description, download }) => (
           <div
             key={label}
             className="flex items-center justify-between gap-4 px-5 py-4"
           >
             <div className="flex items-center gap-3">
               <span className="text-xl" aria-hidden="true">
-                {icon}
+                <Icon aria-hidden="true" className="h-5 w-5 text-muted-foreground" />
               </span>
               <div>
                 <p className="text-sm font-medium text-foreground">{label}</p>
