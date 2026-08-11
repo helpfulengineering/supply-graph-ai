@@ -11,7 +11,7 @@ export function AuthBanner() {
   return (
     <div
       role="alert"
-      className="border-b border-amber-200 bg-amber-50 px-6 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
+      className="border-b border-warning/30 bg-warning/10 px-6 py-3 text-sm text-warning"
     >
       <div className="mx-auto flex max-w-7xl items-start justify-between gap-4">
         <p>
@@ -23,7 +23,7 @@ export function AuthBanner() {
         <button
           type="button"
           onClick={clearAuthFailure}
-          className="shrink-0 text-amber-800 underline dark:text-amber-200"
+          className="shrink-0 text-warning underline"
           aria-label="Dismiss authentication message"
         >
           Dismiss

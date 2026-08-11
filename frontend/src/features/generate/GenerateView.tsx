@@ -90,10 +90,10 @@ function ProgressBar({
         aria-valuemax={100}
         aria-valuenow={value}
         aria-label={label}
-        className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
+        className="h-2 overflow-hidden rounded-full bg-muted"
       >
         <div
-          className="h-full rounded-full bg-indigo-600 transition-[width] duration-300"
+          className="h-full rounded-full bg-primary transition-[width] duration-300"
           style={{ width: `${value}%` }}
         />
       </div>
@@ -223,7 +223,7 @@ export function GenerateView() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+      <div className="rounded-xl border border-border bg-card p-5">
         <label
           htmlFor="repo-url"
           className="block text-sm font-medium text-foreground"
@@ -246,13 +246,13 @@ export function GenerateView() {
             }}
             aria-invalid={urlError ? true : undefined}
             aria-describedby={urlError ? "repo-url-error" : "repo-url-hint"}
-            className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+            className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm"
           />
           <button
             type="button"
             onClick={() => void run()}
             disabled={active}
-            className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+            className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-on-accent hover:bg-primary disabled:opacity-60"
           >
             {active ? "Reading…" : "Generate"}
           </button>
@@ -264,7 +264,7 @@ export function GenerateView() {
           <p
             id="repo-url-error"
             role="alert"
-            className="mt-1.5 text-sm text-red-600 dark:text-red-400"
+            className="mt-1.5 text-sm text-destructive"
           >
             {urlError}
           </p>
@@ -274,7 +274,7 @@ export function GenerateView() {
       {showProgress && (
         <div
           role="status"
-          className="space-y-4 rounded-xl border border-indigo-100 bg-indigo-50 p-5 dark:border-indigo-900 dark:bg-indigo-950/30"
+          className="space-y-4 rounded-xl border border-primary/30 bg-accent p-5"
         >
           <ProgressBar
             id="generate-aggregate-progress"
@@ -305,7 +305,7 @@ export function GenerateView() {
             <button
               type="button"
               onClick={() => void cancel()}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
+              className="rounded-md border border-border px-3 py-1.5 text-sm"
             >
               Cancel
             </button>
@@ -316,7 +316,7 @@ export function GenerateView() {
       {error && (
         <p
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+          className="rounded-xl border border-destructive bg-destructive/10 p-4 text-sm text-destructive bg-destructive/10/40"
         >
           {error}
         </p>
@@ -341,8 +341,8 @@ export function GenerateView() {
                   }}
                   className={
                     selectedJobId === s.job_id
-                      ? "rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white"
-                      : "rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
+                      ? "rounded-md bg-primary px-3 py-1.5 text-sm text-on-accent"
+                      : "rounded-md border border-border px-3 py-1.5 text-sm"
                   }
                 >
                   Review {s.url?.replace(/^https:\/\//, "")}
@@ -356,8 +356,8 @@ export function GenerateView() {
           <div
             className={
               banner.tone === "warn"
-                ? "rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/40"
-                : "rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40"
+                ? "rounded-xl border border-warning/30 bg-warning/10 p-4 bg-warning/10/40"
+                : "rounded-xl border border-border bg-background p-4"
             }
           >
             <p className="text-sm font-medium text-foreground">
@@ -372,7 +372,7 @@ export function GenerateView() {
             )}
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+          <div className="rounded-xl border border-border bg-card p-5">
             <TieredEditor manifest={manifest} onChange={setManifest} />
           </div>
 
@@ -381,7 +381,7 @@ export function GenerateView() {
               type="button"
               disabled={missing.length > 0}
               onClick={() => downloadManifest(manifest, "yaml")}
-              className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+              className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-on-accent hover:bg-primary disabled:opacity-60"
             >
               Download YAML
             </button>
@@ -389,7 +389,7 @@ export function GenerateView() {
               type="button"
               disabled={missing.length > 0}
               onClick={() => downloadManifest(manifest, "json")}
-              className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold disabled:opacity-60 dark:border-slate-600"
+              className="rounded-md border border-border px-5 py-2 text-sm font-semibold disabled:opacity-60"
             >
               Download JSON
             </button>
@@ -407,12 +407,12 @@ export function GenerateView() {
                   }),
                 )
               }
-              className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold disabled:opacity-60 dark:border-slate-600"
+              className="rounded-md border border-border px-5 py-2 text-sm font-semibold disabled:opacity-60"
             >
               Find who can build this
             </button>
             {missing.length > 0 && (
-              <p className="text-sm text-amber-700 dark:text-amber-400">
+              <p className="text-sm text-warning">
                 Fill in {missing.length} required field
                 {missing.length === 1 ? "" : "s"} first.
               </p>

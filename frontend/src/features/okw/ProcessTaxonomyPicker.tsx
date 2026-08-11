@@ -55,7 +55,9 @@ export function ProcessTaxonomyPicker({
   };
 
   if (!roots.length) {
-    return <p className="text-sm text-muted-foreground">No processes in taxonomy.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">No processes in taxonomy.</p>
+    );
   }
 
   return (
@@ -73,15 +75,15 @@ export function ProcessTaxonomyPicker({
                 disabled={disabled}
                 onChange={() => toggleParent(root.canonical_id)}
               />
-              <span className="font-medium text-slate-800 dark:text-slate-100">
+              <span className="font-medium text-foreground">
                 {root.display_name}
               </span>
             </label>
             {parentOn && kids.length > 0 && (
-              <ul className="mt-2 ml-6 space-y-1.5 border-l border-slate-200 pl-3 dark:border-slate-700">
+              <ul className="mt-2 ml-6 space-y-1.5 border-l border-border pl-3">
                 {kids.map((kid) => (
                   <li key={kid.canonical_id}>
-                    <label className="flex items-start gap-2 text-slate-700 dark:text-slate-200">
+                    <label className="flex items-start gap-2 text-foreground">
                       <input
                         type="checkbox"
                         className="mt-0.5"

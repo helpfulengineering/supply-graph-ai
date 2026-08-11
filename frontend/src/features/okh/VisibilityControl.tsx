@@ -29,12 +29,15 @@ export function VisibilityControl({
 
   const query = useQuery({
     queryKey,
-    queryFn: () => (kind === "okh" ? getOkhVisibility(id) : getOkwVisibility(id)),
+    queryFn: () =>
+      kind === "okh" ? getOkhVisibility(id) : getOkwVisibility(id),
   });
 
   const mutation = useMutation({
     mutationFn: (visibility: VisibilityLevel) =>
-      kind === "okh" ? setOkhVisibility(id, visibility) : setOkwVisibility(id, visibility),
+      kind === "okh"
+        ? setOkhVisibility(id, visibility)
+        : setOkwVisibility(id, visibility),
     onSuccess: (data) => {
       queryClient.setQueryData(queryKey, data);
       if (kind === "okw") {
@@ -59,17 +62,21 @@ export function VisibilityControl({
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2
           id={`${kind}-visibility-heading`}
-          className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+          className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
         >
           Who can receive this
         </h2>
         {level && <Badge variant="indigo">{level}</Badge>}
       </div>
 
-      {query.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {query.isLoading && (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      )}
       {query.isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
-          {query.error instanceof Error ? query.error.message : "Failed to load visibility."}
+        <p className="text-sm text-destructive">
+          {query.error instanceof Error
+            ? query.error.message
+            : "Failed to load visibility."}
         </p>
       )}
 
@@ -80,7 +87,7 @@ export function VisibilityControl({
             value={level ?? "private"}
             disabled={!hasWrite || mutation.isPending}
             onChange={(e) => mutation.mutate(e.target.value as VisibilityLevel)}
-            className="mt-1 w-full max-w-xs rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 disabled:opacity-50"
+            className="mt-1 w-full max-w-xs rounded-md border border-border px-3 py-2 text-sm bg-background disabled:opacity-50"
           >
             {LEVELS.map((l) => (
               <option key={l} value={l}>
@@ -91,7 +98,7 @@ export function VisibilityControl({
         </label>
       )}
       {showHint ? (
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{showHint}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{showHint}</p>
       ) : null}
 
       {!hasWrite && (
@@ -100,8 +107,10 @@ export function VisibilityControl({
         </p>
       )}
       {mutation.isError && (
-        <p className="mt-2 text-sm text-red-600" role="alert">
-          {mutation.error instanceof Error ? mutation.error.message : "Update failed."}
+        <p className="mt-2 text-sm text-destructive" role="alert">
+          {mutation.error instanceof Error
+            ? mutation.error.message
+            : "Update failed."}
         </p>
       )}
     </>
@@ -118,7 +127,7 @@ export function VisibilityControl({
   return (
     <section
       aria-labelledby={`${kind}-visibility-heading`}
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-xl border border-border bg-card p-5"
     >
       {body}
     </section>

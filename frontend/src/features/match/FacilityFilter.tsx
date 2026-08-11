@@ -56,7 +56,10 @@ export function facilityPassesGeo(
   if (geo.source && f.source !== geo.source) {
     return false;
   }
-  if (geo.country && countryMatchKey(f.country) !== countryMatchKey(geo.country)) {
+  if (
+    geo.country &&
+    countryMatchKey(f.country) !== countryMatchKey(geo.country)
+  ) {
     return false;
   }
   if (geo.region && regionMatchKey(f.region) !== regionMatchKey(geo.region)) {
@@ -101,10 +104,11 @@ export function FacilityFilter({
   }, [facilities, geo.source]);
 
   const countryOptions = useMemo(
-    () => uniqueSorted(
-      sourceScoped.map((f) => f.country),
-      displayCountryName,
-    ),
+    () =>
+      uniqueSorted(
+        sourceScoped.map((f) => f.country),
+        displayCountryName,
+      ),
     [sourceScoped],
   );
   // Region and city options are scoped to the chosen country. Offering every
@@ -118,10 +122,11 @@ export function FacilityFilter({
   }, [sourceScoped, geo.country]);
 
   const regionOptions = useMemo(
-    () => uniqueSorted(
-      countryScoped.map((f) => f.region),
-      displayRegionName,
-    ),
+    () =>
+      uniqueSorted(
+        countryScoped.map((f) => f.region),
+        displayRegionName,
+      ),
     [countryScoped],
   );
   // Raw city values include postal codes and addresses — see network/cityNames.
@@ -189,7 +194,7 @@ export function FacilityFilter({
         <p className="text-sm text-muted-foreground">Loading facilities…</p>
       )}
       {isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
+        <p className="text-sm text-destructive">
           Couldn’t load facilities. Try again before running a match.
         </p>
       )}
@@ -204,7 +209,10 @@ export function FacilityFilter({
                 className={selectClass}
                 value={geo.source}
                 onChange={(e) =>
-                  setGeoField("source", e.target.value as FacilityGeoFilters["source"])
+                  setGeoField(
+                    "source",
+                    e.target.value as FacilityGeoFilters["source"],
+                  )
                 }
               >
                 <option value="">All sources</option>
@@ -229,7 +237,9 @@ export function FacilityFilter({
               </select>
             </label>
             <label className="block text-sm">
-              <span className="mb-1 block text-muted-foreground">State / Region</span>
+              <span className="mb-1 block text-muted-foreground">
+                State / Region
+              </span>
               <select
                 aria-label="State / Region"
                 className={selectClass}
@@ -275,14 +285,14 @@ export function FacilityFilter({
           <div className="flex gap-3 text-xs">
             <button
               type="button"
-              className="text-indigo-600 hover:underline dark:text-indigo-400"
+              className="text-primary hover:underline"
               onClick={() => onChange(visible.map((f) => f.id))}
             >
               Select all visible
             </button>
             <button
               type="button"
-              className="text-slate-600 hover:underline dark:text-slate-300"
+              className="text-muted-foreground hover:underline"
               onClick={() => onChange([])}
             >
               Clear
@@ -301,10 +311,16 @@ export function FacilityFilter({
                   <span className="min-w-0 flex-1 truncate" aria-hidden="true">
                     {f.name}
                   </span>
-                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground" aria-hidden="true">
+                  <span
+                    className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground"
+                    aria-hidden="true"
+                  >
                     {sourceLabel(f.source)}
                   </span>
-                  <span className="truncate text-xs text-muted-foreground" aria-hidden="true">
+                  <span
+                    className="truncate text-xs text-muted-foreground"
+                    aria-hidden="true"
+                  >
                     {[
                       f.city,
                       f.region ? displayRegionName(f.region) : null,

@@ -78,12 +78,12 @@ export function PackageDetailView({ org, project, version }: Props) {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link href="/packages" className="hover:text-indigo-600">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/packages" className="hover:text-primary">
           Packages
         </Link>
         <span aria-hidden="true">›</span>
-        <span className="truncate text-slate-700 dark:text-slate-200">
+        <span className="truncate text-foreground">
           {packageName}@{version}
         </span>
       </nav>
@@ -124,25 +124,27 @@ export function PackageDetailView({ org, project, version }: Props) {
         </div>
       </div>
 
-      <dl className="grid gap-3 rounded-xl border border-slate-200 bg-white p-5 text-sm dark:border-slate-700 dark:bg-slate-900 sm:grid-cols-2">
+      <dl className="grid gap-3 rounded-xl border border-border bg-card p-5 text-sm sm:grid-cols-2">
         <div>
-          <dt className="text-xs uppercase text-slate-500">Files</dt>
+          <dt className="text-xs uppercase text-muted-foreground">Files</dt>
           <dd>{pkg.total_files}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase text-slate-500">Size</dt>
+          <dt className="text-xs uppercase text-muted-foreground">Size</dt>
           <dd>{pkg.total_size_bytes.toLocaleString()} bytes</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase text-slate-500">Built</dt>
+          <dt className="text-xs uppercase text-muted-foreground">Built</dt>
           <dd>{pkg.build_timestamp}</dd>
         </div>
         {pkg.okh_manifest_id && (
           <div>
-            <dt className="text-xs uppercase text-slate-500">OKH manifest</dt>
+            <dt className="text-xs uppercase text-muted-foreground">
+              OKH manifest
+            </dt>
             <dd>
               <Link
-                className="font-mono text-indigo-600 hover:underline"
+                className="font-mono text-primary hover:underline"
                 href={`/okh/${pkg.okh_manifest_id}`}
               >
                 {pkg.okh_manifest_id}
@@ -153,16 +155,13 @@ export function PackageDetailView({ org, project, version }: Props) {
       </dl>
 
       {pin.isSuccess && pinResult && (
-        <p
-          className="text-sm text-emerald-700 dark:text-emerald-400"
-          role="status"
-        >
+        <p className="text-sm text-success" role="status">
           Package pinned. Bundle {pinResult.bundle_hash}
         </p>
       )}
       {verify.isSuccess && (
         <p
-          className={`text-sm ${verify.data.verified ? "text-emerald-700" : "text-amber-700"}`}
+          className={`text-sm ${verify.data.verified ? "text-success" : "text-warning"}`}
           role="status"
         >
           {verify.data.verified
@@ -171,7 +170,7 @@ export function PackageDetailView({ org, project, version }: Props) {
         </p>
       )}
       {(pin.isError || verify.isError) && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {(pin.error ?? verify.error) instanceof Error
             ? ((pin.error ?? verify.error) as Error).message
             : "Action failed."}

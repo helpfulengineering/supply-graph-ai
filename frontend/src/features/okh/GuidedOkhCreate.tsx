@@ -84,7 +84,7 @@ export function GuidedOkhCreate() {
       </div>
 
       {!hasWrite && (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+        <p className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-warning bg-warning/10/40">
           You need a write-capable API key to save a design.{" "}
           <button
             type="button"
@@ -97,14 +97,14 @@ export function GuidedOkhCreate() {
         </p>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+      <div className="rounded-xl border border-border bg-card p-5">
         <TieredEditor manifest={manifest} onChange={setManifest} />
       </div>
 
       {error && (
         <p
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+          className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive bg-destructive/10/40"
         >
           {error}
         </p>
@@ -122,7 +122,7 @@ export function GuidedOkhCreate() {
           Download YAML
         </Button>
         {missing.length > 0 && (
-          <p className="text-sm text-amber-700 dark:text-amber-400">
+          <p className="text-sm text-warning">
             {missing.length} required field{missing.length === 1 ? "" : "s"}{" "}
             still to fill in.
           </p>

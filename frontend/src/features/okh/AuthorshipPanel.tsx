@@ -15,12 +15,15 @@ function ProvenanceBody({ data }: { data: RecordProvenance }) {
     <dl className="space-y-3">
       {authors.length > 0 && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Authored by
           </dt>
           <dd className="mt-1 space-y-1">
             {authors.map((c, i) => (
-              <p key={i} className="break-all font-mono text-xs text-foreground">
+              <p
+                key={i}
+                className="break-all font-mono text-xs text-foreground"
+              >
                 {creditLabel(c)}
                 {c.role ? ` (${c.role})` : ""}
               </p>
@@ -30,22 +33,28 @@ function ProvenanceBody({ data }: { data: RecordProvenance }) {
       )}
       {data.published_by && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Published by
           </dt>
-          <dd className="mt-1 break-all font-mono text-xs">{data.published_by}</dd>
+          <dd className="mt-1 break-all font-mono text-xs">
+            {data.published_by}
+          </dd>
         </div>
       )}
       {data.on_behalf_of && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             On behalf of
           </dt>
-          <dd className="mt-1 break-all font-mono text-xs">{data.on_behalf_of}</dd>
+          <dd className="mt-1 break-all font-mono text-xs">
+            {data.on_behalf_of}
+          </dd>
         </div>
       )}
       {!authors.length && !data.published_by && !data.on_behalf_of && (
-        <p className="text-sm text-muted-foreground">Empty provenance record.</p>
+        <p className="text-sm text-muted-foreground">
+          Empty provenance record.
+        </p>
       )}
     </dl>
   );
@@ -60,25 +69,30 @@ export function AuthorshipPanel({
 }) {
   const query = useQuery({
     queryKey: [kind, "provenance", id],
-    queryFn: () => (kind === "okh" ? getOkhProvenance(id) : getOkwProvenance(id)),
+    queryFn: () =>
+      kind === "okh" ? getOkhProvenance(id) : getOkwProvenance(id),
     retry: false,
   });
 
   return (
     <section
       aria-labelledby={`${kind}-authorship-heading`}
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-xl border border-border bg-card p-5"
     >
       <h2
         id={`${kind}-authorship-heading`}
-        className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+        className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
       >
         Authorship
       </h2>
-      {query.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {query.isLoading && (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      )}
       {query.isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
-          {query.error instanceof Error ? query.error.message : "Failed to load provenance."}
+        <p className="text-sm text-destructive">
+          {query.error instanceof Error
+            ? query.error.message
+            : "Failed to load provenance."}
         </p>
       )}
       {query.isSuccess && !query.data && (

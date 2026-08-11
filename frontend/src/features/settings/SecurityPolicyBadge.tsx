@@ -12,7 +12,9 @@ export function SecurityPolicyBadge() {
   });
 
   if (policy.isLoading) {
-    return <span className="text-xs text-muted-foreground">Loading policy…</span>;
+    return (
+      <span className="text-xs text-muted-foreground">Loading policy…</span>
+    );
   }
   if (policy.isError || !policy.data) {
     return null;
@@ -20,7 +22,10 @@ export function SecurityPolicyBadge() {
 
   const p = policy.data;
   return (
-    <div className="flex flex-wrap items-center gap-1.5" aria-label="Security policy">
+    <div
+      className="flex flex-wrap items-center gap-1.5"
+      aria-label="Security policy"
+    >
       <Badge variant="indigo">{p.mode}</Badge>
       <Badge variant="default">grant TTL {p.grant_ttl_days}d</Badge>
       <Badge variant={p.mdns_advertise ? "green" : "default"}>

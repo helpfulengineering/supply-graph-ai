@@ -1,12 +1,16 @@
 type Variant = "default" | "green" | "yellow" | "red" | "blue" | "indigo";
 
+// Variants name a hue rather than a meaning (callers pick "green" for healthy,
+// "yellow" for degraded), so the mapping is where hue becomes token. Ink is the
+// blended `-ink` variant, not the raw status colour: a mid-lightness hue on a
+// 10% wash of itself lands under AA.
 const variantClasses: Record<Variant, string> = {
-  default: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  green: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
-  yellow: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300",
-  red: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
-  blue: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  indigo: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
+  default: "bg-muted text-muted-foreground",
+  green: "bg-success/10 text-success-ink",
+  yellow: "bg-warning/10 text-warning-ink",
+  red: "bg-destructive/10 text-destructive-ink",
+  blue: "bg-info/10 text-info-ink",
+  indigo: "bg-accent text-primary",
 };
 
 interface Props {

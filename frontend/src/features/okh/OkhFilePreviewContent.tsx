@@ -79,29 +79,29 @@ export function OkhFilePreviewContent({
 
   const wrapperClass = fullPage
     ? "min-h-[50vh] space-y-4"
-    : "mt-2 mb-4 space-y-3 rounded-lg border border-indigo-200 bg-indigo-50/40 p-4 dark:border-indigo-800 dark:bg-indigo-950/20";
+    : "mt-2 mb-4 space-y-3 rounded-lg border border-primary/30 bg-accent/40 p-4";
 
   if (!previewable) {
     return (
       <div className={wrapperClass}>
-        <p className="text-sm text-slate-600 dark:text-slate-300">
+        <p className="text-sm text-muted-foreground">
           <span className="font-medium">{label}</span>
           {file.file_type_display && (
-            <span className="ml-2 text-xs text-slate-500">
+            <span className="ml-2 text-xs text-muted-foreground">
               ({file.file_type_display})
             </span>
           )}
         </p>
-        <p className="font-mono text-xs text-slate-500">
+        <p className="font-mono text-xs text-muted-foreground">
           {file.display_path ?? file.path}
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           No in-browser preview for this file type.
         </p>
         <a
           href={href}
           download
-          className="inline-flex rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+          className="inline-flex rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent hover:bg-primary"
         >
           Download
         </a>
@@ -113,10 +113,8 @@ export function OkhFilePreviewContent({
     <div className={wrapperClass}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-            {label}
-          </p>
-          <p className="truncate font-mono text-xs text-slate-500">
+          <p className="text-sm font-medium text-foreground">{label}</p>
+          <p className="truncate font-mono text-xs text-muted-foreground">
             {file.display_path ?? file.path}
           </p>
         </div>
@@ -124,7 +122,7 @@ export function OkhFilePreviewContent({
           {!fullPage && (
             <Link
               href={`/okh/${encodeURIComponent(okhId)}/files/${encodePathSegments(file.path)}`}
-              className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+              className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
             >
               Full preview
             </Link>
@@ -132,7 +130,7 @@ export function OkhFilePreviewContent({
           <a
             href={href}
             download
-            className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
           >
             Download
           </a>
@@ -140,7 +138,7 @@ export function OkhFilePreviewContent({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-background"
           >
             Open tab
           </a>
@@ -151,7 +149,7 @@ export function OkhFilePreviewContent({
         <img
           src={href}
           alt={label}
-          className="max-h-96 w-full rounded-md border border-slate-100 bg-white object-contain dark:border-slate-800"
+          className="max-h-96 w-full rounded-md border border-border bg-card object-contain"
         />
       )}
 
@@ -159,27 +157,25 @@ export function OkhFilePreviewContent({
         <iframe
           src={href}
           title={label}
-          className="h-[32rem] w-full rounded-md border border-slate-200 bg-white dark:border-slate-700"
+          className="h-[32rem] w-full rounded-md border border-border bg-card"
         />
       )}
 
       {showTextFetch && (
         <>
           {loading && (
-            <p className="text-sm text-slate-500">Loading preview…</p>
+            <p className="text-sm text-muted-foreground">Loading preview…</p>
           )}
-          {error && (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           {textContent != null && isMarkdownFile(file) && (
-            <article className="max-w-none space-y-2 rounded-md bg-white p-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-200 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-semibold [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-slate-50 [&_pre]:p-3">
+            <article className="max-w-none space-y-2 rounded-md bg-card p-3 text-sm text-foreground [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-semibold [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-background [&_pre]:p-3">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {textContent}
               </ReactMarkdown>
             </article>
           )}
           {textContent != null && !isMarkdownFile(file) && (
-            <pre className="max-h-96 overflow-auto rounded-md bg-white p-3 text-xs text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+            <pre className="max-h-96 overflow-auto rounded-md bg-card p-3 text-xs text-foreground">
               {textContent}
             </pre>
           )}

@@ -33,7 +33,10 @@ export function FacilityChart({ data }: Props) {
       type: "value",
       max: maxCount + 0.5,
       splitLine: { lineStyle: { color: isDark ? "#1e293b" : "#f1f5f9" } },
-      axisLabel: { color: isDark ? "#64748b" : "#94a3b8", formatter: (v: number) => (Number.isInteger(v) ? String(v) : "") },
+      axisLabel: {
+        color: isDark ? "#64748b" : "#94a3b8",
+        formatter: (v: number) => (Number.isInteger(v) ? String(v) : ""),
+      },
     },
     yAxis: {
       type: "category",
@@ -54,7 +57,10 @@ export function FacilityChart({ data }: Props) {
         itemStyle: {
           color: {
             type: "linear",
-            x: 0, y: 0, x2: 1, y2: 0,
+            x: 0,
+            y: 0,
+            x2: 1,
+            y2: 0,
             colorStops: [
               { offset: 0, color: "#6366f1" },
               { offset: 1, color: "#0ea5e9" },
@@ -75,12 +81,12 @@ export function FacilityChart({ data }: Props) {
   const chartHeight = Math.max(160, distribution.length * 48 + 40);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-      <div className="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+    <div className="rounded-xl border border-border bg-card">
+      <div className="border-b border-border px-5 py-3">
+        <h3 className="text-sm font-semibold text-foreground">
           Facility Distribution
         </h3>
-        <p className="text-xs text-slate-600 dark:text-slate-600">
+        <p className="text-xs text-muted-foreground">
           Trees assigned per facility
         </p>
       </div>

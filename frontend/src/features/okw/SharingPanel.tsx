@@ -10,17 +10,18 @@ export function SharingPanel({ id }: { id: string }) {
     <section
       id="sharing"
       aria-labelledby="okw-sharing-heading"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-xl border border-border bg-card p-5"
     >
       <h2
         id="okw-sharing-heading"
-        className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+        className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
       >
         Sharing
       </h2>
-      <p className="mb-5 text-xs text-slate-500 dark:text-slate-400">
-        Control what federation peers can receive. Visibility chooses whether (and to whom)
-        this facility is exported; disclosure chooses which field groups each audience gets.
+      <p className="mb-5 text-xs text-muted-foreground">
+        Control what federation peers can receive. Visibility chooses whether
+        (and to whom) this facility is exported; disclosure chooses which field
+        groups each audience gets.
       </p>
       <div className="space-y-6">
         <VisibilityControl
@@ -29,7 +30,7 @@ export function SharingPanel({ id }: { id: string }) {
           variant="plain"
           hint="private = local only. followers / public export the matching disclosure profile."
         />
-        <div className="border-t border-slate-200 pt-5 dark:border-slate-700">
+        <div className="border-t border-border pt-5">
           <DisclosureControl id={id} variant="plain" />
         </div>
       </div>

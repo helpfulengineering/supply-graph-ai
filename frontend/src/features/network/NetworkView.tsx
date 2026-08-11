@@ -186,7 +186,7 @@ export function NetworkView() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             {data && (
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 {buildNetworkSummary(data)}
               </p>
             )}
@@ -243,7 +243,7 @@ export function NetworkView() {
             !active.isError &&
             spaces.length > 0 &&
             (view === "map" ? (
-              <div className="h-[520px] overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="h-[520px] overflow-hidden rounded-xl border border-border">
                 <NetworkMap spaces={spaces} />
               </div>
             ) : (

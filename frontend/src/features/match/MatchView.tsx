@@ -287,22 +287,22 @@ export function MatchView({
           </Button>
         </div>
         {requiresFacilityChoice && selected && facilityIds.length === 0 && (
-          <p className="text-xs text-amber-700 dark:text-amber-400">
+          <p className="text-xs text-warning">
             Select at least one facility below before running a match.
           </p>
         )}
         {!selected && (
-          <p className="text-xs text-amber-700 dark:text-amber-400">
+          <p className="text-xs text-warning">
             Search and select a design above before running a match.
           </p>
         )}
 
         {networkMode ? (
-          <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 text-sm dark:border-indigo-800 dark:bg-indigo-950/30">
-            <p className="font-medium text-indigo-800 dark:text-indigo-300">
+          <div className="rounded-lg border border-primary/30 bg-accent/60 p-3 text-sm">
+            <p className="font-medium text-primary">
               Matching against the network
             </p>
-            <p className="mt-0.5 text-indigo-700 dark:text-indigo-400">
+            <p className="mt-0.5 text-primary">
               {describeNetworkFilter(networkFilter!)}
             </p>
           </div>
@@ -360,11 +360,9 @@ export function MatchView({
               </p>
             )}
             {view.coverageGaps.length > 0 && (
-              <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-sm dark:border-yellow-800 dark:bg-yellow-950/30">
-                <p className="font-medium text-yellow-800 dark:text-yellow-300">
-                  Coverage gaps
-                </p>
-                <p className="mt-1 text-yellow-700 dark:text-yellow-400">
+              <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm bg-warning/10/30">
+                <p className="font-medium text-warning">Coverage gaps</p>
+                <p className="mt-1 text-warning">
                   Unmatched: {view.coverageGaps.join(", ")}
                 </p>
               </div>

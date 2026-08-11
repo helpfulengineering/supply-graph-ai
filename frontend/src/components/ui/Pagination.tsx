@@ -27,14 +27,14 @@ export function Pagination({ page, totalPages, totalItems, pageSize, onPage }: P
 
   return (
     <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-muted-foreground">
         {start}–{end} of {totalItems}
       </p>
       <div className="flex items-center gap-1">
         <PagBtn onClick={() => onPage(page - 1)} disabled={page === 1} label="← Prev" />
         {pages.map((p, i) =>
           p === "…" ? (
-            <span key={`ellipsis-${i}`} className="px-2 text-slate-500">…</span>
+            <span key={`ellipsis-${i}`} className="px-2 text-muted-foreground">…</span>
           ) : (
             <PagBtn
               key={p}
@@ -66,10 +66,10 @@ function PagBtn({
       className={[
         "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
         active
-          ? "bg-indigo-600 text-white"
+          ? "bg-primary text-on-accent"
           : disabled
-            ? "cursor-not-allowed text-slate-300 dark:text-slate-600"
-            : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
+            ? "cursor-not-allowed text-muted-foreground"
+            : "text-muted-foreground hover:bg-muted",
       ].join(" ")}
     >
       {label}

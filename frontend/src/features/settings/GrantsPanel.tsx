@@ -39,7 +39,9 @@ export function GrantsPanel() {
     onSuccess: () => {
       const did = subjectDid.trim();
       setListSubject(did);
-      void queryClient.invalidateQueries({ queryKey: ["identity", "grants", did] });
+      void queryClient.invalidateQueries({
+        queryKey: ["identity", "grants", did],
+      });
       setScopeTarget("");
     },
     onError: reportAuthFailure,
@@ -48,7 +50,9 @@ export function GrantsPanel() {
   const revoke = useMutation({
     mutationFn: (grantId: string) => revokeGrant(grantId),
     onSuccess: () =>
-      void queryClient.invalidateQueries({ queryKey: ["identity", "grants", listSubject] }),
+      void queryClient.invalidateQueries({
+        queryKey: ["identity", "grants", listSubject],
+      }),
     onError: reportAuthFailure,
   });
 
@@ -57,7 +61,9 @@ export function GrantsPanel() {
     onSuccess: () => {
       const did = subjectDid.trim();
       setListSubject(did);
-      void queryClient.invalidateQueries({ queryKey: ["identity", "grants", did] });
+      void queryClient.invalidateQueries({
+        queryKey: ["identity", "grants", did],
+      });
     },
     onError: reportAuthFailure,
   });
@@ -72,9 +78,12 @@ export function GrantsPanel() {
     <div className="space-y-8">
       <section
         aria-labelledby="list-grants-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+        className="rounded-xl border border-border bg-card p-5"
       >
-        <h2 id="list-grants-heading" className="text-lg font-semibold text-foreground">
+        <h2
+          id="list-grants-heading"
+          className="text-lg font-semibold text-foreground"
+        >
           List grants
         </h2>
         <form
@@ -90,13 +99,13 @@ export function GrantsPanel() {
               value={subjectDid}
               onChange={(e) => setSubjectDid(e.target.value)}
               placeholder="did:key:…"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
             />
           </label>
           <button
             type="submit"
             disabled={!subjectDid.trim()}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
           >
             Load
           </button>
@@ -104,19 +113,21 @@ export function GrantsPanel() {
 
         {grants.isLoading && <LoadingSpinner message="Loading grants…" />}
         {grants.isError && (
-          <p className="mt-3 text-sm text-red-600" role="alert">
+          <p className="mt-3 text-sm text-destructive" role="alert">
             {grants.error.message}
           </p>
         )}
         {grants.data && (
-          <ul className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="mt-4 divide-y divide-border">
             {grants.data.map((g) => (
               <li
                 key={g.grant_id ?? `${g.subject_did}-${g.issued_at}`}
                 className="flex flex-wrap items-start justify-between gap-2 py-3"
               >
                 <div className="min-w-0">
-                  <p className="font-mono text-xs text-slate-500">{g.grant_id}</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {g.grant_id}
+                  </p>
                   <p className="mt-1 text-sm text-foreground">
                     {g.scope.kind}:{g.scope.target}
                   </p>
@@ -128,13 +139,15 @@ export function GrantsPanel() {
                     ))}
                   </div>
                   {g.expires_at && (
-                    <p className="mt-1 text-xs text-slate-500">expires {g.expires_at}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      expires {g.expires_at}
+                    </p>
                   )}
                 </div>
                 {g.grant_id && (
                   <button
                     type="button"
-                    className="rounded-md border border-red-300 px-2 py-1 text-sm text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300"
+                    className="rounded-md border border-destructive px-2 py-1 text-sm text-destructive hover:bg-destructive/10"
                     onClick={() => {
                       if (window.confirm("Revoke this grant?")) {
                         revoke.mutate(g.grant_id!);
@@ -147,7 +160,9 @@ export function GrantsPanel() {
               </li>
             ))}
             {grants.data.length === 0 && (
-              <li className="py-3 text-sm text-muted-foreground">No grants for this subject.</li>
+              <li className="py-3 text-sm text-muted-foreground">
+                No grants for this subject.
+              </li>
             )}
           </ul>
         )}
@@ -155,9 +170,12 @@ export function GrantsPanel() {
 
       <section
         aria-labelledby="issue-grant-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+        className="rounded-xl border border-border bg-card p-5"
       >
-        <h2 id="issue-grant-heading" className="text-lg font-semibold text-foreground">
+        <h2
+          id="issue-grant-heading"
+          className="text-lg font-semibold text-foreground"
+        >
           Issue grant
         </h2>
         <form
@@ -170,7 +188,8 @@ export function GrantsPanel() {
           }}
         >
           <p className="text-sm text-muted-foreground">
-            Uses the Subject DID field above. Issuer defaults to the local node identity.
+            Uses the Subject DID field above. Issuer defaults to the local node
+            identity.
           </p>
           <fieldset>
             <legend className="text-sm font-medium">Permissions</legend>
@@ -192,7 +211,7 @@ export function GrantsPanel() {
             <select
               value={scopeKind}
               onChange={(e) => setScopeKind(e.target.value)}
-              className="mt-1 block rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 block rounded-md border border-border px-3 py-2 text-sm bg-background"
             >
               <option value="node">node</option>
               <option value="space">space</option>
@@ -206,7 +225,7 @@ export function GrantsPanel() {
               value={scopeTarget}
               onChange={(e) => setScopeTarget(e.target.value)}
               placeholder="DID, pool id, or content hash"
-              className="mt-1 w-full max-w-md rounded-md border border-slate-300 px-3 py-2 font-mono text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 w-full max-w-md rounded-md border border-border px-3 py-2 font-mono text-sm bg-background"
               required
             />
           </label>
@@ -217,25 +236,30 @@ export function GrantsPanel() {
               min={1}
               value={ttlDays}
               onChange={(e) => setTtlDays(e.target.value)}
-              className="mt-1 w-32 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 w-32 rounded-md border border-border px-3 py-2 text-sm bg-background"
             />
           </label>
           <button
             type="submit"
             disabled={
-              issue.isPending || !subjectDid.trim() || !scopeTarget.trim() || !permissions.length
+              issue.isPending ||
+              !subjectDid.trim() ||
+              !scopeTarget.trim() ||
+              !permissions.length
             }
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
           >
             Issue
           </button>
           {issue.isError && (
-            <p className="text-sm text-red-600" role="alert">
-              {issue.error instanceof Error ? issue.error.message : "Issue failed"}
+            <p className="text-sm text-destructive" role="alert">
+              {issue.error instanceof Error
+                ? issue.error.message
+                : "Issue failed"}
             </p>
           )}
           {issue.isSuccess && (
-            <p className="text-sm text-green-700 dark:text-green-300" role="status">
+            <p className="text-sm text-success" role="status">
               Issued grant {issue.data.grant_id}
             </p>
           )}
@@ -244,29 +268,35 @@ export function GrantsPanel() {
 
       <section
         aria-labelledby="bootstrap-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+        className="rounded-xl border border-border bg-card p-5"
       >
-        <h2 id="bootstrap-heading" className="text-lg font-semibold text-foreground">
+        <h2
+          id="bootstrap-heading"
+          className="text-lg font-semibold text-foreground"
+        >
           Bootstrap edge grant
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Subject DID above self-issues write on the local node scope (isolated-edge genesis).
+          Subject DID above self-issues write on the local node scope
+          (isolated-edge genesis).
         </p>
         <button
           type="button"
           disabled={bootstrap.isPending || !subjectDid.trim()}
-          className="mt-4 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          className="mt-4 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
           onClick={() => bootstrap.mutate()}
         >
           Bootstrap
         </button>
         {bootstrap.isError && (
-          <p className="mt-2 text-sm text-red-600" role="alert">
-            {bootstrap.error instanceof Error ? bootstrap.error.message : "Bootstrap failed"}
+          <p className="mt-2 text-sm text-destructive" role="alert">
+            {bootstrap.error instanceof Error
+              ? bootstrap.error.message
+              : "Bootstrap failed"}
           </p>
         )}
         {bootstrap.isSuccess && (
-          <p className="mt-2 text-sm text-green-700 dark:text-green-300" role="status">
+          <p className="mt-2 text-sm text-success" role="status">
             Bootstrapped {bootstrap.data.grant_id}
           </p>
         )}

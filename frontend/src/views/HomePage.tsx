@@ -13,11 +13,9 @@ import {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-      <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-        {value}
-      </p>
-      <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
+    <div className="rounded-xl border border-border bg-card p-4">
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
     </div>
@@ -26,7 +24,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 function LegendDot({ source }: { source: "local" | "mom" }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
       <span
         className="h-2.5 w-2.5 rounded-full"
         style={{ backgroundColor: SOURCE_STYLES[source].color }}
@@ -80,7 +78,7 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="h-[440px] overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="h-[440px] overflow-hidden rounded-xl border border-border">
           {map.isLoading && <LoadingState message="Loading the network map…" />}
           {map.isError && (
             <ErrorState
@@ -98,7 +96,7 @@ export function HomePage() {
         </div>
 
         {m && (
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             {buildNetworkSummary(m)}
           </p>
         )}
@@ -137,18 +135,18 @@ export function HomePage() {
             >
               System
             </h2>
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <div className="space-y-3 rounded-xl border border-border bg-card p-5">
               <div className="flex items-center gap-2">
                 <span
-                  className={`h-2.5 w-2.5 rounded-full ${online ? "bg-green-500" : "bg-red-500"}`}
+                  className={`h-2.5 w-2.5 rounded-full ${online ? "bg-success" : "bg-destructive"}`}
                   aria-hidden="true"
                 />
-                <span className="text-sm text-slate-700 dark:text-slate-200">
+                <span className="text-sm text-foreground">
                   {online ? "API online" : "API unreachable"}
                 </span>
               </div>
               <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Domains
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -165,7 +163,7 @@ export function HomePage() {
                 </div>
               </div>
               <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Security
                 </p>
                 <SecurityPolicyBadge />

@@ -111,12 +111,12 @@ export function CreateJsonRecordPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link href={listHref} className="hover:text-indigo-600">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href={listHref} className="hover:text-primary">
           {listLabel}
         </Link>
         <span aria-hidden="true">›</span>
-        <span className="text-slate-700 dark:text-slate-200">New</span>
+        <span className="text-foreground">New</span>
       </nav>
 
       <div>
@@ -128,7 +128,7 @@ export function CreateJsonRecordPage({
       </div>
 
       {!hasWrite && (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+        <p className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
           You need a write-capable API key to create. Browse still works;
           connect a key in Settings if you are an admin.
         </p>
@@ -142,7 +142,7 @@ export function CreateJsonRecordPage({
             onChange={(e) => setJsonText(e.target.value)}
             rows={16}
             spellCheck={false}
-            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-xs dark:border-slate-600 dark:bg-slate-950"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-xs"
             placeholder="{ … }"
             required
           />
@@ -165,7 +165,7 @@ export function CreateJsonRecordPage({
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               placeholder="did:key:… or external id"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm bg-background"
             />
           </label>
           <label className="block text-sm font-medium">
@@ -174,13 +174,13 @@ export function CreateJsonRecordPage({
               value={onBehalfOf}
               onChange={(e) => setOnBehalfOf(e.target.value)}
               placeholder="space DID"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm bg-background"
             />
           </label>
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          <p className="text-sm text-destructive" role="alert">
             {error}
           </p>
         )}

@@ -6,6 +6,7 @@ import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { refreshLowVolatilityData } from "../../queryClient";
+import { ThemePicker } from "./ThemePicker";
 
 const navItems = [
   { to: "/okh", label: "Designs", icon: "🔩" },
@@ -30,11 +31,11 @@ export function NavBar() {
   const settingsLabel = isAdmin ? "Settings" : token ? "Session" : "Connect";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <header className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3">
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-bold text-indigo-600 no-underline dark:text-indigo-400"
+          className="flex items-center gap-2 text-lg font-bold text-primary no-underline"
         >
           <span aria-hidden="true">🌐</span>
           <span>OHM</span>
@@ -49,8 +50,8 @@ export function NavBar() {
               className={[
                 "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 isActive(to)
-                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
+                  ? "bg-accent text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               ].join(" ")}
             >
               <span aria-hidden="true">{icon}</span>
@@ -65,7 +66,7 @@ export function NavBar() {
           */}
           <a
             href="/docs/"
-            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 no-underline transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground"
           >
             <span aria-hidden="true">📖</span>
             Docs
@@ -77,8 +78,8 @@ export function NavBar() {
             className={[
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
               isActive("/settings")
-                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
+                ? "bg-accent text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             ].join(" ")}
           >
             <span aria-hidden="true">⚙</span>
@@ -87,12 +88,14 @@ export function NavBar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
+          <ThemePicker />
+
           <button
             onClick={() => refreshLowVolatilityData(queryClient)}
             disabled={isFetching}
             aria-label="Refresh data"
             title="Refresh designs and facilities from the latest data"
-            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -113,7 +116,7 @@ export function NavBar() {
           <button
             onClick={toggle}
             aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             {isDark ? (
               <svg

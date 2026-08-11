@@ -9,7 +9,7 @@ import { SOURCE_STYLES } from "./networkSummary";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
 
 const CARD_CLASS =
-  "group flex h-full flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 no-underline shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900";
+  "group flex h-full flex-col gap-3 rounded-xl border border-border bg-card p-5 no-underline shadow-sm transition-shadow hover:shadow-md";
 
 export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
   const location = [
@@ -25,7 +25,7 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
     <>
       <div>
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">
+          <h3 className="font-semibold text-foreground group-hover:text-primary">
             {space.name || "Unnamed"}
           </h3>
           <Badge variant={space.source === "local" ? "indigo" : "green"}>
@@ -33,12 +33,10 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
           </Badge>
         </div>
         {location && (
-          <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
-            📍 {location}
-          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">📍 {location}</p>
         )}
         {space.ambiguous && (
-          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+          <p className="mt-1 text-xs text-warning">
             ⚠ Ambiguous for the current filter (this source doesn’t report it)
           </p>
         )}
@@ -57,7 +55,7 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
         </div>
       )}
 
-      <span className="mt-auto text-sm font-medium text-indigo-600 dark:text-indigo-400">
+      <span className="mt-auto text-sm font-medium text-primary">
         {space.source === "local" ? "View facility →" : "Visit space ↗"}
       </span>
     </>
