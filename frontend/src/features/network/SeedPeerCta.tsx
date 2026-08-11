@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FIELD } from "../../components/ui/field";
 import {
-  fetchFederationStatus,
+  federationStatusQuery,
   seedFromPeerUrl,
 } from "../../api/ohm/federation";
 import { Button } from "../../components/ui/button";
@@ -14,12 +14,7 @@ import { useAuth } from "../../context/AuthContext";
 export function SeedPeerCta() {
   const queryClient = useQueryClient();
   const { hasWrite, reportAuthFailure } = useAuth();
-  const status = useQuery({
-    queryKey: ["federation", "status"],
-    queryFn: fetchFederationStatus,
-    retry: false,
-    staleTime: 60_000,
-  });
+  const status = useQuery(federationStatusQuery);
 
   const seed = useMutation({
     mutationFn: (url: string) => seedFromPeerUrl(url),
@@ -36,11 +31,7 @@ export function SeedPeerCta() {
   if (!seedUrl) return null;
 
   return (
-    <div
-      role="region"
-      aria-label="Seed facilities from peer"
-      className={FIELD}
-    >
+    <div role="region" aria-label="Seed facilities from peer" className={FIELD}>
       <p className="font-medium text-foreground">
         Seed local facilities from a public peer
       </p>

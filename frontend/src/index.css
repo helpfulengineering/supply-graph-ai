@@ -117,7 +117,11 @@ a {
      link. Small enough that it barely moves the contrast ratio off --ttm-text,
      which is the value each world already tunes to clear AA — and the twenty-
      variant axe matrix in e2e/themes.spec.ts is what holds that claim. */
-  --color-heading: color-mix(in srgb, var(--ttm-accent-cta) 20%, var(--ttm-text));
+  --color-heading: color-mix(
+    in srgb,
+    var(--ttm-accent-cta) 20%,
+    var(--ttm-text)
+  );
 
   /* Surface steps between --background and --card, for the layered panels the
      app already had (page > section > inset). */
@@ -135,6 +139,16 @@ a {
     0 4px 20px color-mix(in srgb, var(--ttm-accent-cta) 18%, transparent);
   --shadow-glow-sm: 0 0 12px
     color-mix(in srgb, var(--ttm-accent-cta) 14%, transparent);
+
+  /* The loading mark's two motions, named here rather than spelled inline on
+     the component so the cycle is one decision. Both run at 1.8s: the trace
+     and the nodes are halves of a single gesture, and a loader whose parts
+     drift out of phase reads as two animations that happen to share a shape.
+     Slow on purpose — a fast loop reads as alarm, and this one is shown while
+     the app is doing something ordinary. */
+  --animate-mark-trace: mark-trace 1.8s linear infinite;
+  --animate-mark-node: mark-node 1.8s ease-in-out infinite;
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -210,5 +224,45 @@ a {
     /* The world's sans, not a fixed one: Terminal and Mono repoint this at the
        monospace face, which is what makes those worlds feel like consoles. */
     font-family: var(--ttm-font-sans);
+  }
+}
+
+/*
+ * The mark, loading.
+ *
+ * A highlight travels the open nut while the three interior nodes surface in
+ * the order the edges reach them — the design, then the two makers it resolves
+ * to. That is the motion the mark already means, so waiting looks like the
+ * thing the app does rather than like a spinner borrowed from a library.
+ *
+ * Outside @theme because keyframes are not theme values; the `--animate-*`
+ * variables above name the cycles that reference them. Nothing here may carry
+ * a colour: the loader paints from the live token ramp like every other mark.
+ *
+ * `stroke-dashoffset` counts down over a path declared `pathLength="100"`, so
+ * the numbers are percentages of the outline and stay correct if the geometry
+ * in mark.ts is ever redrawn.
+ */
+@keyframes mark-trace {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The node never leaves — it dims and shrinks. A node that faded to zero would
+   break the graph apart, and the mark reads as a network only while all three
+   are on the page. */
+@keyframes mark-node {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.84);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
   }
 }

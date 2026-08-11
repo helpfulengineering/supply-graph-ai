@@ -50,3 +50,14 @@ export const BRAND_GROUND_LIGHT = "#faf7f2";
 /** Mirrors --ttm-text and --ttm-text-muted, Warm dark — the share card's ink. */
 export const BRAND_INK_DARK = "#f4efe8";
 export const BRAND_INK_MUTED_DARK = "#9c9184";
+
+/**
+ * The same two, Warm light — for app/global-error.tsx.
+ *
+ * The share card is a dark image and needs one polarity; the global error
+ * boundary is a live document that replaces the whole page, including the
+ * element the theme attribute is set on. `prefers-color-scheme` is the only
+ * signal it has left, so it needs both grounds and both inks.
+ */
+export const BRAND_INK_LIGHT = "#241c15";
+export const BRAND_INK_MUTED_LIGHT = "#675d51";

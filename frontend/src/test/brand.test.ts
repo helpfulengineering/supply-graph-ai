@@ -7,7 +7,9 @@ import {
   BRAND_GROUND_DARK,
   BRAND_GROUND_LIGHT,
   BRAND_INK_DARK,
+  BRAND_INK_LIGHT,
   BRAND_INK_MUTED_DARK,
+  BRAND_INK_MUTED_LIGHT,
   BRAND_NAME,
   BRAND_RAMP_DARK,
   BRAND_TITLE,
@@ -48,7 +50,9 @@ function warmToken(name: string, mode: "light" | "dark"): string {
       ? ':root.dark,\n:root[data-ttm-theme="ttm"].dark {'
       : ':root,\n:root[data-ttm-theme="ttm"] {',
   );
-  expect(start, `Warm ${mode} block not found in tokens.css`).toBeGreaterThan(-1);
+  expect(start, `Warm ${mode} block not found in tokens.css`).toBeGreaterThan(
+    -1,
+  );
   const block = TOKENS.slice(start, TOKENS.indexOf("\n}", start));
   const match = block.match(new RegExp(`--${name}:\\s*([^;]+);`));
   expect(match, `--${name} not found in the Warm ${mode} block`).not.toBeNull();
@@ -90,6 +94,11 @@ describe("baked brand colour tracks the token layer", () => {
   it("the share card's ink is the Warm dark text ramp", () => {
     expect(BRAND_INK_DARK).toBe(warmToken("ttm-text", "dark"));
     expect(BRAND_INK_MUTED_DARK).toBe(warmToken("ttm-text-muted", "dark"));
+  });
+
+  it("the global error boundary's light ink is the Warm light text ramp", () => {
+    expect(BRAND_INK_LIGHT).toBe(warmToken("ttm-text", "light"));
+    expect(BRAND_INK_MUTED_LIGHT).toBe(warmToken("ttm-text-muted", "light"));
   });
 });
 

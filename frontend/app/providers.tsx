@@ -8,7 +8,10 @@ import { ThemeContext } from "@/context/ThemeContext";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useLookInUrl } from "@/hooks/useLookInUrl";
 import { Layout } from "@/components/layout/Layout";
+import { LogoLoader } from "@/components/ui/LogoLoader";
+import { ToastProvider } from "@/components/ui/Toast";
 import { TooltipProvider } from "@/components/ui/Tooltip";
+import { BODY_MUTED } from "@/components/ui/typography";
 import { installDemoFetch } from "@/lib/demo/demoFetch";
 import { siteConfig } from "@/lib/site/config";
 import { RouteTelemetry } from "@/lib/site/RouteTelemetry";
@@ -34,7 +37,9 @@ installDemoFetch();
 // rather than inferring it. Reading process.env in a test reads the runner's
 // environment, which diverges the moment a running dev server is reused.
 if (typeof document !== "undefined") {
-  document.documentElement.dataset.siteLayer = siteConfig.enabled ? "on" : "off";
+  document.documentElement.dataset.siteLayer = siteConfig.enabled
+    ? "on"
+    : "off";
 }
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -59,8 +64,40 @@ export function Providers({ children }: { children: ReactNode }) {
     return () => observer.disconnect();
   }, []);
 
-  if (!mounted) return null;
+  // Until the effect above runs, this is the entire document.
+  //
+  // It used to be `null`, which is a defensible thing to render — nothing here
+  // can be server-rendered honestly — but not a defensible thing to SHOW. On a
+  // cold load over a slow connection the visitor got a blank page for as long
+  // as the bundle took, with no way to tell a loading app from a broken one.
+  // The mark, animating, is the smallest true statement available: the app
+  // exists and is on its way.
+  if (!mounted) return <BootLoader />;
   return <MountedProviders>{children}</MountedProviders>;
+}
+
+/**
+ * The first frame, before any provider exists.
+ *
+ * Rendered by the server and by the first client render alike, so there is
+ * nothing here for hydration to disagree about — no stored theme, no session,
+ * no query cache, which is the whole reason the gate exists.
+ *
+ * It carries the live region rather than nesting one inside `LoadingState`,
+ * because at this point there is no Layout, no <main>, and no other text on
+ * the page for a screen reader to reach.
+ */
+function BootLoader() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex min-h-screen flex-col items-center justify-center gap-3"
+    >
+      <LogoLoader className="h-12 w-12" />
+      <span className={BODY_MUTED}>Loading Open Hardware Manager…</span>
+    </div>
+  );
 }
 
 function MountedProviders({ children }: { children: ReactNode }) {
@@ -81,7 +118,13 @@ function MountedProviders({ children }: { children: ReactNode }) {
               happened to mount. Renders nothing; a no-op with the layer off.
             */}
             <RouteTelemetry />
-            <Layout>{children}</Layout>
+            {/* Inside the query client, so a toast fired from a mutation's
+                onError has one; outside Layout, so its viewport is a sibling
+                of the page rather than a child of <main> — a fixed element
+                inside the scroll container inherits its clipping. */}
+            <ToastProvider>
+              <Layout>{children}</Layout>
+            </ToastProvider>
           </TooltipProvider>
         </AuthProvider>
       </PersistQueryClientProvider>

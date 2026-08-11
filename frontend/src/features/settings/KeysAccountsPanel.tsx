@@ -21,12 +21,19 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL, PANEL_WARNING } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
+import { useToast } from "../../components/ui/Toast";
 
 const PERMISSION_OPTIONS = ["read", "write", "admin"] as const;
+
+/** Said on the toast rather than only in the panel, which the copy may scroll away from. */
+const TOKEN_HINT = "Store it now — this instance will not show it again.";
+const TOKEN_HINT_FAILED =
+  "The token is still on screen. Select it and copy it by hand before leaving this page.";
 
 export function KeysAccountsPanel() {
   const queryClient = useQueryClient();
   const { reportAuthFailure } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [keyName, setKeyName] = useState("");
   const [permissions, setPermissions] = useState<string[]>(["read"]);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
@@ -115,7 +122,18 @@ export function KeysAccountsPanel() {
             <button
               type="button"
               className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent"
-              onClick={() => void navigator.clipboard.writeText(createdToken)}
+              // The token is shown once and never again, so a silent copy is
+              // the worst case in the app: a visitor presses Copy, sees
+              // nothing, presses Done, and has lost the credential. Confirmed,
+              // and — more to the point — a denied clipboard now says so.
+              onClick={() =>
+                navigator.clipboard.writeText(createdToken).then(
+                  () =>
+                    showSuccess("Token copied", { description: TOKEN_HINT }),
+                  (err: unknown) =>
+                    showError(err, { description: TOKEN_HINT_FAILED }),
+                )
+              }
             >
               Copy
             </button>

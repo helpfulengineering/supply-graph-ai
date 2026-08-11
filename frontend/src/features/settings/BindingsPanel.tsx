@@ -15,14 +15,26 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
-
-function copyText(text: string) {
-  void navigator.clipboard.writeText(text);
-}
+import { useToast } from "../../components/ui/Toast";
 
 export function BindingsPanel() {
   const queryClient = useQueryClient();
   const { reportAuthFailure } = useAuth();
+  const { showSuccess, showError } = useToast();
+
+  /**
+   * Copying used to be silent — `void navigator.clipboard.writeText(text)`,
+   * no return value read, no feedback. On a button whose whole effect is
+   * invisible, that is indistinguishable from a button that does nothing, and
+   * the failure case (a browser that denies clipboard access without a user
+   * gesture it recognises) was swallowed entirely.
+   */
+  const copyText = (text: string, what: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => showSuccess(`${what} copied`),
+      (err: unknown) => showError(err),
+    );
+  };
 
   const [domainDid, setDomainDid] = useState("");
   const [domain, setDomain] = useState("");
@@ -147,7 +159,7 @@ export function BindingsPanel() {
               <button
                 type="button"
                 className={FIELD_SM}
-                onClick={() => copyText(pending.well_known_url)}
+                onClick={() => copyText(pending.well_known_url, "URL")}
               >
                 Copy URL
               </button>
@@ -159,7 +171,10 @@ export function BindingsPanel() {
               type="button"
               className={FIELD_SM}
               onClick={() =>
-                copyText(JSON.stringify(pending.well_known_document, null, 2))
+                copyText(
+                  JSON.stringify(pending.well_known_document, null, 2),
+                  "Document",
+                )
               }
             >
               Copy JSON
