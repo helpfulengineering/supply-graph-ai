@@ -32,6 +32,7 @@ import {
   ErrorState,
 } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
+import { PANEL } from "../../components/ui/surface";
 
 export function VisualizationView({ solutionId }: { solutionId: string }) {
   const router = useRouter();
@@ -72,7 +73,10 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         </button>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <PageHero title="Supply Tree" crumb="plan · facilities · dependencies" />
+            <PageHero
+              title="Supply Tree"
+              crumb="plan · facilities · dependencies"
+            />
           </div>
           <Button
             variant="outline"
@@ -96,7 +100,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         const deps = toDependencies(data);
         return (
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-xl border border-border bg-card p-4">
+            <section className={PANEL}>
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Production Sequence
               </h2>
@@ -120,7 +124,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
               )}
             </section>
 
-            <section className="rounded-xl border border-border bg-card p-4">
+            <section className={PANEL}>
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Dependencies
               </h2>

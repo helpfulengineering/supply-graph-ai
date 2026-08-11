@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { fetchPackageList, packageDetailPath } from "../../api/package";
+import { PANEL } from "../../components/ui/surface";
 
 /** Packages built from this OKH manifest (client-filtered list). */
 export function ReleasesStrip({ okhId }: { okhId: string }) {
@@ -24,10 +25,7 @@ export function ReleasesStrip({ okhId }: { okhId: string }) {
   if (!releases.length) return null;
 
   return (
-    <section
-      aria-labelledby="releases-heading"
-      className="rounded-xl border border-border bg-card p-4"
-    >
+    <section aria-labelledby="releases-heading" className={PANEL}>
       <h2
         id="releases-heading"
         className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground"

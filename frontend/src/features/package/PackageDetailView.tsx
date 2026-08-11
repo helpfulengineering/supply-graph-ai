@@ -17,6 +17,8 @@ import { Button } from "../../components/ui/button";
 import { useAuth } from "../../context/AuthContext";
 import { AttestationsPanel } from "../identity/AttestationsPanel";
 import { CertifyPackagePanel } from "./CertifyPackagePanel";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 
 interface Props {
   org: string;
@@ -124,7 +126,7 @@ export function PackageDetailView({ org, project, version }: Props) {
         </div>
       </div>
 
-      <dl className="grid gap-3 rounded-xl border border-border bg-card p-4 text-sm sm:grid-cols-2">
+      <dl className={cn(PANEL, "grid gap-3 text-sm sm:grid-cols-2")}>
         <div>
           <dt className="text-xs uppercase text-muted-foreground">Files</dt>
           <dd>{pkg.total_files}</dd>

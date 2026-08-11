@@ -9,6 +9,7 @@
 
 import { useState } from "react";
 import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { LINK_BUTTON } from "../../components/ui/field";
 import {
   getPath,
   humanizeKey,
@@ -181,7 +182,7 @@ function NestedField({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="text-xs text-primary-ink"
+          className={LINK_BUTTON}
         >
           {open ? "Done" : "Edit as JSON"}
         </button>

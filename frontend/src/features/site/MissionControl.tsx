@@ -3,6 +3,7 @@
 import { PageHero } from "../../components/layout/PageHero";
 import { useSiteLayer } from "../../lib/site/useSiteLayer";
 import { siteConfig } from "../../lib/site/config";
+import { PANEL } from "../../components/ui/surface";
 
 /**
  * Mission Control — the site layer's own surface: telemetry, visitor records,
@@ -29,8 +30,10 @@ export function MissionControl() {
       />
 
       {!visitor && (
-        <section className="rounded-xl border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold text-foreground">Not signed in</h2>
+        <section className={PANEL}>
+          <h2 className="text-sm font-semibold text-foreground">
+            Not signed in
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Sign in at the gate to see your own record. Site sign-in is separate
             from your OHM API session and grants no application permissions.
@@ -39,7 +42,7 @@ export function MissionControl() {
       )}
 
       {visitor && (
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className={PANEL}>
           <h2 className="text-sm font-semibold text-foreground">My record</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {visitor.name} · {visitor.email}
@@ -51,7 +54,7 @@ export function MissionControl() {
         </section>
       )}
 
-      <section className="rounded-xl border border-border bg-card p-4">
+      <section className={PANEL}>
         <h2 className="text-sm font-semibold text-foreground">
           Operator{" "}
           <span className="ml-1 font-mono text-xs font-normal text-muted-foreground">

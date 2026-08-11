@@ -1,4 +1,5 @@
 import { Button } from "../../components/ui/button";
+import { CHECKBOX, CHOICE_ROW } from "../../components/ui/field";
 import {
   PRIMARY_FACET,
   type FacetGroup,
@@ -52,14 +53,14 @@ export function FacetPanel({
                 const checked = selected.includes(opt.value);
                 return (
                   <li key={opt.value}>
-                    <label className="flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 hover:bg-accent">
+                    <label className={CHOICE_ROW}>
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => onToggle(group.key, opt.value)}
-                        className="h-4 w-4 accent-primary"
+                        className={CHECKBOX}
                       />
-                      <span className="flex-1 truncate text-foreground">
+                      <span className="min-w-0 flex-1 truncate text-foreground">
                         {opt.value}
                       </span>
                       <span className="tabular-nums text-xs text-muted-foreground">

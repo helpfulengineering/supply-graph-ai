@@ -29,6 +29,7 @@ import {
   SyncedFacilityBanner,
 } from "./SyncedFacilityBanner";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
+import { PANEL } from "../../components/ui/surface";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -47,11 +48,7 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
   const suggestions = result.suggestions ?? [];
   const errors = result.errors ?? [];
   return (
-    <section
-      role="status"
-      aria-label="Validation result"
-      className="rounded-xl border border-border bg-card p-4"
-    >
+    <section role="status" aria-label="Validation result" className={PANEL}>
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Validation
@@ -255,7 +252,10 @@ export function OkwDetailView({ id }: { id: string }) {
             {f.name || "Unnamed facility"}
           </h1>
           {location && (
-            <p className="flex items-center gap-1.5 text-base text-muted-foreground"><MapPin aria-hidden="true" className="h-4 w-4 shrink-0" /> {location}</p>
+            <p className="flex items-center gap-1.5 text-base text-muted-foreground">
+              <MapPin aria-hidden="true" className="h-4 w-4 shrink-0" />{" "}
+              {location}
+            </p>
           )}
           <div className="flex flex-wrap gap-1.5 pt-1">
             {f.access_type && <Badge variant="blue">{f.access_type}</Badge>}
@@ -321,7 +321,7 @@ export function OkwDetailView({ id }: { id: string }) {
       <SharingPanel id={id} />
 
       {f.description && (
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className={PANEL}>
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             About
           </h2>
@@ -330,7 +330,7 @@ export function OkwDetailView({ id }: { id: string }) {
       )}
 
       {equipment.length > 0 && (
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className={PANEL}>
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Equipment ({equipment.length})
           </h2>
@@ -352,7 +352,7 @@ export function OkwDetailView({ id }: { id: string }) {
       )}
 
       {certifications.length > 0 && (
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className={PANEL}>
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Certifications
           </h2>

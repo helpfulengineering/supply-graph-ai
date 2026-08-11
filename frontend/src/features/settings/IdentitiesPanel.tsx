@@ -12,6 +12,7 @@ import {
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
 
 function remember(id: Identity, replaceDid?: string) {
   return (prev: Identity[]) => [
@@ -68,10 +69,7 @@ export function IdentitiesPanel() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="mint-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="mint-heading" className={PANEL}>
         <h2 id="mint-heading" className="text-lg font-semibold text-foreground">
           Mint identity
         </h2>
@@ -143,10 +141,7 @@ export function IdentitiesPanel() {
         </form>
       </section>
 
-      <section
-        aria-labelledby="lookup-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="lookup-heading" className={PANEL}>
         <h2
           id="lookup-heading"
           className="text-lg font-semibold text-foreground"
@@ -188,10 +183,7 @@ export function IdentitiesPanel() {
       </section>
 
       {known.length > 0 && (
-        <section
-          aria-labelledby="known-heading"
-          className="rounded-xl border border-border bg-card p-4"
-        >
+        <section aria-labelledby="known-heading" className={PANEL}>
           <h2
             id="known-heading"
             className="text-lg font-semibold text-foreground"

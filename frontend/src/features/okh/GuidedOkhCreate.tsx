@@ -23,6 +23,12 @@ import { Button } from "../../components/ui/button";
 import { TieredEditor } from "../generate/TieredEditor";
 import { missingRequired } from "../generate/manifestTiers";
 import { downloadManifest } from "../generate/serialize";
+import {
+  PANEL,
+  PANEL_DANGER,
+  PANEL_WARNING,
+} from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 
 type Manifest = Record<string, unknown>;
 
@@ -81,7 +87,7 @@ export function GuidedOkhCreate() {
       />
 
       {!hasWrite && (
-        <p className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-warning-ink">
+        <p className={cn(PANEL_WARNING, "text-sm text-warning-ink")}>
           You need a write-capable API key to save a design.{" "}
           <button
             type="button"
@@ -94,14 +100,17 @@ export function GuidedOkhCreate() {
         </p>
       )}
 
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className={PANEL}>
         <TieredEditor manifest={manifest} onChange={setManifest} />
       </div>
 
       {error && (
         <p
           role="alert"
-          className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive bg-destructive/10"
+          className={cn(
+            PANEL_DANGER,
+            "text-sm text-destructive bg-destructive/10",
+          )}
         >
           {error}
         </p>

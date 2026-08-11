@@ -205,6 +205,72 @@ Worth recording: two of those guards were **wrong on first write** — a `<nav>`
 inside a facet panel is correct HTML, and a checkmark in a test fixture is not
 UI chrome. A guard that fails on correct code trains people to disable guards.
 
+### Phase 8 — The narrow viewport
+
+Phases 1–7 asserted a great deal and all of it at 1280px. Every Playwright lane
+was Desktop Chrome, so behaviour below `sm` was asserted nowhere, and the report
+that opened this phase was a photograph of a phone: the `/match` page scrolling
+sideways, header and footer visibly short of the content.
+
+**The cause was one CSS rule nobody writes.** `<fieldset>` is the single element
+the UA stylesheet gives `min-inline-size: min-content`. It therefore refuses to
+shrink below its widest descendant regardless of its parent, so the facilities
+panel — a list of 3,193 names — laid out at 920px inside a 360px window and took
+the document's horizontal scroll with it. The header and footer were honest
+100%-width bars; they stopped at the screen edge, which is why the *chrome*
+looked wrong when the chrome was fine.
+
+`components/ui/Fieldset.tsx` carries the `min-w-0` override, which is the case
+for a component rather than another string constant in `field.ts`: the
+obligation is invisible, and a constant cannot enforce being applied.
+
+**The gate landed first and immediately earned it, as in Phase 3** — and then
+had to be fixed twice, both times because it was measuring the wrong thing:
+
+- **The device preset hid the defects.** `devices["Pixel 7"]` is the intuitive
+  choice for a mobile lane and the wrong one: Chrome's mobile emulation applies
+  Android's form-control metrics, which round a 13x13 checkbox and a 16px text
+  button up past the WCAG minimum. Emulating the phone concealed exactly the
+  defects the lane existed to find. Narrow-window Desktop Chrome is the stricter
+  measurement, and those targets are real for anyone driving a pointer.
+- **Three routes in the first list did not exist.** `/network`, `/create`, and
+  `/packages` all "passed", because a 404 page has nothing to overflow and no
+  controls to undersize. The list now asserts a 200 before measuring — a layout
+  gate that quietly measures the error page is worse than no gate. (`/packages`
+  is declared in `tests/parity/manifest.py` with no route in `app/`; that is a
+  real pre-existing failure of `make parity`, surfaced here, not caused here.)
+
+A third correction was to the fixtures rather than the gate: the shared
+fixtures carry three facilities called things like "Laser Fab Lab", and the bug
+is driven by the widest row, so on fixture data it is simply absent. One stress
+case substitutes a production-shaped payload for the route that renders a long
+list, and that is the check that actually fails without the fix.
+
+**Two more concepts got their one component.** `SegmentedControl` replaces three
+hand-rolled copies of a one-of-N choice — and the accessibility note is the
+point, not the deduplication: all three declared `role="radiogroup"`, which
+tells a screen reader to announce "1 of 3" and promises arrow keys, and none of
+them implemented any key handling at all. That is worse than plain buttons,
+because assistive technology has been told a behaviour exists. The component
+implements the WAI-ARIA pattern once — roving tabindex, arrows, Home/End — with
+`SegmentedControl.test.tsx` asserting each. `components/ui/surface.ts` names the
+panel, which had drifted into two dozen spellings around a clear majority of 67.
+
+Three guards were added to `uniformity.test.ts`, and one existing guard was
+found to be wrong in the way Phase 7 warned about — from the other direction.
+Its palette regex enumerated the property prefixes it knew about
+(`bg|text|border|ring|divide|placeholder`), so `accent-<hue>-600` on a checkbox
+had been sitting in the codebase the whole time, unseen. **A guard that
+enumerates will always be one property behind the stylesheet**; it now matches
+the shade wherever it appears.
+
+The new guards then failed on their own documentation — a comment recording
+which shade used to live on that checkbox reads, to a regex, exactly like the
+shade. Rewording the prose works until the next comment, and it quietly
+pressures people not to write down why a rule exists. The guards now strip
+comments before matching, which is what all of them should have done from the
+start.
+
 ---
 
 ## Verification
@@ -212,12 +278,13 @@ UI chrome. A guard that fails on correct code trains people to disable guards.
 | Gate | What it proves |
 |---|---|
 | `make ready` (11 gates) | Format, lint, Python tests, service↔API↔CLI parity, docs, version, lockfile, script registry |
-| `npm run frontend-ready` | Typecheck, lint, 330 unit tests, build, 105 e2e |
+| `npm run frontend-ready` | Typecheck, lint, 352 unit tests, build, mocked + responsive e2e |
 | `e2e/themes.spec.ts` | WCAG AA across all 20 variants, from runtime-resolved values |
 | `e2e/chart-tokens.spec.ts` | Chart ramp distinct in every variant |
 | `e2e/chrome.spec.ts` | Sitemap completeness, focus trap, skip link, universal chrome |
 | `e2e/site-layer.spec.ts` | The default (disabled) deployment is coherent |
 | `e2e/settings.spec.ts` | Admin tabs still hidden without an admin key — the tripwire proving the site layer never leaked into application authorization |
+| `e2e/responsive.spec.ts` | No horizontal overflow and WCAG 2.5.8 target sizes at 360px and 768px, measured from the live layout |
 
 ## Risks, restated with hindsight
 

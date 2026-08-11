@@ -14,6 +14,7 @@ import { ErrorMessage } from "../../components/ui/ErrorMessage";
 import { EmptyState } from "../../components/ui/EmptyState";
 import type { RfqNavigationState, RFQDocument } from "../../types/rfq";
 import { displayCountryName } from "../match/geoDisplay";
+import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
 
 interface Props {
   navState: RfqNavigationState | null;
@@ -36,7 +37,10 @@ export function RfqView({ navState }: Props) {
   if (!navState || navState.solutions.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHero title="RFQ Generation" crumb="facilities · quotes · documents" />
+        <PageHero
+          title="RFQ Generation"
+          crumb="facilities · quotes · documents"
+        />
         <EmptyState
           icon={() => <QuotesIllustration className="h-10 w-10" />}
           heading="No facilities selected"
@@ -126,7 +130,10 @@ export function RfqView({ navState }: Props) {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <PageHero title="RFQ Generation" crumb="facilities · quotes · documents" />
+          <PageHero
+            title="RFQ Generation"
+            crumb="facilities · quotes · documents"
+          />
           <p className="mt-1 text-sm text-muted-foreground">
             Generating requests for quotation for{" "}
             <span className="font-medium text-foreground">{okhTitle}</span>
@@ -145,7 +152,7 @@ export function RfqView({ navState }: Props) {
 
       {/* Generation form */}
       {!generated && (
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className={PANEL}>
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Configuration
           </h2>
@@ -229,7 +236,7 @@ export function RfqView({ navState }: Props) {
 
       {/* Loading */}
       {isPending && (
-        <div className="rounded-xl border border-primary/30 bg-accent p-8">
+        <div className={PANEL_ACCENT}>
           <LoadingSpinner message="Generating RFQ documents…" />
         </div>
       )}

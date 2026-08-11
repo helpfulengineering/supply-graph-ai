@@ -14,6 +14,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
+import {
+  PANEL,
+  PANEL_ACCENT,
+  PANEL_DANGER,
+  PANEL_INSET,
+  PANEL_WARNING,
+} from "../../components/ui/surface";
 import { PageHero } from "../../components/layout/PageHero";
 import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -38,6 +45,7 @@ import {
   progressPercent,
   stageLabel,
 } from "./jobProgress";
+import { cn } from "@/lib/utils";
 
 type Manifest = Record<string, unknown>;
 
@@ -214,7 +222,10 @@ export function GenerateView() {
   return (
     <div className="space-y-6">
       <div>
-        <PageHero title="Generate a design from a URL" crumb="repository · extraction · review" />
+        <PageHero
+          title="Generate a design from a URL"
+          crumb="repository · extraction · review"
+        />
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Point OHM at a public GitHub or GitLab repository and it will read
           what's there into a structured design record. You can paste several
@@ -223,11 +234,8 @@ export function GenerateView() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4">
-        <label
-          htmlFor="repo-url"
-          className={LABEL}
-        >
+      <div className={PANEL}>
+        <label htmlFor="repo-url" className={LABEL}>
           Repository URL(s)
         </label>
         <div className="mt-1.5 flex gap-2">
@@ -272,10 +280,7 @@ export function GenerateView() {
       </div>
 
       {showProgress && (
-        <div
-          role="status"
-          className="space-y-4 rounded-xl border border-primary/30 bg-accent p-5"
-        >
+        <div role="status" className={cn(PANEL_ACCENT, "space-y-4")}>
           <ProgressBar
             id="generate-aggregate-progress"
             label={
@@ -316,7 +321,10 @@ export function GenerateView() {
       {error && (
         <p
           role="alert"
-          className="rounded-xl border border-destructive bg-destructive/10 p-4 text-sm text-destructive bg-destructive/10"
+          className={cn(
+            PANEL_DANGER,
+            "text-sm text-destructive bg-destructive/10",
+          )}
         >
           {error}
         </p>
@@ -353,13 +361,7 @@ export function GenerateView() {
 
       {manifest && banner && (
         <>
-          <div
-            className={
-              banner.tone === "warn"
-                ? "rounded-xl border border-warning/30 bg-warning/10 p-4 bg-warning/10"
-                : "rounded-xl border border-border bg-background p-4"
-            }
-          >
+          <div className={banner.tone === "warn" ? PANEL_WARNING : PANEL_INSET}>
             <p className="text-sm font-medium text-foreground">
               {banner.headline}
             </p>
@@ -372,7 +374,7 @@ export function GenerateView() {
             )}
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className={PANEL}>
             <TieredEditor manifest={manifest} onChange={setManifest} />
           </div>
 

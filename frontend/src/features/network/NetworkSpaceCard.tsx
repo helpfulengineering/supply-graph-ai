@@ -8,9 +8,9 @@ import type { NetworkSpace } from "../../api/ohm/network";
 import { humanizeProcessId } from "./deriveFilterOptions";
 import { SOURCE_STYLES } from "./networkSummary";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
+import { PANEL } from "../../components/ui/surface";
 
-const CARD_CLASS =
-  "group flex h-full flex-col gap-3 rounded-xl border border-border bg-card p-4 no-underline shadow-sm transition-shadow hover:shadow-md";
+const CARD_CLASS = `${PANEL} group flex h-full flex-col gap-3 no-underline shadow-sm transition-shadow hover:shadow-md`;
 
 export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
   const location = [
@@ -34,7 +34,10 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
           </Badge>
         </div>
         {location && (
-          <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground"><MapPin aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /> {location}</p>
+          <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />{" "}
+            {location}
+          </p>
         )}
         {space.ambiguous && (
           <p className="mt-1 text-xs text-warning">

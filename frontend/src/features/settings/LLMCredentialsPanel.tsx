@@ -9,6 +9,8 @@ import {
 } from "../../api/ohm/llm";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL, PANEL_INSET } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 
 const PROVIDERS = [
   "anthropic",
@@ -89,18 +91,12 @@ export function LLMCredentialsPanel() {
       </p>
 
       {message && (
-        <p
-          className="rounded-md border border-border bg-background p-3 text-sm"
-          role="status"
-        >
+        <p className={cn(PANEL_INSET, "text-sm")} role="status">
           {message}
         </p>
       )}
 
-      <section
-        aria-labelledby="llm-credentials-form-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="llm-credentials-form-heading" className={PANEL}>
         <h2
           id="llm-credentials-form-heading"
           className="text-lg font-semibold text-foreground"
@@ -154,10 +150,7 @@ export function LLMCredentialsPanel() {
         </button>
       </section>
 
-      <section
-        aria-labelledby="llm-credentials-list-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="llm-credentials-list-heading" className={PANEL}>
         <h2
           id="llm-credentials-list-heading"
           className="text-lg font-semibold text-foreground"

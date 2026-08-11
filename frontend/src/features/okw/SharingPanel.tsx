@@ -1,5 +1,6 @@
 import { VisibilityControl } from "../okh/VisibilityControl";
 import { DisclosureControl } from "./DisclosureControl";
+import { PANEL } from "../../components/ui/surface";
 
 /**
  * Single Sharing composition for OKW facilities: visibility (whether / to whom)
@@ -10,7 +11,7 @@ export function SharingPanel({ id }: { id: string }) {
     <section
       id="sharing"
       aria-labelledby="okw-sharing-heading"
-      className="rounded-xl border border-border bg-card p-4"
+      className={PANEL}
     >
       <h2
         id="okw-sharing-heading"

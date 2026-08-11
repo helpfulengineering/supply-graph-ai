@@ -5,6 +5,7 @@ import { listAttestations } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { AttestationList } from "./AttestationList";
+import { PANEL } from "../../components/ui/surface";
 
 interface Props {
   /** When set, loads attestations for this content / bundle hash. */
@@ -29,10 +30,7 @@ export function AttestationsPanel({ contentHash }: Props) {
   if (!isAdmin) return null;
 
   return (
-    <section
-      aria-labelledby="attestations-heading"
-      className="rounded-xl border border-border bg-card p-4"
-    >
+    <section aria-labelledby="attestations-heading" className={PANEL}>
       <h2
         id="attestations-heading"
         className="text-lg font-semibold text-foreground"

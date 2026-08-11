@@ -9,37 +9,30 @@
 import { useState } from "react";
 import { CreateJsonRecordPage } from "../create/CreateJsonRecordPage";
 import { createOkh, validateOkh } from "../../api/ohm/okh";
-import { Button } from "../../components/ui/button";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { GuidedOkhCreate } from "./GuidedOkhCreate";
+
+const ENTRY_METHODS = [
+  { value: "guided" as const, label: "Guided" },
+  { value: "json" as const, label: "Paste JSON" },
+];
 
 export function CreateOkhPage() {
   const [mode, setMode] = useState<"guided" | "json">("guided");
 
-  // Uses the shared Button rather than hand-written utility classes: the raw
-  // bg-primary/text-primary-foreground pairing failed contrast at 1.16:1 here,
-  // while the design-system variants are already verified across the app.
-  const tab = (value: "guided" | "json", label: string) => (
-    <Button
-      role="radio"
-      aria-checked={mode === value}
-      variant={mode === value ? "default" : "ghost"}
-      onClick={() => setMode(value)}
-    >
-      {label}
-    </Button>
-  );
-
+  // Was two Buttons carrying role="radio" inside a role="radiogroup" — correct
+  // contrast (that was the previous fix here) but still a radio group with no
+  // arrow-key handling, so the announced "1 of 2" was a promise nothing kept.
+  // SegmentedControl implements the pattern once, for all three call sites.
   return (
     <div>
       <div className="flex justify-end pt-4">
-        <div
-          role="radiogroup"
-          aria-label="Entry method"
-          className="inline-flex gap-1"
-        >
-          {tab("guided", "Guided")}
-          {tab("json", "Paste JSON")}
-        </div>
+        <SegmentedControl
+          label="Entry method"
+          value={mode}
+          options={ENTRY_METHODS}
+          onChange={setMode}
+        />
       </div>
 
       {mode === "guided" ? (

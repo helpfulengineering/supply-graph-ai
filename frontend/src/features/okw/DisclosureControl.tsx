@@ -10,6 +10,9 @@ import {
   type VisibilityLevel,
 } from "../../api/ohm/okw";
 import { useAuth } from "../../context/AuthContext";
+import { CHECKBOX } from "../../components/ui/field";
+import { cn } from "@/lib/utils";
+import { PANEL } from "../../components/ui/surface";
 
 const GROUPS: { id: DisclosureGroup; label: string; hint: string }[] = [
   {
@@ -79,7 +82,7 @@ function AudienceEditor({
           <li key={g.id} className="flex items-start gap-2 text-sm">
             <input
               type="checkbox"
-              className="mt-0.5"
+              className={cn(CHECKBOX, "mt-0.5")}
               checked={selected.has(g.id)}
               disabled={disabled || g.id === "identity"}
               onChange={() => toggle(g.id)}
@@ -282,10 +285,7 @@ export function DisclosureControl({
   }
 
   return (
-    <section
-      aria-labelledby="okw-disclosure-heading"
-      className="rounded-xl border border-border bg-card p-4"
-    >
+    <section aria-labelledby="okw-disclosure-heading" className={PANEL}>
       {body}
     </section>
   );

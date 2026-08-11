@@ -5,6 +5,7 @@ import { PageHero } from "../../components/layout/PageHero";
 import { NAV_GROUPS, type NavGroup } from "../../components/layout/nav";
 import { SHORTCUTS } from "../../components/layout/shortcuts";
 import { Settings } from "lucide-react";
+import { PANEL } from "../../components/ui/surface";
 
 /**
  * Help: the sitemap, the keyboard contract, and the accessibility features,
@@ -61,13 +62,30 @@ const A11Y = [
  * A section heading that is also a destination. `scroll-mt` keeps the sticky
  * header from covering the target when a #fragment lands on it.
  */
-function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
+function SectionHeading({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
   return (
     <h2
       id={id}
       className="group scroll-mt-20 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
     >
-      <a href={`#${id}`} className="no-underline hover:text-foreground">
+      {/*
+        inline-flex + min-h-6 so the permalink clears the 24x24 WCAG 2.5.8
+        minimum. The anchor wraps the whole heading, so its accessible name is
+        the heading text and 2.5.8's inline exception does not apply — there is
+        no surrounding non-target text constraining it. At `text-sm uppercase`
+        the line box was 18px, and the only thing holding it there was the type
+        scale, which is the author's choice and therefore the author's problem.
+      */}
+      <a
+        href={`#${id}`}
+        className="inline-flex min-h-6 items-center no-underline hover:text-foreground"
+      >
         {children}
         <span
           aria-hidden="true"
@@ -89,7 +107,7 @@ export function HelpView() {
       <section aria-labelledby="h-routes" className="space-y-4">
         <SectionHeading id="h-routes">Where things are</SectionHeading>
         {[...NAV_GROUPS, ACCOUNT_GROUP].map((group) => (
-          <div key={group.label} className="rounded-xl border border-border bg-card p-4">
+          <div key={group.label} className={PANEL}>
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {group.label}
             </h3>
@@ -98,18 +116,29 @@ export function HelpView() {
                 const Icon = entry.icon;
                 return (
                   <li key={entry.href} className="flex items-start gap-2.5">
-                    <Icon aria-hidden="true" className={`mt-0.5 h-4 w-4 shrink-0 ${group.accent}`} />
+                    <Icon
+                      aria-hidden="true"
+                      className={`mt-0.5 h-4 w-4 shrink-0 ${group.accent}`}
+                    />
                     <span className="min-w-0">
                       {entry.external ? (
-                        <a href={entry.href} className="text-sm font-medium text-primary-ink hover:underline">
+                        <a
+                          href={entry.href}
+                          className="text-sm font-medium text-primary-ink hover:underline"
+                        >
                           {entry.name}
                         </a>
                       ) : (
-                        <Link href={entry.href} className="text-sm font-medium text-primary-ink hover:underline">
+                        <Link
+                          href={entry.href}
+                          className="text-sm font-medium text-primary-ink hover:underline"
+                        >
                           {entry.name}
                         </Link>
                       )}
-                      <span className="block text-xs text-muted-foreground">{entry.desc}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {entry.desc}
+                      </span>
                     </span>
                   </li>
                 );
@@ -118,18 +147,21 @@ export function HelpView() {
           </div>
         ))}
         <p className="text-xs text-muted-foreground">
-          Design, facility, and package detail pages are reached from their lists. A supply
-          tree opens from the match that produced it — it is a result, not a browsable
-          collection.
+          Design, facility, and package detail pages are reached from their
+          lists. A supply tree opens from the match that produced it — it is a
+          result, not a browsable collection.
         </p>
       </section>
 
       <section aria-labelledby="h-keys" className="space-y-3">
         <SectionHeading id="h-keys">Keyboard shortcuts</SectionHeading>
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className={PANEL}>
           <ul className="m-0 grid list-none gap-x-6 gap-y-2 p-0 sm:grid-cols-2">
             {SHORTCUTS.map((s) => (
-              <li key={s.keys.join("+")} className="flex items-baseline gap-2 text-sm">
+              <li
+                key={s.keys.join("+")}
+                className="flex items-baseline gap-2 text-sm"
+              >
                 <span className="flex shrink-0 gap-1">
                   {s.keys.map((k) => (
                     <kbd
@@ -146,7 +178,9 @@ export function HelpView() {
           </ul>
           <p className="mt-4 text-xs text-muted-foreground">
             Shortcuts are ignored while typing in a field, so a search box takes
-            <kbd className="mx-1 rounded border border-border bg-muted px-1 py-0.5 font-mono">g</kbd>
+            <kbd className="mx-1 rounded border border-border bg-muted px-1 py-0.5 font-mono">
+              g
+            </kbd>
             as a letter.
           </p>
         </div>
@@ -156,15 +190,17 @@ export function HelpView() {
         <SectionHeading id="h-a11y">Accessibility</SectionHeading>
         <div className="grid gap-4 sm:grid-cols-2">
           {A11Y.map((item) => (
-            <div key={item.title} className="rounded-xl border border-border bg-card p-4">
-              <h3 className="text-sm font-medium text-foreground">{item.title}</h3>
+            <div key={item.title} className={PANEL}>
+              <h3 className="text-sm font-medium text-foreground">
+                {item.title}
+              </h3>
               <p className="mt-1 text-sm text-muted-foreground">{item.body}</p>
             </div>
           ))}
         </div>
         <p className="text-xs text-muted-foreground">
-          Found a barrier? Open an issue — accessibility defects are treated as bugs, not
-          enhancements.
+          Found a barrier? Open an issue — accessibility defects are treated as
+          bugs, not enhancements.
         </p>
       </section>
     </div>

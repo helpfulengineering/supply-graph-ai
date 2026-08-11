@@ -13,6 +13,7 @@ import { ApiError } from "../../api/ohm/client";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
 
 function copyText(text: string) {
   void navigator.clipboard.writeText(text);
@@ -82,10 +83,7 @@ export function BindingsPanel() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="domain-bind-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="domain-bind-heading" className={PANEL}>
         <h2
           id="domain-bind-heading"
           className="text-lg font-semibold text-foreground"
@@ -192,10 +190,7 @@ export function BindingsPanel() {
         )}
       </section>
 
-      <section
-        aria-labelledby="oauth-bind-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="oauth-bind-heading" className={PANEL}>
         <h2
           id="oauth-bind-heading"
           className="text-lg font-semibold text-foreground"
@@ -271,10 +266,7 @@ export function BindingsPanel() {
         </form>
       </section>
 
-      <section
-        aria-labelledby="bindings-list-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="bindings-list-heading" className={PANEL}>
         <h2
           id="bindings-list-heading"
           className="text-lg font-semibold text-foreground"

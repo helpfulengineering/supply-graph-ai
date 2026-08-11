@@ -13,6 +13,8 @@ import { ApiError } from "../../api/ohm/client";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL, PANEL_WARNING } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 
 export function FederationPanel() {
   const queryClient = useQueryClient();
@@ -66,16 +68,13 @@ export function FederationPanel() {
   return (
     <div className="space-y-6">
       {disabled && (
-        <p className="rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
+        <p className={cn(PANEL_WARNING, "text-sm text-warning")}>
           Federation is not enabled on this server (set{" "}
           <code className="text-xs">OHM_FEDERATION_ENABLED=true</code>).
         </p>
       )}
 
-      <section
-        aria-labelledby="federation-status-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="federation-status-heading" className={PANEL}>
         <h2
           id="federation-status-heading"
           className="text-lg font-semibold text-foreground"
@@ -139,10 +138,7 @@ export function FederationPanel() {
         )}
       </section>
 
-      <section
-        aria-labelledby="federation-peers-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="federation-peers-heading" className={PANEL}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2
             id="federation-peers-heading"

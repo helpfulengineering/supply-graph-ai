@@ -12,6 +12,8 @@ import { createOkw, updateOkw, validateOkw } from "../../api/ohm/okw";
 import { fetchProcessTaxonomy } from "../../api/ohm/taxonomy";
 import { Button } from "../../components/ui/button";
 import { ProcessTaxonomyPicker } from "./ProcessTaxonomyPicker";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 import {
   ACCESS_TYPES,
   FACILITY_STATUSES,
@@ -213,7 +215,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       )}
 
       <form onSubmit={(e) => void onSubmit(e)} className="space-y-6">
-        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+        <section className={cn(PANEL, "space-y-3")}>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Basics
           </h2>
@@ -313,7 +315,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           </label>
         </section>
 
-        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+        <section className={cn(PANEL, "space-y-3")}>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Processes
           </h2>
@@ -345,7 +347,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         </section>
 
         {mode === "create" && (
-          <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+          <section className={cn(PANEL, "space-y-3")}>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Attribution (optional)
             </h2>
@@ -386,7 +388,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
         {advancedOpen && (
           <div className="space-y-4">
-            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+            <section className={cn(PANEL, "space-y-3")}>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Hours &amp; contact
               </h2>
@@ -426,7 +428,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </div>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+            <section className={cn(PANEL, "space-y-3")}>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Equipment details
               </h2>
@@ -507,7 +509,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </Button>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+            <section className={cn(PANEL, "space-y-3")}>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Import JSON
               </h2>

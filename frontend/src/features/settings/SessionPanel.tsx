@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { FIELD_MONO, FIELD_SM, LABEL } from "../../components/ui/field";
 import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
 
 export function SessionPanel() {
   const { token, user, isLoading, authError, setToken, clear } = useAuth();
@@ -22,10 +23,7 @@ export function SessionPanel() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="session-key-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="session-key-heading" className={PANEL}>
         <h2
           id="session-key-heading"
           className="text-lg font-semibold text-foreground"
@@ -69,10 +67,7 @@ export function SessionPanel() {
         </form>
       </section>
 
-      <section
-        aria-labelledby="session-identity-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="session-identity-heading" className={PANEL}>
         <h2
           id="session-identity-heading"
           className="text-lg font-semibold text-foreground"

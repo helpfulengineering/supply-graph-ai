@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listDirectory, publishDirectoryEntry } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
 
 export function DirectoryPanel() {
   const queryClient = useQueryClient();
@@ -40,10 +41,7 @@ export function DirectoryPanel() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="directory-publish-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="directory-publish-heading" className={PANEL}>
         <h2
           id="directory-publish-heading"
           className="text-lg font-semibold text-foreground"
@@ -117,10 +115,7 @@ export function DirectoryPanel() {
         </form>
       </section>
 
-      <section
-        aria-labelledby="directory-list-heading"
-        className="rounded-xl border border-border bg-card p-4"
-      >
+      <section aria-labelledby="directory-list-heading" className={PANEL}>
         <h2
           id="directory-list-heading"
           className="text-lg font-semibold text-foreground"

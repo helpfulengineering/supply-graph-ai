@@ -33,6 +33,12 @@ import {
   ErrorState,
 } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import {
+  PANEL_ACCENT,
+  PANEL_MUTED,
+  PANEL_WARNING,
+} from "../../components/ui/surface";
 import { humanizeProcessId } from "../network/deriveFilterOptions";
 import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
 import { cn } from "@/lib/utils";
@@ -218,12 +224,15 @@ export function MatchView({
   return (
     <div className="space-y-6">
       <div>
-        <PageHero title="Match a Design" crumb="design · facilities · solutions" />
+        <PageHero
+          title="Match a Design"
+          crumb="design · facilities · solutions"
+        />
       </div>
 
       <div className="space-y-4">
         {inlineManifest ? (
-          <div className="rounded-lg border border-input bg-muted/40 p-4">
+          <div className={PANEL_MUTED}>
             <p className="text-sm font-medium text-foreground">
               {inlineTitle || "Generated design"}
             </p>
@@ -243,34 +252,29 @@ export function MatchView({
           />
         )}
 
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex-1">
+        {/*
+          Stacks below `sm`, sits on one baseline above it. As a single
+          `flex-wrap items-end` row the mode group and the button competed for
+          a phone's width: the group kept its intrinsic size, the button was
+          squeezed against it, and the mode description wrapped underneath both
+          — so "Run Match" ended up floating beside a paragraph it has nothing
+          to do with. Stacking makes the reading order the doing order: choose
+          a mode, read what it means, then run.
+        */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 sm:flex-1">
             <span className="mb-1 block text-sm text-muted-foreground">
               System mode
             </span>
-            <div
-              role="radiogroup"
-              aria-label="System mode"
-              className="inline-flex overflow-hidden rounded-md border border-input"
-            >
-              {SYSTEM_MODES.map((s) => (
-                <button
-                  key={s.mode}
-                  type="button"
-                  role="radio"
-                  aria-checked={mode === s.mode}
-                  onClick={() => setMode(s.mode)}
-                  className={cn(
-                    "px-3 py-1.5 text-sm transition-colors",
-                    mode === s.mode
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background text-foreground hover:bg-accent",
-                  )}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              label="System mode"
+              value={mode}
+              options={SYSTEM_MODES.map((s) => ({
+                value: s.mode,
+                label: s.label,
+              }))}
+              onChange={setMode}
+            />
             {modeInfo && (
               <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">
                 {modeInfo.description}
@@ -278,6 +282,8 @@ export function MatchView({
             )}
           </div>
           <Button
+            size="lg"
+            className="w-full sm:w-auto"
             disabled={!canRun}
             onClick={() =>
               mutation.mutate({ id: selected, m: mode, ids: facilityIds })
@@ -298,7 +304,7 @@ export function MatchView({
         )}
 
         {networkMode ? (
-          <div className="rounded-lg border border-primary/30 bg-accent/60 p-3 text-sm">
+          <div className={cn(PANEL_ACCENT, "text-sm")}>
             <p className="font-medium text-primary-ink">
               Matching against the network
             </p>
@@ -348,19 +354,25 @@ export function MatchView({
         !mutation.isPending &&
         (view.solutions.length === 0 ? (
           <EmptyState
-            icon={<SearchX aria-hidden="true" className="h-8 w-8" strokeWidth={1.5} />}
+            icon={
+              <SearchX
+                aria-hidden="true"
+                className="h-8 w-8"
+                strokeWidth={1.5}
+              />
+            }
             title="No matches found"
             description="No facilities can currently produce this design."
           />
         ) : (
           <div className="space-y-4">
             {view.summary && (
-              <p className="rounded-lg border bg-muted/40 p-4 text-sm text-foreground">
+              <p className={cn(PANEL_MUTED, "text-sm text-foreground")}>
                 {view.summary}
               </p>
             )}
             {view.coverageGaps.length > 0 && (
-              <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm bg-warning/10">
+              <div className={cn(PANEL_WARNING, "text-sm")}>
                 <p className="font-medium text-warning">Coverage gaps</p>
                 <p className="mt-1 text-warning">
                   Unmatched: {view.coverageGaps.join(", ")}
@@ -368,11 +380,8 @@ export function MatchView({
               </div>
             )}
             {ceiling > 0 && (
-              <div className="rounded-lg border border-input bg-muted/30 p-4">
-                <label
-                  htmlFor="near-miss-tolerance"
-                  className={LABEL}
-                >
+              <div className={PANEL_MUTED}>
+                <label htmlFor="near-miss-tolerance" className={LABEL}>
                   Allow facilities missing up to{" "}
                   {effectiveTolerance === 0
                     ? "nothing"

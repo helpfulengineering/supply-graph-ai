@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 
 const STEPS = [
   {
@@ -38,10 +40,7 @@ export function GettingStarted() {
       </h2>
       <ol className="space-y-3">
         {STEPS.map((s) => (
-          <li
-            key={s.n}
-            className="flex gap-3 rounded-xl border border-border bg-card p-4"
-          >
+          <li key={s.n} className={cn(PANEL, "flex gap-3")}>
             <span
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-on-accent"
               aria-hidden="true"

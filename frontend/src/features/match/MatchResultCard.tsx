@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { Badge } from "../../components/ui/Badge";
+import { CHECKBOX } from "../../components/ui/field";
+import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 import type { RankedSolution } from "./matchViewModel";
 import { confidencePct, confidenceToken } from "./confidence";
 import { coverageLabel } from "./nearMiss";
@@ -29,17 +32,11 @@ export function MatchResultCard({
   const treeHref = solutionId ? `/visualization/${solutionId}` : null;
 
   return (
-    <div
-      className={
-        selected
-          ? "rounded-xl border border-primary/30 bg-accent/40 p-5"
-          : "rounded-xl border border-border bg-card p-4"
-      }
-    >
+    <div className={selected ? PANEL_ACCENT : PANEL}>
       <div className="flex items-start gap-3">
         <input
           type="checkbox"
-          className="mt-1 h-4 w-4 accent-indigo-600"
+          className={cn(CHECKBOX, "mt-1")}
           checked={selected}
           onChange={onToggle}
           aria-label={`Select ${solution.facilityName}`}

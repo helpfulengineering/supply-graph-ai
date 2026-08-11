@@ -8,6 +8,7 @@ import {
 import { getOkwVisibility, setOkwVisibility } from "../../api/ohm/okw";
 import { useAuth } from "../../context/AuthContext";
 import { Badge } from "../../components/ui/Badge";
+import { PANEL } from "../../components/ui/surface";
 
 const LEVELS: VisibilityLevel[] = ["private", "followers", "public"];
 
@@ -126,10 +127,7 @@ export function VisibilityControl({
   }
 
   return (
-    <section
-      aria-labelledby={`${kind}-visibility-heading`}
-      className="rounded-xl border border-border bg-card p-4"
-    >
+    <section aria-labelledby={`${kind}-visibility-heading`} className={PANEL}>
       {body}
     </section>
   );

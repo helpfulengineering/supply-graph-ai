@@ -2,6 +2,8 @@
 
 import { PackagesIllustration } from "../../components/ui/illustrations";
 import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { PANEL_INSET } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -148,7 +150,7 @@ export function PackageListView() {
       )}
 
       {isLoading && (
-        <div className="rounded-xl border border-border bg-background p-8">
+        <div className={cn(PANEL_INSET, "p-8")}>
           <LoadingSpinner message="Loading packages…" />
         </div>
       )}

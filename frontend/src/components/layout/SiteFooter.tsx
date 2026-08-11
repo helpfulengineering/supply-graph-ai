@@ -16,20 +16,33 @@ const SOURCE_URL = `${REPO}/tree/${BRANCH}`;
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-card">
-      <div className="mx-auto flex max-w-7xl items-center justify-center gap-1.5 px-6 py-4 text-sm text-muted-foreground">
-        made with
-        <Heart aria-hidden="true" className="h-4 w-4 text-primary-ink" fill="currentColor" />
-        <span className="sr-only">heart</span>
-        by{" "}
-        <a
-          href={SOURCE_URL}
-          target="_blank"
-          rel="noreferrer"
-          title={`Source for this build — ${BRANCH}`}
-          className="font-medium text-primary-ink underline-offset-2 hover:underline"
-        >
-          OpenSource
-        </a>
+      {/*
+        A sentence, laid out as one. It was a flex row of fragments, which
+        blockifies its children — so "OpenSource" stopped being a link inside a
+        line of text and became a standalone 81x20 target, under the 24x24
+        WCAG 2.5.8 minimum with no way to pad it without breaking the line.
+        As inline content in a <p> it is sized by the line-height of the text
+        around it, which is the condition 2.5.8's inline exception describes.
+      */}
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+        <p className="text-center text-sm text-muted-foreground">
+          made with{" "}
+          <Heart
+            aria-hidden="true"
+            className="inline h-4 w-4 align-text-bottom text-primary-ink"
+            fill="currentColor"
+          />
+          <span className="sr-only">heart</span> by{" "}
+          <a
+            href={SOURCE_URL}
+            target="_blank"
+            rel="noreferrer"
+            title={`Source for this build — ${BRANCH}`}
+            className="font-medium text-primary-ink underline-offset-2 hover:underline"
+          >
+            OpenSource
+          </a>
+        </p>
       </div>
     </footer>
   );

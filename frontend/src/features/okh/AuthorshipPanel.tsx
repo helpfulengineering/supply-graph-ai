@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getOkhProvenance, type RecordProvenance } from "../../api/ohm/okh";
 import { getOkwProvenance } from "../../api/ohm/okw";
 import type { components } from "../../api/generated/schema";
+import { PANEL } from "../../components/ui/surface";
 
 type Credit = components["schemas"]["Credit"];
 
@@ -75,10 +76,7 @@ export function AuthorshipPanel({
   });
 
   return (
-    <section
-      aria-labelledby={`${kind}-authorship-heading`}
-      className="rounded-xl border border-border bg-card p-4"
-    >
+    <section aria-labelledby={`${kind}-authorship-heading`} className={PANEL}>
       <h2
         id={`${kind}-authorship-heading`}
         className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground"

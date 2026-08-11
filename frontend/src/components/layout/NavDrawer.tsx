@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FIELD } from "../../components/ui/field";
+import { CHECKBOX, CHOICE_ROW, FIELD } from "../../components/ui/field";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -157,7 +157,8 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               </p>
               <ul className="m-0 list-none p-0">
                 {group.entries.map((entry) => {
-                  const active = !entry.external && isActivePath(pathname, entry.href);
+                  const active =
+                    !entry.external && isActivePath(pathname, entry.href);
                   const Icon = entry.icon;
                   const body = (
                     <>
@@ -166,7 +167,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                         className={`mt-0.5 h-4 w-4 shrink-0 ${group.accent}`}
                       />
                       <span className="min-w-0">
-                        <span className="block text-sm font-medium">{entry.name}</span>
+                        <span className="block text-sm font-medium">
+                          {entry.name}
+                        </span>
                         <span className="block text-xs text-muted-foreground">
                           {entry.desc}
                         </span>
@@ -201,7 +204,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             </p>
             <Link
               href="/settings/session"
-              aria-current={isActivePath(pathname, "/settings") ? "page" : undefined}
+              aria-current={
+                isActivePath(pathname, "/settings") ? "page" : undefined
+              }
               className={itemClass(isActivePath(pathname, "/settings"))}
             >
               <Settings
@@ -209,8 +214,12 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
               />
               <span className="min-w-0">
-                <span className="block text-sm font-medium">{settingsLabel}</span>
-                <span className="block text-xs text-muted-foreground">{settingsDesc}</span>
+                <span className="block text-sm font-medium">
+                  {settingsLabel}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {settingsDesc}
+                </span>
               </span>
             </Link>
           </div>
@@ -225,15 +234,23 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               </p>
               <Link
                 href="/mission-control"
-                aria-current={isActivePath(pathname, "/mission-control") ? "page" : undefined}
-                className={itemClass(isActivePath(pathname, "/mission-control"))}
+                aria-current={
+                  isActivePath(pathname, "/mission-control")
+                    ? "page"
+                    : undefined
+                }
+                className={itemClass(
+                  isActivePath(pathname, "/mission-control"),
+                )}
               >
                 <Gauge
                   aria-hidden="true"
                   className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
                 />
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium">Mission Control</span>
+                  <span className="block text-sm font-medium">
+                    Mission Control
+                  </span>
                   <span className="block text-xs text-muted-foreground">
                     telemetry and visitor records for this site
                   </span>
@@ -255,7 +272,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               <FlaskConical aria-hidden="true" className="h-4 w-4" />
               Demo data
               <span className="ml-auto text-xs font-normal text-muted-foreground">
-                {demoModeEnabled() ? "on — using sample world" : "explore with a sample world"}
+                {demoModeEnabled()
+                  ? "on — using sample world"
+                  : "explore with a sample world"}
               </span>
             </button>
 
@@ -277,7 +296,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           </div>
         </nav>
 
-        <fieldset className="border-t border-border px-5 py-4">
+        <fieldset className="min-w-0 border-t border-border px-5 py-4">
           <legend className="sr-only">Theme</legend>
           <p
             aria-hidden="true"
@@ -287,17 +306,14 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           </p>
           <div className="grid grid-cols-2 gap-1">
             {themes.map(({ slug, label }) => (
-              <label
-                key={slug}
-                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-foreground transition-colors hover:bg-muted"
-              >
+              <label key={slug} className={CHOICE_ROW}>
                 <input
                   type="radio"
                   name="ohm-theme-pick"
                   value={slug}
                   checked={theme === slug}
                   onChange={() => setTheme(slug)}
-                  className="accent-[var(--ttm-accent-cta)]"
+                  className={CHECKBOX}
                 />
                 {label}
               </label>
@@ -310,7 +326,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             className={`${FIELD} mt-3 flex min-h-11 w-full items-center justify-between hover:bg-muted`}
           >
             <span>{isDark ? "Dark mode" : "Light mode"}</span>
-            <span className="text-xs text-muted-foreground">switch to {isDark ? "light" : "dark"}</span>
+            <span className="text-xs text-muted-foreground">
+              switch to {isDark ? "light" : "dark"}
+            </span>
           </button>
         </fieldset>
 
@@ -323,7 +341,10 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             }}
             className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
-            <Link2 aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+            <Link2
+              aria-hidden="true"
+              className="h-4 w-4 text-muted-foreground"
+            />
             {copied ? "Link copied" : "Copy link with this look"}
             <span className="ml-auto text-xs font-normal text-muted-foreground">
               theme + mode in the URL
@@ -337,7 +358,10 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           </p>
           <ul className="m-0 grid list-none grid-cols-1 gap-x-4 gap-y-1 p-0 sm:grid-cols-2">
             {SHORTCUTS.map((s) => (
-              <li key={s.keys.join("+")} className="flex items-baseline gap-2 text-xs">
+              <li
+                key={s.keys.join("+")}
+                className="flex items-baseline gap-2 text-xs"
+              >
                 <span className="flex shrink-0 gap-1">
                   {s.keys.map((k) => (
                     <kbd
