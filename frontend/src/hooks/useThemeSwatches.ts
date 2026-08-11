@@ -6,6 +6,16 @@ import { THEMES, type ThemeSlug } from "./useDarkMode";
 export interface ThemeSwatch {
   /** The world's call-to-action accent, resolved to a concrete colour. */
   accent: string;
+  /**
+   * The same accent, corrected for use AS TEXT on the drawer's surface.
+   *
+   * Raw accents are not safe as ink: several worlds' sit between 3.8:1 and
+   * 4.5:1, which is the finding behind --color-primary-ink in Phase 3. This
+   * blends toward the CURRENT world's foreground — the drawer is painted in
+   * the active world, not the one being previewed — so the correction matches
+   * the surface the text actually lands on.
+   */
+  ink: string;
   /** The world's sans stack. Terminal and Mono repoint it at the mono face. */
   fontSans: string;
 }
@@ -42,18 +52,35 @@ export function resolveThemeSwatches(): Record<ThemeSlug, ThemeSwatch> {
   const original = root.getAttribute("data-ttm-theme");
   const out = {} as Record<ThemeSlug, ThemeSwatch>;
 
+  // A probe, because the ink has to be a CONCRETE colour by the time it
+  // reaches an inline style. Assigning `color-mix(... var(--ttm-text))`
+  // through CSSOM drops the declaration, so the label rendered unstyled — the
+  // browser resolves it here instead, while the world is applied, and what
+  // ships to React is an rgb() string.
+  const probe = document.createElement("span");
+  probe.style.display = "none";
+  root.appendChild(probe);
+
   try {
     for (const { slug } of THEMES) {
       root.setAttribute("data-ttm-theme", slug);
       // getComputedStyle forces the style recalc, so the read below sees this
       // world and not the one that was set a moment ago.
       const style = getComputedStyle(root);
+      const accent = style.getPropertyValue("--ttm-accent-cta").trim();
+      probe.style.color = "";
+      probe.style.color = `color-mix(in srgb, ${accent} 80%, ${style
+        .getPropertyValue("--ttm-text")
+        .trim()})`;
+      const ink = getComputedStyle(probe).color || accent;
       out[slug] = {
-        accent: style.getPropertyValue("--ttm-accent-cta").trim(),
+        accent,
+        ink,
         fontSans: style.getPropertyValue("--ttm-font-sans").trim(),
       };
     }
   } finally {
+    probe.remove();
     // Restore in a finally: a throw mid-loop would otherwise strand the whole
     // app in whichever world the loop had reached.
     if (original === null) root.removeAttribute("data-ttm-theme");

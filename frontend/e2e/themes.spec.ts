@@ -55,7 +55,7 @@ for (const { slug, label } of THEMES) {
  *
  * Adding a world to THEMES extends this automatically, like the matrix above.
  */
-test("theme picker swatches match each world's own accent", async ({
+test("each theme name is painted in its own world's accent", async ({
   page,
 }) => {
   await page.goto("/");
@@ -87,38 +87,48 @@ test("theme picker swatches match each world's own accent", async ({
     }, slug);
   }
 
+  // The name itself carries the world now — one marker per row rather than a
+  // radio and a swatch dot. The colour is the accent blended toward the
+  // foreground (see ThemeSwatch.ink), so it cannot be compared to the raw
+  // accent; what must hold is that every world paints its name, and that no
+  // two worlds paint it the same.
   const rendered = await page.evaluate(() =>
     Array.from(
       document.querySelectorAll<HTMLInputElement>(
         'input[name="ohm-theme-pick"]',
       ),
     ).map((input) => {
-      const chip = input.parentElement?.querySelector("span[aria-hidden]");
+      const name = input.parentElement?.querySelector("span.truncate");
       return {
         slug: input.value,
-        // Computed, so a swatch that failed to resolve shows up as a
-        // transparent or inherited colour rather than silently passing.
-        background: chip ? getComputedStyle(chip).backgroundColor : "",
+        // Computed, so a name that failed to resolve shows up as the inherited
+        // foreground rather than silently passing.
+        colour: name ? getComputedStyle(name).color : "",
+        font: name ? getComputedStyle(name).fontFamily : "",
       };
     }),
   );
 
   expect(rendered).toHaveLength(THEMES.length);
-  for (const { slug, background } of rendered) {
-    expect(background, `${slug} swatch is unpainted`).not.toBe(
-      "rgba(0, 0, 0, 0)",
-    );
-    // Both sides are computed values from the same engine, so they are
-    // directly comparable without parsing colour syntax.
-    const want = await page.evaluate((c) => {
-      const el = document.createElement("span");
-      el.style.backgroundColor = c;
-      document.body.appendChild(el);
-      const v = getComputedStyle(el).backgroundColor;
-      el.remove();
-      return v;
-    }, expected[slug]);
-    expect(background, `${slug} swatch does not match its world`).toBe(want);
+  const foreground = await page.evaluate(() =>
+    getComputedStyle(document.documentElement).getPropertyValue("--ttm-text").trim(),
+  );
+  for (const { slug, colour } of rendered) {
+    expect(colour, `${slug} name is unpainted`).not.toBe("");
+    expect(colour, `${slug} name is the plain foreground`).not.toBe(foreground);
+  }
+  const distinct = new Set(rendered.map((r) => r.colour));
+  expect(
+    distinct.size,
+    `worlds share a name colour: ${rendered.map((r) => `${r.slug}=${r.colour}`).join(", ")}`,
+  ).toBe(THEMES.length);
+
+  // Terminal and Mono repoint every font stack at the monospace face, so their
+  // names should not render in the same family as the others.
+  const mono = rendered.filter((r) => r.slug === "terminal" || r.slug === "mono");
+  const warm = rendered.find((r) => r.slug === "ttm");
+  for (const m of mono) {
+    expect(m.font, `${m.slug} does not preview its own typeface`).not.toBe(warm?.font);
   }
 
   // The picker must leave the document in the world it found it in — the

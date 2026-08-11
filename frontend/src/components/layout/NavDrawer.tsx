@@ -301,35 +301,25 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     className={CHECKBOX}
                   />
                   {/*
-                    The world's own accent, as a chip. Ten names in identical
-                    type told you nothing about what you were choosing.
+                    The name IS the preview: rendered in that world's own
+                    accent and typeface. Two markers per row (a radio and a
+                    swatch dot) was one too many, and the colour belongs on the
+                    thing you are reading.
 
-                    A chip rather than colouring the label text: several worlds'
-                    accents sit between 3.8:1 and 4.5:1 as ink on a tinted
-                    surface — the finding behind --color-primary-ink in Phase 3
-                    — so ten accents used as text would put a contrast failure
-                    in the chrome of every page. A decorative swatch carries no
-                    contrast requirement, and the label stays at --foreground.
-
-                    Bordered rather than a bare fill, so a swatch whose accent
-                    is near the drawer's own surface still reads as a shape.
-                  */}
-                  <span
-                    aria-hidden="true"
-                    className="size-3 shrink-0 rounded-full border border-border"
-                    style={
-                      swatch ? { backgroundColor: swatch.accent } : undefined
-                    }
-                  />
-                  {/*
-                    Terminal and Mono repoint every font stack at the monospace
-                    face, which is the whole point of those two worlds.
-                    Rendering their names in their own typeface is the one
-                    preview that costs nothing and says the most.
+                    swatch.ink, not swatch.accent: raw accents sit between
+                    3.8:1 and 4.5:1 as ink in several worlds — the finding
+                    behind --color-primary-ink — so the colour is blended
+                    toward the current world's foreground before it is used as
+                    text. Terminal and Mono also repoint every font stack at
+                    the monospace face, which their names then show.
                   */}
                   <span
                     className="truncate"
-                    style={swatch ? { fontFamily: swatch.fontSans } : undefined}
+                    style={
+                      swatch
+                        ? { fontFamily: swatch.fontSans, color: swatch.ink }
+                        : undefined
+                    }
                   >
                     {label}
                   </span>

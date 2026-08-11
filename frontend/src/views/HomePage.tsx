@@ -6,6 +6,11 @@ import { Badge } from "../components/ui/Badge";
 import { LoadingState, ErrorState } from "../components/ui/states";
 import { NetworkMap } from "../features/network/NetworkMapLazy";
 import { GettingStarted } from "../features/dashboard/GettingStarted";
+import { NetworkBarChart } from "../features/dashboard/NetworkBarChart";
+import {
+  capabilityCoverage,
+  facilitiesByCountry,
+} from "../features/dashboard/networkStats";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { PANEL } from "../components/ui/surface";
 import { cn } from "@/lib/utils";
@@ -45,6 +50,7 @@ export function HomePage() {
     queryKey: ["network", "baseline"],
     queryFn: () => fetchNetworkSpaces(),
   });
+  const spaces = map.data?.spaces ?? [];
   const domains = useQuery({ queryKey: ["domains"], queryFn: fetchDomains });
   // Metrics are more volatile than the catalog data; keep a short stale window.
   const metrics = useQuery({
@@ -120,6 +126,28 @@ export function HomePage() {
           value={(metrics.data?.total_errors ?? 0).toLocaleString()}
         />
       </div>
+
+      {/*
+        Derived from the space set the map above already loaded — no extra
+        request. The counts answer the two questions the map shape raises but
+        cannot: where the network actually concentrates, and what it can make.
+      */}
+      {spaces.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <NetworkBarChart
+            title="Where the network is"
+            caption="Facilities by country, top 8"
+            rows={facilitiesByCountry(spaces)}
+            seriesIndex={0}
+          />
+          <NetworkBarChart
+            title="What it can make"
+            caption="Facilities offering each capability, top 8"
+            rows={capabilityCoverage(spaces)}
+            seriesIndex={1}
+          />
+        </div>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
