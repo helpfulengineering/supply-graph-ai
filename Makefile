@@ -1,11 +1,18 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity secrets-check ready setup verify-env frontend-setup frontend-ready harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
+.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
 # mocked E2E + a11y + screenshots lane; nonzero on any failure.
 frontend-ready:
 	cd frontend && npm run frontend-ready
+
+# Deterministic demo world for local dev and the real-api E2E lane: designs and
+# facilities curated so browse -> match -> supply tree completes. Idempotent
+# (ids are content-derived), so re-running reseeds in place. `--summary` prints
+# match coverage without writing.
+seed-demo:
+	uv run python scripts/seed_demo_data.py
 
 # Multi-loop triage harness (parity / RED / synthetic smoke / client drift).
 # Modules load independently; stubs report ok until each judge comes online.
