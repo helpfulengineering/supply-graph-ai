@@ -13,7 +13,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "./networkMap.css";
 import type { NetworkSpace } from "../../api/ohm/network";
-import { SOURCE_STYLES, sourceColor } from "./networkSummary";
+import { SOURCE_STYLES, sourceVar } from "./networkSummary";
 import { useSourceColors } from "./useSourceColors";
 import { denseBounds, fillZoom, fitPadding } from "./mapFraming";
 import { displayCountryName } from "../match/geoDisplay";
@@ -51,12 +51,12 @@ type SourcedMarker = L.Marker & { ohmSource?: NetworkSpace["source"] };
 // Vector div-icons (a colored dot) avoid Leaflet's broken default-marker asset
 // paths under Vite, are colorable by source, and are still real L.Markers so
 // react-leaflet-cluster can cluster them (CircleMarkers are not clustered).
-// Keyed by source AND colour: keyed by source alone, the cache would pin the
-// first world's hue and the map would stop re-theming.
+// Keyed by source alone: the hue is a var() the cascade resolves, so one icon
+// per source is correct in every world and none of them go stale.
 const _iconCache: Record<string, L.DivIcon> = {};
 function dotIcon(source: NetworkSpace["source"]): L.DivIcon {
-  const color = sourceColor(source);
-  const key = `${source}:${color}`;
+  const color = sourceVar(source);
+  const key = source;
   if (!_iconCache[key]) {
     // 24x24 icon, 12px dot. Leaflet markers are focusable targets, so a 12px
     // icon is a 12px target — under the WCAG 2.5.8 minimum, which the
@@ -98,7 +98,7 @@ function clusterIcon(cluster: Cluster): L.DivIcon {
   const hasLocal = cluster
     .getAllChildMarkers()
     .some((marker) => marker.ohmSource === "local");
-  const color = sourceColor(hasLocal ? "local" : "mom");
+  const color = sourceVar(hasLocal ? "local" : "mom");
 
   // Area, not radius, tracks the count: doubling the points should look like
   // twice as much, and a linear radius makes a 2,000-point bubble swallow the
@@ -174,12 +174,12 @@ function popupContent(space: NetworkSpace): HTMLElement {
  */
 function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
   const map = useMap();
-  // Rebuilt when the world changes, not only when the data does. Marker and
-  // cluster colours are read from the live tokens at build time, so without
-  // this the map kept the previous world's palette until the space set
-  // happened to change — which on the dashboard is never.
-  const colors = useSourceColors();
 
+  // Built when the data changes and at no other time. This used to depend on
+  // the resolved palette as well, because the icons baked concrete colours in:
+  // a keystroke rebuilt 3,202 markers and re-clustered them, which is why the
+  // map turned last and visibly late. The icons now carry var()s, so the world
+  // changing is a style recalculation the browser does on its own.
   useEffect(() => {
     const markers = spaces.map((space) => {
       const marker: SourcedMarker = L.marker([space.lat, space.lon], {
@@ -208,7 +208,7 @@ function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
       map.removeLayer(group);
       group.clearLayers();
     };
-  }, [map, spaces, colors]);
+  }, [map, spaces]);
   return null;
 }
 

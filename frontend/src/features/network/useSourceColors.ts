@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { sourceColor, unplottedColor } from "./networkSummary";
 import { tileFilter } from "./tileFilter";
@@ -49,24 +49,33 @@ function resolve(): SourceColors {
  * world before React mounts), then again a frame after any change.
  */
 export function useSourceColors(): SourceColors {
-  const { theme: urgentTheme, isDark: urgentDark } = useTheme();
-  // Deferred, so a theme change repaints before it re-resolves.
-  //
-  // This hook re-reads palettes and re-renders whatever draws from them, and
-  // on a page with a full facility catalogue that measured as a 949ms task
-  // sitting between the keystroke and the paint. `useDeferredValue` lets React
-  // render the cheap consumers — the picker's own radio, the chrome — at once
-  // and come back for this at lower priority, so the world changes colour
-  // immediately and the canvases catch up a frame or two later. Nothing here
-  // is what a visitor is waiting to see.
-  const theme = useDeferredValue(urgentTheme);
-  const isDark = useDeferredValue(urgentDark);
+  const { theme, isDark } = useTheme();
   const [colors, setColors] = useState<SourceColors>(resolve);
 
+  // Urgent, and no longer deferred. The defer was here because a theme change
+  // used to rebuild every marker on the map from these values — the reason the
+  // map turned a beat after the rest of the page. The markers now recolour
+  // from the cascade (see `sourceVar`), so what is left is one filter string
+  // for the tile layer, cached per world: cheap enough to land in the same
+  // commit as everything else, which is what "at once" has to mean.
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setColors(resolve()));
+    const key = `${theme}|${isDark ? "dark" : "light"}`;
+    const cached = CACHE.get(key);
+    if (cached) {
+      setColors(cached);
+      return;
+    }
+    // Still after the frame: the polarity class lands on <html> in the
+    // provider's effect, and a child's effects run before its parent's.
+    const frame = requestAnimationFrame(() => {
+      const next = resolve();
+      CACHE.set(key, next);
+      setColors(next);
+    });
     return () => cancelAnimationFrame(frame);
   }, [theme, isDark]);
 
   return colors;
 }
+
+const CACHE = new Map<string, SourceColors>();

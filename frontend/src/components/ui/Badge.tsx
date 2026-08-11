@@ -19,10 +19,25 @@ interface Props {
   className?: string;
 }
 
+/**
+ * One size, one corner.
+ *
+ * `rounded-lg`, which is the world's own `--ttm-radius` — the same corner the
+ * panels are cut with. A pill at 9999px was a shape from a different system
+ * sitting inside a card the theme had already given an opinion about, and in
+ * the squarer worlds (Terminal, Blueprint) the mismatch is the first thing you
+ * see on the card.
+ *
+ * `whitespace-nowrap shrink-0` is the size half. A badge is a label, not a
+ * paragraph: beside a long facility name the source badge was being squeezed
+ * until "Maps of Making" broke over two lines, so the same badge was one
+ * height on one card and two on the next, down a column where they are meant
+ * to line up.
+ */
 export function Badge({ children, variant = "default", className = "" }: Props) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${variantClasses[variant]} ${className}`}
+      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-lg px-2 py-0.5 text-xs font-medium ${variantClasses[variant]} ${className}`}
     >
       {children}
     </span>
