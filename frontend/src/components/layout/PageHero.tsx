@@ -1,4 +1,9 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
+import { navEntryFor } from "./nav";
 
 interface PageHeroProps {
   title: ReactNode;
@@ -9,13 +14,28 @@ interface PageHeroProps {
   /** One line under the rule. Keep it to what the page is for. */
   description?: ReactNode;
   actions?: ReactNode;
+  /**
+   * Override the icon resolved from the route. `null` suppresses it — for
+   * pages with no place in the sitemap, where an invented icon would imply a
+   * section that does not exist.
+   */
+  icon?: LucideIcon | null;
+  /** Token utility for the icon's colour; defaults to the route's group accent. */
+  accent?: string;
 }
 
 /**
  * The page hero, matched to ohm.thetechmargin.com/admin: a concise baseline
- * row — h1 at heading scale, a mono crumb — closed by the iridescent rule.
- * The site bar above stays pure chrome; this is where a page states its
- * identity, so the brand rule lives here.
+ * row — the section mark, the h1 at heading scale, a mono crumb — closed by
+ * the iridescent rule. The site bar above stays pure chrome; this is where a
+ * page states its identity, so the brand rule lives here.
+ *
+ * The icon is not a prop each page picks. It is resolved from the current
+ * route through the sitemap (nav.ts), so the glyph beside an h1 is by
+ * construction the glyph next to that route in the menu — including on detail
+ * pages, which inherit the icon of the list they belong to. Choosing per page
+ * is what lets a menu and a page drift into looking like two products; the
+ * only decisions left are the deliberate ones, `icon` and `accent`.
  *
  * Breadcrumb and description are part of the hero rather than each page's
  * own markup. Six pages had hand-rolled versions with their own spacing, so
@@ -32,7 +52,14 @@ export function PageHero({
   breadcrumb,
   description,
   actions,
+  icon,
+  accent,
 }: PageHeroProps) {
+  const resolved = navEntryFor(usePathname() ?? "");
+  // `undefined` means "resolve from the route"; `null` means "no icon".
+  const Icon: LucideIcon | null = icon === undefined ? (resolved?.entry.icon ?? null) : icon;
+  const tone = accent ?? resolved?.group.accent ?? "text-muted-foreground";
+
   return (
     <header className="mb-4">
       {breadcrumb && (
@@ -43,7 +70,18 @@ export function PageHero({
           {breadcrumb}
         </nav>
       )}
-      <div className="flex flex-wrap items-baseline gap-x-3">
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        {Icon && (
+          // Decorative: the h1 beside it already says which page this is, and
+          // a screen reader announcing "wrench, Designs" adds a word, not a
+          // fact. Centred rather than baseline-aligned — a glyph has no
+          // baseline of its own, and sitting it on the text's would hang it
+          // below the cap height it is meant to match.
+          <Icon
+            aria-hidden="true"
+            className={`h-5 w-5 shrink-0 self-center ${tone}`}
+          />
+        )}
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {title}
         </h1>

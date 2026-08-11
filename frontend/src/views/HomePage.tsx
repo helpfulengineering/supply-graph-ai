@@ -55,12 +55,10 @@ export function HomePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <PageHero
-          title="Open Hardware Manager"
-          crumb="designs · facilities · supply chains"
-        />
-      </div>
+      <PageHero
+        title="Open Hardware Manager"
+        crumb="designs · facilities · supply chains"
+      />
 
       {/* Hero: the manufacturing network map. */}
       <section aria-labelledby="network-heading">

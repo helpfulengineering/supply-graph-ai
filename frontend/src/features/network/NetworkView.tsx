@@ -125,21 +125,22 @@ export function NetworkView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <PageHero title="Network" crumb="local · federated · filtered" />
-        </div>
-        <Button
-          title={
-            hasWrite
-              ? undefined
-              : "Connect a write-capable API key first (opens Session)"
-          }
-          onClick={() => router.push(createHref)}
-        >
-          {createLabel}
-        </Button>
-      </div>
+      <PageHero
+        title="Network"
+        crumb="local · federated · filtered"
+        actions={
+          <Button
+            title={
+              hasWrite
+                ? undefined
+                : "Connect a write-capable API key first (opens Session)"
+            }
+            onClick={() => router.push(createHref)}
+          >
+            {createLabel}
+          </Button>
+        }
+      />
 
       <SeedPeerCta />
 

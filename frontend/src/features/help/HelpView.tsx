@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { PageHero } from "../../components/layout/PageHero";
-import { NAV_GROUPS, type NavGroup } from "../../components/layout/nav";
+import { ACCOUNT_GROUP, NAV_GROUPS } from "../../components/layout/nav";
 import { SHORTCUTS } from "../../components/layout/shortcuts";
-import { Settings } from "lucide-react";
 
 /**
  * Help: the sitemap, the keyboard contract, and the accessibility features,
@@ -14,25 +13,6 @@ import { Settings } from "lucide-react";
  * either appears here without anyone remembering to update a page. Help that
  * is hand-maintained drifts, and drifted help is worse than none.
  */
-
-/**
- * The drawer renders the account entry itself, because its label depends on
- * whether you hold an API key (Connect / Session / Settings). Help states the
- * route plainly — it is a real destination and `g` `s` goes there, so leaving
- * it out of the sitemap would make this page a partial map.
- */
-const ACCOUNT_GROUP: NavGroup = {
-  label: "Account",
-  accent: "text-chart-4",
-  entries: [
-    {
-      href: "/settings/session",
-      name: "Settings",
-      desc: "your API session, and instance administration when your key allows it",
-      icon: Settings,
-    },
-  ],
-};
 
 const A11Y = [
   {

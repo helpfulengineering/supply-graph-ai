@@ -152,33 +152,34 @@ export function OkhListView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <PageHero title="Open Hardware Designs" crumb="catalog · facets · matching" />
-        </div>
-        <div className="flex gap-2">
-          {/* Generation needs no write key: it produces a file to download, and
-              deliberately does not save to the catalogue. */}
-          <Button
-            variant="outline"
-            onClick={() => router.push("/okh/generate")}
-          >
-            Generate from URL
-          </Button>
-          <Button
-            title={
-              hasWrite
-                ? undefined
-                : "Connect a write-capable API key first (opens Session)"
-            }
-            onClick={() =>
-              router.push(hasWrite ? "/okh/new" : "/settings/session")
-            }
-          >
-            New design
-          </Button>
-        </div>
-      </div>
+      <PageHero
+        title="Open Hardware Designs"
+        crumb="catalog · facets · matching"
+        actions={
+          <>
+            {/* Generation needs no write key: it produces a file to download,
+                and deliberately does not save to the catalogue. */}
+            <Button
+              variant="outline"
+              onClick={() => router.push("/okh/generate")}
+            >
+              Generate from URL
+            </Button>
+            <Button
+              title={
+                hasWrite
+                  ? undefined
+                  : "Connect a write-capable API key first (opens Session)"
+              }
+              onClick={() =>
+                router.push(hasWrite ? "/okh/new" : "/settings/session")
+              }
+            >
+              New design
+            </Button>
+          </>
+        }
+      />
 
       <div className="flex gap-8">
         <aside className="hidden w-60 shrink-0 lg:block">{panel}</aside>
