@@ -42,6 +42,9 @@ import {
  * panel, and the rest was empty. The icon uses the width the card already
  * spends, and gives the row something to scan by other than reading each
  * label.
+ *
+ * The label lives in the tooltip, which opens on tap as well as on hover — see
+ * components/ui/Tooltip. `aria-label` carries it for assistive tech either way.
  */
 function StatCard({
   icon: Icon,
@@ -52,33 +55,31 @@ function StatCard({
   label: string;
   value: string;
 }) {
+  const card = (
+    <div
+      tabIndex={0}
+      role="group"
+      aria-label={`${label}: ${value}`}
+      className={cn(
+        PANEL,
+        // Vertical padding pulled off PANEL: these cards are one line of
+        // content, and the panel's 12/16px top and bottom made a row of four
+        // short figures twice as tall as it needed to be.
+        "flex w-full items-center gap-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      )}
+    >
+      {/* The world's accent as ink, not a flat grey: the figure beside it
+          already carries the theme, and a muted icon read as a disabled
+          control. --color-primary-ink is the accent tempered for use as text,
+          which is what an icon at this weight is. */}
+      <Icon aria-hidden="true" className="h-5 w-5 shrink-0 text-primary-ink" />
+      <p className={STAT_VALUE}>{value}</p>
+    </div>
+  );
+
   return (
     <Tooltip content={label} value={value}>
-      {/*
-        The label is in the tooltip, so it must also be somewhere a tooltip
-        cannot be relied on: aria-label names the card for a screen reader, and
-        tabindex makes the tooltip reachable without a pointer. A figure whose
-        caption only ever appears on hover is not a labelled figure.
-      */}
-      <div
-        tabIndex={0}
-        role="group"
-        aria-label={`${label}: ${value}`}
-        className={cn(
-          PANEL,
-          // Vertical padding pulled off PANEL: these cards are one line of
-          // content, and the panel's 12/16px top and bottom made a row of four
-          // short figures twice as tall as it needed to be.
-          "flex w-full items-center gap-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        )}
-      >
-        {/* The world's accent as ink, not a flat grey: the figure beside it
-            already carries the theme, and a muted icon read as a disabled
-            control. --color-primary-ink is the accent tempered for use as
-            text, which is what an icon at this weight is. */}
-        <Icon aria-hidden="true" className="h-5 w-5 shrink-0 text-primary-ink" />
-        <p className={STAT_VALUE}>{value}</p>
-      </div>
+      {card}
     </Tooltip>
   );
 }

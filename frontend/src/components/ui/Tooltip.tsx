@@ -1,7 +1,7 @@
 "use client";
 
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { CAPTION } from "./typography";
 
@@ -39,9 +39,28 @@ export function Tooltip({
   side?: "top" | "right" | "bottom" | "left";
   children: ReactNode;
 }) {
+  /**
+   * Controlled so a tap can open it too.
+   *
+   * A tooltip is a hover affordance, and on a phone there is no hover — the
+   * dashboard's stat cards put their label here and touch users got an icon
+   * and a number with nothing saying what either meant. Base UI still drives
+   * `onOpenChange` from hover, focus, Escape and outside-press; the click
+   * handler adds the one trigger a touch device actually has, so both
+   * pointers reach the same tooltip rather than the layout forking.
+   */
+  const [open, setOpen] = useState(false);
+
   return (
-    <TooltipPrimitive.Root>
-      <TooltipPrimitive.Trigger render={<span className="inline-flex" />}>
+    <TooltipPrimitive.Root open={open} onOpenChange={setOpen}>
+      <TooltipPrimitive.Trigger
+        render={
+          <span
+            className="inline-flex"
+            onClick={() => setOpen((wasOpen) => !wasOpen)}
+          />
+        }
+      >
         {children}
       </TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>

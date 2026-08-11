@@ -188,9 +188,16 @@ export function NetworkBarChart({
           <ul className={cn(SCROLLABLE, "mt-1 max-h-48 space-y-0.5 text-sm")}>
             {rows.map((r) => (
               <li key={r.key}>
+                {/*
+                  A 24px line box, not the 18px the type scale gives this rung.
+                  These are standalone list rows rather than links inside a
+                  sentence, so WCAG 2.5.8's inline exception does not cover
+                  them — the narrow-viewport lane measures them and it is
+                  right to.
+                */}
                 <Link
                   href={hrefFor(r)}
-                  className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex min-h-6 items-center text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {r.label}: {r.value.toLocaleString()}
                 </Link>
