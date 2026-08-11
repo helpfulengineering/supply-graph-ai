@@ -21,6 +21,8 @@ import { VisibilityControl } from "./VisibilityControl";
 import { AttestationsPanel } from "../identity/AttestationsPanel";
 import type { OkhManifest } from "../../types/okh";
 import { PANEL } from "../../components/ui/surface";
+import { PAGE_TITLE, SECTION_LABEL } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   id: string;
@@ -68,9 +70,7 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
   return (
     <section role="status" aria-label="Validation result" className={PANEL}>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Validation
-        </h2>
+        <h2 className={SECTION_LABEL}>Validation</h2>
         <Badge variant={result.is_valid ? "green" : "yellow"}>
           {result.is_valid ? "Valid" : "Needs attention"}
         </Badge>
@@ -182,7 +182,7 @@ export function OkhDetailView({ id }: Props) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+          <h1 className={PAGE_TITLE}>{title}</h1>
           {okh.function && (
             <p className="text-base text-muted-foreground">{okh.function}</p>
           )}
@@ -232,9 +232,7 @@ export function OkhDetailView({ id }: Props) {
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
           <section className={PANEL}>
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Design Info
-            </h2>
+            <h2 className={cn(SECTION_LABEL, "mb-4")}>Design Info</h2>
             <dl className="space-y-2">
               <MetaRow
                 label="ID"
@@ -271,9 +269,7 @@ export function OkhDetailView({ id }: Props) {
             okh.license?.documentation ||
             okh.license?.software) && (
             <section className={PANEL}>
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                License
-              </h2>
+              <h2 className={cn(SECTION_LABEL, "mb-4")}>License</h2>
               <dl className="space-y-2">
                 <MetaRow label="Hardware" value={okh.license.hardware} />
                 <MetaRow
@@ -287,9 +283,7 @@ export function OkhDetailView({ id }: Props) {
 
           {okh.materials.length > 0 && (
             <section className={PANEL}>
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Materials
-              </h2>
+              <h2 className={cn(SECTION_LABEL, "mb-4")}>Materials</h2>
               <ul className="space-y-2">
                 {okh.materials.map((m, i) => (
                   <li
@@ -310,9 +304,7 @@ export function OkhDetailView({ id }: Props) {
 
           {okh.keywords.length > 0 && (
             <section className={PANEL}>
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Keywords
-              </h2>
+              <h2 className={cn(SECTION_LABEL, "mb-4")}>Keywords</h2>
               <div className="flex flex-wrap gap-1.5">
                 {okh.keywords.map((k) => (
                   <Badge key={k} variant="default">
@@ -327,9 +319,7 @@ export function OkhDetailView({ id }: Props) {
         <div className="space-y-6 lg:col-span-2">
           {okh.intended_use && (
             <section className={PANEL}>
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Intended Use
-              </h2>
+              <h2 className={cn(SECTION_LABEL, "mb-2")}>Intended Use</h2>
               <p className="text-sm text-muted-foreground">
                 {okh.intended_use}
               </p>
@@ -342,7 +332,7 @@ export function OkhDetailView({ id }: Props) {
             </div>
           ) : (
             <section className={PANEL}>
-              <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              <h2 className={cn(SECTION_LABEL, "mb-5")}>
                 Files &amp; Documentation
               </h2>
               <div className="space-y-6">

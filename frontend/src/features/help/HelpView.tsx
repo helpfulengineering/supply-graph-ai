@@ -6,6 +6,12 @@ import { NAV_GROUPS, type NavGroup } from "../../components/layout/nav";
 import { SHORTCUTS } from "../../components/layout/shortcuts";
 import { Settings } from "lucide-react";
 import { PANEL } from "../../components/ui/surface";
+import {
+  CARD_TITLE,
+  SECTION_LABEL,
+  SECTION_LABEL_SM,
+} from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 /**
  * Help: the sitemap, the keyboard contract, and the accessibility features,
@@ -70,10 +76,7 @@ function SectionHeading({
   children: React.ReactNode;
 }) {
   return (
-    <h2
-      id={id}
-      className="group scroll-mt-20 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
-    >
+    <h2 id={id} className={cn(SECTION_LABEL, "group scroll-mt-20")}>
       {/*
         inline-flex + min-h-6 so the permalink clears the 24x24 WCAG 2.5.8
         minimum. The anchor wraps the whole heading, so its accessible name is
@@ -108,9 +111,7 @@ export function HelpView() {
         <SectionHeading id="h-routes">Where things are</SectionHeading>
         {[...NAV_GROUPS, ACCOUNT_GROUP].map((group) => (
           <div key={group.label} className={PANEL}>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {group.label}
-            </h3>
+            <h3 className={cn(SECTION_LABEL_SM, "mb-3")}>{group.label}</h3>
             <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
               {group.entries.map((entry) => {
                 const Icon = entry.icon;
@@ -191,9 +192,7 @@ export function HelpView() {
         <div className="grid gap-4 sm:grid-cols-2">
           {A11Y.map((item) => (
             <div key={item.title} className={PANEL}>
-              <h3 className="text-sm font-medium text-foreground">
-                {item.title}
-              </h3>
+              <h3 className={CARD_TITLE}>{item.title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{item.body}</p>
             </div>
           ))}

@@ -30,6 +30,8 @@ import {
 } from "./SyncedFacilityBanner";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
 import { PANEL } from "../../components/ui/surface";
+import { PAGE_TITLE, SECTION_LABEL } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -50,9 +52,7 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
   return (
     <section role="status" aria-label="Validation result" className={PANEL}>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Validation
-        </h2>
+        <h2 className={SECTION_LABEL}>Validation</h2>
         <Badge variant={result.is_valid ? "green" : "yellow"}>
           {result.is_valid ? "Valid" : "Needs attention"}
         </Badge>
@@ -248,9 +248,7 @@ export function OkwDetailView({ id }: { id: string }) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">
-            {f.name || "Unnamed facility"}
-          </h1>
+          <h1 className={PAGE_TITLE}>{f.name || "Unnamed facility"}</h1>
           {location && (
             <p className="flex items-center gap-1.5 text-base text-muted-foreground">
               <MapPin aria-hidden="true" className="h-4 w-4 shrink-0" />{" "}
@@ -322,16 +320,14 @@ export function OkwDetailView({ id }: { id: string }) {
 
       {f.description && (
         <section className={PANEL}>
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            About
-          </h2>
+          <h2 className={cn(SECTION_LABEL, "mb-2")}>About</h2>
           <p className="text-sm text-muted-foreground">{f.description}</p>
         </section>
       )}
 
       {equipment.length > 0 && (
         <section className={PANEL}>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className={cn(SECTION_LABEL, "mb-4")}>
             Equipment ({equipment.length})
           </h2>
           <ul className="space-y-2">
@@ -353,9 +349,7 @@ export function OkwDetailView({ id }: { id: string }) {
 
       {certifications.length > 0 && (
         <section className={PANEL}>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Certifications
-          </h2>
+          <h2 className={cn(SECTION_LABEL, "mb-4")}>Certifications</h2>
           <div className="flex flex-wrap gap-1.5">
             {certifications.map((c) => (
               <Badge key={c} variant="default">

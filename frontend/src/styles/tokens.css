@@ -36,7 +36,8 @@
   --ttm-font-sans: "Geist Variable", system-ui, sans-serif;
   --ttm-font-serif: "Pacifico", "Caveat", cursive;
   /* prettier-ignore -- @tailwindcss/postcss rejects a wrapped custom-property value */
-  --ttm-font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --ttm-font-mono:
+    "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --ttm-font-voice: "Special Elite", var(--ttm-font-mono);
   --ttm-plum: #21262d;
   --z-base: 1;
@@ -57,6 +58,13 @@
   --ttm-fs-h2: 2rem;
   --ttm-fs-h3: 1.5rem;
   --ttm-fs-h4: 1.25rem;
+  /* h5 is not in the reference, which is a landing-page scale and steps 1.25rem
+     straight to 1rem. An application UI lives in that gap: this app's section
+     titles sit at 1.125rem, between a page title and body copy, and without a
+     rung for them they stayed hand-picked while every other size moved onto
+     the scale. Added rather than rounded away so tokenizing the headings
+     changed no pixel. */
+  --ttm-fs-h5: 1.125rem;
   --ttm-fs-body: 1rem;
   --ttm-fs-small: 0.875rem;
   --ttm-fs-caption: 0.75rem;

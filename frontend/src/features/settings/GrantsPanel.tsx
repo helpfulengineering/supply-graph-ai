@@ -18,6 +18,7 @@ import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 const PERMISSION_OPTIONS = ["read", "write", "admin"] as const;
 
@@ -86,10 +87,7 @@ export function GrantsPanel() {
   return (
     <div className="space-y-6">
       <section aria-labelledby="list-grants-heading" className={PANEL}>
-        <h2
-          id="list-grants-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="list-grants-heading" className={SECTION_TITLE}>
           List grants
         </h2>
         <form
@@ -175,10 +173,7 @@ export function GrantsPanel() {
       </section>
 
       <section aria-labelledby="issue-grant-heading" className={PANEL}>
-        <h2
-          id="issue-grant-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="issue-grant-heading" className={SECTION_TITLE}>
           Issue grant
         </h2>
         <form
@@ -271,10 +266,7 @@ export function GrantsPanel() {
       </section>
 
       <section aria-labelledby="bootstrap-heading" className={PANEL}>
-        <h2
-          id="bootstrap-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="bootstrap-heading" className={SECTION_TITLE}>
           Bootstrap edge grant
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">

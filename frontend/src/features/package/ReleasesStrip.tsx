@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { fetchPackageList, packageDetailPath } from "../../api/package";
 import { PANEL } from "../../components/ui/surface";
+import { SECTION_LABEL } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 /** Packages built from this OKH manifest (client-filtered list). */
 export function ReleasesStrip({ okhId }: { okhId: string }) {
@@ -26,10 +28,7 @@ export function ReleasesStrip({ okhId }: { okhId: string }) {
 
   return (
     <section aria-labelledby="releases-heading" className={PANEL}>
-      <h2
-        id="releases-heading"
-        className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
-      >
+      <h2 id="releases-heading" className={cn(SECTION_LABEL, "mb-3")}>
         Package releases
       </h2>
       <ul className="space-y-2">

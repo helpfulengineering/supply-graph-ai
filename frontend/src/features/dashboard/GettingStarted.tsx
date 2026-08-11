@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { PANEL } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 const STEPS = [
   {
@@ -32,10 +33,7 @@ const STEPS = [
 export function GettingStarted() {
   return (
     <section aria-labelledby="getting-started-heading">
-      <h2
-        id="getting-started-heading"
-        className="mb-3 text-lg font-semibold text-foreground"
-      >
+      <h2 id="getting-started-heading" className={cn(SECTION_TITLE, "mb-3")}>
         Getting started
       </h2>
       <ol className="space-y-3">

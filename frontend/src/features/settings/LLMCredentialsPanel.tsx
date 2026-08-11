@@ -11,6 +11,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL, PANEL_INSET } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 const PROVIDERS = [
   "anthropic",
@@ -97,10 +98,7 @@ export function LLMCredentialsPanel() {
       )}
 
       <section aria-labelledby="llm-credentials-form-heading" className={PANEL}>
-        <h2
-          id="llm-credentials-form-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="llm-credentials-form-heading" className={SECTION_TITLE}>
           Set provider key
         </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -151,10 +149,7 @@ export function LLMCredentialsPanel() {
       </section>
 
       <section aria-labelledby="llm-credentials-list-heading" className={PANEL}>
-        <h2
-          id="llm-credentials-list-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="llm-credentials-list-heading" className={SECTION_TITLE}>
           Stored credentials
         </h2>
         {credentials.isLoading && (

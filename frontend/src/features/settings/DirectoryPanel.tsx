@@ -5,6 +5,7 @@ import { listDirectory, publishDirectoryEntry } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 export function DirectoryPanel() {
   const queryClient = useQueryClient();
@@ -42,10 +43,7 @@ export function DirectoryPanel() {
   return (
     <div className="space-y-6">
       <section aria-labelledby="directory-publish-heading" className={PANEL}>
-        <h2
-          id="directory-publish-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="directory-publish-heading" className={SECTION_TITLE}>
           Publish
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -116,10 +114,7 @@ export function DirectoryPanel() {
       </section>
 
       <section aria-labelledby="directory-list-heading" className={PANEL}>
-        <h2
-          id="directory-list-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="directory-list-heading" className={SECTION_TITLE}>
           Directory
         </h2>
         {entries.isLoading && <LoadingSpinner message="Loading directory…" />}

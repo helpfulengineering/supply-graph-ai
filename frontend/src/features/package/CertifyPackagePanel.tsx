@@ -5,6 +5,7 @@ import { certifyRelease } from "../../api/ohm/identity";
 import type { PinRecord } from "../../api/package";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 interface Props {
   version: string;
@@ -46,10 +47,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
 
   return (
     <section aria-labelledby="certify-heading" className={PANEL}>
-      <h2
-        id="certify-heading"
-        className="text-lg font-semibold text-foreground"
-      >
+      <h2 id="certify-heading" className={SECTION_TITLE}>
         Certify release
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">

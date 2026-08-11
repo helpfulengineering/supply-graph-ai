@@ -22,6 +22,7 @@ import { ErrorMessage } from "../../components/ui/ErrorMessage";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/button";
 import { useAuth } from "../../context/AuthContext";
+import { CARD_TITLE } from "../../components/ui/typography";
 
 function matchesFilter(pkg: PackageListItem, q: string): boolean {
   if (!q) return true;
@@ -191,9 +192,7 @@ export function PackageListView() {
               {groups.map(([name, versions]) => (
                 <section key={name} className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-sm font-semibold text-foreground">
-                      {name}
-                    </h2>
+                    <h2 className={CARD_TITLE}>{name}</h2>
                     <div className="flex flex-wrap gap-1">
                       {versions.map((pkg) => (
                         <button

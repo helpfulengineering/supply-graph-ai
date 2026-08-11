@@ -15,6 +15,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL, PANEL_WARNING } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 export function FederationPanel() {
   const queryClient = useQueryClient();
@@ -75,10 +76,7 @@ export function FederationPanel() {
       )}
 
       <section aria-labelledby="federation-status-heading" className={PANEL}>
-        <h2
-          id="federation-status-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="federation-status-heading" className={SECTION_TITLE}>
           Node status
         </h2>
         {status.isLoading && <LoadingSpinner message="Loading status…" />}
@@ -140,10 +138,7 @@ export function FederationPanel() {
 
       <section aria-labelledby="federation-peers-heading" className={PANEL}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2
-            id="federation-peers-heading"
-            className="text-lg font-semibold text-foreground"
-          >
+          <h2 id="federation-peers-heading" className={SECTION_TITLE}>
             Peers
           </h2>
           <div className="flex flex-wrap gap-2">

@@ -13,6 +13,10 @@ import { useAuth } from "../../context/AuthContext";
 import { CHECKBOX } from "../../components/ui/field";
 import { cn } from "@/lib/utils";
 import { PANEL } from "../../components/ui/surface";
+import {
+  SECTION_LABEL,
+  SECTION_LABEL_SM,
+} from "../../components/ui/typography";
 
 const GROUPS: { id: DisclosureGroup; label: string; hint: string }[] = [
   {
@@ -69,7 +73,7 @@ function AudienceEditor({
       }
       data-active-audience={active ? "true" : "false"}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className={SECTION_LABEL_SM}>
         {label}
         {active && (
           <span className="ml-2 font-normal normal-case text-primary-ink">
@@ -215,10 +219,7 @@ export function DisclosureControl({
 
   const body = (
     <>
-      <h2
-        id="okw-disclosure-heading"
-        className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
-      >
+      <h2 id="okw-disclosure-heading" className={cn(SECTION_LABEL, "mb-1")}>
         How much they see
       </h2>
       <p className="mb-3 text-xs text-muted-foreground">

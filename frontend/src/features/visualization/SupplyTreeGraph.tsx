@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import cytoscape from "cytoscape";
 import { useChartTokens } from "../../lib/chartTokens";
 import type { VisualizationData } from "../../types/supply-tree";
+import { CARD_TITLE } from "../../components/ui/typography";
 
 interface Props {
   data: VisualizationData;
@@ -150,9 +151,7 @@ export function SupplyTreeGraph({ data }: Props) {
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-5 py-3">
-        <h3 className="text-sm font-semibold text-foreground">
-          Supply Tree Graph
-        </h3>
+        <h3 className={CARD_TITLE}>Supply Tree Graph</h3>
         <div className="flex items-center gap-3">
           {t.series
             .slice(0, Math.max(1, new Set(nodes.map((n) => n.depth)).size))

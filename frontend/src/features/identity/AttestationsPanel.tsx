@@ -6,6 +6,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { AttestationList } from "./AttestationList";
 import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 interface Props {
   /** When set, loads attestations for this content / bundle hash. */
@@ -31,10 +32,7 @@ export function AttestationsPanel({ contentHash }: Props) {
 
   return (
     <section aria-labelledby="attestations-heading" className={PANEL}>
-      <h2
-        id="attestations-heading"
-        className="text-lg font-semibold text-foreground"
-      >
+      <h2 id="attestations-heading" className={SECTION_TITLE}>
         Attestations
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">

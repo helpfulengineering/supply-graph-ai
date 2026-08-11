@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { CAPTION, PAGE_TITLE } from "../ui/typography";
+import { cn } from "@/lib/utils";
 
 interface PageHeroProps {
   title: ReactNode;
@@ -44,13 +46,11 @@ export function PageHero({
         </nav>
       )}
       <div className="flex flex-wrap items-baseline gap-x-3">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          {title}
-        </h1>
-        {crumb && (
-          <span className="font-mono text-xs text-muted-foreground">{crumb}</span>
+        <h1 className={PAGE_TITLE}>{title}</h1>
+        {crumb && <span className={cn(CAPTION, "font-mono")}>{crumb}</span>}
+        {actions && (
+          <span className="ml-auto flex items-center gap-2">{actions}</span>
         )}
-        {actions && <span className="ml-auto flex items-center gap-2">{actions}</span>}
       </div>
       <div
         aria-hidden="true"

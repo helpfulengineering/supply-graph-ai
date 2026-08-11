@@ -9,11 +9,14 @@ import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { FlaskConical, Gauge, Link2, RefreshCw, Settings } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useThemeSwatches } from "../../hooks/useThemeSwatches";
 import { refreshLowVolatilityData } from "../../queryClient";
 import { NAV_GROUPS, isActivePath } from "./nav";
 import { SHORTCUTS } from "./shortcuts";
 import { useSiteLayer } from "../../lib/site/useSiteLayer";
 import { demoModeEnabled, setDemoMode } from "../../lib/demo/demoMode";
+import { SECTION_LABEL, SECTION_LABEL_SM } from "../ui/typography";
+import { cn } from "@/lib/utils";
 
 interface NavDrawerProps {
   open: boolean;
@@ -33,6 +36,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const { isAdmin, token } = useAuth();
   const site = useSiteLayer();
   const { isDark, toggle, theme, setTheme, themes, shareUrl } = useTheme();
+  const swatches = useThemeSwatches();
   const queryClient = useQueryClient();
   const isFetching = useIsFetching() > 0;
   const panelRef = useRef<HTMLDivElement>(null);
@@ -126,9 +130,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-border bg-card shadow-xl animate-in slide-in-from-right duration-200 motion-reduce:animate-none"
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
-          <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Menu
-          </span>
+          <span className={SECTION_LABEL}>Menu</span>
           <button
             type="button"
             onClick={onClose}
@@ -152,9 +154,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         <nav aria-label="Primary navigation" className="flex-1 px-3 py-2">
           {NAV_GROUPS.map((group) => (
             <div key={group.label} className="py-2">
-              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {group.label}
-              </p>
+              <p className={cn(SECTION_LABEL_SM, "px-3 pb-1")}>{group.label}</p>
               <ul className="m-0 list-none p-0">
                 {group.entries.map((entry) => {
                   const active =
@@ -199,9 +199,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           ))}
 
           <div className="py-2">
-            <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Account
-            </p>
+            <p className={cn(SECTION_LABEL_SM, "px-3 pb-1")}>Account</p>
             <Link
               href="/settings/session"
               aria-current={
@@ -229,9 +227,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               capability does not exist, so the nav simply has no entry. */}
           {site.enabled && (
             <div className="py-2">
-              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Site
-              </p>
+              <p className={cn(SECTION_LABEL_SM, "px-3 pb-1")}>Site</p>
               <Link
                 href="/mission-control"
                 aria-current={
@@ -260,9 +256,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           )}
 
           <div className="py-2">
-            <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Data
-            </p>
+            <p className={cn(SECTION_LABEL_SM, "px-3 pb-1")}>Data</p>
             <button
               type="button"
               onClick={() => setDemoMode(!demoModeEnabled())}
@@ -298,26 +292,58 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
 
         <fieldset className="min-w-0 border-t border-border px-5 py-4">
           <legend className="sr-only">Theme</legend>
-          <p
-            aria-hidden="true"
-            className="pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-          >
+          <p aria-hidden="true" className={cn(SECTION_LABEL_SM, "pb-2")}>
             Theme
           </p>
           <div className="grid grid-cols-2 gap-1">
-            {themes.map(({ slug, label }) => (
-              <label key={slug} className={CHOICE_ROW}>
-                <input
-                  type="radio"
-                  name="ohm-theme-pick"
-                  value={slug}
-                  checked={theme === slug}
-                  onChange={() => setTheme(slug)}
-                  className={CHECKBOX}
-                />
-                {label}
-              </label>
-            ))}
+            {themes.map(({ slug, label }) => {
+              const swatch = swatches[slug];
+              return (
+                <label key={slug} className={CHOICE_ROW}>
+                  <input
+                    type="radio"
+                    name="ohm-theme-pick"
+                    value={slug}
+                    checked={theme === slug}
+                    onChange={() => setTheme(slug)}
+                    className={CHECKBOX}
+                  />
+                  {/*
+                  The world's own accent, as a chip. Ten names in identical
+                  type told you nothing about what you were choosing.
+
+                  A chip rather than colouring the label text: several worlds'
+                  accents sit between 3.8:1 and 4.5:1 as ink on a tinted
+                  surface — the finding behind --color-primary-ink in Phase 3 —
+                  so ten accents used as text would put a contrast failure in
+                  the chrome of every page. A decorative swatch carries no
+                  contrast requirement, and the label stays at --foreground.
+
+                  Border rather than a bare fill so a swatch whose accent is
+                  near the drawer's own surface still reads as a shape.
+                */}
+                  <span
+                    aria-hidden="true"
+                    className="size-3 shrink-0 rounded-full border border-border"
+                    style={
+                      swatch ? { backgroundColor: swatch.accent } : undefined
+                    }
+                  />
+                  {/*
+                  Terminal and Mono repoint every font stack at the monospace
+                  face, which is the whole point of those two worlds. Rendering
+                  their names in their own typeface is the one preview that
+                  costs nothing and says the most.
+                */}
+                  <span
+                    className="truncate"
+                    style={swatch ? { fontFamily: swatch.fontSans } : undefined}
+                  >
+                    {label}
+                  </span>
+                </label>
+              );
+            })}
           </div>
           <button
             type="button"
@@ -353,9 +379,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         </div>
 
         <div className="border-t border-border px-3 py-4">
-          <p className="pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Keyboard
-          </p>
+          <p className={cn(SECTION_LABEL_SM, "pb-2")}>Keyboard</p>
           <ul className="m-0 grid list-none grid-cols-1 gap-x-4 gap-y-1 p-0 sm:grid-cols-2">
             {SHORTCUTS.map((s) => (
               <li

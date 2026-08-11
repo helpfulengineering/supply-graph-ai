@@ -15,6 +15,8 @@ import { FederationPanel } from "../features/settings/FederationPanel";
 import { LLMCredentialsPanel } from "../features/settings/LLMCredentialsPanel";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { useAuth } from "../context/AuthContext";
+import { SECTION_LABEL_SM } from "../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 const sessionTab = { to: "/settings/session", label: "Session" } as const;
 
@@ -81,9 +83,7 @@ export function SettingsPage() {
       {panelFor(pathname)}
 
       <footer className="border-t border-border pt-4">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Security policy
-        </p>
+        <p className={cn(SECTION_LABEL_SM, "mb-2")}>Security policy</p>
         <SecurityPolicyBadge />
       </footer>
     </div>

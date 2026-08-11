@@ -252,6 +252,32 @@ describe("chrome is universal", () => {
     ).toEqual([]);
   });
 
+  it("headings take their size from the type scale", () => {
+    // tokens.css has carried --ttm-fs-* since Phase 2 and nothing read it, so
+    // every heading picked a Tailwind step by hand — two sizes for a page
+    // title, and one "section label" role spelled text-sm on twenty-two
+    // content pages and text-xs in the drawer. Size is a design decision like
+    // colour and belongs in the same one place.
+    //
+    // Scoped to heading TAGS, which is the honest boundary. A `text-sm` on a
+    // paragraph or a badge is body copy making a local choice; a heading is a
+    // rung on a scale, and picking its size inline is how the scale stopped
+    // being one. Roles live in components/ui/typography.ts.
+    const hardcoded =
+      /<h[1-6]\b[^>]*className="[^"]*\btext-(?:xs|sm|base|lg|xl|[2-9]xl)\b/g;
+    const offenders = FILES.map((f) => ({
+      file: rel(f),
+      hits: code(f).match(hardcoded),
+    }))
+      .filter((x) => x.hits)
+      .map((x) => `${x.file}: ${x.hits!.length}`);
+
+    expect(
+      offenders,
+      `headings with a hand-picked text size (use components/ui/typography):\n${offenders.join("\n")}`,
+    ).toEqual([]);
+  });
+
   it("no emoji in rendered UI", () => {
     const emoji = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
     const offenders = FILES.filter((f) => !rel(f).startsWith("test/"))

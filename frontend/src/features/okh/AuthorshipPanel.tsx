@@ -3,6 +3,11 @@ import { getOkhProvenance, type RecordProvenance } from "../../api/ohm/okh";
 import { getOkwProvenance } from "../../api/ohm/okw";
 import type { components } from "../../api/generated/schema";
 import { PANEL } from "../../components/ui/surface";
+import {
+  SECTION_LABEL,
+  SECTION_LABEL_SM,
+} from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 type Credit = components["schemas"]["Credit"];
 
@@ -16,9 +21,7 @@ function ProvenanceBody({ data }: { data: RecordProvenance }) {
     <dl className="space-y-3">
       {authors.length > 0 && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Authored by
-          </dt>
+          <dt className={SECTION_LABEL_SM}>Authored by</dt>
           <dd className="mt-1 space-y-1">
             {authors.map((c, i) => (
               <p
@@ -34,9 +37,7 @@ function ProvenanceBody({ data }: { data: RecordProvenance }) {
       )}
       {data.published_by && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Published by
-          </dt>
+          <dt className={SECTION_LABEL_SM}>Published by</dt>
           <dd className="mt-1 break-all font-mono text-xs">
             {data.published_by}
           </dd>
@@ -44,9 +45,7 @@ function ProvenanceBody({ data }: { data: RecordProvenance }) {
       )}
       {data.on_behalf_of && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            On behalf of
-          </dt>
+          <dt className={SECTION_LABEL_SM}>On behalf of</dt>
           <dd className="mt-1 break-all font-mono text-xs">
             {data.on_behalf_of}
           </dd>
@@ -79,7 +78,7 @@ export function AuthorshipPanel({
     <section aria-labelledby={`${kind}-authorship-heading`} className={PANEL}>
       <h2
         id={`${kind}-authorship-heading`}
-        className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+        className={cn(SECTION_LABEL, "mb-3")}
       >
         Authorship
       </h2>

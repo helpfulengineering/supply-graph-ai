@@ -15,6 +15,8 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import type { RfqNavigationState, RFQDocument } from "../../types/rfq";
 import { displayCountryName } from "../match/geoDisplay";
 import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
+import { SECTION_LABEL } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   navState: RfqNavigationState | null;
@@ -153,9 +155,7 @@ export function RfqView({ navState }: Props) {
       {/* Generation form */}
       {!generated && (
         <div className={PANEL}>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Configuration
-          </h2>
+          <h2 className={cn(SECTION_LABEL, "mb-4")}>Configuration</h2>
 
           {/* Selected facilities summary */}
           <div className="mb-5 space-y-2">
@@ -249,7 +249,7 @@ export function RfqView({ navState }: Props) {
         <div className="space-y-6">
           {/* Results header */}
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className={SECTION_LABEL}>
               {rfqs.length} RFQ document{rfqs.length !== 1 ? "s" : ""} generated
             </h2>
             <div className="flex gap-2">

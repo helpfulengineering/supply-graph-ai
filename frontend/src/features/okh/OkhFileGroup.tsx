@@ -4,6 +4,8 @@ import type { OkhFileRef } from "../../types/okh";
 import { OkhFileDirectoryGroup } from "./OkhFileDirectoryGroup";
 import { OkhFilePreviewContent } from "./OkhFilePreviewContent";
 import { buildDirectoryTree } from "./okhFilePath";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   okhId: string;
@@ -32,8 +34,10 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
 
   return (
     <div>
-      <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
-        <span aria-hidden="true" className="text-muted-foreground">{icon}</span>
+      <h3 className={cn(CARD_TITLE, "mb-2 flex items-center gap-1.5")}>
+        <span aria-hidden="true" className="text-muted-foreground">
+          {icon}
+        </span>
         {title}
         <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
           {files.length}

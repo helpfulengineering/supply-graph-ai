@@ -19,6 +19,8 @@ import { Pagination } from "../../components/ui/Pagination";
 import { useAuth } from "../../context/AuthContext";
 import type { CatalogGroupBy, CatalogSort, CatalogView } from "./catalogBrowse";
 import type { OkhManifest } from "../../types/okh";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 function SelectControl<T extends string>({
   label,
@@ -154,7 +156,10 @@ export function OkhListView() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <PageHero title="Open Hardware Designs" crumb="catalog · facets · matching" />
+          <PageHero
+            title="Open Hardware Designs"
+            crumb="catalog · facets · matching"
+          />
         </div>
         <div className="flex gap-2">
           {/* Generation needs no write key: it produces a file to download, and
@@ -277,7 +282,12 @@ export function OkhListView() {
                 {pageGroups.map((group) => (
                   <section key={group.label || "__all__"} className="space-y-3">
                     {group.label ? (
-                      <h2 className="text-sm font-semibold text-foreground border-b border-border pb-1">
+                      <h2
+                        className={cn(
+                          CARD_TITLE,
+                          "border-b border-border pb-1",
+                        )}
+                      >
                         {group.label}
                         <span className="ml-2 font-normal text-muted-foreground">
                           ({group.items.length})

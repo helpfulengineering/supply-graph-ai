@@ -1,6 +1,7 @@
 import ReactECharts from "echarts-for-react";
 import { useChartTokens } from "../../lib/chartTokens";
 import type { VisualizationData } from "../../types/supply-tree";
+import { CARD_TITLE } from "../../components/ui/typography";
 
 interface Props {
   data: VisualizationData;
@@ -86,9 +87,7 @@ export function FacilityChart({ data }: Props) {
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="border-b border-border px-5 py-3">
-        <h3 className="text-sm font-semibold text-foreground">
-          Facility Distribution
-        </h3>
+        <h3 className={CARD_TITLE}>Facility Distribution</h3>
         <p className="text-xs text-muted-foreground">
           Trees assigned per facility
         </p>

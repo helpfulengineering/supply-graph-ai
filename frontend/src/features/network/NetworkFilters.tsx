@@ -4,6 +4,7 @@ import type { FilterOptions } from "./deriveFilterOptions";
 import { Button } from "../../components/ui/button";
 import { PANEL } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
+import { CARD_TITLE } from "../../components/ui/typography";
 
 const SELECT_CLASS =
   "w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
@@ -72,7 +73,7 @@ export function NetworkFilters({
   return (
     <div className={cn(PANEL, "space-y-3")}>
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground">Filters</h2>
+        <h2 className={CARD_TITLE}>Filters</h2>
         {activeCount > 0 && (
           <Button variant="ghost" size="sm" onClick={onClear}>
             Clear ({activeCount})

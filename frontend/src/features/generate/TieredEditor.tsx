@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { FIELD, FIELD_SM } from "../../components/ui/field";
 import { LINK_BUTTON } from "../../components/ui/field";
+import { CARD_TITLE } from "../../components/ui/typography";
 import {
   getPath,
   humanizeKey,
@@ -243,7 +244,7 @@ export function TieredEditor({ manifest, onChange }: EditorProps) {
   return (
     <div className="space-y-6">
       <section aria-labelledby="tier1">
-        <h3 id="tier1" className="text-sm font-semibold text-foreground">
+        <h3 id="tier1" className={CARD_TITLE}>
           Required
         </h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -263,10 +264,7 @@ export function TieredEditor({ manifest, onChange }: EditorProps) {
 
       {TIER2_GROUPS.map((group) => (
         <section key={group.id} aria-labelledby={`tier2-${group.id}`}>
-          <h3
-            id={`tier2-${group.id}`}
-            className="text-sm font-semibold text-foreground"
-          >
+          <h3 id={`tier2-${group.id}`} className={CARD_TITLE}>
             {group.title}
           </h3>
           {group.blurb && (

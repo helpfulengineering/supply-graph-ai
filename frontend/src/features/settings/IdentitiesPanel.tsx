@@ -13,6 +13,7 @@ import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 function remember(id: Identity, replaceDid?: string) {
   return (prev: Identity[]) => [
@@ -70,7 +71,7 @@ export function IdentitiesPanel() {
   return (
     <div className="space-y-6">
       <section aria-labelledby="mint-heading" className={PANEL}>
-        <h2 id="mint-heading" className="text-lg font-semibold text-foreground">
+        <h2 id="mint-heading" className={SECTION_TITLE}>
           Mint identity
         </h2>
         {!mintAllowed && (
@@ -142,10 +143,7 @@ export function IdentitiesPanel() {
       </section>
 
       <section aria-labelledby="lookup-heading" className={PANEL}>
-        <h2
-          id="lookup-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="lookup-heading" className={SECTION_TITLE}>
           Look up DID
         </h2>
         <form
@@ -184,10 +182,7 @@ export function IdentitiesPanel() {
 
       {known.length > 0 && (
         <section aria-labelledby="known-heading" className={PANEL}>
-          <h2
-            id="known-heading"
-            className="text-lg font-semibold text-foreground"
-          >
+          <h2 id="known-heading" className={SECTION_TITLE}>
             Identities
           </h2>
           {lookup.isPending && <LoadingSpinner message="Loading…" />}

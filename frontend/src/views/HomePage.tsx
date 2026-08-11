@@ -9,6 +9,7 @@ import { GettingStarted } from "../features/dashboard/GettingStarted";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { PANEL } from "../components/ui/surface";
 import { cn } from "@/lib/utils";
+import { SECTION_LABEL_SM, SECTION_TITLE } from "../components/ui/typography";
 import {
   buildNetworkSummary,
   SOURCE_STYLES,
@@ -67,10 +68,7 @@ export function HomePage() {
       {/* Hero: the manufacturing network map. */}
       <section aria-labelledby="network-heading">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2
-            id="network-heading"
-            className="text-lg font-semibold text-foreground"
-          >
+          <h2 id="network-heading" className={SECTION_TITLE}>
             Manufacturing network
           </h2>
           <div className="flex gap-3">
@@ -130,10 +128,7 @@ export function HomePage() {
 
         <div className="space-y-6">
           <section aria-labelledby="system-heading">
-            <h2
-              id="system-heading"
-              className="mb-3 text-lg font-semibold text-foreground"
-            >
+            <h2 id="system-heading" className={cn(SECTION_TITLE, "mb-3")}>
               System
             </h2>
             <div className={cn(PANEL, "space-y-3")}>
@@ -147,9 +142,7 @@ export function HomePage() {
                 </span>
               </div>
               <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Domains
-                </p>
+                <p className={cn(SECTION_LABEL_SM, "mb-1.5")}>Domains</p>
                 <div className="flex flex-wrap gap-1.5">
                   {(domains.data ?? []).map((d) => (
                     <Badge key={d.id} variant="blue">
@@ -164,9 +157,7 @@ export function HomePage() {
                 </div>
               </div>
               <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Security
-                </p>
+                <p className={cn(SECTION_LABEL_SM, "mb-1.5")}>Security</p>
                 <SecurityPolicyBadge />
               </div>
             </div>

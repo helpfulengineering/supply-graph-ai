@@ -3,6 +3,11 @@ import { FIELD_MONO, FIELD_SM, LABEL } from "../../components/ui/field";
 import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL } from "../../components/ui/surface";
+import {
+  SECTION_LABEL_SM,
+  SECTION_TITLE,
+} from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 export function SessionPanel() {
   const { token, user, isLoading, authError, setToken, clear } = useAuth();
@@ -24,10 +29,7 @@ export function SessionPanel() {
   return (
     <div className="space-y-6">
       <section aria-labelledby="session-key-heading" className={PANEL}>
-        <h2
-          id="session-key-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="session-key-heading" className={SECTION_TITLE}>
           API key
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -68,10 +70,7 @@ export function SessionPanel() {
       </section>
 
       <section aria-labelledby="session-identity-heading" className={PANEL}>
-        <h2
-          id="session-identity-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="session-identity-heading" className={SECTION_TITLE}>
           Current identity
         </h2>
         {!token && (
@@ -90,33 +89,25 @@ export function SessionPanel() {
         {user && (
           <dl className="mt-3 space-y-2 text-sm">
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Name
-              </dt>
+              <dt className={SECTION_LABEL_SM}>Name</dt>
               <dd className="text-foreground">{user.name}</dd>
             </div>
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Account
-              </dt>
+              <dt className={SECTION_LABEL_SM}>Account</dt>
               <dd className="font-mono text-xs text-foreground">
                 {user.account_id}
               </dd>
             </div>
             {user.subject_did && (
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  DID
-                </dt>
+                <dt className={SECTION_LABEL_SM}>DID</dt>
                 <dd className="break-all font-mono text-xs text-foreground">
                   {user.subject_did}
                 </dd>
               </div>
             )}
             <div>
-              <dt className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Permissions
-              </dt>
+              <dt className={cn(SECTION_LABEL_SM, "mb-1.5")}>Permissions</dt>
               <dd className="flex flex-wrap gap-1.5">
                 {user.permissions.map((p) => (
                   <Badge key={p} variant={p === "admin" ? "indigo" : "blue"}>

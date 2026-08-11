@@ -20,6 +20,7 @@ import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL, PANEL_WARNING } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 const PERMISSION_OPTIONS = ["read", "write", "admin"] as const;
 
@@ -100,7 +101,7 @@ export function KeysAccountsPanel() {
         >
           <h2
             id="token-once-heading"
-            className="text-lg font-semibold text-warning"
+            className={cn(SECTION_TITLE, "text-warning")}
           >
             Copy this token now
           </h2>
@@ -130,7 +131,7 @@ export function KeysAccountsPanel() {
       )}
 
       <section aria-labelledby="keys-heading" className={PANEL}>
-        <h2 id="keys-heading" className="text-lg font-semibold text-foreground">
+        <h2 id="keys-heading" className={SECTION_TITLE}>
           API keys
         </h2>
 
@@ -234,10 +235,7 @@ export function KeysAccountsPanel() {
       </section>
 
       <section aria-labelledby="accounts-heading" className={PANEL}>
-        <h2
-          id="accounts-heading"
-          className="text-lg font-semibold text-foreground"
-        >
+        <h2 id="accounts-heading" className={SECTION_TITLE}>
           Accounts
         </h2>
 

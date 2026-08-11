@@ -1,5 +1,11 @@
-import { FileText, FolderArchive, Package, type LucideIcon } from "lucide-react";
+import {
+  FileText,
+  FolderArchive,
+  Package,
+  type LucideIcon,
+} from "lucide-react";
 import type { VisualizationData } from "../../types/supply-tree";
+import { CARD_TITLE } from "../../components/ui/typography";
 
 interface Props {
   data: VisualizationData;
@@ -48,9 +54,7 @@ export function ArtifactLinks({ data, solutionId }: Props) {
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="border-b border-border px-5 py-3">
-        <h3 className="text-sm font-semibold text-foreground">
-          Export Artifacts
-        </h3>
+        <h3 className={CARD_TITLE}>Export Artifacts</h3>
         <p className="text-xs text-muted-foreground">
           Download or open generated artifacts for this solution
         </p>
@@ -63,7 +67,10 @@ export function ArtifactLinks({ data, solutionId }: Props) {
           >
             <div className="flex items-center gap-3">
               <span className="text-xl" aria-hidden="true">
-                <Icon aria-hidden="true" className="h-5 w-5 text-muted-foreground" />
+                <Icon
+                  aria-hidden="true"
+                  className="h-5 w-5 text-muted-foreground"
+                />
               </span>
               <div>
                 <p className="text-sm font-medium text-foreground">{label}</p>
