@@ -8,6 +8,7 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "./networkMap.css";
 import type { NetworkSpace } from "../../api/ohm/network";
 import { SOURCE_STYLES, sourceColor } from "./networkSummary";
+import { useSourceColors } from "./useSourceColors";
 import { denseBounds, fillZoom, fitPadding } from "./mapFraming";
 import { displayCountryName } from "../match/geoDisplay";
 
@@ -167,6 +168,12 @@ function popupContent(space: NetworkSpace): HTMLElement {
  */
 function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
   const map = useMap();
+  // Rebuilt when the world changes, not only when the data does. Marker and
+  // cluster colours are read from the live tokens at build time, so without
+  // this the map kept the previous world's palette until the space set
+  // happened to change — which on the dashboard is never.
+  const colors = useSourceColors();
+
   useEffect(() => {
     const markers = spaces.map((space) => {
       const marker: SourcedMarker = L.marker([space.lat, space.lon], {
@@ -195,7 +202,7 @@ function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
       map.removeLayer(group);
       group.clearLayers();
     };
-  }, [map, spaces]);
+  }, [map, spaces, colors]);
   return null;
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { formatRgb, inkFor, parseRgb } from "./contrastInk";
 
@@ -116,13 +116,28 @@ function resolveColor(value: string): string {
 }
 
 /**
- * Tokens re-resolved whenever the world or polarity changes. The theme effects
- * write documentElement synchronously before paint, and this memo keys on the
- * same state they consume, so a theme switch re-renders every chart with the
- * new world's palette.
+ * Tokens re-resolved whenever the world or polarity changes.
+ *
+ * In an effect, after a frame — not a `useMemo` during render, which is what
+ * this was and which resolved the OUTGOING world every time. `data-ttm-theme`
+ * and the `.dark` class are written by `useDarkMode`'s effects, and effects run
+ * after the render that recomputed the memo, so every chart read the palette
+ * the app was leaving. Measured across the twenty variants: one theme switch
+ * put every axis label at roughly 2:1, and it stayed there until a reload.
+ *
+ * The initial value is resolved during render on purpose: the inline theme
+ * script has already written the world onto documentElement before React
+ * mounts, so the first read is correct and the charts do not paint once in the
+ * wrong palette before the effect lands.
  */
 export function useChartTokens(): ChartTokens {
   const { theme, isDark } = useTheme();
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- theme/isDark are proxies for the documentElement state the resolver reads
-  return useMemo(() => resolveChartTokens(), [theme, isDark]);
+  const [tokens, setTokens] = useState<ChartTokens>(resolveChartTokens);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setTokens(resolveChartTokens()));
+    return () => cancelAnimationFrame(frame);
+  }, [theme, isDark]);
+
+  return tokens;
 }
