@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { FIELD_MONO, FIELD_SM } from "../../components/ui/field";
+import { FIELD_MONO, FIELD_SM, LABEL } from "../../components/ui/field";
 import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
 
@@ -38,7 +38,7 @@ export function SessionPanel() {
         </p>
 
         <form onSubmit={onSave} className="mt-4 space-y-3">
-          <label className="block text-sm font-medium text-foreground">
+          <label className={LABEL}>
             Token
             <input
               type="password"

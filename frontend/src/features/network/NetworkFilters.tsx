@@ -1,4 +1,5 @@
 import type { NetworkFilters as Filters } from "../../api/ohm/network";
+import { LABEL } from "../../components/ui/field";
 import type { FilterOptions } from "./deriveFilterOptions";
 import { Button } from "../../components/ui/button";
 
@@ -21,7 +22,7 @@ function FilterSelect({
   hint?: string;
 }) {
   return (
-    <label className="block text-sm">
+    <label className={LABEL}>
       <span className="mb-1 block text-muted-foreground">
         {label}
         {hint && (
@@ -95,7 +96,7 @@ export function NetworkFilters({
           options={options.countries.map((c) => ({ value: c, label: c }))}
           onChange={(v) => set("country", v)}
         />
-        <label className="block text-sm">
+        <label className={LABEL}>
           <span className="mb-1 block text-muted-foreground">City</span>
           <input
             type="search"

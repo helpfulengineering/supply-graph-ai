@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FIELD, FIELD_MONO } from "../../components/ui/field";
+import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bootstrapEdgeGrant,
@@ -207,7 +207,7 @@ export function GrantsPanel() {
               ))}
             </div>
           </fieldset>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Scope kind
             <select
               value={scopeKind}
@@ -220,7 +220,7 @@ export function GrantsPanel() {
               <option value="record">record</option>
             </select>
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Scope target
             <input
               value={scopeTarget}
@@ -230,7 +230,7 @@ export function GrantsPanel() {
               required
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             TTL (days, optional)
             <input
               type="number"

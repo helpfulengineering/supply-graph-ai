@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FIELD, FIELD_MONO } from "../../components/ui/field";
+import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listDirectory, publishDirectoryEntry } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -60,7 +60,7 @@ export function DirectoryPanel() {
             if (did.trim()) publish.mutate();
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             DID
             <input
               value={did}
@@ -69,7 +69,7 @@ export function DirectoryPanel() {
               required
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Display name
             <input
               value={displayName}
@@ -77,7 +77,7 @@ export function DirectoryPanel() {
               className={`${FIELD} mt-1 w-full max-w-md`}
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Base URL
             <input
               value={baseUrl}
@@ -86,7 +86,7 @@ export function DirectoryPanel() {
               className={`${FIELD} mt-1 w-full max-w-md`}
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Domain (optional)
             <input
               value={domain}

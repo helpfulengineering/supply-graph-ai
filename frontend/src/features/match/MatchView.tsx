@@ -1,6 +1,7 @@
 "use client";
 
 import { SearchX } from "lucide-react";
+import { LABEL } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -370,7 +371,7 @@ export function MatchView({
               <div className="rounded-lg border border-input bg-muted/30 p-4">
                 <label
                   htmlFor="near-miss-tolerance"
-                  className="block text-sm font-medium text-foreground"
+                  className={LABEL}
                 >
                   Allow facilities missing up to{" "}
                   {effectiveTolerance === 0

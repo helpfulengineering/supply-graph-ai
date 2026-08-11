@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAccount,
@@ -136,7 +136,7 @@ export function KeysAccountsPanel() {
             if (keyName.trim() && permissions.length) createKey.mutate();
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Name
             <input
               value={keyName}
@@ -245,7 +245,7 @@ export function KeysAccountsPanel() {
             if (accountName.trim()) createAcc.mutate();
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Display name
             <input
               value={accountName}
@@ -254,7 +254,7 @@ export function KeysAccountsPanel() {
               required
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Kind
             <select
               value={accountKind}

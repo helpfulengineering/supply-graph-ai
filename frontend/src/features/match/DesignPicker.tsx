@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "../okh/categories";
 import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
@@ -145,7 +145,7 @@ export function DesignPicker({
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {facetGroups.map((group) => (
-              <label key={group.key} className="block text-sm">
+              <label key={group.key} className={LABEL}>
                 <span className="mb-1 block text-muted-foreground">
                   {group.label}
                 </span>

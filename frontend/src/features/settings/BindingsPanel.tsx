@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FIELD, FIELD_MONO, FIELD_SM } from "../../components/ui/field";
+import { FIELD, FIELD_MONO, FIELD_SM, LABEL } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bindOAuth,
@@ -104,7 +104,7 @@ export function BindingsPanel() {
             if (domainDid.trim() && domain.trim()) start.mutate();
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Subject DID
             <input
               value={domainDid}
@@ -113,7 +113,7 @@ export function BindingsPanel() {
               required
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Domain
             <input
               value={domain}
@@ -215,7 +215,7 @@ export function BindingsPanel() {
             }
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Subject DID
             <input
               value={oauthDid}
@@ -224,7 +224,7 @@ export function BindingsPanel() {
               required
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Provider
             <input
               value={provider}
@@ -234,7 +234,7 @@ export function BindingsPanel() {
               required
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             External subject
             <input
               value={externalSubject}

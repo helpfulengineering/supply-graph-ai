@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { LABEL } from "../../components/ui/field";
 import { normalizedCityOptions } from "../network/cityNames";
 import {
   cityMatchKey,
@@ -202,7 +203,7 @@ export function FacilityFilter({
       {!isLoading && !isError && (
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="block text-sm">
+            <label className={LABEL}>
               <span className="mb-1 block text-muted-foreground">Source</span>
               <select
                 aria-label="Source"
@@ -220,7 +221,7 @@ export function FacilityFilter({
                 <option value="mom">Maps of Making</option>
               </select>
             </label>
-            <label className="block text-sm">
+            <label className={LABEL}>
               <span className="mb-1 block text-muted-foreground">Country</span>
               <select
                 aria-label="Country"
@@ -236,7 +237,7 @@ export function FacilityFilter({
                 ))}
               </select>
             </label>
-            <label className="block text-sm">
+            <label className={LABEL}>
               <span className="mb-1 block text-muted-foreground">
                 State / Region
               </span>
@@ -254,7 +255,7 @@ export function FacilityFilter({
                 ))}
               </select>
             </label>
-            <label className="block text-sm">
+            <label className={LABEL}>
               <span className="mb-1 block text-muted-foreground">City</span>
               <select
                 aria-label="City"

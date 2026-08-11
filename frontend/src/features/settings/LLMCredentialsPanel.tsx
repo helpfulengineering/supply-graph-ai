@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FIELD, FIELD_MONO, FIELD_SM } from "../../components/ui/field";
+import { FIELD, FIELD_MONO, FIELD_SM, LABEL } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteLLMCredential,
@@ -108,7 +108,7 @@ export function LLMCredentialsPanel() {
           Set provider key
         </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm">
+          <label className={LABEL}>
             <span className="font-medium text-foreground">Provider</span>
             <select
               value={provider}
@@ -122,7 +122,7 @@ export function LLMCredentialsPanel() {
               ))}
             </select>
           </label>
-          <label className="block text-sm">
+          <label className={LABEL}>
             <span className="font-medium text-foreground">
               Model (optional)
             </span>

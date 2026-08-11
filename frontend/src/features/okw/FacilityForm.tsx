@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -218,7 +218,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Basics
           </h2>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Name *
             <input
               value={state.name}
@@ -228,7 +228,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Status
               <select
                 value={state.facilityStatus}
@@ -247,7 +247,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 ))}
               </select>
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Access
               <select
                 value={state.accessType}
@@ -268,7 +268,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             </label>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               City *
               <input
                 value={state.city}
@@ -277,7 +277,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 required
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Region
               <input
                 value={state.region}
@@ -285,7 +285,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 className={fieldClass}
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Country *
               <input
                 value={state.country}
@@ -295,7 +295,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               />
             </label>
           </div>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Street (optional)
             <input
               value={state.street}
@@ -303,7 +303,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               className={fieldClass}
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Description
             <textarea
               value={state.description}
@@ -351,7 +351,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               Attribution (optional)
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium">
+              <label className={LABEL}>
                 Author
                 <input
                   value={state.author}
@@ -360,7 +360,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                   className={fieldClass}
                 />
               </label>
-              <label className="block text-sm font-medium">
+              <label className={LABEL}>
                 On behalf of (space)
                 <input
                   value={state.onBehalfOf}
@@ -391,7 +391,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Hours &amp; contact
               </h2>
-              <label className="block text-sm font-medium">
+              <label className={LABEL}>
                 Opening hours
                 <input
                   value={state.openingHours}
@@ -400,7 +400,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 />
               </label>
               <div className="grid gap-3 sm:grid-cols-3">
-                <label className="block text-sm font-medium">
+                <label className={LABEL}>
                   Email
                   <input
                     value={state.contactEmail}
@@ -408,7 +408,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                     className={fieldClass}
                   />
                 </label>
-                <label className="block text-sm font-medium">
+                <label className={LABEL}>
                   Phone
                   <input
                     value={state.contactPhone}
@@ -416,7 +416,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                     className={fieldClass}
                   />
                 </label>
-                <label className="block text-sm font-medium">
+                <label className={LABEL}>
                   URL
                   <input
                     value={state.contactUrl}

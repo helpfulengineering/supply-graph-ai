@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FIELD_MONO } from "../../components/ui/field";
+import { FIELD_MONO, LABEL } from "../../components/ui/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "../../api/ohm/client";
 import { claimSpace, listSpaceClaims } from "../../api/ohm/identity";
@@ -59,7 +59,7 @@ export function SpacesPanel() {
             if (spaceDid.trim() && adminDid.trim()) claim.mutate();
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Space DID
             <input
               value={spaceDid}
@@ -68,7 +68,7 @@ export function SpacesPanel() {
               required
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Admin DID (person)
             <input
               value={adminDid}
