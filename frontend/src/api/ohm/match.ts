@@ -59,6 +59,20 @@ export interface RawMatchResponse {
 
 /** Run a domain-aware match for an OKH design; returns the raw envelope. */
 export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse> {
+  // The API requires exactly one of okh_id / okh_manifest / okh_url and 422s
+  // with "Must provide either..." when given none — reachable from the UI, and
+  // opaque by the time it reaches a toast. Guarded here.
+  //
+  // Deliberately NOT also checking that okh_id is a UUID: the deployed API
+  // parses it as one, but that is the server's rule to enforce. Duplicating it
+  // here rejects instances whose ids are shaped differently (the mocked lane,
+  // for one) and puts the client in the business of guessing the server's
+  // schema. A server that rejects the id says so, and formatValidationError
+  // below makes that answer readable.
+  if (!params.okhManifest && !params.okhId) {
+    throw new ApiError(400, "Select a design before running a match.");
+  }
+
   const { data, error, response } = await apiClient.POST("/api/match", {
     // The generated schema marks many match-request fields as required, but the
     // API defaults them server-side; the minimal set below is what the endpoint
