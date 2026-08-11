@@ -4,7 +4,7 @@ import { FacilitiesIllustration } from "../../components/ui/illustrations";
 import { FIELD, LABEL } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchNetworkSpaces,
@@ -12,6 +12,7 @@ import {
 } from "../../api/ohm/network";
 import { Button } from "../../components/ui/button";
 import { deriveFilterOptions } from "./deriveFilterOptions";
+import { filtersFromParams, filtersToSearch } from "./filterParams";
 import { filterByName } from "./nameSearch";
 import { buildNetworkSummary } from "./networkSummary";
 import { NetworkFilters } from "./NetworkFilters";
@@ -57,8 +58,15 @@ function ViewToggle({
 
 export function NetworkView() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { hasWrite } = useAuth();
-  const [filters, setFilters] = useState<Filters>({});
+  // Seeded from the query string so the surface can be linked into — the
+  // dashboard charts arrive here with a country or a process already chosen —
+  // then owned locally, with the address bar kept in step by applyFilters.
+  const [filters, setFilters] = useState<Filters>(() =>
+    filtersFromParams(searchParams),
+  );
   const [view, setView] = useState<"list" | "map">("list");
   const [page, setPage] = useState(1);
   const [nameQuery, setNameQuery] = useState("");
@@ -114,6 +122,9 @@ export function NetworkView() {
   const applyFilters = (next: Filters) => {
     setFilters(next);
     setPage(1);
+    const qs = filtersToSearch(next);
+    // Replace, not push: narrowing a filter is a refinement, not a step back to.
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
   return (
