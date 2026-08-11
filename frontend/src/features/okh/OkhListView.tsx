@@ -1,10 +1,16 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { useOkhCatalog } from "./useOkhList";
 import { OkhCard } from "./OkhCard";
 import { OkhListRow } from "./OkhListRow";
 import { FacetPanel } from "./FacetPanel";
-import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
+import {
+  LoadingState,
+  EmptyState,
+  ErrorState,
+} from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Pagination } from "../../components/ui/Pagination";
 import { useAuth } from "../../context/AuthContext";
@@ -139,21 +145,27 @@ export function OkhListView() {
 
   const hasItems = pageGroups.some((g) => g.items.length > 0);
   const { hasWrite } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Open Hardware Designs</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Open Hardware Designs
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Browse designs by category and capability, then run facility matching.
+            Browse designs by category and capability, then run facility
+            matching.
           </p>
         </div>
         <div className="flex gap-2">
           {/* Generation needs no write key: it produces a file to download, and
               deliberately does not save to the catalogue. */}
-          <Button variant="outline" onClick={() => navigate("/okh/generate")}>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/okh/generate")}
+          >
             Generate from URL
           </Button>
           <Button
@@ -162,7 +174,9 @@ export function OkhListView() {
                 ? undefined
                 : "Connect a write-capable API key first (opens Session)"
             }
-            onClick={() => navigate(hasWrite ? "/okh/new" : "/settings/session")}
+            onClick={() =>
+              router.push(hasWrite ? "/okh/new" : "/settings/session")
+            }
           >
             New design
           </Button>
@@ -232,7 +246,11 @@ export function OkhListView() {
           {isLoading && <LoadingState message="Loading designs…" />}
           {isError && (
             <ErrorState
-              description={error instanceof Error ? error.message : "Failed to load designs."}
+              description={
+                error instanceof Error
+                  ? error.message
+                  : "Failed to load designs."
+              }
               onRetry={() => refetch()}
             />
           )}

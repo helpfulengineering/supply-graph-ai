@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { generateRfq } from "../../api/rfq";
 import { fetchOkhDetail } from "../../api/okh";
@@ -15,7 +17,7 @@ interface Props {
 }
 
 export function RfqView({ navState }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [rfqs, setRfqs] = useState<RFQDocument[]>([]);
   const [generated, setGenerated] = useState(false);
@@ -40,7 +42,7 @@ export function RfqView({ navState }: Props) {
           body="Return to the match results page, select one or more facilities, then click Contact selected facilities."
           action={
             <button
-              onClick={() => navigate("/match")}
+              onClick={() => router.push("/match")}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 dark:bg-indigo-500"
             >
               Back to Match
@@ -67,7 +69,8 @@ export function RfqView({ navState }: Props) {
       okh_function: okhFunction,
       okh_version: okhVersion,
       quantity,
-      okh_manifest: fullManifest as unknown as Record<string, unknown> | undefined,
+      okh_manifest: fullManifest as unknown as
+        Record<string, unknown> | undefined,
       solutions: solutions.map((s) => ({
         facility_id: s.facility_id,
         facility_name: s.facility_name,
@@ -82,7 +85,10 @@ export function RfqView({ navState }: Props) {
 
   const handleDownloadAll = () => {
     const combined = rfqs
-      .map((r) => `${"=".repeat(60)}\n${r.rfq_number}\n${"=".repeat(60)}\n${r.text}`)
+      .map(
+        (r) =>
+          `${"=".repeat(60)}\n${r.rfq_number}\n${"=".repeat(60)}\n${r.text}`,
+      )
       .join("\n\n");
     const blob = new Blob([combined], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -133,7 +139,7 @@ export function RfqView({ navState }: Props) {
           </p>
         </div>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => router.back()}
           className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
         >
           ← Back
@@ -155,7 +161,10 @@ export function RfqView({ navState }: Props) {
             </p>
             <ul className="space-y-1.5">
               {solutions.map((s) => (
-                <li key={s.facility_id} className="flex items-center gap-2 text-sm">
+                <li
+                  key={s.facility_id}
+                  className="flex items-center gap-2 text-sm"
+                >
                   <span className="flex h-5 w-6 items-center justify-center rounded bg-slate-100 text-xs font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                     #{s.rank}
                   </span>
@@ -192,15 +201,21 @@ export function RfqView({ navState }: Props) {
               type="number"
               min={1}
               value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
+              onChange={(e) =>
+                setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
+              }
               className="w-24 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
             />
-            <span className="text-sm text-slate-500 dark:text-slate-400">units</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              units
+            </span>
           </div>
 
           {okhFunction && (
             <p className="mb-5 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600 italic dark:bg-slate-800/50 dark:text-slate-300">
-              <span className="not-italic font-medium text-slate-500 dark:text-slate-400">Function: </span>
+              <span className="not-italic font-medium text-slate-500 dark:text-slate-400">
+                Function:{" "}
+              </span>
               {okhFunction}
             </p>
           )}
@@ -210,7 +225,9 @@ export function RfqView({ navState }: Props) {
             disabled={isPending}
             className="rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors dark:bg-indigo-500 dark:hover:bg-indigo-400"
           >
-            {isPending ? "Generating…" : `Generate ${solutions.length} RFQ${solutions.length !== 1 ? "s" : ""}`}
+            {isPending
+              ? "Generating…"
+              : `Generate ${solutions.length} RFQ${solutions.length !== 1 ? "s" : ""}`}
           </button>
         </div>
       )}
@@ -247,7 +264,10 @@ export function RfqView({ navState }: Props) {
                 ↓ Download all (.json)
               </button>
               <button
-                onClick={() => { setGenerated(false); setRfqs([]); }}
+                onClick={() => {
+                  setGenerated(false);
+                  setRfqs([]);
+                }}
                 className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400"
               >
                 ← Edit settings

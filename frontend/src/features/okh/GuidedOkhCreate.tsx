@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Create a design through the same guided editor the URL import uses.
  *
@@ -12,7 +14,7 @@
  */
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
 import { createOkh } from "../../api/ohm/okh";
@@ -40,7 +42,7 @@ export function emptyManifest(): Manifest {
 }
 
 export function GuidedOkhCreate() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { hasWrite, reportAuthFailure } = useAuth();
   const [manifest, setManifest] = useState<Manifest>(emptyManifest);
   const [error, setError] = useState<string | null>(null);
@@ -54,12 +56,17 @@ export function GuidedOkhCreate() {
     setError(null);
     try {
       const { id } = await createOkh(manifest, {});
-      navigate(`/okh/${id}`);
+      router.push(`/okh/${id}`);
     } catch (err) {
-      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+      if (
+        err instanceof ApiError &&
+        (err.status === 401 || err.status === 403)
+      ) {
         reportAuthFailure(err);
       }
-      setError(err instanceof Error ? err.message : "Could not create the design.");
+      setError(
+        err instanceof Error ? err.message : "Could not create the design.",
+      );
     } finally {
       setBusy(false);
     }
@@ -70,9 +77,9 @@ export function GuidedOkhCreate() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">New design</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Describe the design field by field. Only the required fields are needed to
-          save — everything else can be filled in later, and a thin record that exists
-          is more useful than a perfect one that doesn't.
+          Describe the design field by field. Only the required fields are
+          needed to save — everything else can be filled in later, and a thin
+          record that exists is more useful than a perfect one that doesn't.
         </p>
       </div>
 
@@ -81,7 +88,7 @@ export function GuidedOkhCreate() {
           You need a write-capable API key to save a design.{" "}
           <button
             type="button"
-            onClick={() => navigate("/settings/session")}
+            onClick={() => router.push("/settings/session")}
             className="underline"
           >
             Connect one
@@ -116,8 +123,8 @@ export function GuidedOkhCreate() {
         </Button>
         {missing.length > 0 && (
           <p className="text-sm text-amber-700 dark:text-amber-400">
-            {missing.length} required field{missing.length === 1 ? "" : "s"} still to
-            fill in.
+            {missing.length} required field{missing.length === 1 ? "" : "s"}{" "}
+            still to fill in.
           </p>
         )}
       </div>

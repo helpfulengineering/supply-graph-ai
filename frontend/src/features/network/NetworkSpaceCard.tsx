@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge } from "../../components/ui/Badge";
 import type { NetworkSpace } from "../../api/ohm/network";
@@ -31,7 +33,9 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
           </Badge>
         </div>
         {location && (
-          <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">📍 {location}</p>
+          <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
+            📍 {location}
+          </p>
         )}
         {space.ambiguous && (
           <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
@@ -43,9 +47,13 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
       {processes.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {processes.slice(0, 4).map((p) => (
-            <Badge key={p} variant="default">{p}</Badge>
+            <Badge key={p} variant="default">
+              {p}
+            </Badge>
           ))}
-          {processes.length > 4 && <Badge variant="default">+{processes.length - 4}</Badge>}
+          {processes.length > 4 && (
+            <Badge variant="default">+{processes.length - 4}</Badge>
+          )}
         </div>
       )}
 
@@ -59,14 +67,19 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
   // contact live on the source's own page). A MoM space with no url isn't a link.
   if (space.source === "local") {
     return (
-      <Link to={`/facilities/${space.id}`} className={CARD_CLASS}>
+      <Link href={`/facilities/${space.id}`} className={CARD_CLASS}>
         {body}
       </Link>
     );
   }
   if (space.url) {
     return (
-      <a href={space.url} target="_blank" rel="noreferrer" className={CARD_CLASS}>
+      <a
+        href={space.url}
+        target="_blank"
+        rel="noreferrer"
+        className={CARD_CLASS}
+      >
         {body}
       </a>
     );

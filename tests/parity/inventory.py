@@ -65,8 +65,35 @@ def normalize_fe_route(path: str) -> str | None:
     return f"/{parts[0]}"
 
 
-def actual_fe_routes(app_tsx: Path | None = None) -> set[str]:
-    """Route prefixes declared in the React router (``App.tsx``)."""
+def _fe_routes_from_app_dir(app_dir: Path) -> set[str]:
+    """Route prefixes from the Next App Router tree (``app/**/page.tsx``).
+
+    Route handlers (``route.ts`` — the docs tree and the /v1 proxy) are
+    deployment surface, not product routes, and are deliberately excluded.
+    """
+    routes: set[str] = set()
+    for page in app_dir.rglob("page.tsx"):
+        rel = page.parent.relative_to(app_dir)
+        segments = [s for s in rel.parts if not (s.startswith("(") and s.endswith(")"))]
+        path = "/" + "/".join(segments)
+        normalized = normalize_fe_route(path)
+        if normalized:
+            routes.add(normalized)
+    return routes
+
+
+def actual_fe_routes(
+    app_tsx: Path | None = None, app_dir: Path | None = None
+) -> set[str]:
+    """Route prefixes declared by the frontend router.
+
+    Next App Router tree (``frontend/app``) when present; an explicit
+    ``app_tsx`` opts into regex-scraping ``<Route path>`` out of a
+    react-router ``App.tsx`` instead.
+    """
+    resolved_app_dir = app_dir or (_REPO_ROOT / "frontend" / "app")
+    if app_tsx is None and resolved_app_dir.is_dir():
+        return _fe_routes_from_app_dir(resolved_app_dir)
     app_path = app_tsx or (_REPO_ROOT / "frontend" / "src" / "App.tsx")
     text = app_path.read_text(encoding="utf-8")
     routes: set[str] = set()

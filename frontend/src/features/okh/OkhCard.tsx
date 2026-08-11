@@ -1,4 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "../../components/ui/Badge";
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "./categories";
@@ -20,12 +23,14 @@ const PROCESS_COLORS: Record<string, "indigo" | "blue" | "green" | "yellow"> = {
   Welding: "yellow",
 };
 
-function processColor(p: string): "indigo" | "blue" | "green" | "yellow" | "default" {
+function processColor(
+  p: string,
+): "indigo" | "blue" | "green" | "yellow" | "default" {
   return PROCESS_COLORS[p] ?? "default";
 }
 
 export function OkhCard({ okh }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const title = formatOkhDisplayTitle(okh.title);
   const categories = deriveCategories(okh).filter((c) => c !== UNCATEGORIZED);
   const author = okh.licensor?.name?.trim() || null;
@@ -34,7 +39,7 @@ export function OkhCard({ okh }: Props) {
   return (
     <div className="group flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
       <Link
-        to={`/okh/${okh.id}`}
+        href={`/okh/${okh.id}`}
         className="flex flex-1 flex-col gap-3 p-5 no-underline"
       >
         <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors dark:text-slate-100 dark:group-hover:text-indigo-400 break-words">
@@ -54,7 +59,9 @@ export function OkhCard({ okh }: Props) {
               </Badge>
             ))}
             {okh.manufacturing_processes.length > 4 && (
-              <Badge variant="default">+{okh.manufacturing_processes.length - 4}</Badge>
+              <Badge variant="default">
+                +{okh.manufacturing_processes.length - 4}
+              </Badge>
             )}
           </div>
         )}
@@ -70,7 +77,7 @@ export function OkhCard({ okh }: Props) {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/match?okh_id=${okh.id}`);
+            router.push(`/match?okh_id=${okh.id}`);
           }}
           className="rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900"
         >

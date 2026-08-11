@@ -1,5 +1,8 @@
+"use client";
+
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
 import { Button } from "../../components/ui/button";
@@ -11,7 +14,9 @@ type CreateFn = (
   opts: { author?: string; onBehalfOf?: string },
 ) => Promise<{ id: string }>;
 
-type ValidateFn = (content: Record<string, unknown>) => Promise<ValidationResult>;
+type ValidateFn = (
+  content: Record<string, unknown>,
+) => Promise<ValidationResult>;
 
 interface Props {
   title: string;
@@ -30,7 +35,7 @@ export function CreateJsonRecordPage({
   validate,
   create,
 }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { hasWrite, reportAuthFailure } = useAuth();
   const [jsonText, setJsonText] = useState("");
   const [author, setAuthor] = useState("");
@@ -71,7 +76,9 @@ export function CreateJsonRecordPage({
   async function onCreate(e: FormEvent) {
     e.preventDefault();
     if (!hasWrite) {
-      setError("Creating requires a write-capable API key. Connect one in Settings.");
+      setError(
+        "Creating requires a write-capable API key. Connect one in Settings.",
+      );
       reportAuthFailure(new ApiError(401, "Authentication required"));
       return;
     }
@@ -84,7 +91,7 @@ export function CreateJsonRecordPage({
         author: author.trim() || undefined,
         onBehalfOf: onBehalfOf.trim() || undefined,
       });
-      navigate(detailHref(id));
+      router.push(detailHref(id));
     } catch (err) {
       reportAuthFailure(err);
       setError(err instanceof Error ? err.message : "Create failed.");
@@ -105,7 +112,7 @@ export function CreateJsonRecordPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link to={listHref} className="hover:text-indigo-600">
+        <Link href={listHref} className="hover:text-indigo-600">
           {listLabel}
         </Link>
         <span aria-hidden="true">›</span>
@@ -115,15 +122,15 @@ export function CreateJsonRecordPage({
       <div>
         <h1 className="text-2xl font-bold text-foreground">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste or upload JSON, optionally validate, then create. Visibility defaults to
-          private on the server.
+          Paste or upload JSON, optionally validate, then create. Visibility
+          defaults to private on the server.
         </p>
       </div>
 
       {!hasWrite && (
         <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-          You need a write-capable API key to create. Browse still works; connect a key in
-          Settings if you are an admin.
+          You need a write-capable API key to create. Browse still works;
+          connect a key in Settings if you are an admin.
         </p>
       )}
 

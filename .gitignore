@@ -231,3 +231,4 @@ tests/matching/artifacts/
 
 # local storage (repo-root volume only — not src/core/storage/)
 /storage/
+frontend/public/build-info.json

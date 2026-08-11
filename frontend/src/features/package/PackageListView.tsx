@@ -1,6 +1,8 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import {
   downloadPackagesZip,
   fetchPackageList,
@@ -18,7 +20,8 @@ import { useAuth } from "../../context/AuthContext";
 
 function matchesFilter(pkg: PackageListItem, q: string): boolean {
   if (!q) return true;
-  const hay = `${pkg.package_name} ${pkg.version} ${pkg.okh_manifest_id ?? ""}`.toLowerCase();
+  const hay =
+    `${pkg.package_name} ${pkg.version} ${pkg.okh_manifest_id ?? ""}`.toLowerCase();
   return hay.includes(q.toLowerCase());
 }
 
@@ -27,7 +30,7 @@ function groupKey(pkg: PackageListItem): string {
 }
 
 export function PackageListView() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { reportAuthFailure } = useAuth();
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -91,11 +94,13 @@ export function PackageListView() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Packages</h1>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+            Packages
+          </h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Point-in-time archives of OKH design files. Each package is a{" "}
-            <span className="font-mono text-xs">.tar.gz</span>; multi-select downloads a
-            server-built zip of those tarballs.
+            <span className="font-mono text-xs">.tar.gz</span>; multi-select
+            downloads a server-built zip of those tarballs.
           </p>
         </div>
         <button
@@ -116,7 +121,7 @@ export function PackageListView() {
           Open a design and use{" "}
           <button
             type="button"
-            onClick={() => navigate("/okh")}
+            onClick={() => router.push("/okh")}
             className="font-semibold text-indigo-700 underline hover:no-underline dark:text-indigo-300"
           >
             Build on server
@@ -159,7 +164,9 @@ export function PackageListView() {
           {filtered.length === 0 ? (
             <EmptyState
               icon="📦"
-              heading={packages.length === 0 ? "No packages built yet" : "No matches"}
+              heading={
+                packages.length === 0 ? "No packages built yet" : "No matches"
+              }
               body={
                 packages.length === 0
                   ? "Build a package from an OKH design to make it available here."
@@ -169,7 +176,7 @@ export function PackageListView() {
                 packages.length === 0 ? (
                   <button
                     type="button"
-                    onClick={() => navigate("/okh")}
+                    onClick={() => router.push("/okh")}
                     className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
                   >
                     Browse Designs
@@ -186,14 +193,20 @@ export function PackageListView() {
               {groups.map(([name, versions]) => (
                 <section key={name} className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-sm font-semibold text-foreground">{name}</h2>
+                    <h2 className="text-sm font-semibold text-foreground">
+                      {name}
+                    </h2>
                     <div className="flex flex-wrap gap-1">
                       {versions.map((pkg) => (
                         <button
                           key={selectionKey(pkg)}
                           type="button"
                           className="rounded-full border border-slate-300 px-2 py-0.5 font-mono text-xs text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300"
-                          onClick={() => navigate(packageDetailPath(pkg.package_name, pkg.version))}
+                          onClick={() =>
+                            router.push(
+                              packageDetailPath(pkg.package_name, pkg.version),
+                            )
+                          }
                         >
                           v{pkg.version}
                         </button>

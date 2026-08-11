@@ -32,7 +32,11 @@ export function CreateOkhPage() {
   return (
     <div>
       <div className="flex justify-end pt-4">
-        <div role="radiogroup" aria-label="Entry method" className="inline-flex gap-1">
+        <div
+          role="radiogroup"
+          aria-label="Entry method"
+          className="inline-flex gap-1"
+        >
           {tab("guided", "Guided")}
           {tab("json", "Paste JSON")}
         </div>

@@ -23,8 +23,8 @@ describe("tokenStorage", () => {
     expect(authHeader()).toEqual({});
   });
 
-  it("seeds from VITE_OHM_API_KEY when session is empty", () => {
-    vi.stubEnv("VITE_OHM_API_KEY", "env-key");
+  it("seeds from NEXT_PUBLIC_OHM_API_KEY when session is empty", () => {
+    vi.stubEnv("NEXT_PUBLIC_OHM_API_KEY", "env-key");
     seedTokenFromEnv();
     expect(getToken()).toBe("env-key");
     setToken("session-key");

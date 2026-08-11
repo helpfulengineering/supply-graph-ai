@@ -18,10 +18,10 @@ export function clearToken(): void {
   sessionStorage.removeItem(STORAGE_KEY);
 }
 
-/** Dev-only: seed session from VITE_OHM_API_KEY when empty. */
+/** Dev-only: seed session from NEXT_PUBLIC_OHM_API_KEY when empty. */
 export function seedTokenFromEnv(): void {
   if (getToken()) return;
-  const fromEnv = import.meta.env.VITE_OHM_API_KEY;
+  const fromEnv = process.env.NEXT_PUBLIC_OHM_API_KEY;
   if (typeof fromEnv === "string" && fromEnv.trim()) {
     setToken(fromEnv);
   }

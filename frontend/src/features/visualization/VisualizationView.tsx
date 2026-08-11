@@ -1,5 +1,7 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { fetchVisualization } from "../../api/ohm/supply-tree";
 import {
   deriveKpis,
@@ -8,15 +10,29 @@ import {
   toProductionSequence,
 } from "./supplyTreeAdapter";
 import { KpiCards } from "./KpiCards";
-import { SupplyTreeGraph } from "./SupplyTreeGraph";
-import { FacilityChart } from "./FacilityChart";
+import dynamic from "next/dynamic";
+
+// Cytoscape and ECharts are browser-only at module scope; load them client-side.
+const SupplyTreeGraph = dynamic(
+  () =>
+    import("./SupplyTreeGraph").then((m) => ({ default: m.SupplyTreeGraph })),
+  { ssr: false },
+);
+const FacilityChart = dynamic(
+  () => import("./FacilityChart").then((m) => ({ default: m.FacilityChart })),
+  { ssr: false },
+);
 import { ArtifactLinks } from "./ArtifactLinks";
 import { downloadSolutionJson } from "./downloadSolution";
-import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
+import {
+  LoadingState,
+  EmptyState,
+  ErrorState,
+} from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 
 export function VisualizationView({ solutionId }: { solutionId: string }) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["visualization", solutionId],
     queryFn: () => fetchVisualization(solutionId),
@@ -26,7 +42,9 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
   if (isError || !data) {
     return (
       <ErrorState
-        description={error instanceof Error ? error.message : "Solution not found."}
+        description={
+          error instanceof Error ? error.message : "Solution not found."
+        }
         onRetry={() => refetch()}
       />
     );
@@ -45,7 +63,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
     <div className="space-y-6">
       <div>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => router.back()}
           className="mb-2 text-sm text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
         >
           ← Back
@@ -57,7 +75,11 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
               Manufacturing plan for the matched solution.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => downloadSolutionJson(solutionId, data)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => downloadSolutionJson(solutionId, data)}
+          >
             ⬇ Download JSON
           </Button>
         </div>

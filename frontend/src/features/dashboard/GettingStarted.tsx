@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 
 const STEPS = [
   {
@@ -28,7 +30,10 @@ const STEPS = [
 export function GettingStarted() {
   return (
     <section aria-labelledby="getting-started-heading">
-      <h2 id="getting-started-heading" className="mb-3 text-lg font-semibold text-foreground">
+      <h2
+        id="getting-started-heading"
+        className="mb-3 text-lg font-semibold text-foreground"
+      >
         Getting started
       </h2>
       <ol className="space-y-3">
@@ -44,10 +49,14 @@ export function GettingStarted() {
               {s.n}
             </span>
             <div className="min-w-0">
-              <p className="font-medium text-slate-800 dark:text-slate-100">{s.title}</p>
-              <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">{s.body}</p>
+              <p className="font-medium text-slate-800 dark:text-slate-100">
+                {s.title}
+              </p>
+              <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
+                {s.body}
+              </p>
               <Link
-                to={s.to}
+                href={s.to}
                 className="mt-1.5 inline-block text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
               >
                 {s.cta} →
