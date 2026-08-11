@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FIELD } from "../../components/ui/field";
+import { FIELD, LABEL } from "../../components/ui/field";
 import {
   getOkhVisibility,
   setOkhVisibility,
@@ -82,7 +82,7 @@ export function VisibilityControl({
       )}
 
       {query.isSuccess && (
-        <label className="block text-sm">
+        <label className={LABEL}>
           <span className="sr-only">Visibility level</span>
           <select
             value={level ?? "private"}

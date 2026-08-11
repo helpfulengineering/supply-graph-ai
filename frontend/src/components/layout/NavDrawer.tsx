@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
-import { FlaskConical, RefreshCw } from "lucide-react";
+import { FlaskConical, Gauge, RefreshCw, Settings } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { refreshLowVolatilityData } from "../../queryClient";
@@ -98,7 +98,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
 
   const itemClass = (active: boolean) =>
     [
-      "flex min-h-11 flex-col justify-center rounded-md px-3 py-2 no-underline transition-colors",
+      "flex min-h-11 items-start gap-2.5 rounded-md px-3 py-2 no-underline transition-colors",
       active
         ? "bg-accent text-primary-ink"
         : "text-foreground hover:bg-muted",
@@ -156,10 +156,19 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               <ul className="m-0 list-none p-0">
                 {group.entries.map((entry) => {
                   const active = !entry.external && isActivePath(pathname, entry.href);
+                  const Icon = entry.icon;
                   const body = (
                     <>
-                      <span className="text-sm font-medium">{entry.name}</span>
-                      <span className="text-xs text-muted-foreground">{entry.desc}</span>
+                      <Icon
+                        aria-hidden="true"
+                        className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">{entry.name}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {entry.desc}
+                        </span>
+                      </span>
                     </>
                   );
                   return (
@@ -193,8 +202,14 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               aria-current={isActivePath(pathname, "/settings") ? "page" : undefined}
               className={itemClass(isActivePath(pathname, "/settings"))}
             >
-              <span className="text-sm font-medium">{settingsLabel}</span>
-              <span className="text-xs text-muted-foreground">{settingsDesc}</span>
+              <Settings
+                aria-hidden="true"
+                className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+              />
+              <span className="min-w-0">
+                <span className="block text-sm font-medium">{settingsLabel}</span>
+                <span className="block text-xs text-muted-foreground">{settingsDesc}</span>
+              </span>
             </Link>
           </div>
 
@@ -211,9 +226,15 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                 aria-current={isActivePath(pathname, "/mission-control") ? "page" : undefined}
                 className={itemClass(isActivePath(pathname, "/mission-control"))}
               >
-                <span className="text-sm font-medium">Mission Control</span>
-                <span className="text-xs text-muted-foreground">
-                  telemetry and visitor records for this site
+                <Gauge
+                  aria-hidden="true"
+                  className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">Mission Control</span>
+                  <span className="block text-xs text-muted-foreground">
+                    telemetry and visitor records for this site
+                  </span>
                 </span>
               </Link>
             </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FIELD, FIELD_MONO } from "../../components/ui/field";
+import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   fetchSecurityPolicy,
@@ -88,7 +88,7 @@ export function IdentitiesPanel() {
             if (accountId && mintAllowed) mint.mutate();
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Account
             <select
               value={accountId}
@@ -107,7 +107,7 @@ export function IdentitiesPanel() {
                 ))}
             </select>
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Kind
             <select
               value={kind}
@@ -119,7 +119,7 @@ export function IdentitiesPanel() {
               <option value="space">space</option>
             </select>
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Display name
             <input
               value={displayName}

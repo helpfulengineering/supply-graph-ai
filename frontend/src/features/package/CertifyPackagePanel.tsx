@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FIELD, FIELD_MONO } from "../../components/ui/field";
+import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { certifyRelease } from "../../api/ohm/identity";
 import type { PinRecord } from "../../api/package";
@@ -76,7 +76,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
           if (canSubmit) certify.mutate();
         }}
       >
-        <label className="block text-sm font-medium">
+        <label className={LABEL}>
           Subject DID (firm / space)
           <input
             value={subjectDid}
@@ -88,7 +88,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
 
         {!pin && (
           <div className="space-y-3">
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Bundle hash
               <input
                 value={advBundle}
@@ -97,7 +97,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
                 required
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Version
               <input
                 value={advVersion}
@@ -105,7 +105,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
                 className={`${FIELD} mt-1 w-40`}
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Manifest content hash (optional)
               <input
                 value={advManifest}

@@ -1,7 +1,7 @@
 "use client";
 
 import { FacilitiesIllustration } from "../../components/ui/illustrations";
-import { FIELD } from "../../components/ui/field";
+import { FIELD, LABEL } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -153,7 +153,7 @@ export function NetworkView() {
           <div>
             <label
               htmlFor="space-name-search"
-              className="mb-1 block text-sm font-medium text-foreground"
+              className={LABEL}
             >
               Search by name
             </label>

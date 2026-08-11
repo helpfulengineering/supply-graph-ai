@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
@@ -136,7 +136,7 @@ export function CreateJsonRecordPage({
       )}
 
       <form onSubmit={onCreate} className="space-y-4">
-        <label className="block text-sm font-medium">
+        <label className={LABEL}>
           JSON
           <textarea
             value={jsonText}
@@ -149,7 +149,7 @@ export function CreateJsonRecordPage({
           />
         </label>
 
-        <label className="block text-sm font-medium">
+        <label className={LABEL}>
           Or upload a file
           <input
             type="file"
@@ -160,7 +160,7 @@ export function CreateJsonRecordPage({
         </label>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Author (optional)
             <input
               value={author}
@@ -169,7 +169,7 @@ export function CreateJsonRecordPage({
               className={`${FIELD} mt-1 w-full`}
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             On behalf of (optional)
             <input
               value={onBehalfOf}

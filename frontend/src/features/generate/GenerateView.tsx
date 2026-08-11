@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
 import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -226,7 +226,7 @@ export function GenerateView() {
       <div className="rounded-xl border border-border bg-card p-5">
         <label
           htmlFor="repo-url"
-          className="block text-sm font-medium text-foreground"
+          className={LABEL}
         >
           Repository URL(s)
         </label>
