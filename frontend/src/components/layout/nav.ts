@@ -4,6 +4,7 @@ import {
   FilePlus2,
   FileText,
   LayoutDashboard,
+  LifeBuoy,
   MapPinned,
   Package,
   Sparkles,
@@ -39,11 +40,22 @@ export interface NavEntry {
 export interface NavGroup {
   label: string;
   entries: NavEntry[];
+  /**
+   * Icon colour for this group, as a token utility.
+   *
+   * Grouping by hue gives the drawer a second, pre-verbal cue: browse surfaces
+   * read one way, authoring another. These are chart tokens, not new colours —
+   * they are the categorical ramp the theme layer already proves distinct in
+   * all twenty variants, so the drawer re-themes with everything else and adds
+   * nothing for the contrast gate to check.
+   */
+  accent: string;
 }
 
 export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Explore",
+    accent: "text-chart-1",
     entries: [
       {
         href: "/",
@@ -73,6 +85,7 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: "Create",
+    accent: "text-chart-2",
     entries: [
       {
         href: "/match",
@@ -108,7 +121,14 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: "Reference",
+    accent: "text-chart-3",
     entries: [
+      {
+        href: "/help",
+        name: "Help",
+        desc: "sitemap, shortcuts, and accessibility",
+        icon: LifeBuoy,
+      },
       // Static mkdocs site served on the same origin — a hard link, not a route.
       {
         href: "/docs/",

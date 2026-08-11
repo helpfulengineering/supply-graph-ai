@@ -29,7 +29,7 @@ export function MissionControl() {
       />
 
       {!visitor && (
-        <section className="rounded-xl border border-border bg-card p-5">
+        <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold text-foreground">Not signed in</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Sign in at the gate to see your own record. Site sign-in is separate
@@ -39,7 +39,7 @@ export function MissionControl() {
       )}
 
       {visitor && (
-        <section className="rounded-xl border border-border bg-card p-5">
+        <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold text-foreground">My record</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {visitor.name} · {visitor.email}
@@ -51,7 +51,7 @@ export function MissionControl() {
         </section>
       )}
 
-      <section className="rounded-xl border border-border bg-card p-5">
+      <section className="rounded-xl border border-border bg-card p-4">
         <h2 className="text-sm font-semibold text-foreground">
           Operator{" "}
           <span className="ml-1 font-mono text-xs font-normal text-muted-foreground">

@@ -152,8 +152,15 @@ AREAS: tuple[Area, ...] = (
         "utility",
         "utility",
         "exposed",
-        note="Catch-all maintenance endpoints; backs scaffold/cleanup services.",
-        fe_routes=("/",),
+        note=(
+            "Catch-all maintenance endpoints; backs scaffold/cleanup services. "
+            "Also owns /help, a static frontend page (sitemap, keyboard "
+            "shortcuts, accessibility) generated from the nav and shortcut "
+            "data files. It calls no service, so it has no backend counterpart "
+            "— declared here rather than left undeclared so the route gate "
+            "stays meaningful."
+        ),
+        fe_routes=("/", "/help"),
         fe_api_prefixes=("/api/utility",),
     ),
     Area(

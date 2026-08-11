@@ -77,7 +77,7 @@ export function AuthorshipPanel({
   return (
     <section
       aria-labelledby={`${kind}-authorship-heading`}
-      className="rounded-xl border border-border bg-card p-5"
+      className="rounded-xl border border-border bg-card p-4"
     >
       <h2
         id={`${kind}-authorship-heading`}

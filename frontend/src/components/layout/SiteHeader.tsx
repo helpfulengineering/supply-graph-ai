@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { NavDrawer } from "./NavDrawer";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { DemoDataBadge } from "../../features/dashboard/DemoDataBadge";
 import { Logo } from "./Logo";
 
@@ -16,6 +17,12 @@ import { Logo } from "./Logo";
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isDark, toggle } = useTheme();
+
+  useKeyboardShortcuts({
+    menuOpen,
+    openMenu: () => setMenuOpen(true),
+    closeMenu: () => setMenuOpen(false),
+  });
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-card shadow-sm">
@@ -50,6 +57,7 @@ export function SiteHeader() {
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Site menu"
+            aria-keyshortcuts="?"
             aria-expanded={menuOpen}
             aria-controls="site-menu"
             aria-haspopup="dialog"

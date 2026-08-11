@@ -10,7 +10,7 @@ import { SOURCE_STYLES } from "./networkSummary";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
 
 const CARD_CLASS =
-  "group flex h-full flex-col gap-3 rounded-xl border border-border bg-card p-5 no-underline shadow-sm transition-shadow hover:shadow-md";
+  "group flex h-full flex-col gap-3 rounded-xl border border-border bg-card p-4 no-underline shadow-sm transition-shadow hover:shadow-md";
 
 export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
   const location = [

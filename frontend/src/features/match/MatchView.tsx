@@ -360,7 +360,7 @@ export function MatchView({
               </p>
             )}
             {view.coverageGaps.length > 0 && (
-              <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm bg-warning/10/30">
+              <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm bg-warning/10">
                 <p className="font-medium text-warning">Coverage gaps</p>
                 <p className="mt-1 text-warning">
                   Unmatched: {view.coverageGaps.join(", ")}

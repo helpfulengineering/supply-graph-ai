@@ -223,7 +223,7 @@ export function GenerateView() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-5">
+      <div className="rounded-xl border border-border bg-card p-4">
         <label
           htmlFor="repo-url"
           className={LABEL}
@@ -316,7 +316,7 @@ export function GenerateView() {
       {error && (
         <p
           role="alert"
-          className="rounded-xl border border-destructive bg-destructive/10 p-4 text-sm text-destructive bg-destructive/10/40"
+          className="rounded-xl border border-destructive bg-destructive/10 p-4 text-sm text-destructive bg-destructive/10"
         >
           {error}
         </p>
@@ -356,7 +356,7 @@ export function GenerateView() {
           <div
             className={
               banner.tone === "warn"
-                ? "rounded-xl border border-warning/30 bg-warning/10 p-4 bg-warning/10/40"
+                ? "rounded-xl border border-warning/30 bg-warning/10 p-4 bg-warning/10"
                 : "rounded-xl border border-border bg-background p-4"
             }
           >
@@ -372,7 +372,7 @@ export function GenerateView() {
             )}
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-5">
+          <div className="rounded-xl border border-border bg-card p-4">
             <TieredEditor manifest={manifest} onChange={setManifest} />
           </div>
 

@@ -40,7 +40,7 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
   const detail = packageDetailPath(pkg.package_name, pkg.version);
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between">
       <div className="flex min-w-0 gap-3">
         {onToggle && (
           <input

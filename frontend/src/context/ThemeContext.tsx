@@ -12,6 +12,7 @@ export const ThemeContext = createContext<ThemeController>({
   toggle: () => {},
   theme: DEFAULT_THEME,
   setTheme: () => {},
+  shareUrl: () => "",
   themes: THEMES,
 });
 

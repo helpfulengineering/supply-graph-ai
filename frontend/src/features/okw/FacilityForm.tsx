@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import Link from "next/link";
+import { PageHero } from "../../components/layout/PageHero";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
@@ -159,21 +160,19 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/facilities" className="hover:text-primary-ink">
-          Facilities
-        </Link>
-        <span aria-hidden="true">›</span>
-        <span className="text-foreground">{title}</span>
-      </nav>
-
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Useful details up front; hours, equipment, and JSON import are
-          optional. Visibility defaults to private until you share.
-        </p>
-      </div>
+      <PageHero
+        title={title}
+        breadcrumb={
+          <>
+            <Link href="/facilities" className="hover:text-primary-ink">
+              Facilities
+            </Link>
+            <span aria-hidden="true">›</span>
+            <span className="text-foreground">{title}</span>
+          </>
+        }
+        description="Useful details up front; hours, equipment, and JSON import are optional. Visibility defaults to private until you share."
+      />
 
       {!hasWrite && (
         <div
@@ -214,7 +213,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       )}
 
       <form onSubmit={(e) => void onSubmit(e)} className="space-y-6">
-        <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Basics
           </h2>
@@ -314,7 +313,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           </label>
         </section>
 
-        <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Processes
           </h2>
@@ -346,7 +345,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         </section>
 
         {mode === "create" && (
-          <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+          <section className="space-y-3 rounded-xl border border-border bg-card p-4">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Attribution (optional)
             </h2>
@@ -387,7 +386,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
         {advancedOpen && (
           <div className="space-y-4">
-            <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Hours &amp; contact
               </h2>
@@ -427,7 +426,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </div>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Equipment details
               </h2>
@@ -508,7 +507,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </Button>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Import JSON
               </h2>

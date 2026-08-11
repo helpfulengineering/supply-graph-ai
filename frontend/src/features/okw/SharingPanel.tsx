@@ -10,7 +10,7 @@ export function SharingPanel({ id }: { id: string }) {
     <section
       id="sharing"
       aria-labelledby="okw-sharing-heading"
-      className="rounded-xl border border-border bg-card p-5"
+      className="rounded-xl border border-border bg-card p-4"
     >
       <h2
         id="okw-sharing-heading"

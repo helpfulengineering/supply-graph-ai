@@ -14,6 +14,7 @@
  */
 
 import { useState } from "react";
+import { PageHero } from "../../components/layout/PageHero";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
@@ -74,17 +75,13 @@ export function GuidedOkhCreate() {
 
   return (
     <div className="space-y-6 py-4">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">New design</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Describe the design field by field. Only the required fields are
-          needed to save — everything else can be filled in later, and a thin
-          record that exists is more useful than a perfect one that doesn't.
-        </p>
-      </div>
+      <PageHero
+        title="New design"
+        description="Describe the design field by field. Only the required fields are needed to save — everything else can be filled in later, and a thin record that exists is more useful than a perfect one that doesn't."
+      />
 
       {!hasWrite && (
-        <p className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-warning bg-warning/10/40">
+        <p className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-warning-ink">
           You need a write-capable API key to save a design.{" "}
           <button
             type="button"
@@ -97,14 +94,14 @@ export function GuidedOkhCreate() {
         </p>
       )}
 
-      <div className="rounded-xl border border-border bg-card p-5">
+      <div className="rounded-xl border border-border bg-card p-4">
         <TieredEditor manifest={manifest} onChange={setManifest} />
       </div>
 
       {error && (
         <p
           role="alert"
-          className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive bg-destructive/10/40"
+          className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive bg-destructive/10"
         >
           {error}
         </p>

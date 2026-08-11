@@ -70,7 +70,7 @@ export function IdentitiesPanel() {
     <div className="space-y-6">
       <section
         aria-labelledby="mint-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2 id="mint-heading" className="text-lg font-semibold text-foreground">
           Mint identity
@@ -145,7 +145,7 @@ export function IdentitiesPanel() {
 
       <section
         aria-labelledby="lookup-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="lookup-heading"
@@ -190,7 +190,7 @@ export function IdentitiesPanel() {
       {known.length > 0 && (
         <section
           aria-labelledby="known-heading"
-          className="rounded-xl border border-border bg-card p-5"
+          className="rounded-xl border border-border bg-card p-4"
         >
           <h2
             id="known-heading"

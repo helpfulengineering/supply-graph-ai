@@ -40,7 +40,7 @@ export function SpacesPanel() {
     <div className="space-y-6">
       <section
         aria-labelledby="claim-space-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="claim-space-heading"
@@ -106,7 +106,7 @@ export function SpacesPanel() {
 
       <section
         aria-labelledby="claims-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="claims-heading"

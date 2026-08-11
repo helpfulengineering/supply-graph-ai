@@ -15,7 +15,7 @@ import {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="rounded-xl border border-border bg-card p-4">
       <p className="text-2xl font-bold text-foreground">{value}</p>
       <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
@@ -134,7 +134,7 @@ export function HomePage() {
             >
               System
             </h2>
-            <div className="space-y-3 rounded-xl border border-border bg-card p-5">
+            <div className="space-y-3 rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-2">
                 <span
                   className={`h-2.5 w-2.5 rounded-full ${online ? "bg-success" : "bg-destructive"}`}

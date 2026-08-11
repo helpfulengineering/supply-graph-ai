@@ -79,7 +79,7 @@ export function GrantsPanel() {
     <div className="space-y-6">
       <section
         aria-labelledby="list-grants-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="list-grants-heading"
@@ -171,7 +171,7 @@ export function GrantsPanel() {
 
       <section
         aria-labelledby="issue-grant-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="issue-grant-heading"
@@ -269,7 +269,7 @@ export function GrantsPanel() {
 
       <section
         aria-labelledby="bootstrap-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="bootstrap-heading"

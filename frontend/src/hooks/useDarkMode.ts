@@ -61,12 +61,35 @@ function write(key: string, value: string): void {
 
 function getInitialDark(): boolean {
   if (typeof window === "undefined") return false;
+  const shared = fromUrl().dark;
+  if (shared !== undefined) return shared;
   const stored = read(MODE_KEY);
   if (stored !== null) return stored === "dark";
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
+/**
+ * ?theme= and ?mode= let a link carry the look it was seen in — the whole
+ * point of shipping twenty variants is that people show each other one.
+ *
+ * A URL parameter outranks stored preference (the sender is stating the
+ * subject of the link) and then persists, so the recipient keeps it and the
+ * parameter is not needed again.
+ */
+function fromUrl(): { theme?: ThemeSlug; dark?: boolean } {
+  if (typeof window === "undefined") return {};
+  const params = new URLSearchParams(window.location.search);
+  const theme = params.get("theme");
+  const mode = params.get("mode");
+  return {
+    theme: isThemeSlug(theme) ? theme : undefined,
+    dark: mode === "dark" ? true : mode === "light" ? false : undefined,
+  };
+}
+
 function getInitialTheme(): ThemeSlug {
+  const shared = fromUrl().theme;
+  if (shared) return shared;
   const stored = read(THEME_KEY);
   return isThemeSlug(stored) ? stored : DEFAULT_THEME;
 }
@@ -77,6 +100,8 @@ export interface ThemeController {
   theme: ThemeSlug;
   setTheme: (theme: ThemeSlug) => void;
   themes: typeof THEMES;
+  /** The current page URL carrying this look, for sharing. */
+  shareUrl: () => string;
 }
 
 export function useDarkMode(): ThemeController {
@@ -106,5 +131,12 @@ export function useDarkMode(): ThemeController {
   const setTheme = useCallback((next: ThemeSlug) => setThemeState(next), []);
   const toggle = useCallback(() => setIsDark((d) => !d), []);
 
-  return { isDark, toggle, theme, setTheme, themes: THEMES };
+  const shareUrl = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("theme", theme);
+    url.searchParams.set("mode", isDark ? "dark" : "light");
+    return url.toString();
+  }, [theme, isDark]);
+
+  return { isDark, toggle, theme, setTheme, themes: THEMES, shareUrl };
 }

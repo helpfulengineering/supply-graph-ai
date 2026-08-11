@@ -14,10 +14,10 @@ function ConfidencePill({ score }: { score: number }) {
   const pct = Math.round(score * 100);
   const colorClass =
     pct >= 80
-      ? "bg-success/10 text-success bg-success/10/40"
+      ? "bg-success/10 text-success bg-success/10"
       : pct >= 50
         ? "bg-warning text-warning"
-        : "bg-destructive/10 text-destructive bg-destructive/10/40";
+        : "bg-destructive/10 text-destructive bg-destructive/10";
   return (
     <span
       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${colorClass}`}

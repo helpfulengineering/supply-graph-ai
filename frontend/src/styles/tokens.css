@@ -28,6 +28,16 @@
 
 :root {
   /* Scales — world-independent: type, spacing, radius, z-index, motion. */
+  /* Type. World-independent except Terminal and Mono, which repoint sans and
+     serif at the monospace face so the whole world reads as a console.
+     Declared HERE and not in a palette block: the reference's :root doubles as
+     its dark palette, so carrying them across left light mode with no
+     --ttm-font-sans at all and font-family fell back to Times. */
+  --ttm-font-sans: "Geist Variable", system-ui, sans-serif;
+  --ttm-font-serif: "Pacifico", "Caveat", cursive;
+  /* prettier-ignore -- @tailwindcss/postcss rejects a wrapped custom-property value */
+  --ttm-font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --ttm-font-voice: "Special Elite", var(--ttm-font-mono);
   --ttm-plum: #21262d;
   --z-base: 1;
   --z-content: 10;
@@ -42,9 +52,6 @@
   --ttm-radius-md: calc(var(--ttm-radius) - 2px);
   --ttm-radius-lg: var(--ttm-radius);
   --ttm-radius-xl: calc(var(--ttm-radius) + 4px);
-  --ttm-font-mono:
-    ui-monospace, "Geist Mono", "SFMono-Regular", Menlo, monospace;
-  --ttm-font-voice: var(--ttm-font-mono);
   --ttm-fs-display: 4.5rem;
   --ttm-fs-h1: 3rem;
   --ttm-fs-h2: 2rem;
@@ -149,11 +156,6 @@
   --ttm-cyan-hover: #07ccc0;
   --ttm-danger: var(--ttm-hot-red);
   --ttm-focus: var(--ttm-cyan);
-  --ttm-font-mono:
-    ui-monospace, "Geist Mono", "SFMono-Regular", Menlo, monospace;
-  --ttm-font-sans: "Geist Variable", system-ui, sans-serif;
-  --ttm-font-serif: "Geist Variable", system-ui, sans-serif;
-  --ttm-font-voice: var(--ttm-font-mono);
   --ttm-fs-body: 1rem;
   --ttm-fs-caption: 0.75rem;
   --ttm-fs-display: 4.5rem;
@@ -239,8 +241,8 @@
   --ttm-cyan-hover: #08b8ab;
   --ttm-danger: #b91c1c;
   --ttm-focus: #0f6674;
-  --ttm-font-sans: "Geist Variable", system-ui, sans-serif;
-  --ttm-font-serif: "Geist Variable", system-ui, sans-serif;
+  --ttm-font-sans: var(--ttm-font-mono);
+  --ttm-font-serif: var(--ttm-font-mono);
   --ttm-glass: rgba(242, 237, 225, 0.9);
   --ttm-goldenrod: #f1a942;
   --ttm-goldenrod-hover: #dd9631;
@@ -291,8 +293,8 @@
   --ttm-cyan-hover: #08b8ab;
   --ttm-danger: #ff6b6b;
   --ttm-focus: #4ce0d2;
-  --ttm-font-sans: "Geist Variable", system-ui, sans-serif;
-  --ttm-font-serif: "Geist Variable", system-ui, sans-serif;
+  --ttm-font-sans: var(--ttm-font-mono);
+  --ttm-font-serif: var(--ttm-font-mono);
   --ttm-glass: rgba(17, 23, 15, 0.9);
   --ttm-goldenrod: #f1a942;
   --ttm-goldenrod-hover: #dd9631;
@@ -875,8 +877,8 @@
   --ttm-cyan-hover: color-mix(in srgb, var(--ttm-cyan) 82%, #000000);
   --ttm-danger: #a02c2c;
   --ttm-focus: #303030;
-  --ttm-font-sans: "Geist Variable", system-ui, sans-serif;
-  --ttm-font-serif: "Geist Variable", system-ui, sans-serif;
+  --ttm-font-sans: var(--ttm-font-mono);
+  --ttm-font-serif: var(--ttm-font-mono);
   --ttm-glass: color-mix(in srgb, var(--ttm-surface) 90%, transparent);
   --ttm-goldenrod: #666666;
   --ttm-goldenrod-hover: color-mix(in srgb, var(--ttm-goldenrod) 82%, #000000);
@@ -930,8 +932,8 @@
   --ttm-cyan-hover: color-mix(in srgb, var(--ttm-cyan) 82%, #ffffff);
   --ttm-danger: #e08585;
   --ttm-focus: #d4d4d4;
-  --ttm-font-sans: "Geist Variable", system-ui, sans-serif;
-  --ttm-font-serif: "Geist Variable", system-ui, sans-serif;
+  --ttm-font-sans: var(--ttm-font-mono);
+  --ttm-font-serif: var(--ttm-font-mono);
   --ttm-glass: color-mix(in srgb, var(--ttm-surface) 90%, transparent);
   --ttm-goldenrod: #a8a8a8;
   --ttm-goldenrod-hover: color-mix(in srgb, var(--ttm-goldenrod) 82%, #ffffff);

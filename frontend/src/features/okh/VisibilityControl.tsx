@@ -128,7 +128,7 @@ export function VisibilityControl({
   return (
     <section
       aria-labelledby={`${kind}-visibility-heading`}
-      className="rounded-xl border border-border bg-card p-5"
+      className="rounded-xl border border-border bg-card p-4"
     >
       {body}
     </section>

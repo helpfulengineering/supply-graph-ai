@@ -50,7 +50,7 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
     <section
       role="status"
       aria-label="Validation result"
-      className="rounded-xl border border-border bg-card p-5"
+      className="rounded-xl border border-border bg-card p-4"
     >
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -321,7 +321,7 @@ export function OkwDetailView({ id }: { id: string }) {
       <SharingPanel id={id} />
 
       {f.description && (
-        <section className="rounded-xl border border-border bg-card p-5">
+        <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             About
           </h2>
@@ -330,7 +330,7 @@ export function OkwDetailView({ id }: { id: string }) {
       )}
 
       {equipment.length > 0 && (
-        <section className="rounded-xl border border-border bg-card p-5">
+        <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Equipment ({equipment.length})
           </h2>
@@ -352,7 +352,7 @@ export function OkwDetailView({ id }: { id: string }) {
       )}
 
       {certifications.length > 0 && (
-        <section className="rounded-xl border border-border bg-card p-5">
+        <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Certifications
           </h2>

@@ -84,7 +84,7 @@ export function BindingsPanel() {
     <div className="space-y-6">
       <section
         aria-labelledby="domain-bind-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="domain-bind-heading"
@@ -194,7 +194,7 @@ export function BindingsPanel() {
 
       <section
         aria-labelledby="oauth-bind-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="oauth-bind-heading"
@@ -273,7 +273,7 @@ export function BindingsPanel() {
 
       <section
         aria-labelledby="bindings-list-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="bindings-list-heading"

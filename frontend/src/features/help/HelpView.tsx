@@ -1,0 +1,172 @@
+"use client";
+
+import Link from "next/link";
+import { PageHero } from "../../components/layout/PageHero";
+import { NAV_GROUPS, type NavGroup } from "../../components/layout/nav";
+import { SHORTCUTS } from "../../components/layout/shortcuts";
+import { Settings } from "lucide-react";
+
+/**
+ * Help: the sitemap, the keyboard contract, and the accessibility features,
+ * generated from the same data the chrome uses.
+ *
+ * NAV_GROUPS and SHORTCUTS are the sources, so a route or shortcut added to
+ * either appears here without anyone remembering to update a page. Help that
+ * is hand-maintained drifts, and drifted help is worse than none.
+ */
+
+/**
+ * The drawer renders the account entry itself, because its label depends on
+ * whether you hold an API key (Connect / Session / Settings). Help states the
+ * route plainly — it is a real destination and `g` `s` goes there, so leaving
+ * it out of the sitemap would make this page a partial map.
+ */
+const ACCOUNT_GROUP: NavGroup = {
+  label: "Account",
+  accent: "text-chart-4",
+  entries: [
+    {
+      href: "/settings/session",
+      name: "Settings",
+      desc: "your API session, and instance administration when your key allows it",
+      icon: Settings,
+    },
+  ],
+};
+
+const A11Y = [
+  {
+    title: "Keyboard navigation",
+    body: "Every control is reachable by Tab in reading order. A skip-to-content link is the first stop on each page, and the sitemap traps focus while open, returning it to the button that opened it.",
+  },
+  {
+    title: "Screen readers",
+    body: "The sitemap is a labelled dialog, the current page carries aria-current, and icons are decorative with their meaning in adjacent text. Status messages announce through a live region.",
+  },
+  {
+    title: "Contrast",
+    body: "All ten themes are checked against WCAG 2 AA in both light and dark on every CI run — twenty variants, measured from the runtime-resolved token values rather than numbers copied into a test.",
+  },
+  {
+    title: "Motion",
+    body: "Animations are decorative and sit inside the prefers-reduced-motion guard, so a system setting for reduced motion removes them.",
+  },
+  {
+    title: "Targets and zoom",
+    body: "Interactive controls meet a 44px minimum. Layout is fluid and text scales with browser zoom without clipping.",
+  },
+];
+
+/**
+ * A section heading that is also a destination. `scroll-mt` keeps the sticky
+ * header from covering the target when a #fragment lands on it.
+ */
+function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <h2
+      id={id}
+      className="group scroll-mt-20 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+    >
+      <a href={`#${id}`} className="no-underline hover:text-foreground">
+        {children}
+        <span
+          aria-hidden="true"
+          className="ml-2 opacity-0 transition-opacity group-hover:opacity-60 group-focus-within:opacity-60"
+        >
+          #
+        </span>
+        <span className="sr-only"> — link to this section</span>
+      </a>
+    </h2>
+  );
+}
+
+export function HelpView() {
+  return (
+    <div className="space-y-8">
+      <PageHero title="Help" crumb="routes · shortcuts · accessibility" />
+
+      <section aria-labelledby="h-routes" className="space-y-4">
+        <SectionHeading id="h-routes">Where things are</SectionHeading>
+        {[...NAV_GROUPS, ACCOUNT_GROUP].map((group) => (
+          <div key={group.label} className="rounded-xl border border-border bg-card p-4">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {group.label}
+            </h3>
+            <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
+              {group.entries.map((entry) => {
+                const Icon = entry.icon;
+                return (
+                  <li key={entry.href} className="flex items-start gap-2.5">
+                    <Icon aria-hidden="true" className={`mt-0.5 h-4 w-4 shrink-0 ${group.accent}`} />
+                    <span className="min-w-0">
+                      {entry.external ? (
+                        <a href={entry.href} className="text-sm font-medium text-primary-ink hover:underline">
+                          {entry.name}
+                        </a>
+                      ) : (
+                        <Link href={entry.href} className="text-sm font-medium text-primary-ink hover:underline">
+                          {entry.name}
+                        </Link>
+                      )}
+                      <span className="block text-xs text-muted-foreground">{entry.desc}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+        <p className="text-xs text-muted-foreground">
+          Design, facility, and package detail pages are reached from their lists. A supply
+          tree opens from the match that produced it — it is a result, not a browsable
+          collection.
+        </p>
+      </section>
+
+      <section aria-labelledby="h-keys" className="space-y-3">
+        <SectionHeading id="h-keys">Keyboard shortcuts</SectionHeading>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <ul className="m-0 grid list-none gap-x-6 gap-y-2 p-0 sm:grid-cols-2">
+            {SHORTCUTS.map((s) => (
+              <li key={s.keys.join("+")} className="flex items-baseline gap-2 text-sm">
+                <span className="flex shrink-0 gap-1">
+                  {s.keys.map((k) => (
+                    <kbd
+                      key={k}
+                      className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground"
+                    >
+                      {k}
+                    </kbd>
+                  ))}
+                </span>
+                <span className="text-muted-foreground">{s.desc}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Shortcuts are ignored while typing in a field, so a search box takes
+            <kbd className="mx-1 rounded border border-border bg-muted px-1 py-0.5 font-mono">g</kbd>
+            as a letter.
+          </p>
+        </div>
+      </section>
+
+      <section aria-labelledby="h-a11y" className="space-y-3">
+        <SectionHeading id="h-a11y">Accessibility</SectionHeading>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {A11Y.map((item) => (
+            <div key={item.title} className="rounded-xl border border-border bg-card p-4">
+              <h3 className="text-sm font-medium text-foreground">{item.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{item.body}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Found a barrier? Open an issue — accessibility defects are treated as bugs, not
+          enhancements.
+        </p>
+      </section>
+    </div>
+  );
+}

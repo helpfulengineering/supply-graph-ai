@@ -124,7 +124,7 @@ export function PackageDetailView({ org, project, version }: Props) {
         </div>
       </div>
 
-      <dl className="grid gap-3 rounded-xl border border-border bg-card p-5 text-sm sm:grid-cols-2">
+      <dl className="grid gap-3 rounded-xl border border-border bg-card p-4 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-xs uppercase text-muted-foreground">Files</dt>
           <dd>{pkg.total_files}</dd>
