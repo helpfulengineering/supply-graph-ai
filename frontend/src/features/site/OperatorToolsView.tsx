@@ -6,7 +6,11 @@ import { PageHero } from "../../components/layout/PageHero";
 import { useSiteLayer } from "../../lib/site/useSiteLayer";
 import { siteConfig } from "../../lib/site/config";
 import { PANEL } from "../../components/ui/surface";
-import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import {
+  BODY_MUTED,
+  CAPTION,
+  CARD_TITLE,
+} from "../../components/ui/typography";
 import { Button } from "../../components/ui/button";
 import { clearVisitor, gateCopy, type GateCopy } from "../../lib/site/stack";
 import { Gate } from "./Gate";
@@ -143,20 +147,29 @@ export function OperatorToolsView() {
         eventsChanged={purged}
       />
 
-      {(visitor || isOperator) && (
-        <>
-          <VisitorDirectory
-            email={visitor?.email ?? null}
-            isOperator={isOperator}
-            onVisitorChanged={() => setChanged((n) => n + 1)}
-          />
-          <TelemetryPanel
-            email={visitor?.email ?? null}
-            isOperator={isOperator}
-            onEventsChanged={() => setPurged((n) => n + 1)}
-          />
-        </>
-      )}
+      {/*
+        Always mounted, whatever tier the reader is in.
+        These used to exist only for a signed-in visitor or an operator, so an
+        anonymous reader got a page with a heading, a sign-in card, and nothing
+        else — no way to tell whether the instance records visitors at all,
+        whether telemetry is running, or what signing in would give them. The
+        page now shows its whole shape to everyone and each panel states what
+        its own tier would unlock.
+
+        This costs no privacy: the tier lives in Postgres, not here. Both
+        masked RPCs raise 'sign in first' for an address they do not know, so
+        an anonymous panel makes no call at all and holds nothing.
+      */}
+      <VisitorDirectory
+        email={visitor?.email ?? null}
+        isOperator={isOperator}
+        onVisitorChanged={() => setChanged((n) => n + 1)}
+      />
+      <TelemetryPanel
+        email={visitor?.email ?? null}
+        isOperator={isOperator}
+        onEventsChanged={() => setPurged((n) => n + 1)}
+      />
 
       <p className={cn("font-mono", CAPTION)}>
         site layer connected · {new URL(siteConfig.url).host}

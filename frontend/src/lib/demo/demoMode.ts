@@ -1,6 +1,6 @@
 "use client";
 
-import { clearToken, getToken } from "../../features/auth/tokenStorage";
+import { QUERY_CACHE_KEY } from "../../queryClient";
 
 /**
  * Demo mode — an optional data SOURCE, not a branch through the app.
@@ -22,16 +22,6 @@ import { clearToken, getToken } from "../../features/auth/tokenStorage";
 
 const KEY = "ohm-demo-mode";
 
-/**
- * The session token demo mode holds while it is on.
- *
- * Named rather than random so it is obvious in devtools what it is and that it
- * authorises nothing: in demo mode no request reaches the network, and the
- * sample world refuses every write regardless of what the header says. See
- * `seedDemoToken` in demoFetch.ts for why a token has to exist at all.
- */
-export const DEMO_TOKEN = "demo-mode-not-a-real-key";
-
 export function demoModeEnabled(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -48,17 +38,25 @@ export function setDemoMode(on: boolean): void {
   } catch {
     // ignore
   }
-  // Switching off takes the demo token with it. Left behind, it would be sent
-  // as a Bearer header to a real instance on the very next request — which
-  // would be rejected, but as a puzzling 401 on a session the visitor never
-  // knowingly started.
+  // Drop the dehydrated cache, THEN reload.
+  //
+  // The reload alone was the whole plan here, on the reasoning that the source
+  // had changed underneath every query and a reload leaves no half-real,
+  // half-sample state behind. It does not: the query client is wrapped in a
+  // persister that writes every successful result to localStorage and
+  // rehydrates it on boot, so the reload restored the exact state it was meant
+  // to escape. Switching demo data off left the dashboard showing the sample
+  // world's seven facilities and "Maps of Making unavailable" indefinitely,
+  // against an instance that was answering with three thousand — with the
+  // Demo data badge gone, so nothing on the page said why.
+  //
+  // Both directions matter. On the way in, a real catalogue must not linger
+  // behind the demo badge; on the way out, the sample world must not outlive
+  // it.
   try {
-    if (!on && getToken() === DEMO_TOKEN) clearToken();
+    localStorage.removeItem(QUERY_CACHE_KEY);
   } catch {
     // ignore
   }
-  // Full reload rather than cache invalidation: the source changed underneath
-  // every query, and a reload is the one operation guaranteed to leave no
-  // half-real, half-sample state behind.
   if (typeof window !== "undefined") window.location.reload();
 }

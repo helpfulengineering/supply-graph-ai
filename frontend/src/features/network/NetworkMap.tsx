@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -309,8 +315,15 @@ function useTransientFlag(ms: number): [boolean, () => void] {
 
 export function NetworkMap({ spaces }: { spaces: NetworkSpace[] }) {
   const [showHint, raiseHint] = useTransientFlag(2400);
+  // Same resolver the markers and the key read, so the ground and the points
+  // on it cannot come from two different worlds — which is the failure the
+  // hook's own comment describes, one level up.
+  const { tiles } = useSourceColors();
   return (
-    <div className="relative h-full w-full">
+    <div
+      className="relative h-full w-full"
+      style={{ "--ohm-tile-filter": tiles } as CSSProperties}
+    >
       <MapContainer
         center={[20, 0]}
         zoom={2}

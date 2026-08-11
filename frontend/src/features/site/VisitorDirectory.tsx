@@ -3,7 +3,11 @@
 import { cn } from "@/lib/utils";
 import { useId, useState } from "react";
 import { PANEL } from "../../components/ui/surface";
-import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import {
+  BODY_MUTED,
+  CAPTION,
+  CARD_TITLE,
+} from "../../components/ui/typography";
 import { FIELD_SM } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -61,7 +65,9 @@ export function VisitorDirectory({
   const [draft, setDraft] = useState("");
   const [failure, setFailure] = useState<string | null>(null);
 
-  async function mutate(run: () => Promise<{ ok: boolean; error?: string }>): Promise<void> {
+  async function mutate(
+    run: () => Promise<{ ok: boolean; error?: string }>,
+  ): Promise<void> {
     const result = await run();
     setFailure(result.ok ? null : (result.error ?? "The change was refused."));
     if (result.ok) {
@@ -76,6 +82,8 @@ export function VisitorDirectory({
   }
 
   const rows = directory.data ?? [];
+  /** Neither tier: no read was attempted, so an empty list means nothing. */
+  const locked = !isOperator && !email;
 
   return (
     <section className={PANEL} aria-labelledby={headingId}>
@@ -110,8 +118,16 @@ export function VisitorDirectory({
       )}
 
       {!directory.loading && !directory.error && rows.length === 0 && (
+        // "None recorded" and "none you may read" are different facts, and the
+        // panel used to state the first when the second was true: with no
+        // visitor and no token nothing is fetched at all, so an empty list is
+        // the absence of a question, not an answer. Saying so is the only
+        // honest empty state — and it is what makes this panel worth
+        // rendering to a reader who is in neither tier.
         <p className={cn("mt-4", BODY_MUTED)}>
-          No visitors recorded yet.
+          {locked
+            ? "Sign in at the gate to see the masked list, or unlock with the operator token for the full one."
+            : "No visitors recorded yet."}
         </p>
       )}
 
@@ -145,11 +161,16 @@ export function VisitorDirectory({
                   {entry.email}
                 </p>
                 <p className={CAPTION}>
-                  last seen <time title={instant(entry.lastSeen)}>{since(entry.lastSeen)}</time>
+                  last seen{" "}
+                  <time title={instant(entry.lastSeen)}>
+                    {since(entry.lastSeen)}
+                  </time>
                   {entry.firstSeen && (
                     <>
                       {" · first seen "}
-                      <time title={instant(entry.firstSeen)}>{since(entry.firstSeen)}</time>
+                      <time title={instant(entry.firstSeen)}>
+                        {since(entry.firstSeen)}
+                      </time>
                     </>
                   )}
                 </p>
@@ -165,9 +186,13 @@ export function VisitorDirectory({
                         disabled={!draft.trim()}
                         onClick={() =>
                           void mutate(async () => {
-                            const r = await adminUpdateVisitor(operatorToken(), entry.email, {
-                              name: draft.trim(),
-                            });
+                            const r = await adminUpdateVisitor(
+                              operatorToken(),
+                              entry.email,
+                              {
+                                name: draft.trim(),
+                              },
+                            );
                             if (r.ok) setEditing(null);
                             return r;
                           })
@@ -218,7 +243,9 @@ export function VisitorDirectory({
                           `Delete ${entry.email} and every telemetry event attributed to it? This cannot be undone.`,
                         )
                       ) {
-                        void mutate(() => adminDeleteVisitor(operatorToken(), entry.email));
+                        void mutate(() =>
+                          adminDeleteVisitor(operatorToken(), entry.email),
+                        );
                       }
                     }}
                   >

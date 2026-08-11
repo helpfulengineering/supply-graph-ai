@@ -26,18 +26,22 @@
   border-radius: 0;
 }
 
-/* Dark tiles, without a second tile provider.
-   OpenStreetMap's standard raster tiles are light, so in a dark world the map
-   was a lit panel in a dark page — the one surface the token layer could not
-   reach, because the pixels arrive from a server. Inverting and rotating the
-   hue turns them dark while keeping land and water distinguishable, and it
-   costs no new dependency, no new attribution, and no second set of tiles to
-   fetch on a theme switch.
+/* The world's tiles, without a second tile provider.
+   OpenStreetMap's standard raster tiles arrive already painted, so they are
+   the one surface the token layer cannot reach through a var(). This used to
+   be a fixed `invert(1) hue-rotate(180deg)` on `.dark`, which does make light
+   tiles dark — but at whatever hue inverting OSM's blue water produces, the
+   same in all twenty worlds, and with nothing at all for the light ones. The
+   map was themed in the sense that it had A colour, not the world's.
+
+   The value now comes from `tileFilter.ts`, computed from --ttm-bg and set on
+   the container by NetworkMap. Kept as a custom property with a neutral
+   fallback so the tiles are still legible for the frame before it resolves,
+   and so a world that never sets it degrades to plain tiles rather than none.
 
    Scoped to the tile pane on purpose: markers, cluster bubbles, popups and
-   controls are ours and already carry the world's colours, so inverting them
+   controls are ours and already carry the world's colours, so filtering them
    too would undo exactly the work the key depends on. */
-.dark .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9)
-    saturate(0.85);
+.leaflet-tile-pane {
+  filter: var(--ohm-tile-filter, none);
 }

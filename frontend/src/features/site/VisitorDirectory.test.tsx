@@ -11,7 +11,10 @@ const calls = {
 };
 const responses = {
   admin: { ok: true, data: [entry()] },
-  masked: { ok: true, data: [entry({ email: "a***@e***", masked: true, firstSeen: null })] },
+  masked: {
+    ok: true,
+    data: [entry({ email: "a***@e***", masked: true, firstSeen: null })],
+  },
   update: { ok: true, data: null },
   remove: { ok: true, data: null },
 };
@@ -58,22 +61,40 @@ describe("VisitorDirectory", () => {
 
   it("reads the masked RPC for a signed-in visitor and offers no controls", async () => {
     render(
-      <VisitorDirectory email="ada@example.org" isOperator={false} onVisitorChanged={vi.fn()} />,
+      <VisitorDirectory
+        email="ada@example.org"
+        isOperator={false}
+        onVisitorChanged={vi.fn()}
+      />,
     );
 
-    await waitFor(() => expect(calls.visitorsMasked).toHaveBeenCalledWith("ada@example.org"));
+    await waitFor(() =>
+      expect(calls.visitorsMasked).toHaveBeenCalledWith("ada@example.org"),
+    );
     expect(calls.adminVisitors).not.toHaveBeenCalled();
     expect(await screen.findByText("a***@e***")).toBeInTheDocument();
     // The controls are keyed to the row's own `masked` flag, so a masked read
     // cannot render an operator affordance even by mistake.
-    expect(screen.queryByRole("button", { name: "Rename" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Rename" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete" }),
+    ).not.toBeInTheDocument();
   });
 
   it("reads nothing at all for a visitor who has not signed in", async () => {
-    render(<VisitorDirectory email={null} isOperator={false} onVisitorChanged={vi.fn()} />);
+    render(
+      <VisitorDirectory
+        email={null}
+        isOperator={false}
+        onVisitorChanged={vi.fn()}
+      />,
+    );
 
-    await screen.findByText("No visitors recorded yet.");
+    // "None recorded" would be a claim about the data; with no tier no read
+    // happened, so the panel says what would open it instead.
+    await screen.findByText(/sign in at the gate/i);
     expect(calls.visitorsMasked).not.toHaveBeenCalled();
     expect(calls.adminVisitors).not.toHaveBeenCalled();
   });
@@ -82,7 +103,11 @@ describe("VisitorDirectory", () => {
     const user = userEvent.setup();
     const onVisitorChanged = vi.fn();
     render(
-      <VisitorDirectory email={null} isOperator onVisitorChanged={onVisitorChanged} />,
+      <VisitorDirectory
+        email={null}
+        isOperator
+        onVisitorChanged={onVisitorChanged}
+      />,
     );
 
     await user.click(await screen.findByRole("button", { name: "Rename" }));
@@ -92,46 +117,68 @@ describe("VisitorDirectory", () => {
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
-      expect(calls.adminUpdateVisitor).toHaveBeenCalledWith("held-token", "ada@example.org", {
-        name: "Ada King",
-      }),
+      expect(calls.adminUpdateVisitor).toHaveBeenCalledWith(
+        "held-token",
+        "ada@example.org",
+        {
+          name: "Ada King",
+        },
+      ),
     );
     expect(onVisitorChanged).toHaveBeenCalled();
   });
 
   it("toggles the admin marker without touching the name", async () => {
     const user = userEvent.setup();
-    render(<VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />);
+    render(
+      <VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />,
+    );
 
-    await user.click(await screen.findByRole("button", { name: "Set admin marker" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Set admin marker" }),
+    );
 
     // Name omitted, not blanked: the RPC coalesces a null name onto the
     // current one, so a marker toggle must not carry a name at all.
     await waitFor(() =>
-      expect(calls.adminUpdateVisitor).toHaveBeenCalledWith("held-token", "ada@example.org", {
-        isAdmin: true,
-      }),
+      expect(calls.adminUpdateVisitor).toHaveBeenCalledWith(
+        "held-token",
+        "ada@example.org",
+        {
+          isAdmin: true,
+        },
+      ),
     );
   });
 
   it("clears an existing admin marker", async () => {
     responses.admin = { ok: true, data: [entry({ isAdmin: true })] };
     const user = userEvent.setup();
-    render(<VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />);
+    render(
+      <VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />,
+    );
 
-    await user.click(await screen.findByRole("button", { name: "Clear admin marker" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Clear admin marker" }),
+    );
 
     await waitFor(() =>
-      expect(calls.adminUpdateVisitor).toHaveBeenCalledWith("held-token", "ada@example.org", {
-        isAdmin: false,
-      }),
+      expect(calls.adminUpdateVisitor).toHaveBeenCalledWith(
+        "held-token",
+        "ada@example.org",
+        {
+          isAdmin: false,
+        },
+      ),
     );
   });
 
   it("deletes only after a confirmation", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    render(<VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />);
+    render(
+      <VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />,
+    );
 
     await user.click(await screen.findByRole("button", { name: "Delete" }));
     expect(calls.adminDeleteVisitor).not.toHaveBeenCalled();
@@ -139,7 +186,10 @@ describe("VisitorDirectory", () => {
     confirm.mockReturnValue(true);
     await user.click(screen.getByRole("button", { name: "Delete" }));
     await waitFor(() =>
-      expect(calls.adminDeleteVisitor).toHaveBeenCalledWith("held-token", "ada@example.org"),
+      expect(calls.adminDeleteVisitor).toHaveBeenCalledWith(
+        "held-token",
+        "ada@example.org",
+      ),
     );
     confirm.mockRestore();
   });
@@ -147,16 +197,27 @@ describe("VisitorDirectory", () => {
   it("renders a refused mutation instead of appearing to succeed", async () => {
     const user = userEvent.setup();
     responses.update = { ok: false, error: "no such visitor" } as never;
-    render(<VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />);
+    render(
+      <VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />,
+    );
 
-    await user.click(await screen.findByRole("button", { name: "Set admin marker" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Set admin marker" }),
+    );
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("no such visitor");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "no such visitor",
+    );
   });
 
   it("renders a failed read instead of an empty directory", async () => {
-    responses.admin = { ok: false, error: "That operator token was not accepted." } as never;
-    render(<VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />);
+    responses.admin = {
+      ok: false,
+      error: "That operator token was not accepted.",
+    } as never;
+    render(
+      <VisitorDirectory email={null} isOperator onVisitorChanged={vi.fn()} />,
+    );
 
     expect(await screen.findByRole("alert")).toHaveTextContent("not accepted");
   });

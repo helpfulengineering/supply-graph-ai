@@ -10,7 +10,10 @@ const calls = {
 };
 const responses = {
   admin: { ok: true, data: [event()] },
-  masked: { ok: true, data: [event({ visitor: "a***@e***", sessionId: null, masked: true })] },
+  masked: {
+    ok: true,
+    data: [event({ visitor: "a***@e***", sessionId: null, masked: true })],
+  },
   purge: { ok: true, data: 17 },
 };
 
@@ -51,17 +54,33 @@ describe("TelemetryPanel", () => {
   });
 
   it("shows a signed-in visitor a masked feed with no retention control", async () => {
-    render(<TelemetryPanel email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel
+        email="ada@example.org"
+        isOperator={false}
+        onEventsChanged={vi.fn()}
+      />,
+    );
 
-    await waitFor(() => expect(calls.eventsMasked).toHaveBeenCalledWith("ada@example.org"));
-    expect(await screen.findByText("a***@e***", { exact: false })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Purge" })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(calls.eventsMasked).toHaveBeenCalledWith("ada@example.org"),
+    );
+    expect(
+      await screen.findByText("a***@e***", { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Purge" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows an operator the address and session behind each event", async () => {
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />,
+    );
 
-    await waitFor(() => expect(calls.adminEvents).toHaveBeenCalledWith("held-token"));
+    await waitFor(() =>
+      expect(calls.adminEvents).toHaveBeenCalledWith("held-token"),
+    );
     expect(await screen.findByText(/ada@example\.org/)).toBeInTheDocument();
     // Truncated to a recognisable prefix — the full session id is noise in a
     // dense list and identifies nothing on its own.
@@ -69,9 +88,16 @@ describe("TelemetryPanel", () => {
   });
 
   it("reads nothing for a visitor who has neither signed in nor unlocked", async () => {
-    render(<TelemetryPanel email={null} isOperator={false} onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel
+        email={null}
+        isOperator={false}
+        onEventsChanged={vi.fn()}
+      />,
+    );
 
-    await screen.findByText("No telemetry events recorded yet.");
+    // See VisitorDirectory: an untried read is not an empty result.
+    await screen.findByText(/sign in at the gate/i);
     expect(calls.eventsMasked).not.toHaveBeenCalled();
     expect(calls.adminEvents).not.toHaveBeenCalled();
   });
@@ -80,11 +106,19 @@ describe("TelemetryPanel", () => {
     const user = userEvent.setup();
     const onEventsChanged = vi.fn();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={onEventsChanged} />);
+    render(
+      <TelemetryPanel
+        email={null}
+        isOperator
+        onEventsChanged={onEventsChanged}
+      />,
+    );
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
-    await waitFor(() => expect(calls.adminPurgeEvents).toHaveBeenCalledWith("held-token", 30));
+    await waitFor(() =>
+      expect(calls.adminPurgeEvents).toHaveBeenCalledWith("held-token", 30),
+    );
     expect(await screen.findByText("Deleted 17 events.")).toBeInTheDocument();
     // The operator panel states a total that this just invalidated; leaving it
     // alone would have the page showing two different counts.
@@ -96,7 +130,9 @@ describe("TelemetryPanel", () => {
     const user = userEvent.setup();
     responses.purge = { ok: true, data: 1 };
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />,
+    );
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
@@ -107,7 +143,9 @@ describe("TelemetryPanel", () => {
   it("does not purge when the confirmation is declined", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />,
+    );
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
@@ -118,27 +156,35 @@ describe("TelemetryPanel", () => {
   it("honours a changed retention window", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />,
+    );
 
     const days = await screen.findByLabelText(/delete events older than/i);
     await user.clear(days);
     await user.type(days, "7");
     await user.click(screen.getByRole("button", { name: "Purge" }));
 
-    await waitFor(() => expect(calls.adminPurgeEvents).toHaveBeenCalledWith("held-token", 7));
+    await waitFor(() =>
+      expect(calls.adminPurgeEvents).toHaveBeenCalledWith("held-token", 7),
+    );
     confirm.mockRestore();
   });
 
   it("refuses a retention window that is not a number of days", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />,
+    );
 
     const days = await screen.findByLabelText(/delete events older than/i);
     await user.clear(days);
     await user.click(screen.getByRole("button", { name: "Purge" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/number of days/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /number of days/i,
+    );
     expect(calls.adminPurgeEvents).not.toHaveBeenCalled();
     confirm.mockRestore();
   });
@@ -147,12 +193,23 @@ describe("TelemetryPanel", () => {
     responses.admin = {
       ok: true,
       data: [
-        event({ event: "match_run", props: { design: "okh-pump", solutions: 0 } }),
-        event({ event: "match_run", props: { design: "okh-pump", solutions: 0 } }),
-        event({ event: "match_run", props: { design: "okh-bracket", solutions: 3 } }),
+        event({
+          event: "match_run",
+          props: { design: "okh-pump", solutions: 0 },
+        }),
+        event({
+          event: "match_run",
+          props: { design: "okh-pump", solutions: 0 },
+        }),
+        event({
+          event: "match_run",
+          props: { design: "okh-bracket", solutions: 3 },
+        }),
       ],
     };
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />,
+    );
 
     expect(await screen.findByText(/Unmet demand/)).toBeInTheDocument();
     expect(screen.getByText(/okh-pump ×2/)).toBeInTheDocument();
@@ -167,18 +224,30 @@ describe("TelemetryPanel", () => {
     responses.masked = {
       ok: true,
       data: [
-        event({ event: "match_run", visitor: "a***@e***", sessionId: null, props: null, masked: true }),
+        event({
+          event: "match_run",
+          visitor: "a***@e***",
+          sessionId: null,
+          props: null,
+          masked: true,
+        }),
       ],
     };
     render(
-      <TelemetryPanel email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />,
+      <TelemetryPanel
+        email="ada@example.org"
+        isOperator={false}
+        onEventsChanged={vi.fn()}
+      />,
     );
 
     // The event tally still renders — counting names needs no props. It is
     // only the outcome figures that must stay absent.
     expect((await screen.findAllByText(/match_run/)).length).toBeGreaterThan(0);
     expect(screen.queryByText(/Unmet demand/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Matches returning nothing/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Matches returning nothing/),
+    ).not.toBeInTheDocument();
   });
 
   it("leads with what the instance is used for", async () => {
@@ -190,16 +259,25 @@ describe("TelemetryPanel", () => {
         event({ event: "page_view", page: "/okh" }),
       ],
     };
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(
+      <TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />,
+    );
 
     expect(await screen.findByText(/page_view 3/)).toBeInTheDocument();
     expect(screen.getByText(/\/match 2/)).toBeInTheDocument();
   });
 
   it("renders a failed read instead of an empty feed", async () => {
-    responses.admin = { ok: false, error: "Could not reach the site layer." } as never;
-    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
+    responses.admin = {
+      ok: false,
+      error: "Could not reach the site layer.",
+    } as never;
+    render(
+      <TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />,
+    );
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Could not reach");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Could not reach",
+    );
   });
 });
