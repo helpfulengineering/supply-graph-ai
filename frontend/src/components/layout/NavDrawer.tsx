@@ -356,7 +356,13 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           <p aria-hidden="true" className={LABEL}>
             Theme
           </p>
-          <div className="grid grid-cols-2 gap-x-2 px-1">
+          {/* Tighter than it looks it can be. The rows stay 44px, because that
+              is the target size the accessibility page promises and the
+              responsive gate measures — what came out is the air INSIDE them:
+              the chip was a small pill floating in a tall row, so ten worlds
+              read as ten widely spaced words. The chip now fills its row's
+              height, which closes the gaps without moving a target edge. */}
+          <div className="grid grid-cols-2 gap-x-1.5 px-1">
             {themes.map(({ slug, label }) => {
               const swatch = swatches[slug];
               return (
@@ -388,7 +394,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     the surface the text lands on here.
                   */}
                   <span
-                    className="min-w-0 flex-1 truncate rounded px-1.5 py-0.5"
+                    className="min-w-0 flex-1 truncate rounded px-1.5 py-1.5"
                     style={
                       swatch
                         ? {

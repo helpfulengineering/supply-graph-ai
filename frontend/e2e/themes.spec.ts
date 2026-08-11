@@ -85,7 +85,8 @@ test("each theme name is painted in its own world's accent", async ({
                   'input[name="ohm-theme-pick"]',
                 ),
               ).map((input) => {
-                const name = input.parentElement?.querySelector("span.truncate");
+                const name =
+                  input.parentElement?.querySelector("span.truncate");
                 return name ? getComputedStyle(name).color : "";
               }),
             ).size,
@@ -136,7 +137,9 @@ test("each theme name is painted in its own world's accent", async ({
 
   expect(rendered).toHaveLength(THEMES.length);
   const foreground = await page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue("--ttm-text").trim(),
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--ttm-text")
+      .trim(),
   );
   for (const { slug, colour } of rendered) {
     expect(colour, `${slug} name is unpainted`).not.toBe("");
@@ -150,10 +153,14 @@ test("each theme name is painted in its own world's accent", async ({
 
   // Terminal and Mono repoint every font stack at the monospace face, so their
   // names should not render in the same family as the others.
-  const mono = rendered.filter((r) => r.slug === "terminal" || r.slug === "mono");
+  const mono = rendered.filter(
+    (r) => r.slug === "terminal" || r.slug === "mono",
+  );
   const warm = rendered.find((r) => r.slug === "ttm");
   for (const m of mono) {
-    expect(m.font, `${m.slug} does not preview its own typeface`).not.toBe(warm?.font);
+    expect(m.font, `${m.slug} does not preview its own typeface`).not.toBe(
+      warm?.font,
+    );
   }
 
   // The picker must leave the document in the world it found it in — the

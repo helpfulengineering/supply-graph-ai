@@ -78,8 +78,15 @@ function StatCard({
         aria-hidden="true"
         className="h-4 w-4 shrink-0 text-primary-ink sm:h-5 sm:w-5"
       />
-      <p className={cn(STAT_VALUE, "text-h4 sm:text-h3")}>{value}</p>
-      <p className={cn(CAPTION, "min-w-0 truncate leading-tight")}>{label}</p>
+      {/* Label under the figure on a phone, beside it from `sm`. Two of these
+          share a 375px line, and inline the longer names ("Maps of Making",
+          "Requests (1h)") were cut to "Maps …" — a label truncated to its
+          first word names nothing. Stacked, each gets its own line and no
+          ellipsis. */}
+      <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
+        <p className={cn(STAT_VALUE, "text-h4 sm:text-h3")}>{value}</p>
+        <p className={cn(CAPTION, "min-w-0 truncate leading-tight")}>{label}</p>
+      </div>
     </div>
   );
 
@@ -92,7 +99,12 @@ function StatCard({
 
 function LegendDot({ color, label }: { color: string; label: string }) {
   return (
-    <span className={cn(CAPTION, "inline-flex items-center gap-1.5")}>
+    <span
+      className={cn(
+        CAPTION,
+        "inline-flex items-center gap-1.5 whitespace-nowrap",
+      )}
+    >
       {/*
         Lit, not printed. The dot is the key to the map's two colours and it
         was a flat 10px circle next to grey text — the same hue the markers
@@ -177,10 +189,17 @@ export function HomePage() {
             that corner. `pointer-events-none` so it never takes a click meant
             for a marker underneath, and a z-index above the tile and marker
             panes but below the zoom control.
+
+            A column on a phone, a row from `sm`. Three entries side by side
+            need about 340px and a 375px viewport does not have them once the
+            map's own gutters are paid: the key spanned the full width, each
+            label broke over two lines, and its left edge ran past the map and
+            over the unplotted bucket in the opposite corner. Stacked, it is as
+            wide as its longest label and stays in its own corner.
           */}
           {m && !map.isLoading && !map.isError && (
             <div
-              className="pointer-events-none absolute bottom-7 right-2 flex gap-3 rounded-md border border-panel-border bg-card/90 px-2 py-1"
+              className="pointer-events-none absolute bottom-7 right-2 flex max-w-[calc(100%-1rem)] flex-col gap-0.5 rounded-md border border-panel-border bg-card/90 px-2 py-1 sm:flex-row sm:gap-3"
               style={{ zIndex: 500 }}
             >
               <LegendDot
@@ -245,7 +264,10 @@ export function HomePage() {
         ruling while everything above and below them rested on a sheet. Still
         no boxes: one surface for the row, not four.
       */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-panel-border bg-card/90 px-3 py-2 backdrop-blur-md">
+      {/* Two columns on a phone, one line from `sm`. Wrapping a flex row let
+          three figures sit on the first line and the fourth on its own, which
+          reads as a stray rather than as the last of four. */}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-lg border border-panel-border bg-card/90 px-3 py-2 backdrop-blur-md sm:flex sm:flex-wrap sm:items-center sm:gap-x-6">
         <StatCard
           icon={SmartFactoryIcon}
           label="OHM facilities"
