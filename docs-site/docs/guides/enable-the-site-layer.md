@@ -41,6 +41,26 @@ order by table_name;
 --         ohmgr_telemetry_events, ohmgr_visitors
 ```
 
+Check the **functions** too. The tables can land while the functions do not, and
+the client's 404 is on a function, so the query above alone would not catch it:
+
+```sql
+select routine_name
+from information_schema.routines
+where routine_schema = 'public' and routine_name like 'ohmgr_%'
+order by routine_name;
+-- expect ohmgr_track, ohmgr_gate_signin and ohmgr_is_admin among them
+```
+
+Finally, confirm the anon key may actually call it. A function that exists but
+was never granted to `anon` returns the same 404 through PostgREST, from a
+different cause:
+
+```sql
+select has_function_privilege('anon', 'public.ohmgr_track(jsonb)', 'execute');
+-- expect: true
+```
+
 ## 2. Set the operator token
 
 The operator token is what unlocks unmasked visitor records and config
@@ -157,9 +177,14 @@ code-split, so a build with the layer off never fetches it.
 ## Troubleshooting
 
 **`404` on `/rest/v1/rpc/ohmgr_track`** — the environment variables are set but
-the schema has not been run in that project. Run step 1. The client goes
-dormant after the first 404 rather than retrying every page view, so one such
-error in the console is expected until the schema lands.
+the schema has not been run in that project. Run step 1, then check both
+verification queries there: the function may be missing, or present but not
+granted to `anon`, and PostgREST reports the two identically.
+
+The client goes dormant after the first 404 rather than retrying every page
+view, so one such error in the console is expected until the schema lands. That
+dormancy is per page load, not per session — **hard-reload after running the
+schema**, or a tab that was open beforehand stays quiet and keeps looking broken.
 
 **`unauthorized` from every operator call** — the token in the browser does not
 hash to what is stored. Re-run step 2 and paste the same string into Mission

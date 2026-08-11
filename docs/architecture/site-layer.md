@@ -81,9 +81,45 @@ In outline:
 The schema is prefixed `ohmgr_` rather than `ohm_` because the sibling
 openhardwaremonitor project owns `ohm_` in the shared database.
 
+## The telemetry wire contract
+
+`ohmgr_track` takes `p_events`, an array of at most 25 objects. The **key names
+are the RPC's, not the client's** — `supabase/schema.sql` reads each one with
+`e->>'…'` and inserts it into the column of the same name, so a key the client
+spells differently is not a rename, it is a `NULL` row:
+
+| Wire key | Column | Source in `stack.ts` |
+|---|---|---|
+| `event` | `event` | the `track()` argument |
+| `props` | `props` | the `track()` argument, capped at 2000 chars |
+| `session_id` | `session_id` | `sessionId()` — per-tab, `sessionStorage` |
+| `page` | `page` | `currentPath()` — `window.location.pathname` |
+| `visitor_email` | `visitor_email` | `visitor()`, lowercased and trimmed |
+| `ts` | *(none)* | sent for ordering; the column default `now()` wins |
+
+Two of these carry consequences beyond display. `visitor_email` must be
+lowercased and trimmed to match how `ohmgr_gate_signin` stores it, because
+`ohmgr_delete_own` erases telemetry with `where visitor_email = e` — a row
+written in another case is a row that "erase everything attributed to me"
+silently misses. And every field is **omitted when empty** rather than sent as
+`""`: `left('', 200)` stores an empty string, which the readers cannot tell from
+a real value.
+
+`buildTelemetryEvent` in `frontend/src/lib/site/stack.ts` is the single place
+that builds this shape, and `stack.test.ts` pins the key names with a literal
+assertion so a rename on either side fails loudly rather than quietly nulling a
+column.
+
 ## Verifying both directions
 
-The suite is expected to pass with the layer **off** (the default) and **on**.
-`e2e/site-layer.spec.ts` covers the off direction on every CI run: no nav
+`e2e/site-layer.spec.ts` covers the **off** direction on every CI run: no nav
 entry, a 404 for the route, no site-layer console errors, and theme/mode still
 working with no backend at all.
+
+The **on** direction is covered at the unit level by `stack.test.ts`, which
+builds an enabled client against a mocked Supabase endpoint and asserts both the
+wire shape and the dormancy behaviour. It is **not** covered end-to-end: nothing
+in CI sets `NEXT_PUBLIC_OHM_SUPABASE_URL`/`_ANON_KEY`, and because those are
+inlined at build time an enabled lane needs its own build, not just its own
+Playwright project. The branches in `site-layer.spec.ts` that test for the
+enabled posture are therefore unreachable today.
