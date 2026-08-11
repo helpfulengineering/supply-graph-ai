@@ -3,7 +3,7 @@ import {
   DataProcessingIcon,
   InternetIcon,
   ReliabilityIcon,
-  WorkflowIcon,
+  AwarenessIcon,
   SmartFactoryIcon,
   type IconProps,
 } from "../components/icons";
@@ -136,7 +136,7 @@ export function HomePage() {
             id="network-heading"
             className={cn(SECTION_TITLE, "flex items-center gap-2")}
           >
-            <WorkflowIcon
+            <AwarenessIcon
               aria-hidden="true"
               className="h-5 w-5 shrink-0 text-primary-ink"
             />
