@@ -21,26 +21,50 @@ import { cn } from "@/lib/utils";
  * is hand-maintained drifts, and drifted help is worse than none.
  */
 
+/**
+ * What a reader can DO, not what the build was measured against.
+ *
+ * This section used to be a conformance report — "twenty variants, measured
+ * from the runtime-resolved token values rather than numbers copied into a
+ * test". All true, and all addressed to an auditor or a contributor. The
+ * person who opens Help looking for the accessibility section is usually the
+ * person who needs it to work, and none of it told them a single thing they
+ * could do: not which key skips the navigation, not where to turn the motion
+ * off, not that there is a high-contrast world one keypress away.
+ *
+ * So every entry now names a control and what it does. The compliance claims
+ * are not lost, they are just not the headline — they belong to the last card,
+ * which is the one an auditor would have come for, and to the CI lanes that
+ * actually hold them (e2e/themes.spec.ts, e2e/responsive.spec.ts).
+ *
+ * Keys are written the way the shortcuts table writes them, because they ARE
+ * that table — a reader who tries `g` `h` from this paragraph must land on the
+ * page the row below promises.
+ */
 const A11Y = [
   {
-    title: "Keyboard navigation",
-    body: "Every control is reachable by Tab in reading order. A skip-to-content link is the first stop on each page, and the sitemap traps focus while open, returning it to the button that opened it.",
+    title: "Skip past the navigation",
+    body: "Press Tab as soon as a page loads: the first stop is a “Skip to content” link that jumps straight to the main region, past the header and the menu button. Everything after it follows the order the page reads in.",
   },
   {
-    title: "Screen readers",
-    body: "The sitemap is a labelled dialog, the current page carries aria-current, and icons are decorative with their meaning in adjacent text. Status messages announce through a live region.",
+    title: "Move around without a mouse",
+    body: "Press ? for the full list of shortcuts. g then a letter jumps to a section — g d for the dashboard, g k for designs, g f for facilities, g h for this page. Esc closes any menu or dialog and returns you to the control that opened it.",
   },
   {
-    title: "Contrast",
-    body: "All ten themes are checked against WCAG 2 AA in both light and dark on every CI run — twenty variants, measured from the runtime-resolved token values rather than numbers copied into a test.",
+    title: "If a theme is hard to read",
+    body: "Press m to switch between light and dark, and t to move to the next of the ten themes — Mono and Terminal are the plainest. Every theme is checked for text contrast in both light and dark before release, so none of them is the one that only half works.",
   },
   {
-    title: "Motion",
-    body: "Animations are decorative and sit inside the prefers-reduced-motion guard, so a system setting for reduced motion removes them.",
+    title: "If motion is a problem",
+    body: "Turn on “reduce motion” in your operating system’s accessibility settings and this app follows it: the loading mark stops animating, menus and dialogs appear without sliding, and nothing else moves on its own. Nothing here animates without being asked to.",
   },
   {
-    title: "Targets and zoom",
-    body: "Interactive controls meet a 44px minimum. Layout is fluid and text scales with browser zoom without clipping.",
+    title: "If text is too small",
+    body: "Zoom with your browser (Ctrl or ⌘ with + and −) up to 200% and the layout reflows rather than clipping or scrolling sideways. Raising your browser’s default font size works too, and the charts and labels grow with it.",
+  },
+  {
+    title: "With a screen reader",
+    body: "Each page starts with one heading naming it, and panels are labelled regions you can jump between. The current page is marked in the menu. Icons are decorative and never carry meaning on their own — the words beside them say the same thing. Results of an action, such as a saved change or a failed request, are announced when they happen.",
   },
 ];
 
@@ -189,9 +213,14 @@ export function HelpView() {
             </div>
           ))}
         </div>
+        {/* Kept, and moved to the end where it reads as an invitation rather
+            than as the section's subject. It is the one line here addressed to
+            the reader as a reporter instead of as a user, and it earns its
+            place: the promise it makes is what the cards above are worth. */}
         <p className="text-xs text-muted-foreground">
-          Found a barrier? Open an issue — accessibility defects are treated as
-          bugs, not enhancements.
+          If something here blocks you, please open an issue and say what you
+          were trying to do — accessibility defects are treated as bugs, not
+          enhancements, and “it works with a mouse” is not a resolution.
         </p>
       </section>
     </div>

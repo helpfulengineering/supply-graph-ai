@@ -3,18 +3,33 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { sourceColor, unplottedColor } from "./networkSummary";
+import { tileFilter } from "./tileFilter";
 
 export interface SourceColors {
   local: string;
   mom: string;
   unplotted: string;
+  /** CSS `filter` putting the raster tiles in this world's colour. */
+  tiles: string;
 }
 
 function resolve(): SourceColors {
+  const root =
+    typeof window === "undefined"
+      ? null
+      : getComputedStyle(document.documentElement);
   return {
     local: sourceColor("local"),
     mom: sourceColor("mom"),
     unplotted: unplottedColor(),
+    tiles: tileFilter({
+      accent: root?.getPropertyValue("--ttm-accent-cta").trim() ?? "",
+      // The polarity the document is actually in, not the hook's `isDark`:
+      // the class is what the tiles are being composited against.
+      isDark: root
+        ? document.documentElement.classList.contains("dark")
+        : false,
+    }),
   };
 }
 

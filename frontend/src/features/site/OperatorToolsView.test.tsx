@@ -12,7 +12,11 @@ import type { GateCopy, Visitor } from "../../lib/site/stack";
  * which panels the page is composed of at each of the three tiers.
  */
 vi.mock("../../lib/site/config", () => ({
-  siteConfig: { enabled: true, url: "https://project.supabase.co", anonKey: "anon-key" },
+  siteConfig: {
+    enabled: true,
+    url: "https://project.supabase.co",
+    anonKey: "anon-key",
+  },
   siteLayerEnabled: () => true,
 }));
 
@@ -46,7 +50,9 @@ vi.mock("../../lib/site/stack", () => {
     error: "That operator token was not accepted. Check it, or unlock again.",
   };
   const gated = <T,>(token: string, data: T) =>
-    token === "correct-horse-battery-staple" ? { ok: true as const, data } : unauthorized;
+    token === "correct-horse-battery-staple"
+      ? { ok: true as const, data }
+      : unauthorized;
 
   return {
     visitor: () => state.visitor,
@@ -169,7 +175,9 @@ describe("OperatorToolsView", () => {
     render(<OperatorToolsView />);
 
     expect(await screen.findByText("ada@example.org")).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
   });
 
   it("respects an operator who turned the gate off", async () => {
@@ -177,9 +185,13 @@ describe("OperatorToolsView", () => {
     render(<OperatorToolsView />);
 
     expect(await screen.findByText("Not signed in")).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
     // No sign-in button either: the gate is the only way in, and it is off.
-    expect(screen.queryByRole("button", { name: "Sign in" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Sign in" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the record once the gate is completed", async () => {
@@ -226,11 +238,22 @@ describe("OperatorToolsView", () => {
     // Unlocking must not require a visitor record: the two tiers are separate
     // doors, and an operator on a fresh device goes straight to the token.
     expect(await screen.findByLabelText("Operator token")).toBeInTheDocument();
-    // But the data surfaces stay closed until one of the doors opens.
-    expect(screen.queryByRole("region", { name: /visitors/i })).not.toBeInTheDocument();
+
+    // The data surfaces are PRESENT and EMPTY, which is the change: they used
+    // to be absent, so the page showed a reader in neither tier a heading, a
+    // sign-in card, and nothing that hinted what was behind either door.
+    // Presence is not access — the assertions below are that nothing was read.
+    const visitors = await screen.findByRole("region", { name: /visitors/i });
+    const telemetry = await screen.findByRole("region", { name: /telemetry/i });
     expect(
-      screen.queryByRole("region", { name: /telemetry/i }),
-    ).not.toBeInTheDocument();
+      within(visitors).getByText(/sign in at the gate/i),
+    ).toBeInTheDocument();
+    expect(
+      within(telemetry).getByText(/sign in at the gate/i),
+    ).toBeInTheDocument();
+    // Both tiers still say "masked", and no row of either kind exists.
+    expect(within(visitors).getByText("masked")).toBeInTheDocument();
+    expect(within(telemetry).getByText("masked")).toBeInTheDocument();
   });
 
   it("gives a signed-in visitor the masked directory and feed", async () => {
@@ -242,7 +265,9 @@ describe("OperatorToolsView", () => {
     expect(await within(visitors).findByText("a***@e***")).toBeInTheDocument();
     // The masked RPC does not return real addresses at all, so there is
     // nothing in this tier's DOM to un-mask.
-    expect(within(visitors).queryByText("ada@example.org")).not.toBeInTheDocument();
+    expect(
+      within(visitors).queryByText("ada@example.org"),
+    ).not.toBeInTheDocument();
     expect(
       within(visitors).queryByRole("button", { name: "Delete" }),
     ).not.toBeInTheDocument();
@@ -258,8 +283,12 @@ describe("OperatorToolsView", () => {
 
     expect(await screen.findByText("verified")).toBeInTheDocument();
     const visitors = await screen.findByRole("region", { name: /visitors/i });
-    expect(await within(visitors).findByText("ada@example.org")).toBeInTheDocument();
-    expect(within(visitors).getByRole("button", { name: "Delete" })).toBeInTheDocument();
+    expect(
+      await within(visitors).findByText("ada@example.org"),
+    ).toBeInTheDocument();
+    expect(
+      within(visitors).getByRole("button", { name: "Delete" }),
+    ).toBeInTheDocument();
     expect(
       within(panel("telemetry")).getByRole("button", { name: "Purge" }),
     ).toBeInTheDocument();
@@ -288,7 +317,9 @@ describe("OperatorToolsView", () => {
     await user.click(screen.getByRole("button", { name: "Unlock" }));
     expect(await screen.findByText("4")).toBeInTheDocument();
 
-    await user.click(within(panel("telemetry")).getByRole("button", { name: "Purge" }));
+    await user.click(
+      within(panel("telemetry")).getByRole("button", { name: "Purge" }),
+    );
 
     // The count lives in a different panel from the control that invalidates
     // it; without the signal between them the page states 4 and 0 at once.

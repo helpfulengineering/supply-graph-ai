@@ -3,7 +3,11 @@
 import { cn } from "@/lib/utils";
 import { useId, useMemo, useState } from "react";
 import { PANEL, SCROLL_LIST } from "../../components/ui/surface";
-import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import {
+  BODY_MUTED,
+  CAPTION,
+  CARD_TITLE,
+} from "../../components/ui/typography";
 import { FIELD_SM } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -55,7 +59,11 @@ const DEFAULT_KEEP_DAYS = 30;
  * hand someone. Bounded by days kept rather than a "delete all" button: the
  * useful operation is a retention window, and the destructive one is a slip.
  */
-export function TelemetryPanel({ email, isOperator, onEventsChanged }: TelemetryPanelProps) {
+export function TelemetryPanel({
+  email,
+  isOperator,
+  onEventsChanged,
+}: TelemetryPanelProps) {
   const headingId = useId();
   const keepId = useId();
   const events = useSiteQuery(
@@ -91,7 +99,9 @@ export function TelemetryPanel({ email, isOperator, onEventsChanged }: Telemetry
     const result = await adminPurgeEvents(operatorToken(), days);
     if (result.ok) {
       setFailure(null);
-      setNotice(`Deleted ${result.data.toLocaleString()} ${result.data === 1 ? "event" : "events"}.`);
+      setNotice(
+        `Deleted ${result.data.toLocaleString()} ${result.data === 1 ? "event" : "events"}.`,
+      );
       events.reload();
       onEventsChanged();
     } else {
@@ -105,6 +115,8 @@ export function TelemetryPanel({ email, isOperator, onEventsChanged }: Telemetry
   const rows = useMemo(() => events.data ?? [], [events.data]);
   const summary = useMemo(() => summarize(rows), [rows]);
   const outcomesVisible = rows.some((row) => !row.masked);
+  /** Neither tier: no read was attempted, so an empty feed means nothing. */
+  const locked = !isOperator && !email;
 
   return (
     <section className={PANEL} aria-labelledby={headingId}>
@@ -133,8 +145,12 @@ export function TelemetryPanel({ email, isOperator, onEventsChanged }: Telemetry
         </p>
       )}
       {!events.loading && !events.error && rows.length === 0 && (
+        // See VisitorDirectory: with neither tier no read is attempted, so an
+        // empty feed is a question never asked rather than an answer of none.
         <p className={cn("mt-4", BODY_MUTED)}>
-          No telemetry events recorded yet.
+          {locked
+            ? "Sign in at the gate to see the masked feed, or unlock with the operator token for the full one."
+            : "No telemetry events recorded yet."}
         </p>
       )}
 
@@ -153,7 +169,9 @@ export function TelemetryPanel({ email, isOperator, onEventsChanged }: Telemetry
               <div className="min-w-0">
                 <dt className="text-muted-foreground">Busiest pages</dt>
                 <dd className="mt-0.5 truncate font-mono text-foreground">
-                  {summary.pages.map((p) => `${p.label} ${p.count}`).join("  ·  ")}
+                  {summary.pages
+                    .map((p) => `${p.label} ${p.count}`)
+                    .join("  ·  ")}
                 </dd>
               </div>
             )}
@@ -172,14 +190,18 @@ export function TelemetryPanel({ email, isOperator, onEventsChanged }: Telemetry
                 </dt>
                 <dd className="mt-0.5 truncate font-mono text-warning-ink">
                   {summary.unmetDemand
-                    .map((d) => `${d.label}${d.count > 1 ? ` ×${d.count}` : ""}`)
+                    .map(
+                      (d) => `${d.label}${d.count > 1 ? ` ×${d.count}` : ""}`,
+                    )
                     .join("  ·  ")}
                 </dd>
               </div>
             )}
             {outcomesVisible && summary.matchRuns > 0 && (
               <div>
-                <dt className="text-muted-foreground">Matches returning nothing</dt>
+                <dt className="text-muted-foreground">
+                  Matches returning nothing
+                </dt>
                 <dd className="mt-0.5 font-mono text-foreground">
                   {summary.emptyMatchRuns} of {summary.matchRuns}
                 </dd>
@@ -199,12 +221,20 @@ export function TelemetryPanel({ email, isOperator, onEventsChanged }: Telemetry
               key={`${entry.ts}-${i}`}
               className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-2 py-1.5"
             >
-              <span className="font-mono text-xs text-foreground">{entry.event}</span>
+              <span className="font-mono text-xs text-foreground">
+                {entry.event}
+              </span>
               <span className={cn("min-w-0 flex-1 truncate", CAPTION)}>
                 {entry.page ?? "—"}
                 {entry.visitor && <> · {entry.visitor}</>}
                 {entry.sessionId && (
-                  <> · <span className="font-mono">{entry.sessionId.slice(0, 8)}</span></>
+                  <>
+                    {" "}
+                    ·{" "}
+                    <span className="font-mono">
+                      {entry.sessionId.slice(0, 8)}
+                    </span>
+                  </>
                 )}
               </span>
               <time className={CAPTION} title={instant(entry.ts)}>
@@ -217,7 +247,10 @@ export function TelemetryPanel({ email, isOperator, onEventsChanged }: Telemetry
 
       {isOperator && (
         <div className="mt-4 border-t border-border pt-4">
-          <label htmlFor={keepId} className="text-xs font-medium text-foreground">
+          <label
+            htmlFor={keepId}
+            className="text-xs font-medium text-foreground"
+          >
             Retention — delete events older than
           </label>
           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -231,7 +264,12 @@ export function TelemetryPanel({ email, isOperator, onEventsChanged }: Telemetry
               className={`${FIELD_SM} w-24`}
             />
             <span className={CAPTION}>days</span>
-            <Button type="button" variant="destructive" size="sm" onClick={() => void onPurge()}>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={() => void onPurge()}
+            >
               Purge
             </Button>
             {notice && (
