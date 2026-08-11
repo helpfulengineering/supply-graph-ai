@@ -830,6 +830,97 @@ async def list_facilities(
         raise
 
 
+@okw_group.command("list-kitchens")
+@click.option("--limit", default=10, help="Maximum number of kitchens to list")
+@click.option("--offset", default=0, help="Number of kitchens to skip")
+@standard_cli_command(
+    help_text="""
+    List cooking-domain kitchens stored under okw/ in the system.
+
+    Read-only browse command for a cooking-domain OHM instance. Kitchens are
+    uploaded as JSON directly to storage (see the cooking-domain deployment
+    docs), not created via this CLI. Mirrors `ohm okh list-recipes`.
+    """,
+    epilog="""
+    Examples:
+      # List all kitchens
+      ohm okw list-kitchens
+
+      # List with pagination
+      ohm okw list-kitchens --limit 20 --offset 10
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def list_kitchens_cmd(
+    ctx,
+    limit: int,
+    offset: int,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """List cooking-domain kitchens."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-list-kitchens")
+
+    try:
+
+        async def http_list():
+            cli_ctx.log("Listing via HTTP API...", "info")
+            return await cli_ctx.api_client.request(
+                "GET", "/api/okw/kitchens", params={"limit": limit, "offset": offset}
+            )
+
+        async def fallback_list():
+            cli_ctx.log("Using direct service listing...", "info")
+            okw_service = await OKWService.get_instance()
+            kitchens = await okw_service.list_kitchens()
+            page = kitchens[offset : offset + limit]
+            return {
+                "kitchens": [kitchen.to_dict() for kitchen in page],
+                "total": len(kitchens),
+            }
+
+        command = SmartCommand(cli_ctx)
+        result = await command.execute_with_fallback(http_list, fallback_list)
+
+        if "data" in result and isinstance(result["data"], dict):
+            kitchens = result["data"].get("items", result["data"].get("kitchens", []))
+            pagination = result["data"].get("pagination", {})
+            total = pagination.get("total_items", len(kitchens))
+        else:
+            kitchens = result.get("items", result.get("kitchens", []))
+            pagination = result.get("pagination", {})
+            total = pagination.get("total_items", result.get("total", len(kitchens)))
+
+        if output_format == "json":
+            click.echo(json.dumps(result, indent=2, default=str))
+        elif kitchens:
+            click.echo(f"\n🍽️  Found {total} kitchen(s):\n")
+            for i, kitchen in enumerate(kitchens, 1):
+                click.echo(f"  {i}. {kitchen.get('name', 'Unknown')}")
+                click.echo(f"     Kitchen ID: {kitchen.get('id', 'Unknown')}")
+                click.echo(f"     Appliances: {len(kitchen.get('appliances', []))}")
+            click.echo(f"\nTotal: {total} kitchen(s)")
+        else:
+            click.echo("\nNo kitchens found\n")
+
+        cli_ctx.end_command_tracking()
+
+    except Exception as e:
+        cli_ctx.log(f"Listing failed: {str(e)}", "error")
+        raise
+
+
 @okw_group.command(name="spaces")
 @click.option("--no-mom", is_flag=True, help="Exclude Maps of Making; local only.")
 @click.option("--refresh", is_flag=True, help="Force a MoM cache refresh first.")

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildInlineMatchRequest, buildMatchRequest } from "./matchRequest";
+import {
+  buildInlineMatchRequest,
+  buildMatchRequest,
+  buildRecipeMatchRequest,
+} from "./matchRequest";
 
 describe("buildMatchRequest", () => {
   it("maps minimal to relaxed params", () => {
@@ -91,5 +95,32 @@ describe("buildInlineMatchRequest", () => {
 
   it("omits an empty facility subset", () => {
     expect(buildInlineMatchRequest(manifest, "standard", undefined, []).okwIds).toBeUndefined();
+  });
+});
+
+describe("buildRecipeMatchRequest", () => {
+  it("sends a recipeId instead of an okhId", () => {
+    const req = buildRecipeMatchRequest("recipe-1", "standard");
+    expect(req.recipeId).toBe("recipe-1");
+    expect(req.okhId).toBeUndefined();
+  });
+
+  it("carries the system mode through, like the OKH builder", () => {
+    const recipe = buildRecipeMatchRequest("recipe-1", "strict");
+    const okh = buildMatchRequest("okh-1", "strict");
+    expect(recipe.qualityLevel).toBe(okh.qualityLevel);
+    expect(recipe.strictMode).toBe(okh.strictMode);
+  });
+
+  it("includes okwIds when a kitchen subset is chosen", () => {
+    expect(
+      buildRecipeMatchRequest("recipe-1", "standard", undefined, ["k1", "k2"]).okwIds,
+    ).toEqual(["k1", "k2"]);
+  });
+
+  it("omits okwIds when the subset is empty (match all kitchens)", () => {
+    expect(buildRecipeMatchRequest("recipe-1", "standard", undefined, [])).not.toHaveProperty(
+      "okwIds",
+    );
   });
 });

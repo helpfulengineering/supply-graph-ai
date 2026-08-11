@@ -12,6 +12,8 @@ export interface RunMatchParams {
    * `okh_manifest` as an alternative to `okh_id`.
    */
   okhManifest?: Record<string, unknown>;
+  /** Cooking-domain design id (mutually exclusive with okhId/okhManifest). */
+  recipeId?: string;
   maxResults?: number;
   qualityLevel?: string;
   strictMode?: boolean;
@@ -65,10 +67,12 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
     // needs (verified against the live endpoint). Cast to satisfy the strict
     // generated body type without enumerating server-defaulted fields.
     body: {
-      // Exactly one of these carries the design; the API accepts either.
+      // Exactly one of these carries the design; the API accepts any of them.
       ...(params.okhManifest
         ? { okh_manifest: params.okhManifest }
-        : { okh_id: params.okhId }),
+        : params.recipeId
+          ? { recipe_id: params.recipeId }
+          : { okh_id: params.okhId }),
       max_results: params.maxResults ?? 10,
       include_human_summary: true,
       include_explanation: true,

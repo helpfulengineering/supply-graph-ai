@@ -116,6 +116,7 @@ nav:
       - Configure an LLM: guides/configure-an-llm.md
       - Run your own node: guides/run-your-own-node.md
       - Deploy a node on Azure: guides/deploy-a-node-on-azure.md
+      - Deploy a cooking-domain instance: guides/deploy-a-cooking-domain-instance.md
       - Use the OHM API: guides/use-the-api.md
   - Contact: contact.md
   - Reference:

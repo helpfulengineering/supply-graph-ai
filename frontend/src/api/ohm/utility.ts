@@ -18,6 +18,25 @@ export async function fetchDomains(): Promise<Domain[]> {
   return ((data as { data?: { domains?: Domain[] } })?.data?.domains ?? []) as Domain[];
 }
 
+/**
+ * Server-configured default domain (`OHM_DEFAULT_DOMAIN`) for first-time
+ * visitors — e.g. a cooking-domain instance can default new browsers to
+ * "cooking" instead of the hardcoded "manufacturing" fallback. Not yet in the
+ * generated schema (the endpoint returns a plain dict), so read defensively;
+ * returns null on any failure rather than throwing, since callers treat this
+ * as a nice-to-have seed, not a hard requirement.
+ */
+export async function fetchDefaultDomain(): Promise<string | null> {
+  try {
+    const { data, error, response } = await apiClient.GET("/api/utility/domains");
+    if (error || !response.ok) return null;
+    const value = (data as { data?: { default_domain?: unknown } })?.data?.default_domain;
+    return typeof value === "string" ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 export interface SystemMetrics {
   total_requests: number;
   recent_requests_1h: number;

@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { SessionPanel } from "../features/settings/SessionPanel";
+import { DomainPanel } from "../features/settings/DomainPanel";
 import { KeysAccountsPanel } from "../features/settings/KeysAccountsPanel";
 import { IdentitiesPanel } from "../features/settings/IdentitiesPanel";
 import { GrantsPanel } from "../features/settings/GrantsPanel";
@@ -12,7 +13,10 @@ import { LLMCredentialsPanel } from "../features/settings/LLMCredentialsPanel";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { useAuth } from "../context/AuthContext";
 
-const sessionTab = { to: "/settings/session", label: "Session" } as const;
+const sessionTabs = [
+  { to: "/settings/session", label: "Session" },
+  { to: "/settings/domain", label: "Domain" },
+] as const;
 
 const adminTabs = [
   { to: "/settings/keys", label: "Keys & accounts" },
@@ -27,6 +31,7 @@ const adminTabs = [
 ] as const;
 
 function panelFor(pathname: string) {
+  if (pathname.includes("/domain")) return <DomainPanel />;
   if (pathname.includes("/keys")) return <KeysAccountsPanel />;
   if (pathname.includes("/llm")) return <LLMCredentialsPanel />;
   if (pathname.includes("/identities")) return <IdentitiesPanel />;
@@ -42,7 +47,7 @@ function panelFor(pathname: string) {
 export function SettingsPage() {
   const { pathname } = useLocation();
   const { isAdmin } = useAuth();
-  const tabs = isAdmin ? [sessionTab, ...adminTabs] : [sessionTab];
+  const tabs = isAdmin ? [...sessionTabs, ...adminTabs] : [...sessionTabs];
 
   return (
     <div className="space-y-6">
@@ -50,8 +55,8 @@ export function SettingsPage() {
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isAdmin
-            ? "Manage session, keys, LLM providers, identities, grants, spaces, bindings, directory, and federation for this OHM instance."
-            : "Paste an API key to authenticate this browser tab. Admin tabs appear after whoami reports admin."}
+            ? "Manage session, domain, keys, LLM providers, identities, grants, spaces, bindings, directory, and federation for this OHM instance."
+            : "Paste an API key or choose a matching domain for this browser tab. Admin tabs appear after whoami reports admin."}
         </p>
       </div>
 

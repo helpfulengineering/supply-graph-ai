@@ -18,6 +18,10 @@ class DomainsResponse(SuccessResponse, LLMResponseMixin):
     """Response model for available domains with standardized fields and LLM information"""
 
     domains: List[Domain]
+    # Which domain a fresh browser session should open in on this instance
+    # (OHM_DEFAULT_DOMAIN setting; "manufacturing" unless a deployment opts
+    # into e.g. a dedicated cooking-domain instance).
+    default_domain: str = "manufacturing"
 
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
@@ -32,6 +36,7 @@ class DomainsResponse(SuccessResponse, LLMResponseMixin):
                         "description": "Hardware manufacturing capabilities",
                     }
                 ],
+                "default_domain": "manufacturing",
                 "status": "success",
                 "message": "Domains retrieved successfully",
                 "timestamp": "2024-01-01T12:00:00Z",

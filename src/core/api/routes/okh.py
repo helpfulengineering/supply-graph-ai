@@ -437,6 +437,75 @@ async def get_okh_file(
     )
 
 
+@router.get(
+    "/recipes",
+    response_model=PaginatedResponse,
+    summary="List Recipes",
+    description="""
+    Get a paginated list of cooking-domain recipes found under the okh/ prefix.
+
+    Read-only browse surface for a cooking-domain instance — no create, edit,
+    or delete. See ``OKHService.list_recipes()``.
+    """,
+)
+@paginated_response(default_page_size=20, max_page_size=100)
+async def list_recipes(
+    http_request: Request,
+    pagination: PaginationParams = Depends(),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    """List cooking-domain recipes (paginated, read-only)."""
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
+
+    try:
+        recipes = await okh_service.list_recipes()
+        total = len(recipes)
+        start = (pagination.page - 1) * pagination.page_size
+        page_items = recipes[start : start + pagination.page_size]
+
+        total_pages = (total + pagination.page_size - 1) // pagination.page_size
+
+        pagination_info = PaginationInfo(
+            page=pagination.page,
+            page_size=pagination.page_size,
+            total_items=total,
+            total_pages=total_pages,
+            has_next=pagination.page < total_pages,
+            has_previous=pagination.page > 1,
+        )
+
+        return PaginatedResponse(
+            status=APIStatus.SUCCESS,
+            message="Recipes listed successfully",
+            pagination=pagination_info,
+            items=[recipe.to_dict() for recipe in page_items],
+            request_id=request_id,
+        )
+
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        logger.error(
+            f"Error listing recipes: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__,
+            },
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
 @router.get("/{id}", response_model=OKHResponse)
 async def get_okh(
     id: UUID = Path(..., title="The ID of the OKH manifest"),

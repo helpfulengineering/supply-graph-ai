@@ -1,5 +1,7 @@
 import { useLocation, useSearchParams } from "react-router-dom";
 import { MatchView } from "../features/match/MatchView";
+import { CookingMatchView } from "../features/match/CookingMatchView";
+import { useDomain } from "../context/DomainContext";
 
 /** Hand-off payload from generate-from-URL: a reviewed but unsaved manifest. */
 export interface InlineMatchState {
@@ -10,8 +12,10 @@ export interface InlineMatchState {
 const NETWORK_AXES = ["country", "city", "process", "source", "status", "region", "access_type"] as const;
 
 export function MatchPage() {
+  const { domain } = useDomain();
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  if (domain === "cooking") return <CookingMatchView />;
   const okhId = searchParams.get("okh_id") ?? undefined;
   const okwId = searchParams.get("okw_id") ?? undefined;
 
