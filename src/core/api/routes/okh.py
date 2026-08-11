@@ -48,12 +48,13 @@ from ..decorators import (
 from ..dependencies import (
     created_by,
     get_optional_user,
+    get_viewer,
     require_write,
     resolve_provenance,
 )
 from ...models.auth import AuthenticatedUser
 from ...models.provenance import RecordProvenance
-from ...models.visibility import VisibilityBody, VisibilityResponse
+from ...models.visibility import VisibilityBody, VisibilityResponse, is_shareable
 from ..error_handlers import create_error_response
 from ..okh_file_urls import api_base_from_request, enrich_manifest_file_urls
 
@@ -237,11 +238,14 @@ async def get_okh_template(http_request: Request = None) -> Any:
 )
 async def export_collection_endpoint(
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """Return all stored OKH manifests as a downloadable zip archive."""
     from ...packaging.collection import export_collection
 
-    manifests, _ = await okh_service.list(page=1, page_size=10_000)
+    manifests, _ = await okh_service.list(
+        page=1, page_size=10_000, include_private=user is not None
+    )
     if not manifests:
         raise HTTPException(
             status_code=404, detail="No OKH manifests found in collection"
@@ -445,6 +449,7 @@ async def get_okh(
     ),
     http_request: Request = None,
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """
     Get an OKH manifest by ID
@@ -461,6 +466,14 @@ async def get_okh(
         # Call service to get OKH manifest
         result = await okh_service.get(id)
         if not result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKH manifest with ID {id} not found",
+            )
+
+        # A private record must not leave the instance. 404 rather than 403 so
+        # the response does not confirm that the id exists.
+        if user is None and not is_shareable(await okh_service.get_visibility(id)):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKH manifest with ID {id} not found",
@@ -538,6 +551,7 @@ async def list_okh(
         None, description="Filter criteria (e.g., 'title=contains:Hardware')"
     ),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """Enhanced OKH manifest listing with pagination and metrics."""
     request_id = (
@@ -560,7 +574,10 @@ async def list_okh(
 
         # Call service to list OKH manifests
         manifests, total = await okh_service.list(
-            pagination.page, pagination.page_size, filter_params
+            pagination.page,
+            pagination.page_size,
+            filter_params,
+            include_private=user is not None,
         )
 
         # Convert OKHManifest objects to dict format
@@ -1542,6 +1559,7 @@ async def diff_collection_endpoint(
     file: UploadFile = File(..., description="Collection zip archive to compare"),
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """Return the symmetric diff between an archive and the local collection."""
     from ...packaging.collection import diff_collection
@@ -1552,7 +1570,9 @@ async def diff_collection_endpoint(
     archive_bytes = await file.read()
 
     try:
-        local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+        local_manifests, _ = await okh_service.list(
+            page=1, page_size=10_000, include_private=user is not None
+        )
         diff = diff_collection(archive_bytes, local_manifests)
         return {
             "status": "success",
