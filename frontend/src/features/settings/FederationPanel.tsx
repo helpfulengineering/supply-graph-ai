@@ -74,7 +74,7 @@ export function FederationPanel() {
 
       <section
         aria-labelledby="federation-status-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="federation-status-heading"
@@ -141,7 +141,7 @@ export function FederationPanel() {
 
       <section
         aria-labelledby="federation-peers-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2

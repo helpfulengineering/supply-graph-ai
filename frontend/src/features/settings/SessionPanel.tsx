@@ -24,7 +24,7 @@ export function SessionPanel() {
     <div className="space-y-6">
       <section
         aria-labelledby="session-key-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="session-key-heading"
@@ -71,7 +71,7 @@ export function SessionPanel() {
 
       <section
         aria-labelledby="session-identity-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="session-identity-heading"

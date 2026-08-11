@@ -46,7 +46,7 @@ export function CertifyPackagePanel({ version, pin }: Props) {
   return (
     <section
       aria-labelledby="certify-heading"
-      className="rounded-xl border border-border bg-card p-5"
+      className="rounded-xl border border-border bg-card p-4"
     >
       <h2
         id="certify-heading"

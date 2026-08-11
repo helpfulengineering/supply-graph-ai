@@ -284,7 +284,7 @@ export function DisclosureControl({
   return (
     <section
       aria-labelledby="okw-disclosure-heading"
-      className="rounded-xl border border-border bg-card p-5"
+      className="rounded-xl border border-border bg-card p-4"
     >
       {body}
     </section>

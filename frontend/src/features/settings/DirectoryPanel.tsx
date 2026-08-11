@@ -42,7 +42,7 @@ export function DirectoryPanel() {
     <div className="space-y-6">
       <section
         aria-labelledby="directory-publish-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="directory-publish-heading"
@@ -119,7 +119,7 @@ export function DirectoryPanel() {
 
       <section
         aria-labelledby="directory-list-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="directory-list-heading"

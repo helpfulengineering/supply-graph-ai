@@ -145,7 +145,7 @@ export function RfqView({ navState }: Props) {
 
       {/* Generation form */}
       {!generated && (
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-4">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Configuration
           </h2>

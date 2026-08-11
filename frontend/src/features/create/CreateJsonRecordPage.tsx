@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import Link from "next/link";
+import { PageHero } from "../../components/layout/PageHero";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
@@ -120,13 +121,10 @@ export function CreateJsonRecordPage({
         <span className="text-foreground">New</span>
       </nav>
 
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Paste or upload JSON, optionally validate, then create. Visibility
-          defaults to private on the server.
-        </p>
-      </div>
+      <PageHero
+        title={title}
+        description="Paste or upload JSON, optionally validate, then create. Visibility defaults to private on the server."
+      />
 
       {!hasWrite && (
         <p className={`${FIELD} border-warning/30 bg-warning/10 text-warning`}>

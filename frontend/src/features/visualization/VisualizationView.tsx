@@ -96,7 +96,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         const deps = toDependencies(data);
         return (
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-xl border border-border bg-card p-5">
+            <section className="rounded-xl border border-border bg-card p-4">
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Production Sequence
               </h2>
@@ -120,7 +120,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
               )}
             </section>
 
-            <section className="rounded-xl border border-border bg-card p-5">
+            <section className="rounded-xl border border-border bg-card p-4">
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Dependencies
               </h2>

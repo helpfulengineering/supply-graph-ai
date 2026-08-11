@@ -68,7 +68,7 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
     <section
       role="status"
       aria-label="Validation result"
-      className="rounded-xl border border-border bg-card p-5"
+      className="rounded-xl border border-border bg-card p-4"
     >
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -234,7 +234,7 @@ export function OkhDetailView({ id }: Props) {
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
-          <section className="rounded-xl border border-border bg-card p-5">
+          <section className="rounded-xl border border-border bg-card p-4">
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Design Info
             </h2>
@@ -273,7 +273,7 @@ export function OkhDetailView({ id }: Props) {
           {(okh.license?.hardware ||
             okh.license?.documentation ||
             okh.license?.software) && (
-            <section className="rounded-xl border border-border bg-card p-5">
+            <section className="rounded-xl border border-border bg-card p-4">
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 License
               </h2>
@@ -289,7 +289,7 @@ export function OkhDetailView({ id }: Props) {
           )}
 
           {okh.materials.length > 0 && (
-            <section className="rounded-xl border border-border bg-card p-5">
+            <section className="rounded-xl border border-border bg-card p-4">
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Materials
               </h2>
@@ -312,7 +312,7 @@ export function OkhDetailView({ id }: Props) {
           )}
 
           {okh.keywords.length > 0 && (
-            <section className="rounded-xl border border-border bg-card p-5">
+            <section className="rounded-xl border border-border bg-card p-4">
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Keywords
               </h2>
@@ -329,7 +329,7 @@ export function OkhDetailView({ id }: Props) {
 
         <div className="space-y-6 lg:col-span-2">
           {okh.intended_use && (
-            <section className="rounded-xl border border-border bg-card p-5">
+            <section className="rounded-xl border border-border bg-card p-4">
               <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Intended Use
               </h2>
@@ -344,7 +344,7 @@ export function OkhDetailView({ id }: Props) {
               No file references attached to this design.
             </div>
           ) : (
-            <section className="rounded-xl border border-border bg-card p-5">
+            <section className="rounded-xl border border-border bg-card p-4">
               <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Files &amp; Documentation
               </h2>

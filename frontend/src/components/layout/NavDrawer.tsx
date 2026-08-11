@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FIELD } from "../../components/ui/field";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
-import { FlaskConical, Gauge, RefreshCw, Settings } from "lucide-react";
+import { FlaskConical, Gauge, Link2, RefreshCw, Settings } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { refreshLowVolatilityData } from "../../queryClient";
 import { NAV_GROUPS, isActivePath } from "./nav";
+import { SHORTCUTS } from "./shortcuts";
 import { useSiteLayer } from "../../lib/site/useSiteLayer";
 import { demoModeEnabled, setDemoMode } from "../../lib/demo/demoMode";
 
@@ -31,10 +32,11 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const pathname = usePathname() ?? "";
   const { isAdmin, token } = useAuth();
   const site = useSiteLayer();
-  const { isDark, toggle, theme, setTheme, themes } = useTheme();
+  const { isDark, toggle, theme, setTheme, themes, shareUrl } = useTheme();
   const queryClient = useQueryClient();
   const isFetching = useIsFetching() > 0;
   const panelRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
   // Focus management: close button first, trap Tab inside, Esc closes,
   // focus returns to the opener when the drawer unmounts.
@@ -100,7 +102,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
     [
       "flex min-h-11 items-start gap-2.5 rounded-md px-3 py-2 no-underline transition-colors",
       active
-        ? "bg-accent text-primary-ink"
+        ? "bg-accent text-primary-ink shadow-glow-sm"
         : "text-foreground hover:bg-muted",
     ].join(" ");
 
@@ -161,7 +163,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     <>
                       <Icon
                         aria-hidden="true"
-                        className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                        className={`mt-0.5 h-4 w-4 shrink-0 ${group.accent}`}
                       />
                       <span className="min-w-0">
                         <span className="block text-sm font-medium">{entry.name}</span>
@@ -311,6 +313,46 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             <span className="text-xs text-muted-foreground">switch to {isDark ? "light" : "dark"}</span>
           </button>
         </fieldset>
+
+        <div className="px-3 pb-1">
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(shareUrl());
+              setCopied(true);
+            }}
+            className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            <Link2 aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+            {copied ? "Link copied" : "Copy link with this look"}
+            <span className="ml-auto text-xs font-normal text-muted-foreground">
+              theme + mode in the URL
+            </span>
+          </button>
+        </div>
+
+        <div className="border-t border-border px-3 py-4">
+          <p className="pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Keyboard
+          </p>
+          <ul className="m-0 grid list-none grid-cols-1 gap-x-4 gap-y-1 p-0 sm:grid-cols-2">
+            {SHORTCUTS.map((s) => (
+              <li key={s.keys.join("+")} className="flex items-baseline gap-2 text-xs">
+                <span className="flex shrink-0 gap-1">
+                  {s.keys.map((k) => (
+                    <kbd
+                      key={k}
+                      className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[0.6875rem] text-foreground"
+                    >
+                      {k}
+                    </kbd>
+                  ))}
+                </span>
+                <span className="text-muted-foreground">{s.desc}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>,
     document.body,

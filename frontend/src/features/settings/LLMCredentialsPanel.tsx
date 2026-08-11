@@ -99,7 +99,7 @@ export function LLMCredentialsPanel() {
 
       <section
         aria-labelledby="llm-credentials-form-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="llm-credentials-form-heading"
@@ -156,7 +156,7 @@ export function LLMCredentialsPanel() {
 
       <section
         aria-labelledby="llm-credentials-list-heading"
-        className="rounded-xl border border-border bg-card p-5"
+        className="rounded-xl border border-border bg-card p-4"
       >
         <h2
           id="llm-credentials-list-heading"

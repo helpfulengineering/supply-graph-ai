@@ -7,7 +7,7 @@ export function KpiCards({ kpis }: { kpis: Kpi[] }) {
       {kpis.map((k) => (
         <div
           key={k.label}
-          className="rounded-xl border border-border bg-card p-5"
+          className="rounded-xl border border-border bg-card p-4"
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {k.label}

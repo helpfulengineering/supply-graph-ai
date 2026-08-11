@@ -10,7 +10,7 @@ import { Button } from "../../components/ui/button";
 export function FacilityDesigns({ okwId }: { okwId: string }) {
   const router = useRouter();
   return (
-    <section className="rounded-xl border border-border bg-card p-5">
+    <section className="rounded-xl border border-border bg-card p-4">
       <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         Matching designs
       </h2>
