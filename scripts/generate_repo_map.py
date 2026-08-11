@@ -12,6 +12,7 @@ drifted, which is how the gate keeps the map from separating quietly.
 import argparse
 import ast
 import subprocess
+import sys
 import tomllib
 from pathlib import Path
 from typing import Dict, List
@@ -38,7 +39,14 @@ def repo_identity(repo_path: Path) -> str:
 
 
 def get_git_files(repo_path: Path) -> List[Path]:
-    """Get all tracked Python files from git, excluding test files."""
+    """Every tracked Python file, tests included.
+
+    This used to claim it dropped test files, and filtered on `src/tests` — a
+    directory that does not exist here, since the suite lives in top-level
+    tests/. The filter was a no-op, so the map has always covered the whole
+    tree. Removing the dead branch documents that rather than changing it; the
+    committed map is byte-identical either way.
+    """
     try:
         result = subprocess.run(
             ["git", "ls-files", "*.py"],
@@ -52,11 +60,23 @@ def get_git_files(repo_path: Path) -> List[Path]:
         # Fallback to walking if not a git repo
         files = list(repo_path.rglob("*.py"))
 
-    # Filter out files in src/tests directory
-    filtered_files = [
-        f for f in files if "src/tests" not in str(f.relative_to(repo_path))
+    return files
+
+
+def parse_failures_in(map_content: str) -> List[str]:
+    """Placeholders left where a source file could not be parsed.
+
+    Both extractors record the exception inline instead of raising, so a map
+    built by an interpreter older than requires-python looks complete while
+    silently missing every symbol of the files it choked on. Reading the
+    markers back out of the finished map is what makes that loud: whatever is
+    about to be written is exactly what gets checked.
+    """
+    return [
+        line.strip()
+        for line in map_content.splitlines()
+        if line.lstrip().startswith("# Error:") or "_Error parsing file:" in line
     ]
-    return filtered_files
 
 
 # ============================================================================
@@ -479,8 +499,27 @@ def main():
         print(f"Error: Target path is not a directory: {target_path}")
         return 1
 
+    map_content = generate_combined_map(target_path, output_path)
+
+    # A map carrying placeholders where symbols belong is corrupt output, not a
+    # partial success. Writing it hands the drift gate a file no correctly
+    # generated map can ever match, so stop here and say which files and why.
+    failures = parse_failures_in(map_content)
+    if failures:
+        print(
+            f"Refusing to use a map with {len(failures)} unparseable file(s):",
+            file=sys.stderr,
+        )
+        for failure in failures:
+            print(f"  {failure}", file=sys.stderr)
+        print(
+            "Most often the interpreter is older than requires-python and "
+            "cannot read newer syntax — run via `make repo-map`, which uses uv.",
+            file=sys.stderr,
+        )
+        return 1
+
     if args.check:
-        map_content = generate_combined_map(target_path, output_path)
         current = (
             output_file.read_text(encoding="utf-8") if output_file.exists() else ""
         )
@@ -493,12 +532,9 @@ def main():
     # Ensure output directory exists
     output_path.mkdir(parents=True, exist_ok=True)
 
-    # Generate combined map
     print(f"Generating repository maps for: {target_path}")
     print(f"Output file: {output_file}")
     print()
-
-    map_content = generate_combined_map(target_path, output_path)
 
     # Save to file
     with open(output_file, "w", encoding="utf-8") as f:
