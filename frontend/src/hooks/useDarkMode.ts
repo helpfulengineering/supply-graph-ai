@@ -128,8 +128,49 @@ export function useDarkMode(): ThemeController {
     return () => media.removeEventListener("change", onChange);
   }, []);
 
-  const setTheme = useCallback((next: ThemeSlug) => setThemeState(next), []);
-  const toggle = useCallback(() => setIsDark((d) => !d), []);
+  /**
+   * Paint first, re-render second.
+   *
+   * Both of these used to be a bare `setState`, which made the visible colour
+   * change wait on React: the effects above are what write `data-ttm-theme`
+   * and `.dark`, and an effect runs only after the render that scheduled it
+   * has committed. So every consumer of this context re-rendered before the
+   * browser was allowed to repaint — the map rebuilding three thousand
+   * markers, the charts re-resolving their tokens, the picker probing all ten
+   * worlds — and the measurement on /match against the real catalogue was a
+   * 949ms long task with four more behind it. The attribute flipped at 31ms
+   * and then nothing could paint for over a second: press a key, watch the old
+   * world sit there, press it again.
+   *
+   * Writing the attribute here, in the event handler, is the whole fix for
+   * what the eye sees. It is a pure style recalc with no React in it, so the
+   * new world paints on the next frame instead of behind the render.
+   *
+   * The state update stays URGENT, deliberately. It was a transition for one
+   * revision, which did let the browser paint — and left the radio the visitor
+   * had just clicked showing its old selection until the deferred pass landed,
+   * which is the same complaint one level down: the control that registers the
+   * action has to register it. The expense is not this string propagating, it
+   * is the three hooks that re-resolve palettes from it, and those defer
+   * themselves — see `useDeferredValue` in chartTokens, useSourceColors and
+   * useThemeSwatches.
+   *
+   * The effects above stay: they are what applies a theme that arrived from
+   * somewhere other than a click — the OS media query, the URL parameter, the
+   * initial mount — and they are a no-op write when the DOM already agrees.
+   */
+  const setTheme = useCallback((next: ThemeSlug) => {
+    document.documentElement.setAttribute("data-ttm-theme", next);
+    write(THEME_KEY, next);
+    setThemeState(next);
+  }, []);
+
+  const toggle = useCallback(() => {
+    const next = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", next);
+    write(MODE_KEY, next ? "dark" : "light");
+    setIsDark(next);
+  }, []);
 
   const shareUrl = useCallback(() => {
     const url = new URL(window.location.href);

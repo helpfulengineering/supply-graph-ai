@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { THEMES, type ThemeSlug } from "./useDarkMode";
 import { formatRgb, inkFor, parseRgb } from "../lib/contrastInk";
@@ -143,13 +143,38 @@ export function resolveThemeSwatches(): Record<ThemeSlug, ThemeSwatch> {
  * Empty until the effect runs, so callers fall back to unstyled names for one
  * paint rather than rendering a wrong colour.
  */
-export function useThemeSwatches(): Partial<Record<ThemeSlug, ThemeSwatch>> {
-  const { theme, isDark } = useTheme();
+export function useThemeSwatches(
+  /**
+   * Whether the picker is actually on screen.
+   *
+   * `resolveThemeSwatches` applies each of the ten worlds to <html> and reads
+   * the result back, which forces ten full style recalculations. That is a fair
+   * price for drawing the picker and a pure waste when the drawer is closed —
+   * which is most of the time, and is exactly when someone presses `t` or `m`
+   * from the page. Ungated it ran on every theme change whether or not anything
+   * was there to show, and put ten recalcs on the critical path of a keystroke
+   * whose entire job is to repaint quickly.
+   */
+  enabled = true,
+): Partial<Record<ThemeSlug, ThemeSwatch>> {
+  const { theme: urgentTheme, isDark: urgentDark } = useTheme();
+  // Deferred, so a theme change repaints before it re-resolves.
+  //
+  // This hook re-reads palettes and re-renders whatever draws from them, and
+  // on a page with a full facility catalogue that measured as a 949ms task
+  // sitting between the keystroke and the paint. `useDeferredValue` lets React
+  // render the cheap consumers — the picker's own radio, the chrome — at once
+  // and come back for this at lower priority, so the world changes colour
+  // immediately and the canvases catch up a frame or two later. Nothing here
+  // is what a visitor is waiting to see.
+  const theme = useDeferredValue(urgentTheme);
+  const isDark = useDeferredValue(urgentDark);
   const [swatches, setSwatches] = useState<
     Partial<Record<ThemeSlug, ThemeSwatch>>
   >({});
 
   useEffect(() => {
+    if (!enabled) return;
     // After the frame, not during the effect pass. The polarity class lands on
     // <html> in the PROVIDER's effect, and React runs a child's effects before
     // its parent's — so resolving here directly reads the surface the app is
@@ -160,7 +185,7 @@ export function useThemeSwatches(): Partial<Record<ThemeSlug, ThemeSwatch>> {
       setSwatches(resolveThemeSwatches()),
     );
     return () => cancelAnimationFrame(frame);
-  }, [theme, isDark]);
+  }, [theme, isDark, enabled]);
 
   return swatches;
 }

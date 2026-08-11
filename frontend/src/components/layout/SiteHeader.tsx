@@ -25,7 +25,7 @@ export function SiteHeader() {
   });
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-card shadow-sm">
+    <header className="sticky top-0 z-40 border-b border-border bg-card/90 shadow-sm backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Mark only. The bar carries no wordmark because every page's hero
             states its own identity — on the dashboard the two would sit one

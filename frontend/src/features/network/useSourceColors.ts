@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { sourceColor, unplottedColor } from "./networkSummary";
 import { tileFilter } from "./tileFilter";
@@ -49,7 +49,18 @@ function resolve(): SourceColors {
  * world before React mounts), then again a frame after any change.
  */
 export function useSourceColors(): SourceColors {
-  const { theme, isDark } = useTheme();
+  const { theme: urgentTheme, isDark: urgentDark } = useTheme();
+  // Deferred, so a theme change repaints before it re-resolves.
+  //
+  // This hook re-reads palettes and re-renders whatever draws from them, and
+  // on a page with a full facility catalogue that measured as a 949ms task
+  // sitting between the keystroke and the paint. `useDeferredValue` lets React
+  // render the cheap consumers — the picker's own radio, the chrome — at once
+  // and come back for this at lower priority, so the world changes colour
+  // immediately and the canvases catch up a frame or two later. Nothing here
+  // is what a visitor is waiting to see.
+  const theme = useDeferredValue(urgentTheme);
+  const isDark = useDeferredValue(urgentDark);
   const [colors, setColors] = useState<SourceColors>(resolve);
 
   useEffect(() => {

@@ -198,27 +198,46 @@ a {
   }
 
   /* A blueprint grid under every world.
-     Drawn from --ttm-border rather than a fixed ink, so each world sets its
-     own weight: a low-contrast world gets a whisper, Blueprint gets something
-     closer to drafting paper, and no world can end up with a grid it did not
-     choose. Fixed to the viewport so it reads as paper the page sits on
-     instead of scrolling with content, and marked as a background layer so
-     nothing needs a z-index to sit above it. */
+
+     Drawn from --ttm-text, not --ttm-border. Border was the intuitive choice
+     and the unreliable one: several worlds set a border that sits very close
+     to their own background — which is correct for a border, whose job is to
+     separate two surfaces that are already distinct — so the grid ranged from
+     drafting paper in Blueprint to invisible in Mono and Terminal. Nobody
+     chose that; it fell out of a token doing a different job.
+
+     --ttm-text is the one value each world guarantees to contrast against
+     --ttm-bg, since that guarantee is what makes body copy legible. Taking a
+     few percent of it gives a line that is always a visible deviation from
+     the ground and never more than a whisper, in all twenty variants, with no
+     per-world value to maintain and nothing for a new world to remember.
+
+     The share differs by polarity, and it has to. Luminance is compressed at
+     the dark end of the scale: the same 7% of ink that gives a light world a
+     legible ruling leaves every dark world under a 1.03 contrast ratio —
+     measured across all twenty variants, and visible in none of the ten dark
+     ones. A light ground gets a whisper; a dark ground needs roughly twice as
+     much to read as the same whisper.
+
+     Fixed to the viewport so it reads as paper the page sits on instead of
+     scrolling with content, and marked as a background layer so nothing needs
+     a z-index to sit above it. */
   body {
     @apply bg-background text-foreground;
+    --ohm-grid-ink: color-mix(in srgb, var(--ttm-text) 7%, transparent);
     background-image:
-      linear-gradient(
-        to right,
-        color-mix(in srgb, var(--ttm-border) 28%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in srgb, var(--ttm-border) 28%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 32px 32px;
+      linear-gradient(to right, var(--ohm-grid-ink) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--ohm-grid-ink) 1px, transparent 1px);
+    /* 20px, not 32. At 32 the ruling was wide enough to read as four big
+       panes behind a card rather than as paper; the smaller square reads as
+       texture, which is what a ground should do. */
+    background-size: 20px 20px;
     background-attachment: fixed;
+  }
+  /* See the note above: the dark end of the scale needs the larger share to
+     land at the same apparent weight. */
+  :root.dark body {
+    --ohm-grid-ink: color-mix(in srgb, var(--ttm-text) 16%, transparent);
   }
   html {
     /* The world's sans, not a fixed one: Terminal and Mono repoint this at the
