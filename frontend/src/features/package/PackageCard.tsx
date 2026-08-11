@@ -57,7 +57,7 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
             className="text-left"
             onClick={() => router.push(detail)}
           >
-            <h3 className="font-semibold text-foreground break-all hover:text-primary">
+            <h3 className="font-semibold text-foreground break-all hover:text-primary-ink">
               {pkg.package_name}
             </h3>
             <p className="font-mono text-xs text-muted-foreground">

@@ -35,7 +35,7 @@ export function NavBar() {
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3">
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-bold text-primary no-underline"
+          className="flex items-center gap-2 text-lg font-bold text-primary-ink no-underline"
         >
           <span aria-hidden="true">🌐</span>
           <span>OHM</span>
@@ -50,7 +50,7 @@ export function NavBar() {
               className={[
                 "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 isActive(to)
-                  ? "bg-accent text-primary"
+                  ? "bg-accent text-primary-ink"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
               ].join(" ")}
             >
@@ -78,7 +78,7 @@ export function NavBar() {
             className={[
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
               isActive("/settings")
-                ? "bg-accent text-primary"
+                ? "bg-accent text-primary-ink"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             ].join(" ")}
           >

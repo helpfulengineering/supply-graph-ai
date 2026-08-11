@@ -120,7 +120,7 @@ export function PackageListView() {
           <button
             type="button"
             onClick={() => router.push("/okh")}
-            className="font-semibold text-primary underline hover:no-underline"
+            className="font-semibold text-primary-ink underline hover:no-underline"
           >
             Build on server
           </button>{" "}

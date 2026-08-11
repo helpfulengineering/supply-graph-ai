@@ -106,7 +106,7 @@ export function RfqDocumentCard({ doc }: Props) {
           </button>
           <button
             onClick={handleDownloadJson}
-            className="rounded-md border border-primary/30 bg-accent px-3 py-1.5 text-xs font-medium text-primary hover:bg-accent transition-colors dark:hover:bg-accent/40"
+            className="rounded-md border border-primary/30 bg-accent px-3 py-1.5 text-xs font-medium text-primary-ink hover:bg-accent transition-colors dark:hover:bg-accent/40"
           >
             ↓ .json
           </button>

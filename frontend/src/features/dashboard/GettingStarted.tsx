@@ -53,7 +53,7 @@ export function GettingStarted() {
               <p className="mt-0.5 text-sm text-muted-foreground">{s.body}</p>
               <Link
                 href={s.to}
-                className="mt-1.5 inline-block text-sm font-medium text-primary hover:underline"
+                className="mt-1.5 inline-block text-sm font-medium text-primary-ink hover:underline"
               >
                 {s.cta} →
               </Link>

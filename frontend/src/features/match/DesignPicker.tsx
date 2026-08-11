@@ -103,14 +103,14 @@ export function DesignPicker({
       {selected ? (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-primary/30 bg-accent/70 px-3 py-2">
           <div className="min-w-0">
-            <p className="text-xs text-primary">Selected design</p>
-            <p className="truncate font-medium text-primary">
+            <p className="text-xs text-primary-ink">Selected design</p>
+            <p className="truncate font-medium text-primary-ink">
               {formatOkhDisplayTitle(selected.title)}
             </p>
           </div>
           <button
             type="button"
-            className="shrink-0 text-xs text-primary hover:underline"
+            className="shrink-0 text-xs text-primary-ink hover:underline"
             onClick={() => onSelect("")}
           >
             Clear
@@ -176,7 +176,7 @@ export function DesignPicker({
           {hasFilters && (
             <button
               type="button"
-              className="text-xs text-primary hover:underline"
+              className="text-xs text-primary-ink hover:underline"
               onClick={clearFilters}
             >
               Clear design filters
@@ -222,7 +222,7 @@ export function DesignPicker({
                     <span
                       className={
                         active
-                          ? "mt-0.5 text-xs text-primary"
+                          ? "mt-0.5 text-xs text-primary-ink"
                           : "mt-0.5 text-xs text-muted-foreground"
                       }
                     >

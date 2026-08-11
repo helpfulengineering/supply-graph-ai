@@ -47,7 +47,7 @@ function FileRow({ okhId, file, selected, onPreview }: FileRowProps) {
           <button
             type="button"
             onClick={() => onPreview(file)}
-            className="rounded bg-card px-2 py-0.5 text-xs font-medium text-primary shadow-sm ring-1 ring-ring hover:ring-ring"
+            className="rounded bg-card px-2 py-0.5 text-xs font-medium text-primary-ink shadow-sm ring-1 ring-ring hover:ring-ring"
           >
             Preview
           </button>
@@ -55,7 +55,7 @@ function FileRow({ okhId, file, selected, onPreview }: FileRowProps) {
         <a
           href={href}
           download
-          className="rounded bg-card px-2 py-0.5 text-xs font-medium text-muted-foreground shadow-sm ring-1 ring-ring hover:text-primary hover:ring-ring"
+          className="rounded bg-card px-2 py-0.5 text-xs font-medium text-muted-foreground shadow-sm ring-1 ring-ring hover:text-primary-ink hover:ring-ring"
         >
           Download
         </a>

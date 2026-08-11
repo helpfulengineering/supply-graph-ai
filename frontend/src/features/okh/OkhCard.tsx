@@ -42,7 +42,7 @@ export function OkhCard({ okh }: Props) {
         href={`/okh/${okh.id}`}
         className="flex flex-1 flex-col gap-3 p-5 no-underline"
       >
-        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors break-words">
+        <h3 className="font-semibold text-foreground group-hover:text-primary-ink transition-colors break-words">
           {title}
         </h3>
 
@@ -79,7 +79,7 @@ export function OkhCard({ okh }: Props) {
             e.stopPropagation();
             router.push(`/match?okh_id=${okh.id}`);
           }}
-          className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-primary hover:bg-accent transition-colors"
+          className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-primary-ink hover:bg-accent transition-colors"
         >
           Run Match ⚡
         </button>

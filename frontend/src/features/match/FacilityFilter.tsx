@@ -285,7 +285,7 @@ export function FacilityFilter({
           <div className="flex gap-3 text-xs">
             <button
               type="button"
-              className="text-primary hover:underline"
+              className="text-primary-ink hover:underline"
               onClick={() => onChange(visible.map((f) => f.id))}
             >
               Select all visible

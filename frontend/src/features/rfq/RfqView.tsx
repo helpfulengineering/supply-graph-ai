@@ -251,7 +251,7 @@ export function RfqView({ navState }: Props) {
               </button>
               <button
                 onClick={handleDownloadAllJson}
-                className="rounded-md border border-primary/30 bg-accent px-3 py-1.5 text-xs font-medium text-primary hover:bg-accent transition-colors"
+                className="rounded-md border border-primary/30 bg-accent px-3 py-1.5 text-xs font-medium text-primary-ink hover:bg-accent transition-colors"
               >
                 ↓ Download all (.json)
               </button>

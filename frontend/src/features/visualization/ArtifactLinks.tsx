@@ -75,7 +75,7 @@ export function ArtifactLinks({ data, solutionId }: Props) {
                 target={download ? undefined : "_blank"}
                 rel="noopener noreferrer"
                 download={download || undefined}
-                className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-primary hover:bg-accent transition-colors"
+                className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-primary-ink hover:bg-accent transition-colors"
               >
                 {download ? "Download" : "Open"}
               </a>

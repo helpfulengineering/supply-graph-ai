@@ -112,7 +112,7 @@ export function CreateJsonRecordPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href={listHref} className="hover:text-primary">
+        <Link href={listHref} className="hover:text-primary-ink">
           {listLabel}
         </Link>
         <span aria-hidden="true">›</span>

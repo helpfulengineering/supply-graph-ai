@@ -39,7 +39,7 @@ export function ReleasesStrip({ okhId }: { okhId: string }) {
           <li key={`${p.package_name}@${p.version}`}>
             <Link
               href={packageDetailPath(p.package_name, p.version)}
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-primary-ink hover:underline"
             >
               {p.package_name}
               <span className="ml-2 font-mono text-xs text-muted-foreground">

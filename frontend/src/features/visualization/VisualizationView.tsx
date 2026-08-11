@@ -64,7 +64,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
       <div>
         <button
           onClick={() => router.back()}
-          className="mb-2 text-sm text-muted-foreground hover:text-primary"
+          className="mb-2 text-sm text-muted-foreground hover:text-primary-ink"
         >
           ← Back
         </button>
@@ -109,7 +109,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
                 <ol className="space-y-2">
                   {sequence.map((stage) => (
                     <li key={stage.index} className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-primary">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-primary-ink">
                         {stage.index}
                       </span>
                       <span className="text-sm text-foreground">
