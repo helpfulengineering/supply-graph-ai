@@ -317,7 +317,14 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     className="truncate"
                     style={
                       swatch
-                        ? { fontFamily: swatch.fontSans, color: swatch.ink }
+                        ? {
+                            fontFamily: swatch.fontSans,
+                            color: swatch.ink,
+                            // Raw accent here, not ink: a shadow is decoration
+                            // and carries no contrast requirement, so it can
+                            // use the undiluted colour the ink had to temper.
+                            textShadow: `0 0 10px color-mix(in srgb, ${swatch.accent} 45%, transparent)`,
+                          }
                         : undefined
                     }
                   >
@@ -351,9 +358,6 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           >
             <Link2 aria-hidden="true" className="h-4 w-4 shrink-0" />
             {copied ? "Link copied" : "Copy link with this look"}
-            <span className="ml-auto text-xs font-normal text-muted-foreground">
-              theme + mode in the URL
-            </span>
           </button>
         </fieldset>
 
