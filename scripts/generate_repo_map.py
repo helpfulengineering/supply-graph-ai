@@ -2,13 +2,39 @@
 """
 Generate repository maps in both Aider and Sourcegraph styles.
 Combines both approaches into a single unified script.
+
+The output is committed as .repo-map.md and gated by `make repo-map-check`, so
+it must depend only on tracked repository content — never on where the repo was
+checked out or by whom. --check exits non-zero when the committed map has
+drifted, which is how the gate keeps the map from separating quietly.
 """
 
 import argparse
 import ast
 import subprocess
+import tomllib
 from pathlib import Path
 from typing import Dict, List
+
+
+def repo_identity(repo_path: Path) -> str:
+    """Name the repository from tracked content, not from the checkout path.
+
+    The directory name varies per clone (worktrees, forks, CI runners), and
+    baking it into a committed generated file makes the map unreproducible: the
+    author commits one name and CI regenerates another, failing the drift gate
+    for everyone. pyproject.toml is tracked, so every checkout agrees on it.
+    """
+    pyproject = repo_path / "pyproject.toml"
+    try:
+        with open(pyproject, "rb") as f:
+            name = tomllib.load(f)["project"]["name"]
+        if isinstance(name, str) and name:
+            return name
+    except (OSError, tomllib.TOMLDecodeError, KeyError, TypeError):
+        pass
+    # --target may point at a tree that is not a Python project at all.
+    return repo_path.name
 
 
 def get_git_files(repo_path: Path) -> List[Path]:
@@ -132,7 +158,7 @@ def generate_aider_map(repo_path: Path) -> str:
     output = ["=" * 80]
     output.append("REPOSITORY MAP (Aider Style)")
     output.append("=" * 80)
-    output.append(f"Repository: {repo_path.name}")
+    output.append(f"Repository: {repo_identity(repo_path)}")
     output.append("")
 
     # Get files
@@ -431,6 +457,11 @@ def main():
         default=".repo-map.md",
         help="Output filename (default: .repo-map.md)",
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="fail if the committed map has drifted (does not write)",
+    )
 
     args = parser.parse_args()
 
@@ -447,6 +478,17 @@ def main():
     if not target_path.is_dir():
         print(f"Error: Target path is not a directory: {target_path}")
         return 1
+
+    if args.check:
+        map_content = generate_combined_map(target_path, output_path)
+        current = (
+            output_file.read_text(encoding="utf-8") if output_file.exists() else ""
+        )
+        if current != map_content:
+            print(f"DRIFT: {args.filename} is stale — run make repo-map")
+            return 1
+        print(f"OK: {args.filename} matches the tracked sources")
+        return 0
 
     # Ensure output directory exists
     output_path.mkdir(parents=True, exist_ok=True)

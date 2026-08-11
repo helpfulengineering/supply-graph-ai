@@ -45,10 +45,10 @@ used_by = ["make ready (env-template-check)", "ci: quality"]
 
 [scripts.generate_repo_map]
 category = "generate"
-summary = "Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation."
-run = "uv run python scripts/generate_repo_map.py"
+summary = "Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation; --check gates staleness."
+run = "uv run python scripts/generate_repo_map.py [--check]"
 mutates = true
-used_by = ["make format", "ci: quality"]
+used_by = ["make format", "make ready (repo-map-check)", "ci: quality"]
 
 [scripts.dump_api_routes]
 category = "generate"
