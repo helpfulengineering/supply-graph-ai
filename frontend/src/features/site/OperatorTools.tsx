@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { PANEL, SCROLL_LIST } from "../../components/ui/surface";
 import { CARD_TITLE } from "../../components/ui/typography";
 import { FIELD_SM } from "../../components/ui/field";
@@ -14,8 +14,10 @@ import {
   operatorToken,
 } from "../../lib/site/stack";
 import { useSiteQuery } from "../../lib/site/useSiteQuery";
+import { summarize } from "../../lib/site/summary";
+import { PANEL_INSET } from "../../components/ui/surface";
 
-interface ActivityFeedProps {
+interface OperatorToolsProps {
   email: string | null;
   isOperator: boolean;
   /** A purge landed: the operator panel's total is now wrong. */
@@ -25,21 +27,34 @@ interface ActivityFeedProps {
 const DEFAULT_KEEP_DAYS = 30;
 
 /**
- * The telemetry itself: what was tracked, on which page, by whom.
+ * Operator Tools — the telemetry, read as the questions an operator opens this
+ * page with rather than as the log it is stored in.
  *
- * Masked for a signed-in visitor, unmasked with session ids for an operator,
- * on the same one-component-two-tiers rule as the directory — the row's own
- * `masked` flag gates the columns and the purge control, so a fallback to the
+ * FRAMING, AND WHY IT CHANGES THE CONTENT. A reverse-chronological feed is a
+ * faithful rendering of the table and a poor answer to anything: "what is this
+ * instance for", "is it working", "what should I do next" are all counting
+ * questions, and a list sorted by time answers none of them. So the panel
+ * leads with the answers and demotes the feed to the evidence underneath.
+ *
+ * The section that justifies the framing is UNMET DEMAND: designs people ran a
+ * match against that came back with nothing. Every other figure here reports
+ * what the instance did; that one reports what it could not do, and names the
+ * gap in the facility network an operator can actually go and fill. It is also
+ * the one thing page views structurally cannot show — a match that finds
+ * nothing renders an ordinary page and looks like success in traffic.
+ *
+ * Masked for a signed-in visitor, unmasked for an operator, on the same
+ * one-component-two-tiers rule as the directory: the row's own `masked` flag
+ * gates the columns, the outcome figures, and the purge, so a fallback to the
  * self-service read cannot render an operator affordance.
  *
- * PURGE IS HERE RATHER THAN IN A SETTINGS DRAWER because retention is the
- * thing an operator actually wants after reading a feed of what they collected
- * — and a site layer whose only advertised power over its own telemetry was
- * "collect more" would be an odd thing to hand someone. It is bounded by days
- * kept rather than a "delete all" button: the useful operation is a retention
- * window, and the destructive one is a slip.
+ * RETENTION IS HERE rather than in a settings drawer, because deciding how
+ * long to keep this is part of reading it — and a layer whose only advertised
+ * power over its own telemetry was "collect more" would be an odd thing to
+ * hand someone. Bounded by days kept rather than a "delete all" button: the
+ * useful operation is a retention window, and the destructive one is a slip.
  */
-export function ActivityFeed({ email, isOperator, onEventsChanged }: ActivityFeedProps) {
+export function OperatorTools({ email, isOperator, onEventsChanged }: OperatorToolsProps) {
   const headingId = useId();
   const keepId = useId();
   const events = useSiteQuery(
@@ -85,12 +100,14 @@ export function ActivityFeed({ email, isOperator, onEventsChanged }: ActivityFee
   }
 
   const rows = events.data ?? [];
+  const summary = useMemo(() => summarize(rows), [rows]);
+  const outcomesVisible = rows.some((row) => !row.masked);
 
   return (
     <section className={PANEL} aria-labelledby={headingId}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id={headingId} className={CARD_TITLE}>
-          Activity
+          Operator Tools
         </h2>
         <Badge variant={isOperator ? "green" : "default"}>
           {isOperator ? "unmasked" : "masked"}
@@ -98,13 +115,13 @@ export function ActivityFeed({ email, isOperator, onEventsChanged }: ActivityFee
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
         {isOperator
-          ? "The 200 most recent telemetry events, with the address and session behind each."
-          : "The 200 most recent telemetry events. Addresses are masked, and sessions are not returned."}
+          ? "What this instance is being used for, drawn from the 200 most recent events — with the address, session, and outcome behind each."
+          : "What this instance is being used for, drawn from the 200 most recent events. Addresses are masked, and sessions and outcomes are not returned."}
       </p>
 
       {events.loading && rows.length === 0 && (
         <p className="mt-4 text-sm text-muted-foreground" role="status">
-          Loading activity…
+          Loading…
         </p>
       )}
       {events.error && (
@@ -119,7 +136,58 @@ export function ActivityFeed({ email, isOperator, onEventsChanged }: ActivityFee
       )}
 
       {rows.length > 0 && (
-        <ul className={`${SCROLL_LIST} mt-4`}>
+        <div className={`${PANEL_INSET} mt-3`}>
+          <dl className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
+            <div>
+              <dt className="text-muted-foreground">Events</dt>
+              <dd className="mt-0.5 font-mono text-foreground">
+                {summary.events
+                  .map((e) => `${e.label} ${e.count}`)
+                  .join("  ·  ") || "—"}
+              </dd>
+            </div>
+            {summary.pages.length > 0 && (
+              <div className="min-w-0">
+                <dt className="text-muted-foreground">Busiest pages</dt>
+                <dd className="mt-0.5 truncate font-mono text-foreground">
+                  {summary.pages.map((p) => `${p.label} ${p.count}`).join("  ·  ")}
+                </dd>
+              </div>
+            )}
+            {/*
+              Outcomes need the props column, which only the operator read
+              returns — so this is gated on the rows themselves, like every
+              other unmasked affordance here. Rendered on masked data it would
+              say "0 of 3", and that zero would mean "cannot see" while
+              reading as "none failed": a number that lies is worse than one
+              that is absent.
+            */}
+            {outcomesVisible && summary.unmetDemand.length > 0 && (
+              <div className="min-w-0 basis-full">
+                <dt className="text-muted-foreground">
+                  Unmet demand — matched here, nothing could make it
+                </dt>
+                <dd className="mt-0.5 truncate font-mono text-warning-ink">
+                  {summary.unmetDemand
+                    .map((d) => `${d.label}${d.count > 1 ? ` ×${d.count}` : ""}`)
+                    .join("  ·  ")}
+                </dd>
+              </div>
+            )}
+            {outcomesVisible && summary.matchRuns > 0 && (
+              <div>
+                <dt className="text-muted-foreground">Matches returning nothing</dt>
+                <dd className="mt-0.5 font-mono text-foreground">
+                  {summary.emptyMatchRuns} of {summary.matchRuns}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
+
+      {rows.length > 0 && (
+        <ul className={`${SCROLL_LIST} mt-3`}>
           {rows.map((entry, i) => (
             <li
               // Events carry no id of their own, and a busy site can write two

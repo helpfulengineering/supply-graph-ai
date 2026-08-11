@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ActivityFeed } from "./ActivityFeed";
+import { OperatorTools } from "./OperatorTools";
 
 const calls = {
   adminEvents: vi.fn(),
@@ -21,6 +21,7 @@ function event(overrides: Record<string, unknown> = {}) {
     page: "/match",
     sessionId: "0f8e7d6c-aaaa-bbbb",
     visitor: "ada@example.org",
+    props: null,
     masked: false,
     ...overrides,
   };
@@ -42,7 +43,7 @@ vi.mock("../../lib/site/stack", () => ({
   },
 }));
 
-describe("ActivityFeed", () => {
+describe("OperatorTools", () => {
   beforeEach(() => {
     Object.values(calls).forEach((c) => c.mockClear());
     responses.admin = { ok: true, data: [event()] };
@@ -50,7 +51,7 @@ describe("ActivityFeed", () => {
   });
 
   it("shows a signed-in visitor a masked feed with no retention control", async () => {
-    render(<ActivityFeed email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />);
+    render(<OperatorTools email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />);
 
     await waitFor(() => expect(calls.eventsMasked).toHaveBeenCalledWith("ada@example.org"));
     expect(await screen.findByText("a***@e***", { exact: false })).toBeInTheDocument();
@@ -58,7 +59,7 @@ describe("ActivityFeed", () => {
   });
 
   it("shows an operator the address and session behind each event", async () => {
-    render(<ActivityFeed email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
 
     await waitFor(() => expect(calls.adminEvents).toHaveBeenCalledWith("held-token"));
     expect(await screen.findByText(/ada@example\.org/)).toBeInTheDocument();
@@ -68,7 +69,7 @@ describe("ActivityFeed", () => {
   });
 
   it("reads nothing for a visitor who has neither signed in nor unlocked", async () => {
-    render(<ActivityFeed email={null} isOperator={false} onEventsChanged={vi.fn()} />);
+    render(<OperatorTools email={null} isOperator={false} onEventsChanged={vi.fn()} />);
 
     await screen.findByText("No telemetry events recorded yet.");
     expect(calls.eventsMasked).not.toHaveBeenCalled();
@@ -79,7 +80,7 @@ describe("ActivityFeed", () => {
     const user = userEvent.setup();
     const onEventsChanged = vi.fn();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<ActivityFeed email={null} isOperator onEventsChanged={onEventsChanged} />);
+    render(<OperatorTools email={null} isOperator onEventsChanged={onEventsChanged} />);
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
@@ -95,7 +96,7 @@ describe("ActivityFeed", () => {
     const user = userEvent.setup();
     responses.purge = { ok: true, data: 1 };
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<ActivityFeed email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
@@ -106,7 +107,7 @@ describe("ActivityFeed", () => {
   it("does not purge when the confirmation is declined", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    render(<ActivityFeed email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
@@ -117,7 +118,7 @@ describe("ActivityFeed", () => {
   it("honours a changed retention window", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<ActivityFeed email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
 
     const days = await screen.findByLabelText(/delete events older than/i);
     await user.clear(days);
@@ -131,7 +132,7 @@ describe("ActivityFeed", () => {
   it("refuses a retention window that is not a number of days", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<ActivityFeed email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
 
     const days = await screen.findByLabelText(/delete events older than/i);
     await user.clear(days);
@@ -142,9 +143,62 @@ describe("ActivityFeed", () => {
     confirm.mockRestore();
   });
 
+  it("names the designs this network could not make", async () => {
+    responses.admin = {
+      ok: true,
+      data: [
+        event({ event: "match_run", props: { design: "okh-pump", solutions: 0 } }),
+        event({ event: "match_run", props: { design: "okh-pump", solutions: 0 } }),
+        event({ event: "match_run", props: { design: "okh-bracket", solutions: 3 } }),
+      ],
+    };
+    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+
+    expect(await screen.findByText(/Unmet demand/)).toBeInTheDocument();
+    expect(screen.getByText(/okh-pump ×2/)).toBeInTheDocument();
+    // A run that found something is not a gap.
+    expect(screen.queryByText(/okh-bracket/)).not.toBeInTheDocument();
+    expect(screen.getByText("2 of 3")).toBeInTheDocument();
+  });
+
+  it("withholds outcome figures from the masked tier rather than showing zeros", async () => {
+    // The masked read returns no props, so every outcome would compute to
+    // zero — "0 of 3" would read as "none failed" when it means "cannot see".
+    responses.masked = {
+      ok: true,
+      data: [
+        event({ event: "match_run", visitor: "a***@e***", sessionId: null, props: null, masked: true }),
+      ],
+    };
+    render(
+      <OperatorTools email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />,
+    );
+
+    // The event tally still renders — counting names needs no props. It is
+    // only the outcome figures that must stay absent.
+    expect((await screen.findAllByText(/match_run/)).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Unmet demand/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Matches returning nothing/)).not.toBeInTheDocument();
+  });
+
+  it("leads with what the instance is used for", async () => {
+    responses.admin = {
+      ok: true,
+      data: [
+        event({ event: "page_view", page: "/match" }),
+        event({ event: "page_view", page: "/match" }),
+        event({ event: "page_view", page: "/okh" }),
+      ],
+    };
+    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+
+    expect(await screen.findByText(/page_view 3/)).toBeInTheDocument();
+    expect(screen.getByText(/\/match 2/)).toBeInTheDocument();
+  });
+
   it("renders a failed read instead of an empty feed", async () => {
     responses.admin = { ok: false, error: "Could not reach the site layer." } as never;
-    render(<ActivityFeed email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not reach");
   });

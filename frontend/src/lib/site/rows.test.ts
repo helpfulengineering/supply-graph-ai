@@ -100,6 +100,27 @@ describe("activity mappers", () => {
     expect(entry.visitor).toBe("ada@example.org");
   });
 
+  it("carries the props blob on the operator read only", () => {
+    // ohmgr_admin_events returns props; ohmgr_events_masked does not select
+    // it at all, so outcomes are an operator-tier fact.
+    const [operator] = toOperatorActivity([
+      eventRow({ event: "match_run", props: { design: "okh-pump", solutions: 0 } }),
+    ]);
+    expect(operator.props).toEqual({ design: "okh-pump", solutions: 0 });
+
+    const [masked] = toMaskedActivity([
+      { ts: "2026-08-11T09:00:00.000Z", event: "match_run", page: "/match", visitor_masked: "a***@e***" },
+    ]);
+    expect(masked.props).toBeNull();
+  });
+
+  it("reads a missing props column as null rather than an empty object", () => {
+    // null and {} mean different things downstream: "cannot see" versus "saw
+    // it, there was nothing in it".
+    const [entry] = toOperatorActivity([eventRow({ props: undefined })]);
+    expect(entry.props).toBeNull();
+  });
+
   it("renders an unattributed event rather than dropping it", () => {
     const [entry] = toOperatorActivity([eventRow({ visitor_email: null, page: null })]);
     expect(entry.event).toBe("page_view");

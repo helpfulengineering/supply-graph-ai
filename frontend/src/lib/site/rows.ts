@@ -31,6 +31,13 @@ function opt(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
 }
 
+/** A props blob, or null when absent — never `{}`, which reads as "empty". */
+function props(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
 function rows(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
@@ -111,6 +118,15 @@ export interface ActivityEntry {
   sessionId: string | null;
   /** Raw address for an operator, `f***@d***` otherwise, "" if unattributed. */
   visitor: string;
+  /**
+   * The event's own payload — counts and public ids, per events.ts.
+   *
+   * Operator-only, and null rather than `{}` when absent: the masked read does
+   * not select props at all, and a row written before an event carried an
+   * outcome has none. A summary that read a missing payload as a zero would
+   * report failures that never happened.
+   */
+  props: Record<string, unknown> | null;
   masked: boolean;
 }
 
@@ -121,6 +137,7 @@ export function toMaskedActivity(value: unknown): ActivityEntry[] {
     page: opt(field(row, "page")),
     sessionId: null,
     visitor: str(field(row, "visitor_masked")),
+    props: null,
     masked: true,
   }));
 }
@@ -132,6 +149,7 @@ export function toOperatorActivity(value: unknown): ActivityEntry[] {
     page: opt(field(row, "page")),
     sessionId: opt(field(row, "session_id")),
     visitor: str(field(row, "visitor_email")),
+    props: props(field(row, "props")),
     masked: false,
   }));
 }

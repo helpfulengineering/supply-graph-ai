@@ -10,6 +10,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchAllOkhList } from "../../api/ohm/okh";
 import { fetchNetworkSpaces } from "../../api/ohm/network";
 import { runMatch } from "../../api/ohm/match";
+import { track } from "../../lib/site/stack";
+import { EVENTS, type MatchRunProps } from "../../lib/site/events";
 import { ApiError } from "../../api/ohm/client";
 import { solutionSelectionKey, toMatchView } from "./matchViewModel";
 import {
@@ -152,7 +154,21 @@ export function MatchView({
           : buildMatchRequest(id, m, undefined, ids, scope),
       );
     },
-    onSuccess: () => setSelectedSolutionKeys([]),
+    onSuccess: (raw, variables) => {
+      setSelectedSolutionKeys([]);
+      // The one outcome a page view cannot describe. A run that returns
+      // nothing looks identical to a successful one in /match traffic, and
+      // "this design never matches anything here" is the finding an operator
+      // is actually looking for. Counted through the view model rather than
+      // the raw envelope, so the number recorded is the number shown. Ids
+      // only, never manifest contents — see events.ts.
+      track(EVENTS.matchRun, {
+        design: inlineManifest ? "inline" : variables.id,
+        solutions: toMatchView(raw).totalSolutions,
+        mode: variables.m,
+        facilities: variables.ids.length,
+      } satisfies MatchRunProps);
+    },
   });
   const rawView = useMemo(
     () => (mutation.data ? toMatchView(mutation.data) : null),

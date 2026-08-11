@@ -228,7 +228,9 @@ describe("MissionControl", () => {
     expect(await screen.findByLabelText("Operator token")).toBeInTheDocument();
     // But the data surfaces stay closed until one of the doors opens.
     expect(screen.queryByRole("region", { name: /visitors/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: /activity/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: /operator tools/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("gives a signed-in visitor the masked directory and feed", async () => {
@@ -259,7 +261,7 @@ describe("MissionControl", () => {
     expect(await within(visitors).findByText("ada@example.org")).toBeInTheDocument();
     expect(within(visitors).getByRole("button", { name: "Delete" })).toBeInTheDocument();
     expect(
-      within(panel("activity")).getByRole("button", { name: "Purge" }),
+      within(panel("operator tools")).getByRole("button", { name: "Purge" }),
     ).toBeInTheDocument();
   });
 
@@ -286,7 +288,7 @@ describe("MissionControl", () => {
     await user.click(screen.getByRole("button", { name: "Unlock" }));
     expect(await screen.findByText("4")).toBeInTheDocument();
 
-    await user.click(within(panel("activity")).getByRole("button", { name: "Purge" }));
+    await user.click(within(panel("operator tools")).getByRole("button", { name: "Purge" }));
 
     // The count lives in a different panel from the control that invalidates
     // it; without the signal between them the page states 4 and 0 at once.

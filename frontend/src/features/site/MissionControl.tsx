@@ -12,7 +12,7 @@ import { Gate } from "./Gate";
 import { MyRecord } from "./MyRecord";
 import { OperatorPanel } from "./OperatorPanel";
 import { VisitorDirectory } from "./VisitorDirectory";
-import { ActivityFeed } from "./ActivityFeed";
+import { OperatorTools } from "./OperatorTools";
 
 /**
  * Mission Control — the site layer's own surface: telemetry, visitor records,
@@ -79,9 +79,16 @@ export function MissionControl() {
 
   return (
     <div className="space-y-6">
+      {/*
+        The crumb repeats the nav entry's three nouns rather than inventing its
+        own. nav.ts calls this group "Operator" and describes the page as
+        "telemetry, visitor records, and instance administration"; a hero that
+        said something else would make the drawer and the page disagree about
+        what the reader just opened.
+      */}
       <PageHero
         title="Mission Control"
-        crumb="telemetry · visitors · tiered access"
+        crumb="telemetry · visitor records · administration"
       />
 
       {gateOpen && copy && (
@@ -138,7 +145,7 @@ export function MissionControl() {
             isOperator={isOperator}
             onVisitorChanged={() => setChanged((n) => n + 1)}
           />
-          <ActivityFeed
+          <OperatorTools
             email={visitor?.email ?? null}
             isOperator={isOperator}
             onEventsChanged={() => setPurged((n) => n + 1)}

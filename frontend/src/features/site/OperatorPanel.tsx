@@ -68,7 +68,12 @@ export function OperatorPanel({
     <section className={PANEL} aria-labelledby={`${fieldId}-heading`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id={`${fieldId}-heading`} className={CARD_TITLE}>
-          Operator{" "}
+          {/*
+            "Operator access", not "Operator": the panel below is Operator
+            Tools, and two headings reading "Operator" on one page would make
+            the reader work out which is the door and which is the room.
+          */}
+          Operator access{" "}
           <Badge variant={isOperator ? "green" : "default"} className="ml-1 align-middle">
             {isOperator ? "verified" : "locked"}
           </Badge>

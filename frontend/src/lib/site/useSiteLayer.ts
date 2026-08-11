@@ -7,7 +7,6 @@ import {
   clearOperatorToken,
   isOperator,
   setOperatorToken,
-  track,
   visitor,
   type Visitor,
 } from "./stack";
@@ -62,13 +61,11 @@ export function useSiteLayer(): SiteLayerState {
   });
   const [reads, setReads] = useState(0);
 
-  // Telemetry is per mount, not per read: signing in at the gate refreshes the
-  // state below, and a second page_view for the same visit would be a lie.
-  useEffect(() => {
-    if (!siteConfig.enabled) return;
-    track("page_view");
-  }, []);
-
+  // No page_view here. This hook used to record one on mount, which made the
+  // count a count of *mounts of this hook* — once per hard load from the nav
+  // drawer, twice on Mission Control, and never on a client-side navigation.
+  // Page views belong to the router, not to a hook two components happen to
+  // call; see RouteTelemetry.
   useEffect(() => {
     if (!siteConfig.enabled) return;
     let cancelled = false;
