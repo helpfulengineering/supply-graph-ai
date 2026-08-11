@@ -3,7 +3,7 @@
  *
  * OHM is software you run yourself; the hosted instance is a convenience, not
  * the product. So the whole site layer (visitor gate, telemetry, whitelabel,
- * Mission Control) is a per-instance optionality that defaults to OFF, in the
+ * Operator Tools) is a per-instance optionality that defaults to OFF, in the
  * same idiom as OHM_SECURITY_MODE: a posture selected by environment variable,
  * read through config, never hard-coded.
  *

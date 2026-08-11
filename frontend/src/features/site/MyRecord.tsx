@@ -1,8 +1,9 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { PANEL } from "../../components/ui/surface";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { CAPTION, CARD_TITLE } from "../../components/ui/typography";
 import { FIELD, LABEL } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -102,10 +103,10 @@ export function MyRecord({ visitor, onErased, onSignOut }: MyRecordProps) {
           </Badge>
         )}
       </h2>
-      <p className="mt-1 font-mono text-xs text-muted-foreground">{visitor.email}</p>
+      <p className={cn("mt-1 font-mono", CAPTION)}>{visitor.email}</p>
 
       {seen && (
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className={cn("mt-2", CAPTION)}>
           First seen <time title={instant(seen.firstSeen)}>{since(seen.firstSeen)}</time>
           {" · "}last seen <time title={instant(seen.lastSeen)}>{since(seen.lastSeen)}</time>
         </p>
@@ -157,7 +158,7 @@ export function MyRecord({ visitor, onErased, onSignOut }: MyRecordProps) {
           Erase my record
         </Button>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p className={cn("mt-2", CAPTION)}>
         Signing out forgets this record on this device. Erasing deletes the row
         and every telemetry event attributed to it.
       </p>

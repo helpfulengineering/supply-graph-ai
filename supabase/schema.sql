@@ -17,7 +17,7 @@
 --   - anon key in the browser can only call whitelisted RPCs
 --   - writes go through SECURITY DEFINER functions with validation + caps
 --   - visitor PII is NEVER readable with the anon key
---   - operator reads/writes (Mission Control) require the OPERATOR TOKEN —
+--   - operator reads/writes (Operator Tools) require the OPERATOR TOKEN —
 --     a secret set once below; the UI asks for it and keeps it in
 --     sessionStorage only
 --   - is_admin can only be granted here in the SQL editor, never from a client

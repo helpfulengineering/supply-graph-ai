@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Result } from "./stack";
 
 /**
- * The read half of every Mission Control panel: run a `Result`-returning call,
+ * The read half of every Operator Tools panel: run a `Result`-returning call,
  * expose loading / data / error, and offer a reload for after a mutation.
  *
  * DELIBERATELY NOT REACT QUERY, though the app uses it everywhere else. The

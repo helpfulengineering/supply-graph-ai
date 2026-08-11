@@ -1,11 +1,11 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MissionControl } from "./MissionControl";
+import { OperatorToolsView } from "./OperatorToolsView";
 import type { GateCopy, Visitor } from "../../lib/site/stack";
 
 /**
- * The site layer is off by default, and Mission Control only renders when it
+ * The site layer is off by default, and Operator Tools only renders when it
  * is on — so these tests pin the config to the enabled posture and drive the
  * client through mocks. What they are actually asserting is the entry rule:
  * arriving here without a visitor record puts the gate in front of you, and
@@ -27,7 +27,7 @@ const state: {
   visitor: null,
   copy: {
     enabled: true,
-    title: "Sign in to Mission Control",
+    title: "Sign in to Operator Tools",
     body: "This site keeps a record of who visited.",
     fine: "Grants nothing in OHM.",
   },
@@ -147,7 +147,7 @@ function panel(name: string): HTMLElement {
   return screen.getByRole("region", { name: new RegExp(name, "i") });
 }
 
-describe("MissionControl", () => {
+describe("OperatorToolsView", () => {
   beforeEach(() => {
     state.visitor = null;
     state.copy = { ...state.copy, enabled: true };
@@ -158,15 +158,15 @@ describe("MissionControl", () => {
   });
 
   it("gates entry when no visitor record exists on this device", async () => {
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
     expect(
-      await screen.findByRole("dialog", { name: "Sign in to Mission Control" }),
+      await screen.findByRole("dialog", { name: "Sign in to Operator Tools" }),
     ).toBeInTheDocument();
   });
 
   it("lets a returning visitor straight through to their record", async () => {
     state.visitor = { name: "Ada Lovelace", email: "ada@example.org" };
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     expect(await screen.findByText("ada@example.org")).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -174,7 +174,7 @@ describe("MissionControl", () => {
 
   it("respects an operator who turned the gate off", async () => {
     state.copy = { ...state.copy, enabled: false };
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     expect(await screen.findByText("Not signed in")).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -184,7 +184,7 @@ describe("MissionControl", () => {
 
   it("shows the record once the gate is completed", async () => {
     const user = userEvent.setup();
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     await screen.findByRole("dialog");
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
@@ -197,7 +197,7 @@ describe("MissionControl", () => {
 
   it("dismissal leaves a way back in rather than a dead end", async () => {
     const user = userEvent.setup();
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     await screen.findByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Not now" }));
@@ -210,7 +210,7 @@ describe("MissionControl", () => {
   it("signing out forgets the record without re-gating the page", async () => {
     state.visitor = { name: "Ada Lovelace", email: "ada@example.org" };
     const user = userEvent.setup();
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     await user.click(await screen.findByRole("button", { name: "Sign out" }));
 
@@ -221,7 +221,7 @@ describe("MissionControl", () => {
 
   it("offers the operator door to someone who has not signed in", async () => {
     state.copy = { ...state.copy, enabled: false };
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     // Unlocking must not require a visitor record: the two tiers are separate
     // doors, and an operator on a fresh device goes straight to the token.
@@ -229,13 +229,13 @@ describe("MissionControl", () => {
     // But the data surfaces stay closed until one of the doors opens.
     expect(screen.queryByRole("region", { name: /visitors/i })).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("region", { name: /operator tools/i }),
+      screen.queryByRole("region", { name: /telemetry/i }),
     ).not.toBeInTheDocument();
   });
 
   it("gives a signed-in visitor the masked directory and feed", async () => {
     state.visitor = { name: "Ada Lovelace", email: "ada@example.org" };
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     const visitors = await screen.findByRole("region", { name: /visitors/i });
     expect(within(visitors).getByText("masked")).toBeInTheDocument();
@@ -251,7 +251,7 @@ describe("MissionControl", () => {
   it("unlocking with the token swaps the masked reads for unmasked ones", async () => {
     const user = userEvent.setup();
     state.visitor = { name: "Ada Lovelace", email: "ada@example.org" };
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     await user.type(await screen.findByLabelText("Operator token"), TOKEN);
     await user.click(screen.getByRole("button", { name: "Unlock" }));
@@ -261,13 +261,13 @@ describe("MissionControl", () => {
     expect(await within(visitors).findByText("ada@example.org")).toBeInTheDocument();
     expect(within(visitors).getByRole("button", { name: "Delete" })).toBeInTheDocument();
     expect(
-      within(panel("operator tools")).getByRole("button", { name: "Purge" }),
+      within(panel("telemetry")).getByRole("button", { name: "Purge" }),
     ).toBeInTheDocument();
   });
 
   it("refuses a wrong token and stays locked", async () => {
     const user = userEvent.setup();
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
     state.copy = { ...state.copy, enabled: false };
 
     await user.type(await screen.findByLabelText("Operator token"), "guess");
@@ -282,13 +282,13 @@ describe("MissionControl", () => {
   it("keeps the event total honest after a purge", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     await user.type(await screen.findByLabelText("Operator token"), TOKEN);
     await user.click(screen.getByRole("button", { name: "Unlock" }));
     expect(await screen.findByText("4")).toBeInTheDocument();
 
-    await user.click(within(panel("operator tools")).getByRole("button", { name: "Purge" }));
+    await user.click(within(panel("telemetry")).getByRole("button", { name: "Purge" }));
 
     // The count lives in a different panel from the control that invalidates
     // it; without the signal between them the page states 4 and 0 at once.
@@ -299,7 +299,7 @@ describe("MissionControl", () => {
   it("locking puts the unmasked surfaces away again", async () => {
     const user = userEvent.setup();
     state.visitor = { name: "Ada Lovelace", email: "ada@example.org" };
-    render(<MissionControl />);
+    render(<OperatorToolsView />);
 
     await user.type(await screen.findByLabelText("Operator token"), TOKEN);
     await user.click(screen.getByRole("button", { name: "Unlock" }));

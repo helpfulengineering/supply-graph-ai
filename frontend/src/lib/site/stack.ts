@@ -31,7 +31,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  *    ship it at all. A static import would put it in every bundle to serve a
  *    capability that is off by default.
  *
- * WHAT IS NOT FAIL-SOFT: everything Mission Control's panels call. Fail-soft
+ * WHAT IS NOT FAIL-SOFT: everything the Operator Tools panels call. Fail-soft
  * is right for a dropped page-view because nobody asked for it and nobody is
  * waiting on it. It is wrong for a read or a mutation somebody clicked: an
  * operator who deletes a visitor and gets silence cannot tell "deleted" from
@@ -101,8 +101,8 @@ export interface GateCopy {
  */
 export const GATE_DEFAULTS: GateCopy = {
   enabled: true,
-  title: "Sign in to Mission Control",
-  body: "Mission Control shows this site's own record of who visited and what they used. Sign in so your entry is yours: you can rename it, or erase it and everything attributed to it.",
+  title: "Sign in to Operator Tools",
+  body: "Operator Tools shows this site's own record of who visited and what they used. Sign in so your entry is yours: you can rename it, or erase it and everything attributed to it.",
   fine: "Site sign-in is unverified and stays on this device. It grants nothing in OHM — creating designs, editing facilities, and administration all come from your OHM API session, which this does not touch.",
 };
 

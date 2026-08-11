@@ -1,8 +1,9 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useId, useMemo, useState } from "react";
 import { PANEL, SCROLL_LIST } from "../../components/ui/surface";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
 import { FIELD_SM } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -17,7 +18,7 @@ import { useSiteQuery } from "../../lib/site/useSiteQuery";
 import { summarize } from "../../lib/site/summary";
 import { PANEL_INSET } from "../../components/ui/surface";
 
-interface OperatorToolsProps {
+interface TelemetryPanelProps {
   email: string | null;
   isOperator: boolean;
   /** A purge landed: the operator panel's total is now wrong. */
@@ -27,8 +28,8 @@ interface OperatorToolsProps {
 const DEFAULT_KEEP_DAYS = 30;
 
 /**
- * Operator Tools — the telemetry, read as the questions an operator opens this
- * page with rather than as the log it is stored in.
+ * The telemetry, read as the questions an operator opens the page with rather
+ * than as the log it is stored in.
  *
  * FRAMING, AND WHY IT CHANGES THE CONTENT. A reverse-chronological feed is a
  * faithful rendering of the table and a poor answer to anything: "what is this
@@ -54,7 +55,7 @@ const DEFAULT_KEEP_DAYS = 30;
  * hand someone. Bounded by days kept rather than a "delete all" button: the
  * useful operation is a retention window, and the destructive one is a slip.
  */
-export function OperatorTools({ email, isOperator, onEventsChanged }: OperatorToolsProps) {
+export function TelemetryPanel({ email, isOperator, onEventsChanged }: TelemetryPanelProps) {
   const headingId = useId();
   const keepId = useId();
   const events = useSiteQuery(
@@ -99,7 +100,9 @@ export function OperatorTools({ email, isOperator, onEventsChanged }: OperatorTo
     }
   }
 
-  const rows = events.data ?? [];
+  // Memoised together: `events.data ?? []` builds a new array on every render,
+  // so summarising off it directly would recount the whole feed each time.
+  const rows = useMemo(() => events.data ?? [], [events.data]);
   const summary = useMemo(() => summarize(rows), [rows]);
   const outcomesVisible = rows.some((row) => !row.masked);
 
@@ -107,20 +110,20 @@ export function OperatorTools({ email, isOperator, onEventsChanged }: OperatorTo
     <section className={PANEL} aria-labelledby={headingId}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id={headingId} className={CARD_TITLE}>
-          Operator Tools
+          Telemetry
         </h2>
         <Badge variant={isOperator ? "green" : "default"}>
           {isOperator ? "unmasked" : "masked"}
         </Badge>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className={cn("mt-1", CAPTION)}>
         {isOperator
           ? "What this instance is being used for, drawn from the 200 most recent events — with the address, session, and outcome behind each."
           : "What this instance is being used for, drawn from the 200 most recent events. Addresses are masked, and sessions and outcomes are not returned."}
       </p>
 
       {events.loading && rows.length === 0 && (
-        <p className="mt-4 text-sm text-muted-foreground" role="status">
+        <p className={cn("mt-4", BODY_MUTED)} role="status">
           Loading…
         </p>
       )}
@@ -130,7 +133,7 @@ export function OperatorTools({ email, isOperator, onEventsChanged }: OperatorTo
         </p>
       )}
       {!events.loading && !events.error && rows.length === 0 && (
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className={cn("mt-4", BODY_MUTED)}>
           No telemetry events recorded yet.
         </p>
       )}
@@ -197,14 +200,14 @@ export function OperatorTools({ email, isOperator, onEventsChanged }: OperatorTo
               className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-2 py-1.5"
             >
               <span className="font-mono text-xs text-foreground">{entry.event}</span>
-              <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+              <span className={cn("min-w-0 flex-1 truncate", CAPTION)}>
                 {entry.page ?? "—"}
                 {entry.visitor && <> · {entry.visitor}</>}
                 {entry.sessionId && (
                   <> · <span className="font-mono">{entry.sessionId.slice(0, 8)}</span></>
                 )}
               </span>
-              <time className="text-xs text-muted-foreground" title={instant(entry.ts)}>
+              <time className={CAPTION} title={instant(entry.ts)}>
                 {age(entry.ts)}
               </time>
             </li>
@@ -227,7 +230,7 @@ export function OperatorTools({ email, isOperator, onEventsChanged }: OperatorTo
               onChange={(e) => setKeepDays(e.target.value)}
               className={`${FIELD_SM} w-24`}
             />
-            <span className="text-xs text-muted-foreground">days</span>
+            <span className={CAPTION}>days</span>
             <Button type="button" variant="destructive" size="sm" onClick={() => void onPurge()}>
               Purge
             </Button>

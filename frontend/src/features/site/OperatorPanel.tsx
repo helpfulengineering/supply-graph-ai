@@ -1,8 +1,9 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useId, useState, type FormEvent } from "react";
 import { PANEL } from "../../components/ui/surface";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { CAPTION, CARD_TITLE } from "../../components/ui/typography";
 import { FIELD, HINT, LABEL } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -85,7 +86,7 @@ export function OperatorPanel({
         )}
       </div>
 
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className={cn("mt-1", CAPTION)}>
         Unmasked visitor and telemetry reads require the operator token,
         verified server-side and held in this tab only. Site-layer operator
         status is not OHM admin.

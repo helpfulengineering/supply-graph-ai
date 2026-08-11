@@ -1,6 +1,6 @@
 /**
  * Row → domain mapping for the site layer's RPCs, and the tier-neutral shapes
- * Mission Control's panels render.
+ * the Operator Tools panels render.
  *
  * Two jobs, both pure, so neither needs the Supabase SDK to be tested.
  *

@@ -1,8 +1,9 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useId, useState } from "react";
 import { PANEL } from "../../components/ui/surface";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
 import { FIELD_SM } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -86,14 +87,14 @@ export function VisitorDirectory({
           {isOperator ? "unmasked" : "masked"}
         </Badge>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className={cn("mt-1", CAPTION)}>
         {isOperator
           ? "The 100 most recent visitors, with real addresses. Renaming, the admin marker, and deletion all go through the operator token."
           : "The 200 most recent visitors. Addresses are masked and user agents are never returned — only your own record is yours to read in full."}
       </p>
 
       {directory.loading && rows.length === 0 && (
-        <p className="mt-4 text-sm text-muted-foreground" role="status">
+        <p className={cn("mt-4", BODY_MUTED)} role="status">
           Loading visitors…
         </p>
       )}
@@ -109,7 +110,7 @@ export function VisitorDirectory({
       )}
 
       {!directory.loading && !directory.error && rows.length === 0 && (
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className={cn("mt-4", BODY_MUTED)}>
           No visitors recorded yet.
         </p>
       )}
@@ -140,10 +141,10 @@ export function VisitorDirectory({
                     )}
                   </p>
                 )}
-                <p className="truncate font-mono text-xs text-muted-foreground">
+                <p className={cn("truncate font-mono", CAPTION)}>
                   {entry.email}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className={CAPTION}>
                   last seen <time title={instant(entry.lastSeen)}>{since(entry.lastSeen)}</time>
                   {entry.firstSeen && (
                     <>

@@ -63,7 +63,7 @@ export function useSiteLayer(): SiteLayerState {
 
   // No page_view here. This hook used to record one on mount, which made the
   // count a count of *mounts of this hook* — once per hard load from the nav
-  // drawer, twice on Mission Control, and never on a client-side navigation.
+  // drawer, twice on the operator page, and never on a client-side navigation.
   // Page views belong to the router, not to a hook two components happen to
   // call; see RouteTelemetry.
   useEffect(() => {

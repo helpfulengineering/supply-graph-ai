@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { OperatorTools } from "./OperatorTools";
+import { TelemetryPanel } from "./TelemetryPanel";
 
 const calls = {
   adminEvents: vi.fn(),
@@ -43,7 +43,7 @@ vi.mock("../../lib/site/stack", () => ({
   },
 }));
 
-describe("OperatorTools", () => {
+describe("TelemetryPanel", () => {
   beforeEach(() => {
     Object.values(calls).forEach((c) => c.mockClear());
     responses.admin = { ok: true, data: [event()] };
@@ -51,7 +51,7 @@ describe("OperatorTools", () => {
   });
 
   it("shows a signed-in visitor a masked feed with no retention control", async () => {
-    render(<OperatorTools email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />);
 
     await waitFor(() => expect(calls.eventsMasked).toHaveBeenCalledWith("ada@example.org"));
     expect(await screen.findByText("a***@e***", { exact: false })).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe("OperatorTools", () => {
   });
 
   it("shows an operator the address and session behind each event", async () => {
-    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
 
     await waitFor(() => expect(calls.adminEvents).toHaveBeenCalledWith("held-token"));
     expect(await screen.findByText(/ada@example\.org/)).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe("OperatorTools", () => {
   });
 
   it("reads nothing for a visitor who has neither signed in nor unlocked", async () => {
-    render(<OperatorTools email={null} isOperator={false} onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator={false} onEventsChanged={vi.fn()} />);
 
     await screen.findByText("No telemetry events recorded yet.");
     expect(calls.eventsMasked).not.toHaveBeenCalled();
@@ -80,7 +80,7 @@ describe("OperatorTools", () => {
     const user = userEvent.setup();
     const onEventsChanged = vi.fn();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<OperatorTools email={null} isOperator onEventsChanged={onEventsChanged} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={onEventsChanged} />);
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
@@ -96,7 +96,7 @@ describe("OperatorTools", () => {
     const user = userEvent.setup();
     responses.purge = { ok: true, data: 1 };
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
@@ -107,7 +107,7 @@ describe("OperatorTools", () => {
   it("does not purge when the confirmation is declined", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
 
     await user.click(await screen.findByRole("button", { name: "Purge" }));
 
@@ -118,7 +118,7 @@ describe("OperatorTools", () => {
   it("honours a changed retention window", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
 
     const days = await screen.findByLabelText(/delete events older than/i);
     await user.clear(days);
@@ -132,7 +132,7 @@ describe("OperatorTools", () => {
   it("refuses a retention window that is not a number of days", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
 
     const days = await screen.findByLabelText(/delete events older than/i);
     await user.clear(days);
@@ -152,7 +152,7 @@ describe("OperatorTools", () => {
         event({ event: "match_run", props: { design: "okh-bracket", solutions: 3 } }),
       ],
     };
-    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
 
     expect(await screen.findByText(/Unmet demand/)).toBeInTheDocument();
     expect(screen.getByText(/okh-pump ×2/)).toBeInTheDocument();
@@ -171,7 +171,7 @@ describe("OperatorTools", () => {
       ],
     };
     render(
-      <OperatorTools email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />,
+      <TelemetryPanel email="ada@example.org" isOperator={false} onEventsChanged={vi.fn()} />,
     );
 
     // The event tally still renders — counting names needs no props. It is
@@ -190,7 +190,7 @@ describe("OperatorTools", () => {
         event({ event: "page_view", page: "/okh" }),
       ],
     };
-    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
 
     expect(await screen.findByText(/page_view 3/)).toBeInTheDocument();
     expect(screen.getByText(/\/match 2/)).toBeInTheDocument();
@@ -198,7 +198,7 @@ describe("OperatorTools", () => {
 
   it("renders a failed read instead of an empty feed", async () => {
     responses.admin = { ok: false, error: "Could not reach the site layer." } as never;
-    render(<OperatorTools email={null} isOperator onEventsChanged={vi.fn()} />);
+    render(<TelemetryPanel email={null} isOperator onEventsChanged={vi.fn()} />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not reach");
   });

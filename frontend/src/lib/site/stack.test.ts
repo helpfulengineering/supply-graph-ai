@@ -130,7 +130,7 @@ describe("flush", () => {
 /**
  * The tiered calls, on the wire.
  *
- * Mission Control's panels mock this module wholesale, so nothing there
+ * The Operator Tools panels mock this module wholesale, so nothing there
  * notices if an argument is misnamed — and these are `SECURITY DEFINER`
  * functions with fixed parameter names, where `p_email` spelled `email` is not
  * a rename but an RPC that raises. Same reasoning as the telemetry contract

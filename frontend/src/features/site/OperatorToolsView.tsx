@@ -1,22 +1,28 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { PageHero } from "../../components/layout/PageHero";
 import { useSiteLayer } from "../../lib/site/useSiteLayer";
 import { siteConfig } from "../../lib/site/config";
 import { PANEL } from "../../components/ui/surface";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
 import { Button } from "../../components/ui/button";
 import { clearVisitor, gateCopy, type GateCopy } from "../../lib/site/stack";
 import { Gate } from "./Gate";
 import { MyRecord } from "./MyRecord";
 import { OperatorPanel } from "./OperatorPanel";
 import { VisitorDirectory } from "./VisitorDirectory";
-import { OperatorTools } from "./OperatorTools";
+import { TelemetryPanel } from "./TelemetryPanel";
 
 /**
- * Mission Control — the site layer's own surface: telemetry, visitor records,
- * whitelabel config.
+ * Operator Tools — the site layer's own surface: telemetry, visitor records,
+ * instance administration.
+ *
+ * Named for the role rather than the room. It was "Mission Control", which
+ * described a place and left a reader guessing what they would find in it;
+ * nav.ts groups it under "Operator", and a page whose title, group, and route
+ * all say the same word is one fewer thing to learn.
  *
  * It is a SITE surface and must not appear to grant application powers. The
  * ten admin panels under /settings are gated by the backend's whoami and are
@@ -40,7 +46,7 @@ import { OperatorTools } from "./OperatorTools";
  * than as access. Each panel does its own reading; this component decides only
  * which of them exist.
  */
-export function MissionControl() {
+export function OperatorToolsView() {
   // The route is gated in the server component; this hook only supplies state.
   const { visitor, isOperator, ready, refresh, unlock, lock } = useSiteLayer();
   const [copy, setCopy] = useState<GateCopy | null>(null);
@@ -81,13 +87,12 @@ export function MissionControl() {
     <div className="space-y-6">
       {/*
         The crumb repeats the nav entry's three nouns rather than inventing its
-        own. nav.ts calls this group "Operator" and describes the page as
-        "telemetry, visitor records, and instance administration"; a hero that
-        said something else would make the drawer and the page disagree about
-        what the reader just opened.
+        own: nav.ts describes this page as "telemetry, visitor records, and
+        instance administration", and a hero that said something else would
+        make the drawer and the page disagree about what the reader opened.
       */}
       <PageHero
-        title="Mission Control"
+        title="Operator Tools"
         crumb="telemetry · visitor records · administration"
       />
 
@@ -105,7 +110,7 @@ export function MissionControl() {
       {!visitor && (
         <section className={PANEL}>
           <h2 className={CARD_TITLE}>Not signed in</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className={cn("mt-1", BODY_MUTED)}>
             Sign in at the gate to see your own record. Site sign-in is separate
             from your OHM API session and grants no application permissions.
           </p>
@@ -145,7 +150,7 @@ export function MissionControl() {
             isOperator={isOperator}
             onVisitorChanged={() => setChanged((n) => n + 1)}
           />
-          <OperatorTools
+          <TelemetryPanel
             email={visitor?.email ?? null}
             isOperator={isOperator}
             onEventsChanged={() => setPurged((n) => n + 1)}
@@ -153,7 +158,7 @@ export function MissionControl() {
         </>
       )}
 
-      <p className="font-mono text-xs text-muted-foreground">
+      <p className={cn("font-mono", CAPTION)}>
         site layer connected · {new URL(siteConfig.url).host}
       </p>
     </div>

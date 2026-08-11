@@ -16,7 +16,7 @@ deployment:
 - theme and mode preferences live on the device
 - there is no visitor gate
 - no telemetry is collected or sent
-- `/mission-control` returns a real 404, and no nav entry advertises it
+- `/operator-tools` returns a real 404, and no nav entry advertises it
 - the Supabase SDK is code-split into a lazy chunk the browser never fetches
 
 "Configure Supabase" must never appear as an error or an empty panel. The
@@ -25,7 +25,7 @@ intentional.
 
 ## What the gate gates
 
-With the layer on, arriving at `/mission-control` without a visitor record on
+With the layer on, arriving at `/operator-tools` without a visitor record on
 the device raises the sign-in gate. It stands in front of **that surface only**.
 
 It never stands in front of the app. Browsing designs, matching against
@@ -34,7 +34,7 @@ a telemetry sign-in that blocked them would be the site layer reaching across
 the boundary below. `e2e/site-layer.spec.ts` asserts in *both* postures that no
 dialog blocks the dashboard.
 
-The gate is dismissible (Esc, the backdrop, "Not now"), and Mission Control
+The gate is dismissible (Esc, the backdrop, "Not now"), and Operator Tools
 keeps a sign-in button afterwards, so dismissal costs a visitor only the parts
 that are genuinely per-person — their own record.
 
@@ -51,7 +51,7 @@ This is the boundary the layer must not cross:
 | Concern | Source of truth | Governs |
 |---|---|---|
 | **Application authorization** — API keys, DIDs, capability grants, `isAdmin`, `RequireAdmin`, the ten Settings panels | Backend `whoami` (unchanged) | What you may **do** in OHM |
-| **Site layer** — visitor gate, telemetry, whitelabel, Mission Control | Optional Supabase `ohmgr_*` | Who visited the **site**, and how it looks |
+| **Site layer** — visitor gate, telemetry, whitelabel, Operator Tools | Optional Supabase `ohmgr_*` | Who visited the **site**, and how it looks |
 
 Surfaced as **`isAdmin`** (application) and **`isOperator`** (site). Never
 merged, never aliased.
@@ -72,7 +72,7 @@ Within the site layer there are two tiers, and neither leads to the other:
 | **Operator** | the token from `ohmgr_admin_secrets`, hashed and checked server-side | everything unmasked, and every mutation |
 
 Signing in never promotes you, and unlocking never requires a visitor record —
-an operator on a fresh device goes straight to the token field. Mission Control
+an operator on a fresh device goes straight to the token field. Operator Tools
 therefore offers that field at every tier rather than nesting it inside the
 signed-in branch.
 
@@ -115,6 +115,35 @@ In outline:
 
 The schema is prefixed `ohmgr_` rather than `ohm_` because the sibling
 openhardwaremonitor project owns `ohm_` in the shared database.
+
+## What is worth recording
+
+Page views come from `RouteTelemetry`, mounted once above the routed subtree
+and keyed on `usePathname`. They used to come from a mount effect in
+`useSiteLayer`, which made the count a count of *that hook's mounts*: once per
+hard load from the nav drawer, twice on the operator page, and never on a
+client-side navigation. In a client-routed app that made `page` a landing-page
+column wearing a page-view label.
+
+Beyond page views the vocabulary is deliberately small, and the rule is that an
+event must say something a path cannot. A design or facility being opened is
+already a route, so a separate event for it would be the same fact twice. What
+a path cannot express is an **outcome** — and `match_run` carries one, because
+a match that finds no facility renders an ordinary page and is indistinguishable
+from success in traffic. That is what makes "designs this network could not
+make" computable, which is the one figure on the operator page that names an
+action rather than describing the past.
+
+`props` is the outcome half of an event and was write-only until it was added
+to `ohmgr_admin_events`: `ohmgr_track` had always stored it and no read
+function ever selected it. It stays out of the masked read.
+
+**Nothing free-text ever goes in props** — no search queries, no form contents,
+no names. Public catalogue ids and counts only. These rows are attributed to a
+`visitor_email`, so a props blob carrying what someone typed would turn a usage
+counter into a record of a named person's queries, which is a different product
+with different obligations and one nobody opted into. `lib/site/events.ts`
+states the rule where the events are named.
 
 ## The telemetry wire contract
 
