@@ -278,6 +278,27 @@ describe("chrome is universal", () => {
     ).toEqual([]);
   });
 
+  it("headings take their weight and colour from the type scale too", () => {
+    // The size guard above closed one half of the hole and the other half kept
+    // drifting through it: seven card titles spelled `font-semibold
+    // text-foreground` inline, which is CARD_TITLE with the rung left off, so
+    // they inherited whatever the surrounding text happened to be. A heading
+    // that names no role is still a heading picking its own styling.
+    const inlineWeight =
+      /<h[1-6]\b[^>]*className="[^"]*\bfont-(?:medium|semibold|bold)\b/g;
+    const offenders = FILES.map((f) => ({
+      file: rel(f),
+      hits: code(f).match(inlineWeight),
+    }))
+      .filter((x) => x.hits)
+      .map((x) => `${x.file}: ${x.hits!.length}`);
+
+    expect(
+      offenders,
+      `headings styled inline (use a role from components/ui/typography):\n${offenders.join("\n")}`,
+    ).toEqual([]);
+  });
+
   it("no emoji in rendered UI", () => {
     const emoji = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
     const offenders = FILES.filter((f) => !rel(f).startsWith("test/"))

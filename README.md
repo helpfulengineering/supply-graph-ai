@@ -57,36 +57,38 @@ deciding nothing about its chrome.
 
 ![The sitemap drawer](docs/assets/ux/sitemap-drawer.png)
 
-### What the UX overhaul added
+### Frontend features
 
-- **Ten theme worlds x light/dark** — twenty palettes behind shadcn's own token
-  names, so every component re-themes without being edited. Colour exists in
-  exactly one file, and a unit test fails the build if a raw hex or a
-  hardcoded Tailwind palette shade appears anywhere else.
-- **A contrast gate, not a contrast promise** — an axe scan runs across all
-  twenty variants on every CI run, computing contrast from *runtime-resolved*
-  token values rather than numbers copied into a test. Adding a world extends
-  the matrix automatically. It caught five failing palettes the day it landed.
-- **Universal chrome** — one header, one sitemap drawer, one footer, with
-  focus trapping, `aria-current`, skip-to-content, 44px targets, and every
-  animation inside the `prefers-reduced-motion` guard.
-- **Data surfaces on tokens** — the Leaflet map, the cytoscape supply-tree
-  graph, and the ECharts distribution chart all resolve their colours from the
-  live token layer, so they follow the active world instead of carrying
-  private palettes.
+- **Ten theme worlds x light/dark.** Twenty palettes behind shadcn's token
+  names, so components re-theme without being edited. Colour is defined in one
+  file; a unit test fails the build on a raw hex or a hardcoded Tailwind shade
+  anywhere else.
+- **Contrast checked at runtime.** An axe scan covers all twenty variants in
+  CI, reading resolved token values rather than numbers copied into a test, so
+  a new world is covered without touching the matrix. Colours that a DOM
+  scanner cannot see — chart axis labels on a canvas, the theme picker's own
+  names — are corrected against their surface when they are chosen.
+- **Universal chrome.** One header, sitemap drawer, and footer, with focus
+  trapping, `aria-current`, skip-to-content, 44px targets, and animation behind
+  `prefers-reduced-motion`.
+- **Data surfaces on tokens.** The Leaflet map, the cytoscape supply-tree
+  graph, and the ECharts charts resolve their colours from the live token
+  layer instead of carrying private palettes.
+- **Built for a phone.** The map frames where the network is dense rather than
+  fitting a world that will not fit, one-finger swipes scroll the page while
+  two fingers move the map, and charts drop the axis furniture that a narrow
+  screen only crowds.
+- **Shareable state.** The active theme and mode ride in the query string, as
+  do filters, view mode, sort, grouping, and page — so a copied URL reopens
+  what the sender was looking at.
 - **A deterministic demo dataset** (`make seed-demo`) — ten designs and seven
-  facilities curated so the golden path completes, with content-derived ids so
-  deep links survive reseeding. It backs a real-API E2E lane that previously
-  skipped nearly every assertion for lack of data. An instance running it says
-  so: the **Demo data** chip in the header is derived from the records
-  themselves, not a build flag, so it appears exactly when seeded records are
-  loaded and never on a production instance.
-- **One spelling per control** — seventeen hand-styled `<select>`s and
-  sixty-four `<input>`s had drifted into six near-identical spellings with
-  inconsistent focus rings. They now share canonical classes, so every field
-  looks the same and is keyboard-visible in all twenty variants.
+  facilities covering the golden path, with content-derived ids so deep links
+  survive reseeding. The **Demo data** chip in the header is derived from the
+  records themselves rather than a build flag.
+- **One spelling per control.** Fields, panels, and heading roles come from
+  shared constants, enforced by unit tests that read the source.
 
-Verification for the whole surface: **330 unit tests** and **108 Playwright E2E
+Verification for the whole surface: **423 unit tests** and **123 Playwright E2E
 specs**, including the twenty-variant accessibility matrix.
 
 **Two independent ways to get a demo world, both optional:**

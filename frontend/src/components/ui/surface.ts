@@ -27,8 +27,28 @@
  *     <section className={cn(PANEL, "space-y-3")}>
  */
 
-/** The default section container: a card on the page background. */
-export const PANEL = "rounded-xl border border-border bg-card p-4";
+/**
+ * The default section container: a card on the page background.
+ *
+ * A step tighter on a phone. 16px of padding on every one of a column of cards
+ * is most of a 360px screen spent on nothing — the dashboard's four stat cards
+ * were three scrolls of mostly air. The desktop value is unchanged, because
+ * there the space is the layout.
+ */
+export const PANEL = "rounded-xl border border-border bg-card p-3 sm:p-4";
+
+/**
+ * PANEL with no padding of its own, for a card that draws its own divisions —
+ * a titled header rule over a chart or a link list. The three visualization
+ * cards had all spelled it out inline, one of them differently.
+ */
+export const PANEL_FLUSH = "rounded-xl border border-border bg-card";
+
+/** The titled header rule inside a PANEL_FLUSH card. */
+export const PANEL_HEADER = "border-b border-border px-5 py-3";
+
+/** The body of a PANEL_FLUSH card, under its header. */
+export const PANEL_BODY = "p-4";
 
 /**
  * A surface nested inside a PANEL — a scroll list, a sub-group, a preview.

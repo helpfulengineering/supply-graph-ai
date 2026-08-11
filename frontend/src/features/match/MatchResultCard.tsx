@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "../../components/ui/Badge";
 import { CHECKBOX } from "../../components/ui/field";
 import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
+import { CARD_TITLE } from "../../components/ui/typography";
 import { cn } from "@/lib/utils";
 import type { RankedSolution } from "./matchViewModel";
 import { confidencePct, confidenceToken } from "./confidence";
@@ -49,7 +50,7 @@ export function MatchResultCard({
                 <span className="text-xs text-muted-foreground">
                   #{solution.rank}
                 </span>
-                <h3 className="font-semibold text-foreground">
+                <h3 className={CARD_TITLE}>
                   {solution.facilityName}
                 </h3>
               </div>

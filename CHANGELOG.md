@@ -24,6 +24,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and a signed-in visitor can sign out. The drawer's focus trap became
   `useDialogFocus` rather than being copied.
 
+- **The look and the page state ride in the URL.** `?theme=` and `?mode=` were
+  read on arrival but only ever written by the drawer's copy-link button, so
+  copying the address — the obvious way to share a page — lost the look. They
+  are now kept current on every route. The facilities surface joins the design
+  catalog in carrying its view mode, name search and page number as parameters,
+  and parameter writers merge rather than rebuild (`lib/urlState`) so no
+  surface drops another's state.
+
+- **Icons, and a gallery to pick them from.** Every one of the 51 processes in
+  the taxonomy now draws a glyph from the purchased Noun Project sets, keyed by
+  taxonomy id rather than by label so rewording a process cannot detach its
+  icon; a unit test reads `processes.yaml` and fails on any process without
+  one, and unknown ids from a federated peer fall back to their family. The
+  navigation and the sharing surface moved to the same collection. `/icons` is
+  an unlisted internal page rendering every glyph and every mapping — declared
+  in the parity manifest rather than left as an undeclared route.
+
+- **A tooltip component.** The app had none, so anything needing one used
+  `title`: unstyleable, invisible to touch, inconsistently announced. Built on
+  the same Base UI primitives as `button.tsx`, drawn in the shape the chart
+  tooltips already use (label over a dot-and-value row), and layered above the
+  map — Leaflet's panes reach z-index 800 and were painting over it.
+
+### Changed
+
+- **The map is usable on a phone.** Fitting every space at once puts a
+  worldwide network at zoom 0 on a 360px screen — a 256px world in a grey box.
+  The fit now falls back to the densest 30-degree neighbourhood when the full
+  extent cannot be framed at a zoom that fills the container, and will not zoom
+  out past that point. One-finger drags scroll the page and two fingers move
+  the map, so an embedded map is no longer a scroll trap; zoom controls are
+  44px on touch. Framing arithmetic is pure and tested in
+  `features/network/mapFraming.ts`.
+
+- **Charts drop axis furniture on narrow screens.** Value-axis ticks collided
+  into an unreadable run under bars that already carry their own labels; the
+  axis and its gridlines are hidden below `sm`, and category labels truncate
+  narrower.
+
+- **Headings carry the active world.** Every heading read `--foreground`, so
+  ten themes produced two headings. They now use `--color-heading`, the world's
+  text tinted 20% toward its accent, which the twenty-variant axe matrix holds
+  to AA.
+
+### Fixed
+
+- **The theme picker's corrections went stale on a polarity switch.** The
+  swatches resolved once on mount, on the reasoning that a world's accent is
+  the same colour whichever world is applied — true of the accent, false of the
+  ink, which is solved against the surface it lands on. Switching to light left
+  all ten names between 1.05:1 and 3.18:1. They now re-resolve on theme and
+  polarity, deferred past the commit: the polarity class lands in the
+  provider's effect and React runs a child's effects first, so resolving
+  in-effect read the surface the app was leaving.
+
+- **Theme names and chart labels were unreadable in some worlds.** The theme
+  picker corrected each world's accent by a fixed 80% blend, which is not a
+  contrast guarantee — 80% of a pale accent is still pale, and Mono's grey
+  failed in light mode. Chart axis labels had no correction at all and sat at
+  2.4:1 in Synthwave. Both now solve for the ratio against the surface they are
+  painted on (`lib/contrastInk`), keeping as much of the hue as AA allows. The
+  axe matrix cannot see either case: one is inline style, the other is canvas.
+
+- **Mounting the map blocked the main thread for ~390ms.** Every space was a
+  React `<Marker>` wrapping an eagerly-rendered `<Popup>` — 3,200 popup bodies
+  built for the one a visitor might open. The marker layer is now built
+  directly on Leaflet with popup content deferred to open, halving the blocked
+  time, and `react-leaflet-cluster` is no longer needed.
+
 ## [0.10.7] - 2026-08-04
 
 ### Added

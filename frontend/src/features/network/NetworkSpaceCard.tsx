@@ -9,6 +9,9 @@ import { humanizeProcessId } from "./deriveFilterOptions";
 import { SOURCE_STYLES } from "./networkSummary";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
 import { PANEL } from "../../components/ui/surface";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { processIcon } from "../../components/icons/processIcons";
+import { cn } from "@/lib/utils";
 
 const CARD_CLASS = `${PANEL} group flex h-full flex-col gap-3 no-underline shadow-sm transition-shadow hover:shadow-md`;
 
@@ -20,13 +23,18 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
   ]
     .filter(Boolean)
     .join(", ");
-  const processes = (space.processes ?? []).map(humanizeProcessId);
+  // The raw id is kept alongside the label: the icon table is keyed by the
+  // taxonomy id, and humanizing first would throw away what it matches on.
+  const processes = (space.processes ?? []).map((id) => ({
+    id,
+    label: humanizeProcessId(id),
+  }));
 
   const body = (
     <>
       <div>
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-foreground group-hover:text-primary-ink">
+          <h3 className={cn(CARD_TITLE, "group-hover:text-primary-ink")}>
             {space.name || "Unnamed"}
           </h3>
           <Badge variant={space.source === "local" ? "indigo" : "green"}>
@@ -48,11 +56,17 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
 
       {processes.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {processes.slice(0, 4).map((p) => (
-            <Badge key={p} variant="default">
-              {p}
-            </Badge>
-          ))}
+          {processes.slice(0, 4).map((p) => {
+            const Icon = processIcon(p.id);
+            return (
+              <Badge key={p.id} variant="default">
+                <span className="inline-flex items-center gap-1">
+                  {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
+                  {p.label}
+                </span>
+              </Badge>
+            );
+          })}
           {processes.length > 4 && (
             <Badge variant="default">+{processes.length - 4}</Badge>
           )}

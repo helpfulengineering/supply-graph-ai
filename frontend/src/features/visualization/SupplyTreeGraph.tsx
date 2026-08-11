@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import cytoscape from "cytoscape";
 import { useChartTokens } from "../../lib/chartTokens";
 import type { VisualizationData } from "../../types/supply-tree";
-import { CARD_TITLE } from "../../components/ui/typography";
+import { CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import { PANEL_FLUSH, PANEL_HEADER } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 
 interface Props {
   data: VisualizationData;
@@ -149,8 +151,8 @@ export function SupplyTreeGraph({ data }: Props) {
   }, [nodes, edges, t]);
 
   return (
-    <div className="rounded-xl border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border px-5 py-3">
+    <div className={PANEL_FLUSH}>
+      <div className={cn(PANEL_HEADER, "flex items-center justify-between")}>
         <h3 className={CARD_TITLE}>Supply Tree Graph</h3>
         <div className="flex items-center gap-3">
           {t.series
@@ -158,7 +160,7 @@ export function SupplyTreeGraph({ data }: Props) {
             .map((color: string, i: number) => (
               <span
                 key={i}
-                className="flex items-center gap-1 text-xs text-muted-foreground"
+                className={cn(CAPTION, "flex items-center gap-1")}
               >
                 <span
                   className="inline-block h-3 w-3 rounded-full"

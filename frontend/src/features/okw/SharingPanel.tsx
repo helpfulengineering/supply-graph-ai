@@ -2,6 +2,7 @@ import { VisibilityControl } from "../okh/VisibilityControl";
 import { DisclosureControl } from "./DisclosureControl";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_LABEL } from "../../components/ui/typography";
+import { BrainCommunicationIcon } from "../../components/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,7 +16,11 @@ export function SharingPanel({ id }: { id: string }) {
       aria-labelledby="okw-sharing-heading"
       className={PANEL}
     >
-      <h2 id="okw-sharing-heading" className={cn(SECTION_LABEL, "mb-1")}>
+      <h2
+        id="okw-sharing-heading"
+        className={cn(SECTION_LABEL, "mb-1 flex items-center gap-1.5")}
+      >
+        <BrainCommunicationIcon className="h-4 w-4 shrink-0" />
         Sharing
       </h2>
       <p className="mb-5 text-xs text-muted-foreground">

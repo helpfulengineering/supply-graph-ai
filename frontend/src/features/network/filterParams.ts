@@ -1,4 +1,5 @@
 import type { NetworkFilters as Filters } from "../../api/ohm/network";
+import { mergeParams } from "../../lib/urlState";
 
 /**
  * The network filter set, as a query string.
@@ -33,11 +34,22 @@ export function filtersFromParams(params: URLSearchParams): Filters {
   return filters;
 }
 
-export function filtersToSearch(filters: Filters): string {
-  const params = new URLSearchParams();
-  for (const key of FILTER_KEYS) {
-    const value = filters[key];
-    if (value) params.set(key, value);
-  }
-  return params.toString();
+/**
+ * The filter set as parameter updates: every key it owns, with the ones it no
+ * longer has set to null so a cleared filter is removed rather than left
+ * behind.
+ *
+ * Updates rather than a finished query string, because the filters are no
+ * longer the only thing in the address — the look rides there too, and on this
+ * page so do the view mode and the page number. A writer that rebuilds from
+ * its own state alone drops everyone else's.
+ */
+export function filterUpdates(filters: Filters): Record<string, string | null> {
+  const updates: Record<string, string | null> = {};
+  for (const key of FILTER_KEYS) updates[key] = filters[key] ?? null;
+  return updates;
+}
+
+export function filtersToSearch(filters: Filters, base?: URLSearchParams): string {
+  return mergeParams(base ?? new URLSearchParams(), filterUpdates(filters));
 }
