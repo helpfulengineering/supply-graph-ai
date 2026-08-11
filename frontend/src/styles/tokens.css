@@ -880,11 +880,11 @@
   --ttm-border: #c9c9c9;
   --ttm-border-subtle: #e2e2e2;
   --ttm-control: #303030;
-  --ttm-cta-src: #262626;
-  --ttm-cyan: #5c5c5c;
+  --ttm-cta-src: #1d4f66;
+  --ttm-cyan: #256b87;
   --ttm-cyan-hover: color-mix(in srgb, var(--ttm-cyan) 82%, #000000);
   --ttm-danger: #a02c2c;
-  --ttm-focus: #303030;
+  --ttm-focus: #1d4f66;
   --ttm-font-sans: var(--ttm-font-mono);
   --ttm-font-serif: var(--ttm-font-mono);
   --ttm-glass: color-mix(in srgb, var(--ttm-surface) 90%, transparent);
@@ -902,7 +902,7 @@
   --ttm-lime-hover: color-mix(in srgb, var(--ttm-lime) 82%, #000000);
   --ttm-on-accent: #f7f7f7;
   --ttm-overlay: rgba(30, 30, 40, 0.5);
-  --ttm-pink: #4a4a4a;
+  --ttm-pink: #4a5b73;
   --ttm-pink-hover: color-mix(in srgb, var(--ttm-pink) 82%, #000000);
   --ttm-scrollbar-thumb: color-mix(
     in srgb,
@@ -935,8 +935,8 @@
   --ttm-border: #383838;
   --ttm-border-subtle: #202020;
   --ttm-control: #d4d4d4;
-  --ttm-cta-src: #f2f2f2;
-  --ttm-cyan: #bdbdbd;
+  --ttm-cta-src: #9ed6ef;
+  --ttm-cyan: #86c9e6;
   --ttm-cyan-hover: color-mix(in srgb, var(--ttm-cyan) 82%, #ffffff);
   --ttm-danger: #e08585;
   --ttm-focus: #d4d4d4;
@@ -957,7 +957,7 @@
   --ttm-lime-hover: color-mix(in srgb, var(--ttm-lime) 82%, #ffffff);
   --ttm-on-accent: #0d0d0d;
   --ttm-overlay: rgba(0, 0, 0, 0.72);
-  --ttm-pink: #dedede;
+  --ttm-pink: #b6c3d8;
   --ttm-pink-hover: color-mix(in srgb, var(--ttm-pink) 82%, #ffffff);
   --ttm-scrollbar-thumb: color-mix(
     in srgb,
