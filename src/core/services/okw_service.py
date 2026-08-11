@@ -24,7 +24,7 @@ from ..storage.disclosure_store import DisclosureStore
 from ..storage.provenance_store import ProvenanceStore
 from ..storage.visibility_store import VisibilityStore
 from ..storage.smart_discovery import SmartFileDiscovery
-from ..taxonomy import taxonomy
+from ..taxonomy import canonical_processes
 from ..utils.country_names import countries_match, display_country_name
 from ..utils.logging import get_logger
 from ..validation.error_codes import VALIDATION_ERROR_CODE, VALIDATION_WARNING_CODE
@@ -57,15 +57,6 @@ def _normalize_status(value: Optional[str]) -> Optional[str]:
     return _STATUS_NORMALIZED.get(key, key or None)
 
 
-def _canonical_processes(raw: List[str]) -> List[str]:
-    processes: List[str] = []
-    for p in raw or []:
-        cid = taxonomy.normalize(p)
-        if cid and cid not in processes:
-            processes.append(cid)
-    return processes
-
-
 def _local_facility_to_space(
     f: ManufacturingFacility, *, require_coords: bool = True
 ) -> Optional[Dict[str, Any]]:
@@ -96,7 +87,7 @@ def _local_facility_to_space(
         "status": _normalize_status(
             f.facility_status.value if getattr(f, "facility_status", None) else None
         ),
-        "processes": _canonical_processes(f.manufacturing_processes),
+        "processes": canonical_processes(f.manufacturing_processes),
         "access_type": f.access_type.value if getattr(f, "access_type", None) else None,
         "url": getattr(owner, "website", None),
     }

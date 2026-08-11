@@ -29,8 +29,9 @@ This is most of the work. See [the problem](the-problem.md).
 ## Workshops: read the directories that already exist
 
 There are already people who have done the difficult, unglamorous work of mapping
-where workshops are: Maps of Making, and others we intend to add. Rebuilding
-those from scratch would be wasteful and slightly insulting.
+where workshops are: [Maps of Making](https://mapsofmaking.org), and others we
+intend to add. Rebuilding those from scratch would be wasteful and slightly
+insulting.
 
 So OHM reads them, and shows a **union** of what it finds, with the ability to
 filter by source. A workshop that appears in one of those directories is already
@@ -45,6 +46,11 @@ So this is not a case of workshops being scraped into someone else's database.
 It's a case of workshops publishing about themselves, and more than one thing
 being able to read it. That's the arrangement we want to support and extend, not
 replace.
+
+Extending it means being a source as well as a reader. A workshop that describes
+itself in OHM can have that description served back out in the form the map
+reads, so the detail lands where people are already looking instead of only
+here. Same principle, pointed the other way: meet the map where it already is.
 
 ## The honest cost of this approach
 

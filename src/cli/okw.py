@@ -13,6 +13,7 @@ from uuid import UUID
 import click
 
 from ..core.models.okw import ManufacturingFacility
+from ..core.models.visibility import VisibilityLevel
 from ..core.services.okw_service import OKWService
 from ..core.services.storage_service import StorageService
 from ..core.validation.auto_fix import auto_fix_okw_facility
@@ -939,6 +940,105 @@ async def okw_spaces(
 
     except Exception as e:
         cli_ctx.log(f"Network spaces build failed: {str(e)}", "error")
+        raise
+
+
+@okw_group.command(name="spaceapi")
+@click.argument("facility_id", type=str)
+@click.option(
+    "--url",
+    "url_only",
+    is_flag=True,
+    help="Print only the public URL to register with Maps of Making.",
+)
+@standard_cli_command(
+    help_text="""
+    Show the SpaceAPI document that publishes a facility to Maps of Making.
+
+    Register the --url once at https://mapsofmaking.org ("Add your space") and
+    MoM re-polls it every ten minutes, so later enrichment reaches the map
+    without re-entering anything.
+
+    Only facilities set to `public` visibility are served over HTTP; this
+    command still renders the document for any facility so you can see what
+    would be published before deciding.
+    """,
+    epilog="""
+    Examples:
+      ohm okw spaceapi 123e4567-…            # the document
+      ohm okw spaceapi 123e4567-… --url      # the URL to register
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def okw_spaceapi(
+    ctx,
+    facility_id: str,
+    url_only: bool,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Render a facility as the SpaceAPI document Maps of Making ingests."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-spaceapi")
+
+    try:
+        public_url = f"{cli_ctx.api_client.base_url}/api/okw/{facility_id}/spaceapi"
+        if url_only:
+            click.echo(public_url)
+            cli_ctx.end_command_tracking()
+            return
+
+        # Built locally rather than fetched: the endpoint serves only `public`
+        # facilities, and the point of previewing is to see the document before
+        # publishing it.
+        okw_service = await OKWService.get_instance()
+        facility = await okw_service.get(UUID(facility_id))
+        if not facility:
+            click.echo(f"❌ No OKW facility with ID {facility_id}")
+            raise SystemExit(1)
+
+        document = facility.to_spaceapi_json()
+        click.echo(json.dumps(document, indent=2))
+
+        if output_format != "json":
+            visibility = await okw_service.get_visibility(UUID(facility_id))
+            click.echo("")
+            click.echo(f"   URL: {public_url}")
+            if visibility == VisibilityLevel.PUBLIC:
+                click.echo("   Visibility: public — the URL above is being served.")
+            else:
+                click.echo(
+                    f"   Visibility: {visibility.value} — the URL above answers 404. "
+                    f"Publish with:\n"
+                    f"     ohm okw visibility set {facility_id} public"
+                )
+            if not document.get("location"):
+                click.echo(
+                    "   ⚠️  No coordinates on this record, so Maps of Making "
+                    "cannot place a pin. Add GPS coordinates before registering."
+                )
+            if not document.get("knowsAbout"):
+                click.echo(
+                    "   ⚠️  No recognized processes, so the space would appear "
+                    "untagged. Add processes to make it findable by capability."
+                )
+
+        cli_ctx.end_command_tracking()
+
+    except SystemExit:
+        raise
+    except Exception as e:
+        cli_ctx.log(f"SpaceAPI document build failed: {str(e)}", "error")
         raise
 
 

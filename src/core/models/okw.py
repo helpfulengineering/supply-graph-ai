@@ -14,6 +14,17 @@ class FacilityStatus(Enum):
     CLOSED = "Closed"
 
 
+# OKW's four-state facility lifecycle onto the three Maps of Making publishes.
+# `Planned` has no MoM equivalent: it is not yet a place you can visit, and
+# `dormant` is the only value that says so without claiming it has closed.
+_MOM_OPERATIONAL_STATE = {
+    FacilityStatus.ACTIVE: "active",
+    FacilityStatus.PLANNED: "dormant",
+    FacilityStatus.TEMPORARY_CLOSURE: "dormant",
+    FacilityStatus.CLOSED: "closed",
+}
+
+
 class AccessType(Enum):
     """How manufacturing equipment is accessed"""
 
@@ -933,20 +944,83 @@ class ManufacturingFacility:
         return False
 
     def to_spaceapi_json(self) -> Dict:
-        """Serialize to a SpaceAPI-compatible envelope for MoM ingestion."""
+        """Serialize to a SpaceAPI v15 document for Maps of Making ingestion.
+
+        This is what a workshop publishes outward: MoM polls the URL serving
+        this document and renders the facility as a live pin. Two things about
+        it are deliberate.
+
+        **Capabilities go in ``knowsAbout``.** MoM builds its specialty filter
+        chips from that key; ``ext_fablab.capabilities`` is carried alongside
+        for losslessness but nothing reads it. Emitting process detail only
+        under ``ext_fablab`` would put the facility on the map untagged, which
+        discards the one thing OHM knows that a directory does not.
+
+        **No street address and no contact details.** MoM needs only a name and
+        coordinates; everything else is optional. Publishing here copies the
+        record into a store we do not control, so it carries less than our own
+        API does, not more — and ``location`` is a single disclosure group, so
+        a profile cannot presently keep coordinates while withholding the
+        street (see docs-site/docs/guides/who-can-see-your-data.md). The
+        country code is included because it is coarser than the coordinates
+        already being published.
+
+        That choice fixes the document at MoM's ``mom:card`` tier — pin plus
+        full detail card — and deliberately not ``spaceapi:compatible``, which
+        additionally requires ``logo`` and ``contact``. So ``api_compatibility``
+        is *not* emitted: it declares conformance to the SpaceAPI v15 schema,
+        that schema requires both of those keys, and a consumer such as
+        mapall.space would be entitled to believe the declaration.
+        """
+        from ..taxonomy import canonical_processes
+        from ..utils.country_names import country_code
+
         doc: Dict = {
             "space": self.name,
-            "state": {"open": self.facility_status == FacilityStatus.ACTIVE},
+            # SpaceAPI `state.open` is the dynamic "is the door open right
+            # now"; OHM has no realtime signal, and null is the honest answer.
+            # The long-term lifecycle that facility_status actually describes
+            # is a different field, which is why MoM separates the two.
+            "state": {"open": None},
+            "mom:operationalState": _MOM_OPERATIONAL_STATE.get(
+                self.facility_status, "dormant"
+            ),
         }
 
         coords = self.location.coordinates()
         if coords:
-            doc["location"] = {"lat": coords.latitude, "lon": coords.longitude}
+            location: Dict = {"lat": coords.latitude, "lon": coords.longitude}
+            address = self.location.address
+            code = country_code(
+                (address.country if address else None) or self.location.country
+            )
+            if code:
+                location["country_code"] = code
+            doc["location"] = location
+            # OKW gps_coordinates are the record's own decimal degrees, not a
+            # city centroid we geocoded, so MoM can plot them as given.
+            doc["mom:geolocationFidelity"] = "exact"
+
+        # Same derivation as the unified network projection
+        # (okw_service._local_facility_to_space), so the pin MoM draws and the
+        # pin we draw cannot disagree about who to contact.
+        website = getattr(self.owner, "website", None)
+        if website:
+            doc["url"] = website
 
         if self.description:
             doc["description"] = self.description
 
+        if self.opening_hours:
+            doc["opening_hours"] = self.opening_hours
+
         if self.manufacturing_processes:
+            tags = [
+                cid.replace("_", "-")
+                for cid in canonical_processes(self.manufacturing_processes)
+            ]
+            if tags:
+                doc["knowsAbout"] = tags
             doc["ext_fablab"] = {"capabilities": self.manufacturing_processes}
 
         return doc
