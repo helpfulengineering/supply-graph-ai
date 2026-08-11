@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { formatRgb, inkFor, parseRgb } from "./contrastInk";
 
@@ -131,24 +131,37 @@ function resolveColor(value: string): string {
  * wrong palette before the effect lands.
  */
 export function useChartTokens(): ChartTokens {
-  const { theme: urgentTheme, isDark: urgentDark } = useTheme();
-  // Deferred, so a theme change repaints before it re-resolves.
-  //
-  // This hook re-reads palettes and re-renders whatever draws from them, and
-  // on a page with a full facility catalogue that measured as a 949ms task
-  // sitting between the keystroke and the paint. `useDeferredValue` lets React
-  // render the cheap consumers — the picker's own radio, the chrome — at once
-  // and come back for this at lower priority, so the world changes colour
-  // immediately and the canvases catch up a frame or two later. Nothing here
-  // is what a visitor is waiting to see.
-  const theme = useDeferredValue(urgentTheme);
-  const isDark = useDeferredValue(urgentDark);
+  const { theme, isDark } = useTheme();
   const [tokens, setTokens] = useState<ChartTokens>(resolveChartTokens);
 
+  // Urgent, and cached per world and polarity.
+  //
+  // This was deferred, and the defer is what the eye reads as staggering: the
+  // charts were told to catch up at a lower priority, so on a theme change
+  // every surface on the page turned and then, a beat later, the charts did.
+  // The reason was cost — resolving these means a dozen getComputedStyle reads
+  // and three contrast solves — and a cache answers that directly. A world is
+  // resolved once per tab; after that this is a map lookup and the charts turn
+  // with everything else.
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setTokens(resolveChartTokens()));
+    const key = `${theme}|${isDark ? "dark" : "light"}`;
+    const cached = CACHE.get(key);
+    if (cached) {
+      setTokens(cached);
+      return;
+    }
+    // Still after the frame: `data-ttm-theme` and `.dark` are written in the
+    // provider's effect, and a child's effects run before its parent's, so
+    // resolving synchronously here reads the world the app is leaving.
+    const frame = requestAnimationFrame(() => {
+      const next = resolveChartTokens();
+      CACHE.set(key, next);
+      setTokens(next);
+    });
     return () => cancelAnimationFrame(frame);
   }, [theme, isDark]);
 
   return tokens;
 }
+
+const CACHE = new Map<string, ChartTokens>();

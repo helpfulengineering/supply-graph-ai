@@ -35,7 +35,7 @@ export function Layout({ children }: { children: ReactNode }) {
         The grid is a ground, and a ground with body copy sitting directly on
         it is just a busy page: every caption, crumb and loose line of text was
         competing with a ruling running underneath it. So the content column
-        gets its own surface — but at 35%, not 100%. Opaque would have put the
+        gets its own surface — but at 40%, not 100%. Opaque would have put the
         grid back where it started, visible nowhere except the outer gutters,
         and gone entirely on a phone where this column is the full width.
 
@@ -46,7 +46,7 @@ export function Layout({ children }: { children: ReactNode }) {
       */}
       <main
         id="main"
-        className="mx-auto w-full max-w-7xl flex-1 bg-background/35 px-4 py-5 sm:px-6"
+        className="mx-auto w-full max-w-7xl flex-1 bg-background/40 px-4 py-5 sm:px-6"
       >
         {children}
       </main>

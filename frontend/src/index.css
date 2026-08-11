@@ -15,13 +15,33 @@ a {
   text-decoration: none;
 }
 
-/* Smooth background/color transitions on theme switch */
-*,
-*::before,
-*::after {
-  transition-property: background-color, border-color, color;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
+/* The theme switch, as one crossfade.
+   The world changes inside a view transition (see applyThemeChange in
+   hooks/useDarkMode), so the browser holds the old frame until the new one is
+   complete — chrome, charts, map and all — and animates between them on the
+   compositor. 180ms, because this is a change of clothes and not an event.
+   `prefers-reduced-motion` gets no transition at all: applyThemeChange takes
+   the instant path, so there is nothing here to disable. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: ease;
+}
+
+/* The old way, kept only where the new one does not exist.
+   A transition on `*` animates every element on the page independently, each
+   starting when its own style is recalculated and every frame of it repainting
+   on the main thread — which is what made the switch arrive in waves. Where
+   view transitions are supported it is strictly worse than the crossfade
+   above; where they are not, a wave still beats a cut. */
+@supports not (view-transition-name: none) {
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
+  }
 }
 
 /* The rule above is what made the theme picker expensive.
