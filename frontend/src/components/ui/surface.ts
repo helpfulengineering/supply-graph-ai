@@ -30,19 +30,22 @@
 /**
  * The default section container: a card on the page background.
  *
- * A step tighter on a phone. 16px of padding on every one of a column of cards
- * is most of a 360px screen spent on nothing — the dashboard's four stat cards
- * were three scrolls of mostly air. The desktop value is unchanged, because
- * there the space is the layout.
+ * Tighter vertically than horizontally, and a step tighter again on a phone.
+ * Equal padding on all four sides reads as generous on one card and as waste
+ * down a column of them — vertical space is what a reader scrolls through, and
+ * 16px above and below every panel was most of a phone screen spent on
+ * nothing. Horizontal padding is left alone: that is the measure the text
+ * inside is set to.
  */
-export const PANEL = "rounded-xl border border-border bg-card p-3 sm:p-4";
+export const PANEL =
+  "rounded-lg border border-panel-border bg-card px-3 py-2.5 sm:px-4 sm:py-3";
 
 /**
  * PANEL with no padding of its own, for a card that draws its own divisions —
  * a titled header rule over a chart or a link list. The three visualization
  * cards had all spelled it out inline, one of them differently.
  */
-export const PANEL_FLUSH = "rounded-xl border border-border bg-card";
+export const PANEL_FLUSH = "rounded-lg border border-panel-border bg-card";
 
 /** The titled header rule inside a PANEL_FLUSH card. */
 export const PANEL_HEADER = "border-b border-border px-5 py-3";
@@ -58,7 +61,8 @@ export const PANEL_BODY = "p-4";
 export const PANEL_INSET = "rounded-lg border border-border bg-background p-3";
 
 /** A quieter panel for supporting detail that should recede. */
-export const PANEL_MUTED = "rounded-xl border border-border bg-muted/40 p-4";
+export const PANEL_MUTED =
+  "rounded-lg border border-border bg-muted/40 px-4 py-3";
 
 /**
  * Tonal panels, for a banner that carries a state. Each is the neutral PANEL
@@ -67,11 +71,14 @@ export const PANEL_MUTED = "rounded-xl border border-border bg-muted/40 p-4";
  * components. Text inside these must use the blended `-ink` variants; the raw
  * status hue on a 10% wash of itself lands under AA (see index.css).
  */
-export const PANEL_ACCENT = "rounded-xl border border-primary/30 bg-accent/40 p-4";
-export const PANEL_SUCCESS = "rounded-xl border border-success/30 bg-success/10 p-4";
-export const PANEL_WARNING = "rounded-xl border border-warning/30 bg-warning/10 p-4";
+export const PANEL_ACCENT =
+  "rounded-lg border border-primary/30 bg-accent/40 px-4 py-3";
+export const PANEL_SUCCESS =
+  "rounded-lg border border-success/30 bg-success/10 px-4 py-3";
+export const PANEL_WARNING =
+  "rounded-lg border border-warning/30 bg-warning/10 px-4 py-3";
 export const PANEL_DANGER =
-  "rounded-xl border border-destructive/30 bg-destructive/10 p-4";
+  "rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3";
 
 /**
  * A bounded, scrolling list of choices inside a panel.

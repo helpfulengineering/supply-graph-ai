@@ -3,6 +3,7 @@ import {
   DataProcessingIcon,
   InternetIcon,
   ReliabilityIcon,
+  WorkflowIcon,
   SmartFactoryIcon,
   type IconProps,
 } from "../components/icons";
@@ -24,6 +25,7 @@ import { PANEL } from "../components/ui/surface";
 import { Tooltip } from "../components/ui/Tooltip";
 import { cn } from "@/lib/utils";
 import {
+  CAPTION,
   SECTION_LABEL_SM,
   SECTION_TITLE,
   STAT_VALUE,
@@ -60,13 +62,7 @@ function StatCard({
       tabIndex={0}
       role="group"
       aria-label={`${label}: ${value}`}
-      className={cn(
-        PANEL,
-        // Vertical padding pulled off PANEL: these cards are one line of
-        // content, and the panel's 12/16px top and bottom made a row of four
-        // short figures twice as tall as it needed to be.
-        "flex w-full items-center gap-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-      )}
+      className="flex items-center gap-2 rounded-md px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* The world's accent as ink, not a flat grey: the figure beside it
           already carries the theme, and a muted icon read as a disabled
@@ -86,10 +82,20 @@ function StatCard({
 
 function LegendDot({ source }: { source: "local" | "mom" }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+    <span className={cn(CAPTION, "inline-flex items-center gap-1.5")}>
+      {/*
+        Lit, not printed. The dot is the key to the map's two colours and it
+        was a flat 10px circle next to grey text — the same hue the markers
+        use, with none of their presence. The halo is the source colour at 45%,
+        which is decoration and carries no contrast requirement, so it can use
+        the undiluted colour the label beside it could not.
+      */}
       <span
         className="h-2.5 w-2.5 rounded-full"
-        style={{ backgroundColor: sourceColor(source) }}
+        style={{
+          backgroundColor: sourceColor(source),
+          boxShadow: `0 0 8px color-mix(in srgb, ${sourceColor(source)} 45%, transparent)`,
+        }}
         aria-hidden="true"
       />
       {SOURCE_STYLES[source].label}
@@ -115,7 +121,7 @@ export function HomePage() {
   const m = map.data;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       <div>
         <PageHero
           title="Open Hardware Manager"
@@ -125,8 +131,15 @@ export function HomePage() {
 
       {/* Hero: the manufacturing network map. */}
       <section aria-labelledby="network-heading">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 id="network-heading" className={SECTION_TITLE}>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2
+            id="network-heading"
+            className={cn(SECTION_TITLE, "flex items-center gap-2")}
+          >
+            <WorkflowIcon
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0 text-primary-ink"
+            />
             Manufacturing network
           </h2>
           <div className="flex gap-3">
@@ -160,9 +173,13 @@ export function HomePage() {
       </section>
 
       {/* Network + system stats. */}
-      {/* Two-up from the narrowest width: these are four short figures, and one
-          per row turned the most scannable thing on the page into a scroll. */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      {/*
+        One row, no boxes. Four short figures in four bordered cards spent a
+        border, a margin and 16px of padding each to carry a number and a
+        glyph — the whole band below the map for four values that fit on one
+        line. They are a readout, not four sections.
+      */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <StatCard
           icon={SmartFactoryIcon}
           label="OHM facilities"
@@ -211,12 +228,12 @@ export function HomePage() {
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <GettingStarted />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <section aria-labelledby="system-heading">
             <h2 id="system-heading" className={cn(SECTION_TITLE, "mb-3")}>
               System

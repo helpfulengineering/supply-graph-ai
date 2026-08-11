@@ -4,6 +4,9 @@ import { useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { formatRgb, inkFor, parseRgb } from "./contrastInk";
 
+/** Contrast floor for chart labels — above AA; see `legible` in the resolver. */
+const CHART_LABEL_CONTRAST = 7;
+
 /**
  * Runtime-resolved design tokens for canvas renderers.
  *
@@ -63,13 +66,19 @@ export function resolveChartTokens(): ChartTokens {
    * chart is one <canvas> element as far as any DOM checker is concerned. So
    * the ratio is enforced here, where the values are chosen, rather than
    * trusted to a gate that structurally cannot see them.
+   *
+   * Solved to 7:1, not the 4.5 AA asks of body text. These are the smallest
+   * type in the app, sitting against bars rather than flat ground, and a label
+   * that technically clears AA still reads as fog at this size — Ocean dark's
+   * faint rung is 2.7:1 raw and was not legible corrected to 4.5 either. The
+   * headroom costs a little saturation on a colour that carried no meaning.
    */
   const legible = (value: string): string => {
     const ink = parseRgb(resolveColor(value));
     const surface = parseRgb(resolveColor(card));
     const text = parseRgb(resolveColor(read(style, "--foreground")));
     if (!ink || !surface || !text) return value;
-    return formatRgb(inkFor(ink, text, surface));
+    return formatRgb(inkFor(ink, text, surface, CHART_LABEL_CONTRAST));
   };
 
   return {
