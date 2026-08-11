@@ -63,17 +63,18 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <button
-          onClick={() => router.back()}
-          className="mb-2 text-sm text-muted-foreground hover:text-primary-ink"
-        >
-          ← Back
-        </button>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <PageHero title="Supply Tree" crumb="plan · facilities · dependencies" />
-          </div>
+      <PageHero
+        title="Supply Tree"
+        crumb="plan · facilities · dependencies"
+        breadcrumb={
+          <button
+            onClick={() => router.back()}
+            className="hover:text-primary-ink"
+          >
+            ← Back
+          </button>
+        }
+        actions={
           <Button
             variant="outline"
             size="sm"
@@ -81,8 +82,8 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
           >
             ⬇ Download JSON
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <KpiCards kpis={deriveKpis(data)} />
 

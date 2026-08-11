@@ -50,9 +50,7 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <PageHero title="Settings" crumb="session · keys · identities" />
-      </div>
+      <PageHero title="Settings" crumb="session · keys · identities" />
 
       <nav
         className="flex flex-wrap gap-1 border-b border-border"

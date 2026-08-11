@@ -1,24 +1,33 @@
+"use client";
+
+import { useId } from "react";
+import {
+  MARK_EDGES,
+  MARK_NODES,
+  MARK_OUTLINE,
+  MARK_STROKE_WIDTH,
+  MARK_VIEWBOX,
+} from "./mark";
+
 /**
- * The OHM mark: a hex nut that is also a network.
+ * The OHM mark, inline.
  *
- * Two readings, both true to the product. From across the room it is a
- * hex nut — hardware, unmistakably. Up close its interior is a supply graph:
- * one design resolving into the facilities that can build it, which is the
- * thing the app actually does. The nut's outline is broken at the top, so the
- * hardware is literally open.
+ * Geometry comes from ./mark.ts, which the favicon generator reads too — the
+ * two used to be hand-kept copies, and that is how the tab drifted away from
+ * the app. What this version has that the file cannot is the live ramp: inline
+ * in the document it resolves var(--ttm-irid-*), so the mark re-themes with
+ * every world instead of freezing one of them.
  *
- * Not an omega: "OHM" is an acronym for Open Hardware Manager, not the unit of
- * resistance, and a mark punning on that coincidence would advertise something
- * the product is not.
- *
- * Inline in the document, so unlike the favicon it reads the token ramp
- * directly and re-themes with every world.
+ * The gradient id is per-instance. Two logos in one document (header and
+ * footer) sharing a literal id means the second definition wins and both marks
+ * paint from it — same colours today, a silent bug the moment they differ.
  */
 export function Logo({ className = "h-6 w-6" }: { className?: string }) {
-  const gradientId = "ohm-mark-pearl";
+  const gradientId = `ohm-mark-${useId()}`;
+  const stroke = `url(#${gradientId})`;
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox={`0 0 ${MARK_VIEWBOX} ${MARK_VIEWBOX}`}
       className={className}
       role="img"
       aria-label="Open Hardware Manager"
@@ -33,28 +42,28 @@ export function Logo({ className = "h-6 w-6" }: { className?: string }) {
         </linearGradient>
       </defs>
 
-      {/* Nut silhouette, opened at the top edge. Drawn as two arms from the
-          gap rather than a closed polygon, so the opening is structural. */}
       <path
-        d="M19.4 3.2 L27.4 8.0 V24.0 L16 29.6 L4.6 24.0 V8.0 L12.6 3.2"
-        stroke={`url(#${gradientId})`}
-        strokeWidth="2.2"
+        d={MARK_OUTLINE}
+        stroke={stroke}
+        strokeWidth={MARK_STROKE_WIDTH}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-
-      {/* Interior: the supply graph — design above, two makers below. */}
-      {/* Weights tuned at 16px, not 96px: thin strokes and small nodes turned
-          to mush at favicon scale, where this mark spends most of its life. */}
       <path
-        d="M16 12 L10.6 21 M16 12 L21.4 21"
-        stroke={`url(#${gradientId})`}
-        strokeWidth="2.2"
+        d={MARK_EDGES}
+        stroke={stroke}
+        strokeWidth={MARK_STROKE_WIDTH}
         strokeLinecap="round"
       />
-      <circle cx="16" cy="11.4" r="3.1" fill={`url(#${gradientId})`} />
-      <circle cx="10.3" cy="21.4" r="2.7" fill={`url(#${gradientId})`} />
-      <circle cx="21.7" cy="21.4" r="2.7" fill={`url(#${gradientId})`} />
+      {MARK_NODES.map((node) => (
+        <circle
+          key={`${node.cx},${node.cy}`}
+          cx={node.cx}
+          cy={node.cy}
+          r={node.r}
+          fill={stroke}
+        />
+      ))}
     </svg>
   );
 }

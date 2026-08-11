@@ -95,19 +95,20 @@ export function PackageListView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <PageHero title="Packages" crumb="archives · versions · downloads" />
-        </div>
-        <button
-          type="button"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className={`${FIELD_SM} shrink-0 font-medium text-muted-foreground hover:bg-background`}
-        >
-          {isFetching ? "Refreshing…" : "↻ Refresh"}
-        </button>
-      </div>
+      <PageHero
+        title="Packages"
+        crumb="archives · versions · downloads"
+        actions={
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className={`${FIELD_SM} shrink-0 font-medium text-muted-foreground hover:bg-background`}
+          >
+            {isFetching ? "Refreshing…" : "↻ Refresh"}
+          </button>
+        }
+      />
 
       <div className="rounded-xl border border-border bg-background px-5 py-4">
         <p className="text-sm font-medium text-foreground">

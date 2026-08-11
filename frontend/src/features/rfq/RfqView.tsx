@@ -123,25 +123,27 @@ export function RfqView({ navState }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <PageHero title="RFQ Generation" crumb="facilities · quotes · documents" />
-          <p className="mt-1 text-sm text-muted-foreground">
+      <PageHero
+        title="RFQ Generation"
+        crumb="facilities · quotes · documents"
+        description={
+          <>
             Generating requests for quotation for{" "}
             <span className="font-medium text-foreground">{okhTitle}</span>
             {okhVersion && (
               <span className="ml-1 text-muted-foreground">v{okhVersion}</span>
             )}
-          </p>
-        </div>
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back
-        </button>
-      </div>
+          </>
+        }
+        actions={
+          <button
+            onClick={() => router.back()}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            ← Back
+          </button>
+        }
+      />
 
       {/* Generation form */}
       {!generated && (

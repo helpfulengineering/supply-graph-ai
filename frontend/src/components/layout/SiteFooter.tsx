@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import { Logo } from "./Logo";
 
 /**
  * The repository this build came from.
@@ -16,20 +17,37 @@ const SOURCE_URL = `${REPO}/tree/${BRANCH}`;
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-card">
-      <div className="mx-auto flex max-w-7xl items-center justify-center gap-1.5 px-6 py-4 text-sm text-muted-foreground">
-        made with
-        <Heart aria-hidden="true" className="h-4 w-4 text-primary-ink" fill="currentColor" />
-        <span className="sr-only">heart</span>
-        by{" "}
-        <a
-          href={SOURCE_URL}
-          target="_blank"
-          rel="noreferrer"
-          title={`Source for this build — ${BRANCH}`}
-          className="font-medium text-primary-ink underline-offset-2 hover:underline"
-        >
-          OpenSource
-        </a>
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-3 text-sm text-muted-foreground sm:justify-between sm:px-6">
+        {/* The wordmark's one home. The header carries the mark alone, because
+            on the dashboard a bar wordmark would sit directly above an h1
+            saying the same words — down here nothing competes with it, and the
+            app finally states its own name somewhere on every page. */}
+        <span className="flex items-center gap-2">
+          {/* Decorative here, unlike in the header: the mark's own accessible
+              name is the product name, and the words are right beside it. */}
+          <span aria-hidden="true" className="flex">
+            <Logo className="h-4 w-4" />
+          </span>
+          <span className="font-medium text-foreground">
+            Open Hardware Manager
+          </span>
+        </span>
+
+        <span className="flex items-center gap-1.5">
+          made with
+          <Heart aria-hidden="true" className="h-4 w-4 text-primary-ink" fill="currentColor" />
+          <span className="sr-only">heart</span>
+          by{" "}
+          <a
+            href={SOURCE_URL}
+            target="_blank"
+            rel="noreferrer"
+            title={`Source for this build — ${BRANCH}`}
+            className="font-medium text-primary-ink underline-offset-2 hover:underline"
+          >
+            OpenSource
+          </a>
+        </span>
       </div>
     </footer>
   );
