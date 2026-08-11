@@ -56,6 +56,29 @@ test("the Mission Control route exists only when the layer is on", async ({ page
   }
 });
 
+test("Mission Control gates entry, and dismissal is not a dead end", async ({ page }) => {
+  // The default posture has no route to gate: the test above asserts it 404s,
+  // and the one below asserts — in both postures — that no gate ever blocks
+  // the app itself. Re-navigating to the 404 here would add nothing.
+  test.skip(!LAYER_ENABLED, "no Mission Control route on a default instance");
+
+  await page.goto("/mission-control");
+  const gate = page.getByRole("dialog");
+
+  // Arriving without a visitor record on this device puts the gate in front of
+  // the page — that is what "gate" means, and it is why the panel behind it
+  // says to sign in at one.
+  await expect(gate).toBeVisible();
+  await expect(gate.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await expectNoA11yViolations(page);
+
+  // Esc dismisses, and the page keeps a way back in. The gate stands in front
+  // of this one surface, never in front of the app.
+  await page.keyboard.press("Escape");
+  await expect(gate).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+});
+
 test("no gate, and no site-layer console errors, on a default instance", async ({
   page,
 }) => {
@@ -67,7 +90,9 @@ test("no gate, and no site-layer console errors, on a default instance", async (
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /open hardware manager/i })).toBeVisible();
-  // No sign-in gate blocks the app.
+  // No sign-in gate blocks the app. Asserted in BOTH postures, deliberately:
+  // the gate belongs in front of Mission Control and nowhere else, so an
+  // enabled instance must still open the dashboard to anyone.
   await expect(page.getByRole("dialog", { name: /sign in/i })).toHaveCount(0);
 
   const siteErrors = errors.filter((e) => /supabase|ohmgr_|site layer/i.test(e));

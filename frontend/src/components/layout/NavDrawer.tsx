@@ -13,6 +13,7 @@ import { refreshLowVolatilityData } from "../../queryClient";
 import { NAV_GROUPS, isActivePath } from "./nav";
 import { SHORTCUTS } from "./shortcuts";
 import { useSiteLayer } from "../../lib/site/useSiteLayer";
+import { useDialogFocus } from "../../lib/useDialogFocus";
 import { demoModeEnabled, setDemoMode } from "../../lib/demo/demoMode";
 
 interface NavDrawerProps {
@@ -38,50 +39,10 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
-  // Focus management: close button first, trap Tab inside, Esc closes,
-  // focus returns to the opener when the drawer unmounts.
-  useEffect(() => {
-    if (!open) return;
-    const opener = document.activeElement as HTMLElement | null;
-    const panel = panelRef.current;
-    if (!panel) return;
-
-    const focusables = () =>
-      Array.from(
-        panel.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ),
-      );
-    focusables()[0]?.focus();
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const items = focusables();
-      if (items.length === 0) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
-      opener?.focus();
-    };
-  }, [open, onClose]);
+  // Focus management: close button first, trap Tab inside, Esc closes, focus
+  // returns to the opener when the drawer unmounts. Shared with the site-layer
+  // gate — see lib/useDialogFocus.ts.
+  useDialogFocus(panelRef, { active: open, onClose });
 
   // Close on route change — a chosen destination is the natural dismissal.
   useEffect(() => {

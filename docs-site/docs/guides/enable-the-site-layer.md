@@ -99,7 +99,31 @@ They are `NEXT_PUBLIC_` because the anon key is public by design: with RLS on
 every table, it can only call the whitelisted RPCs, and the privileged ones
 check the operator token server-side before returning anything.
 
-## 5. Verify the boundary holds
+## 5. Write the gate (optional)
+
+Once the layer is on, opening `/mission-control` without a visitor record on
+that device raises the sign-in gate. Nothing else is gated: the dashboard,
+designs, facilities and matching stay open to everyone, because site sign-in is
+not an OHM permission.
+
+The wording is yours. Empty strings mean "use the built-in copy", so you can set
+one field and leave the rest:
+
+```sql
+select public.ohmgr_publish_config('PASTE-THE-SAME-TOKEN-HERE', jsonb_build_object(
+  'gate', jsonb_build_object(
+    'enabled', true,
+    'title',   'Sign in to Mission Control',
+    'body',    'So your visit has a record you own.',
+    'fine',    'Unverified, kept on this device, and no permissions in OHM.'
+  )
+));
+```
+
+Set `"enabled": false` if this instance should ask nobody to sign in. Mission
+Control then shows the unsigned view with no dialog and no sign-in button.
+
+## 6. Verify the boundary holds
 
 Run these as the **anon** role (a fresh SQL editor session is not anon — use
 the REST endpoint with the anon key, or the API docs' "Run" button):
