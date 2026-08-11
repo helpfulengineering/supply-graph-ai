@@ -42,6 +42,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | `generate_synthetic_data` ✎ | Synthetic-data generator for OKH, OKW, and AssetRecord models — the primary fixture/demo dataset source. | `uv run python scripts/generate_synthetic_data.py [options]` |
 | `import_okh_losh_batch` ✎ | Bulk-convert+validate+import a directory of OKH-LOSH v2.4 TOML manifests through OKHService.create(). | `uv run python scripts/import_okh_losh_batch.py --data-dir <DIR> [--dry-run] [--report FILE]` |
 | `populate_ohm_storage_from_synthetic_data` ✎ | Upload OKH/OKW from synthetic_data/ into an Azure Blob container (seed a deployment). | `uv run python scripts/populate_ohm_storage_from_synthetic_data.py [options]` |
+| `seed_demo_data` ✎ | Seed a deterministic demo world (10 designs, 7 facilities, every design buildable) so browse -> match -> supply tree completes with real data; --summary reports match coverage without writing. | `uv run python scripts/seed_demo_data.py [--clear] [--summary] [--storage-dir DIR]` |
 | `seed_repair_scenario` ✎ | Seed a local OHM storage directory with a realistic repair-workflow scenario (asset + manifests). | `uv run python scripts/seed_repair_scenario.py [options]` |
 
 ## Storage operations

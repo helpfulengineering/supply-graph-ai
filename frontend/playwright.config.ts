@@ -21,6 +21,9 @@ export default defineConfig({
     // Default lane: deterministic, MSW-style mocked API. No backend required.
     {
       name: "mocked",
+      // demo-data asserts records seeded into a live backend by
+      // scripts/seed_demo_data.py; there is nothing for it to assert here.
+      testIgnore: /demo-data\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
     // Opt-in lane: real OHM API via the dev-server proxy. Run on demand / in CI.

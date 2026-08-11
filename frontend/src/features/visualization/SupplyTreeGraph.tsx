@@ -49,15 +49,27 @@ export function SupplyTreeGraph({ data }: Props) {
       })),
     ];
 
+    // animate: false throughout. An animating layout queues frames that write
+    // positions back to the core; if the component unmounts mid-run
+    // (StrictMode's double mount, or navigating away before cose settles) a
+    // queued frame lands on a destroyed core and throws. Settling instantly
+    // also makes the graph deterministic for screenshots and a11y scans.
+    const layoutOptions: cytoscape.LayoutOptions =
+      nodes.length <= 1
+        ? { name: "grid", animate: false }
+        : nodes.length <= 6
+          ? {
+              name: "breadthfirst",
+              directed: true,
+              padding: 40,
+              spacingFactor: 1.4,
+              animate: false,
+            }
+          : { name: "cose", padding: 40, nodeRepulsion: () => 8000, animate: false };
+
     cyRef.current = cytoscape({
       container: containerRef.current,
       elements,
-      layout:
-        nodes.length <= 1
-          ? { name: "grid" }
-          : nodes.length <= 6
-            ? { name: "breadthfirst", directed: true, padding: 40, spacingFactor: 1.4 }
-            : { name: "cose", padding: 40, nodeRepulsion: () => 8000 },
       style: [
         {
           selector: "node",
@@ -109,12 +121,20 @@ export function SupplyTreeGraph({ data }: Props) {
       boxSelectionEnabled: false,
     });
 
-    // Fit after layout completes
-    cyRef.current.one("layoutstop", () => {
+    // Run the layout by hand rather than through the constructor, so the
+    // handle survives into cleanup. A layout animates by queueing frames that
+    // write positions back to the core; if the component unmounts mid-run
+    // (StrictMode's double mount, or navigating away before cose settles) a
+    // queued frame lands on a destroyed core and throws. Stopping the layout
+    // first drains that queue.
+    const layout = cyRef.current.layout(layoutOptions);
+    layout.one("layoutstop", () => {
       cyRef.current?.fit(undefined, 40);
     });
+    layout.run();
 
     return () => {
+      layout.stop();
       cyRef.current?.destroy();
       cyRef.current = null;
     };
