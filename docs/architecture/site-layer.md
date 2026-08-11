@@ -23,6 +23,27 @@ deployment:
 capability simply does not exist on that instance, and the UI reads as
 intentional.
 
+## What the gate gates
+
+With the layer on, arriving at `/mission-control` without a visitor record on
+the device raises the sign-in gate. It stands in front of **that surface only**.
+
+It never stands in front of the app. Browsing designs, matching against
+facilities, and every write authorised by an OHM API key are untouched by it —
+a telemetry sign-in that blocked them would be the site layer reaching across
+the boundary below. `e2e/site-layer.spec.ts` asserts in *both* postures that no
+dialog blocks the dashboard.
+
+The gate is dismissible (Esc, the backdrop, "Not now"), and Mission Control
+keeps a sign-in button afterwards, so dismissal costs a visitor only the parts
+that are genuinely per-person — their own record.
+
+Its heading, body, and fine print are the operator's, read from the `gate` key
+of `ohmgr_site_config`; empty strings mean "no preference" and fall back
+field-by-field to the built-in copy. `{"enabled": false}` is how an operator
+says this instance asks nobody to sign in. An unreachable or unprovisioned
+config yields the default copy rather than an error — the gate still renders.
+
 ## Two vocabularies, deliberately named apart
 
 This is the boundary the layer must not cross:
