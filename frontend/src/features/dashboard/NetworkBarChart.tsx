@@ -85,14 +85,14 @@ export function NetworkBarChart({
       textStyle: { color: t.text },
     },
     grid: { left: 8, right: 28, top: 8, bottom: 4, containLabel: true },
-    // On a phone the value axis is noise twice over: its ticks collide into an
-    // unreadable run ("0 5001 0001 500"), and every bar already carries its own
-    // number at the end. Gridlines that cross the labels cost legibility for
-    // precision nobody reads off a 360px chart.
+    // No gridlines at any width. Every bar ends in its own number, so the
+    // lines add no precision — they only cross the bars and the value labels,
+    // which is the one thing a reader is actually looking at. The axis itself
+    // goes on a phone too, where its ticks collide into an unreadable run.
     xAxis: {
       type: "value",
       show: !narrow,
-      splitLine: { show: !narrow, lineStyle: { color: t.border } },
+      splitLine: { show: false },
       axisLabel: { color: t.textFaint },
     },
     yAxis: {
@@ -142,7 +142,15 @@ export function NetworkBarChart({
   return (
     <section className={PANEL} aria-label={title}>
       <h3 className={CARD_TITLE}>{title}</h3>
-      <p className={cn(BODY_MUTED, "mt-0.5 mb-2")}>
+      {/*
+        Two lines reserved whether or not the caption needs them, measured
+        rather than guessed: at this rung two lines are 48px, and reserving 40
+        left the wrapped caption 8px taller than its neighbour. Side by side
+        these wrap differently — one line for "Facilities by country", two for
+        "Facilities offering each capability" — which put the charts, and the
+        links under them, on different baselines.
+      */}
+      <p className={cn(BODY_MUTED, "mt-0.5 mb-2 min-h-12")}>
         {caption}
         {hrefFor && " · select a bar to filter the network"}
       </p>
@@ -188,9 +196,16 @@ export function NetworkBarChart({
           <ul className={cn(SCROLLABLE, "mt-1 max-h-48 space-y-0.5 text-sm")}>
             {rows.map((r) => (
               <li key={r.key}>
+                {/*
+                  A 24px line box, not the 18px the type scale gives this rung.
+                  These are standalone list rows rather than links inside a
+                  sentence, so WCAG 2.5.8's inline exception does not cover
+                  them — the narrow-viewport lane measures them and it is
+                  right to.
+                */}
                 <Link
                   href={hrefFor(r)}
-                  className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex min-h-6 items-center text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {r.label}: {r.value.toLocaleString()}
                 </Link>

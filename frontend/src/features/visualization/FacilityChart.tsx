@@ -40,13 +40,14 @@ export function FacilityChart({ data }: Props) {
       textStyle: { color: t.text },
     },
     grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-    // Hidden on a phone: the ticks collide and every bar already ends in its
-    // own count, so the axis and its gridlines only crowd the labels.
+    // No gridlines at any width — they cross the bars and the value labels
+    // without adding precision, since every bar ends in its own count. The
+    // axis itself is hidden on a phone, where its ticks collide.
     xAxis: {
       type: "value",
       max: maxCount + 0.5,
       show: !narrow,
-      splitLine: { show: !narrow, lineStyle: { color: t.border } },
+      splitLine: { show: false },
       axisLabel: {
         color: t.textFaint,
         formatter: (v: number) => (Number.isInteger(v) ? String(v) : ""),

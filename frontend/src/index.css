@@ -96,6 +96,17 @@ a {
     var(--ttm-text)
   );
 
+  /* Panel edge. The neutral --border is correct for a control, and flat as the
+     outline of every card on the page: ten worlds drew the same grey box. A
+     12% wash of the world's accent is enough to tell them apart and far too
+     little to read as a coloured border. Borders carry no contrast
+     requirement, so the tint costs nothing an eye has to resolve. */
+  --color-panel-border: color-mix(
+    in srgb,
+    var(--ttm-accent-cta) 12%,
+    var(--ttm-border)
+  );
+
   /* Heading ink. Every heading in the app read --foreground, which is near-
      black in light and near-white in dark — so ten worlds produced two
      headings, and the one piece of text a reader looks at first was the one

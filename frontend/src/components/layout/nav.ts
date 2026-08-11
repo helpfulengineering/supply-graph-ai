@@ -1,18 +1,18 @@
 import {
   EfficiencyIcon,
-  FirstAidBoxIcon,
+  HelpIcon,
   CubeIcon,
   NotebookIcon,
   BobbinIcon,
-  AccuracyIcon,
-  HammerIcon,
-  IndustrialIcon,
+  LiquidIcon,
+  OwlIcon,
+  IndustrialProductionIcon,
   IntegrationIcon,
   PackingIcon,
-  ExecutionIcon,
+  RobotIcon,
   SettingsIcon,
   SmartFactoryIcon,
-  WorkflowIcon,
+  ArtificialLeavesIcon,
   type IconProps,
 } from "../icons";
 import type { JSX } from "react";
@@ -97,7 +97,7 @@ export const NAV_GROUPS: NavGroup[] = [
         href: "/",
         name: "Dashboard",
         desc: "network map and system status",
-        icon: AccuracyIcon,
+        icon: OwlIcon,
       },
       {
         href: "/okh",
@@ -133,19 +133,19 @@ export const NAV_GROUPS: NavGroup[] = [
         href: "/okh/generate",
         name: "Generate",
         desc: "draft a design manifest from a URL",
-        icon: ExecutionIcon,
+        icon: RobotIcon,
       },
       {
         href: "/okh/new",
         name: "New design",
         desc: "author an OKH manifest by hand",
-        icon: HammerIcon,
+        icon: LiquidIcon,
       },
       {
         href: "/facilities/new",
         name: "New facility",
         desc: "register an OKW space",
-        icon: IndustrialIcon,
+        icon: IndustrialProductionIcon,
       },
       {
         href: "/rfq",
@@ -163,7 +163,7 @@ export const NAV_GROUPS: NavGroup[] = [
         href: "/help",
         name: "Help",
         desc: "sitemap, shortcuts, and accessibility",
-        icon: FirstAidBoxIcon,
+        icon: HelpIcon,
       },
       // Static mkdocs site served on the same origin — a hard link, not a route.
       {
@@ -205,20 +205,26 @@ export const ACCOUNT_GROUP: NavGroup = {
 };
 
 /**
- * The site layer, which most instances do not run.
+ * The operator surface, which most instances do not run.
  *
  * Absent from the drawer entirely unless the instance opted in — see
  * NavDrawer — but its icon still has to resolve, because a page that IS
- * mounted needs a hero.
+ * mounted needs a hero. The gate is the site layer's configuration, not a
+ * preference: without it the page has no data source, so an always-visible
+ * entry would lead somewhere that cannot work.
+ *
+ * Labelled "Operator" rather than "Site": the group is what an operator does
+ * with the instance — telemetry, visitor records, administration — and "Site"
+ * read as a place rather than a role.
  */
 export const SITE_GROUP: NavGroup = {
-  label: "Site",
+  label: "Operator",
   accent: "text-chart-5",
   entries: [
     {
       href: "/mission-control",
       name: "Mission Control",
-      desc: "telemetry and visitor records for this site",
+      desc: "telemetry, visitor records, and instance administration",
       icon: EfficiencyIcon,
     },
   ],
@@ -240,7 +246,7 @@ export const UNLISTED_GROUP: NavGroup = {
       href: "/visualization",
       name: "Supply Tree",
       desc: "the production plan a match resolved to",
-      icon: WorkflowIcon,
+      icon: ArtificialLeavesIcon,
     },
   ],
 };

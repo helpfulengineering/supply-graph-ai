@@ -29,3 +29,11 @@ export function useMediaQuery(query: string): boolean {
 
 /** The `sm:` breakpoint, as a question a component can ask. */
 export const NARROW = "(max-width: 639px)";
+
+/**
+ * True where the pointer cannot hover — a phone, a tablet.
+ *
+ * Anything whose only trigger is hover is unreachable here, so a component
+ * that hides content behind a tooltip has to show it another way.
+ */
+export const NO_HOVER = "(hover: none)";

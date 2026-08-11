@@ -48,7 +48,7 @@
   --z-header: 50;
   --z-modal: 60;
   --z-overlay: 9999;
-  --ttm-radius: 0.375rem;
+  --ttm-radius: 0.25rem;
   --ttm-radius-sm: calc(var(--ttm-radius) - 4px);
   --ttm-radius-md: calc(var(--ttm-radius) - 2px);
   --ttm-radius-lg: var(--ttm-radius);
@@ -190,7 +190,7 @@
   --ttm-pink: #e904e5;
   --ttm-pink-hover: #c903c5;
   --ttm-plum: #21262d;
-  --ttm-radius: 0.375rem;
+  --ttm-radius: 0.25rem;
   --ttm-scrollbar-thumb: color-mix(in srgb, var(--ttm-cyan) 30%, transparent);
   --ttm-scrollbar-thumb-hover: color-mix(
     in srgb,

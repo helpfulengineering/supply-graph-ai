@@ -69,7 +69,26 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/*
+          First in the head, before anything else the parser has to fetch or
+          resolve. It is a blocking script whose whole job is to finish before
+          the first frame — see theme-script.tsx — so nothing belongs above it.
+        */}
         <ThemeScript />
+        {/*
+          Written here rather than left to Next's `app/manifest.ts` convention,
+          which emits the same tag without `crossorigin`. A manifest is fetched
+          as a CORS request, so behind Vercel's deployment protection — where
+          it is redirected to `vercel.com/sso-api` — the browser blocks the
+          response and the install has no name and no icon. `use-credentials`
+          sends the session cookie, the redirect resolves, and the fetch is a
+          same-origin one on an unprotected deployment either way.
+        */}
+        <link
+          rel="manifest"
+          href="/manifest.webmanifest"
+          crossOrigin="use-credentials"
+        />
       </head>
       <body>
         <Providers>{children}</Providers>

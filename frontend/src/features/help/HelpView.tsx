@@ -96,30 +96,41 @@ export function HelpView() {
               {group.entries.map((entry) => {
                 const Icon = entry.icon;
                 return (
-                  <li key={entry.href} className="flex items-start gap-2.5">
-                    <Icon
-                      aria-hidden="true"
-                      className={`mt-0.5 h-4 w-4 shrink-0 ${group.accent}`}
-                    />
-                    <span className="min-w-0">
+                  /*
+                    The glyph sits on the title's line, centred against it, and
+                    the description hangs under both. It used to be a column of
+                    its own nudged down by a hand-picked `mt-0.5`, which held
+                    only while every glyph had the same optical height — the
+                    tightened viewBoxes gave each one its own, and the margin
+                    started missing in both directions. `items-center` on the
+                    title row aligns them by construction; `pl-6` under it is
+                    the icon plus its gap, so the description keeps the same
+                    left edge.
+                  */
+                  <li key={entry.href} className="min-w-0">
+                    <span className="flex items-center gap-2">
+                      <Icon
+                        aria-hidden="true"
+                        className={`h-4 w-4 shrink-0 ${group.accent}`}
+                      />
                       {entry.external ? (
                         <a
                           href={entry.href}
-                          className="text-sm font-medium text-primary-ink hover:underline"
+                          className="inline-flex min-h-6 items-center truncate text-sm font-medium text-primary-ink hover:underline"
                         >
                           {entry.name}
                         </a>
                       ) : (
                         <Link
                           href={entry.href}
-                          className="text-sm font-medium text-primary-ink hover:underline"
+                          className="inline-flex min-h-6 items-center truncate text-sm font-medium text-primary-ink hover:underline"
                         >
                           {entry.name}
                         </Link>
                       )}
-                      <span className="block text-xs text-muted-foreground">
-                        {entry.desc}
-                      </span>
+                    </span>
+                    <span className="block pl-6 text-xs text-muted-foreground">
+                      {entry.desc}
                     </span>
                   </li>
                 );
@@ -144,9 +155,10 @@ export function HelpView() {
                 className="flex items-baseline gap-2 text-sm"
               >
                 <span className="flex shrink-0 gap-1">
-                  {s.keys.map((k) => (
+                  {/* Indexed: a chord can repeat a key — `g` then `g` opens Generate. */}
+                  {s.keys.map((k, i) => (
                     <kbd
-                      key={k}
+                      key={`${k}-${i}`}
                       className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground"
                     >
                       {k}

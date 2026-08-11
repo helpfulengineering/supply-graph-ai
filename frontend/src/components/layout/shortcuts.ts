@@ -16,6 +16,14 @@ export const CHORD_ROUTES: Record<string, string> = {
   p: "/packages",
   r: "/rfq",
   s: "/settings/session",
+  // The Create group and Reference, which the first table skipped. A menu
+  // entry with no chord is the half of the contract nobody can see is
+  // missing; `shortcuts.test.ts` now fails if a nav route has none.
+  g: "/okh/generate",
+  n: "/okh/new",
+  w: "/facilities/new",
+  h: "/help",
+  o: "/docs/",
 };
 
 /** How long `g` stays armed. Long enough to be deliberate, short enough that a
@@ -39,6 +47,11 @@ export const SHORTCUTS: ShortcutDoc[] = [
   { keys: ["g", "p"], desc: "packages" },
   { keys: ["g", "r"], desc: "RFQ" },
   { keys: ["g", "s"], desc: "settings" },
+  { keys: ["g", "g"], desc: "generate from URL" },
+  { keys: ["g", "n"], desc: "new design" },
+  { keys: ["g", "w"], desc: "new facility" },
+  { keys: ["g", "h"], desc: "help" },
+  { keys: ["g", "o"], desc: "documentation" },
 ];
 
 /**
