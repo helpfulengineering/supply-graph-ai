@@ -79,7 +79,13 @@ function StatCard({
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
+function LegendDot({
+  color,
+  label,
+}: {
+  color: string;
+  label: string;
+}) {
   return (
     <span className={cn(CAPTION, "inline-flex items-center gap-1.5")}>
       {/*
@@ -176,7 +182,10 @@ export function HomePage() {
                 color={colors.local}
                 label={SOURCE_STYLES.local.label}
               />
-              <LegendDot color={colors.mom} label={SOURCE_STYLES.mom.label} />
+              <LegendDot
+                color={colors.mom}
+                label={SOURCE_STYLES.mom.label}
+              />
               {m.dropped_no_coords > 0 && (
                 <LegendDot
                   color={colors.unplotted}
@@ -265,7 +274,6 @@ export function HomePage() {
             seriesIndex={0}
             noun="countries"
             hrefFor={(r) => `/facilities?country=${encodeURIComponent(r.key)}`}
-            empty="No facility on this instance records a country yet."
           />
           <NetworkBarChart
             title="What it can make"
@@ -273,11 +281,7 @@ export function HomePage() {
             rows={capabilityCoverage(spaces)}
             seriesIndex={1}
             noun="capabilities"
-            // The common case on a fresh instance and in the seeded demo
-            // world: facilities exist, none of them lists what it can do. The
-            // card used to disappear here, taking the answer to "what can this
-            // network build" with it and leaving a half-empty grid.
-            empty="These facilities list no manufacturing processes yet — add them to a facility record and its capabilities appear here."
+            hrefFor={(r) => `/facilities?process=${encodeURIComponent(r.key)}`}
           />
         </div>
       )}

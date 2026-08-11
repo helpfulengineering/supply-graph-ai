@@ -54,6 +54,18 @@ def render() -> str:
     designs = [build_okh(d) for d in DESIGNS]
     facilities = [build_okw(f) for f in FACILITIES]
 
+    # The shape `/api/okw/spaces` projects, not a subset of it.
+    #
+    # This list used to stop at `source`, and the four fields it left off are
+    # the ones the dashboard derives its second chart from: with no `processes`
+    # on any space, `capabilityCoverage` counted nothing and "What it can make"
+    # was empty in demo mode no matter how many facilities the world held. The
+    # data was never missing — every seeded facility carries
+    # `manufacturing_processes` — it just was not carried across here.
+    #
+    # Keep this aligned with `_local_facility_to_space` in
+    # src/core/services/okw_service.py. A demo world narrower than the API's own
+    # projection is a demo of a different product.
     spaces = [
         {
             "id": f["id"],
@@ -64,6 +76,10 @@ def render() -> str:
             "region": f["location"].get("region"),
             "country": f["location"]["country"],
             "source": "local",
+            "status": f.get("facility_status"),
+            "processes": f.get("manufacturing_processes", []),
+            "access_type": f.get("access_type"),
+            "url": (f.get("owner") or {}).get("website"),
         }
         for f in facilities
     ]

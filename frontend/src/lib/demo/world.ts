@@ -965,7 +965,15 @@ export const demoNetworkSpaces = {
       "city": "Boston",
       "region": "Massachusetts",
       "country": "US",
-      "source": "local"
+      "source": "local",
+      "status": "Active",
+      "processes": [
+        "3d_printing",
+        "laser_cutting",
+        "cnc_machining"
+      ],
+      "access_type": "Membership",
+      "url": null
     },
     {
       "id": "97cdd117-b352-5c2a-bba6-17873baed61d",
@@ -975,7 +983,16 @@ export const demoNetworkSpaces = {
       "city": "Detroit",
       "region": "Michigan",
       "country": "US",
-      "source": "local"
+      "source": "local",
+      "status": "Active",
+      "processes": [
+        "3d_printing",
+        "woodworking",
+        "assembly",
+        "welding"
+      ],
+      "access_type": "Public",
+      "url": null
     },
     {
       "id": "27e1f332-2841-57e6-b4fb-cf319d74ce5f",
@@ -985,7 +1002,16 @@ export const demoNetworkSpaces = {
       "city": "Nairobi",
       "region": "Nairobi County",
       "country": "KE",
-      "source": "local"
+      "source": "local",
+      "status": "Active",
+      "processes": [
+        "3d_printing",
+        "woodworking",
+        "assembly",
+        "pcb_assembly"
+      ],
+      "access_type": "Public",
+      "url": null
     },
     {
       "id": "8b7e1ab0-ee87-50ef-b16d-82e0f82efbe0",
@@ -995,7 +1021,15 @@ export const demoNetworkSpaces = {
       "city": "Rotterdam",
       "region": "South Holland",
       "country": "NL",
-      "source": "local"
+      "source": "local",
+      "status": "Active",
+      "processes": [
+        "cnc_machining",
+        "precision_grinding",
+        "casting"
+      ],
+      "access_type": "Restricted",
+      "url": null
     },
     {
       "id": "8f778019-6dc9-5fda-9262-e68846cf66ac",
@@ -1005,7 +1039,15 @@ export const demoNetworkSpaces = {
       "city": "São Paulo",
       "region": "São Paulo",
       "country": "BR",
-      "source": "local"
+      "source": "local",
+      "status": "Active",
+      "processes": [
+        "composite_layup",
+        "cnc_machining",
+        "assembly"
+      ],
+      "access_type": "Membership",
+      "url": null
     },
     {
       "id": "2430cf6f-9844-5582-9c01-9921c3f0e7b7",
@@ -1015,7 +1057,15 @@ export const demoNetworkSpaces = {
       "city": "Bengaluru",
       "region": "Karnataka",
       "country": "IN",
-      "source": "local"
+      "source": "local",
+      "status": "Active",
+      "processes": [
+        "pcb_assembly",
+        "3d_printing",
+        "laser_cutting"
+      ],
+      "access_type": "Membership",
+      "url": null
     },
     {
       "id": "5607caa5-b126-5265-afbc-28fdf81b5659",
@@ -1025,7 +1075,15 @@ export const demoNetworkSpaces = {
       "city": "Berlin",
       "region": "Berlin",
       "country": "DE",
-      "source": "local"
+      "source": "local",
+      "status": "Planned",
+      "processes": [
+        "woodworking",
+        "assembly",
+        "3d_printing"
+      ],
+      "access_type": "Public",
+      "url": null
     }
   ],
   "total": 7,

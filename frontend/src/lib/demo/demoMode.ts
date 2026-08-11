@@ -1,5 +1,7 @@
 "use client";
 
+import { QUERY_CACHE_KEY } from "../../queryClient";
+
 /**
  * Demo mode — an optional data SOURCE, not a branch through the app.
  *
@@ -36,8 +38,25 @@ export function setDemoMode(on: boolean): void {
   } catch {
     // ignore
   }
-  // Full reload rather than cache invalidation: the source changed underneath
-  // every query, and a reload is the one operation guaranteed to leave no
-  // half-real, half-sample state behind.
+  // Drop the dehydrated cache, THEN reload.
+  //
+  // The reload alone was the whole plan here, on the reasoning that the source
+  // had changed underneath every query and a reload leaves no half-real,
+  // half-sample state behind. It does not: the query client is wrapped in a
+  // persister that writes every successful result to localStorage and
+  // rehydrates it on boot, so the reload restored the exact state it was meant
+  // to escape. Switching demo data off left the dashboard showing the sample
+  // world's seven facilities and "Maps of Making unavailable" indefinitely,
+  // against an instance that was answering with three thousand — with the
+  // Demo data badge gone, so nothing on the page said why.
+  //
+  // Both directions matter. On the way in, a real catalogue must not linger
+  // behind the demo badge; on the way out, the sample world must not outlive
+  // it.
+  try {
+    localStorage.removeItem(QUERY_CACHE_KEY);
+  } catch {
+    // ignore
+  }
   if (typeof window !== "undefined") window.location.reload();
 }

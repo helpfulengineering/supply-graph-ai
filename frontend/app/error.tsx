@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import Link from "next/link";
 import { PageHero } from "@/components/layout/PageHero";
+import { LogoLoader } from "@/components/ui/LogoLoader";
 import { PANEL_MUTED } from "@/components/ui/surface";
 import { BODY_MUTED, CAPTION } from "@/components/ui/typography";
 import { userFacingError } from "@/lib/userMessage";
@@ -45,6 +46,12 @@ export default function Error({
   // which is what a person pressing "Try again" means by it.
   retry: () => void;
 }) {
+  // Retrying re-runs the server render, which is not instant and used to give
+  // no sign it had started — the button simply sat there, so the natural next
+  // move was to press it again. `startTransition` is what marks that work as
+  // pending, and the mark is what says so.
+  const [retrying, startRetry] = useTransition();
+
   useEffect(() => {
     // The console is the only sink this app has — there is no error reporting
     // service wired up, and inventing one here would be a decision this change
@@ -63,6 +70,14 @@ export default function Error({
       {/* No section mark, for the reason the 404 gives: this boundary renders
           over any route, so a resolved icon would claim whichever section the
           address belongs to while showing a page that is not that section. */}
+      {/*
+        The mark, animating, above a page that only ever appears when something
+        failed. It is doing no work — nothing here is loading — and that is the
+        point: a visitor who has just been dropped out of whatever they were
+        doing should see the product still running rather than a bare apology,
+        and this is the one element on the page that is unmistakably OHM.
+      */}
+      <LogoLoader className="h-10 w-10" />
       <PageHero
         title={message.title}
         crumb="error · this page did not load"
@@ -76,13 +91,15 @@ export default function Error({
             is not a request with a status — `retryable` describes what the API
             said, and here there may have been no API call at all. */}
         <button
-          onClick={() => retry()}
+          onClick={() => startRetry(() => retry())}
+          disabled={retrying}
           className={cn(
             ACTION,
             "bg-primary text-primary-foreground hover:opacity-90",
           )}
         >
-          Try again
+          {retrying && <LogoLoader className="mr-2 h-4 w-4" />}
+          {retrying ? "Trying again…" : "Try again"}
         </button>
         <Link
           href="/"
