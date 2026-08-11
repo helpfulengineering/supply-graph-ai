@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
@@ -18,11 +18,13 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isDark, toggle } = useTheme();
 
-  useKeyboardShortcuts({
-    menuOpen,
-    openMenu: () => setMenuOpen(true),
-    closeMenu: () => setMenuOpen(false),
-  });
+  // Stable, because the drawer's focus trap keys its effect on this callback:
+  // an inline arrow made every header render a teardown and rebuild of the
+  // trap, which moves focus. See lib/useDialogFocus.
+  const openMenu = useCallback(() => setMenuOpen(true), []);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  useKeyboardShortcuts({ menuOpen, openMenu, closeMenu });
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-card/90 shadow-sm backdrop-blur-md">
@@ -67,7 +69,7 @@ export function SiteHeader() {
 
           <button
             type="button"
-            onClick={() => setMenuOpen(true)}
+            onClick={openMenu}
             aria-label="Site menu"
             aria-keyshortcuts="?"
             aria-expanded={menuOpen}
@@ -80,7 +82,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <NavDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <NavDrawer open={menuOpen} onClose={closeMenu} />
     </header>
   );
 }

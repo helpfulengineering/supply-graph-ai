@@ -73,6 +73,14 @@ export function resolveThemeSwatches(): Record<ThemeSlug, ThemeSwatch> {
   const original = root.getAttribute("data-ttm-theme");
   const out = {} as Record<ThemeSlug, ThemeSwatch>;
 
+  // Ten flips of the world attribute against the `*` colour transition in
+  // index.css is ten transitions started on every element in the document, and
+  // that multiplier — not the recalcs themselves — is what made opening the
+  // menu a 1.2s stall in production. The attribute switches those transitions
+  // off for the length of the loop; nothing here is animating toward a world
+  // anyone will see.
+  root.setAttribute("data-ttm-probing", "");
+
   // A probe, because the ratio has to be computed from CONCRETE colours and
   // the tokens are authored as hex, var() chains, and color-mix(). Setting each
   // one as a `color` and reading it back makes the browser do the resolving,
@@ -120,10 +128,24 @@ export function resolveThemeSwatches(): Record<ThemeSlug, ThemeSwatch> {
     // app in whichever world the loop had reached.
     if (original === null) root.removeAttribute("data-ttm-theme");
     else root.setAttribute("data-ttm-theme", original);
+    root.removeAttribute("data-ttm-probing");
   }
 
   return out;
 }
+
+/**
+ * Resolved sets, kept for the life of the tab.
+ *
+ * A world's swatches depend on the world and the polarity and nothing else, so
+ * the second opening of the drawer — and every one after it — is a map lookup.
+ * The palettes cannot change under a live key: editing tokens.css reloads the
+ * page, and a new key is a new entry.
+ */
+const CACHE = new Map<string, Record<ThemeSlug, ThemeSwatch>>();
+
+/** Long enough for the drawer's 200ms entrance to finish uninterrupted. */
+const SETTLE_MS = 220;
 
 /**
  * Swatches, re-resolved whenever the surface under them changes.
@@ -175,16 +197,39 @@ export function useThemeSwatches(
 
   useEffect(() => {
     if (!enabled) return;
+    const key = `${theme}|${isDark ? "dark" : "light"}`;
+    const cached = CACHE.get(key);
+    if (cached) {
+      setSwatches(cached);
+      return;
+    }
+
     // After the frame, not during the effect pass. The polarity class lands on
     // <html> in the PROVIDER's effect, and React runs a child's effects before
     // its parent's — so resolving here directly reads the surface the app is
     // leaving rather than the one it is entering, and every ink comes out
     // solved against the wrong background. That is the whole bug: toggling to
     // light left ten labels between 1.05:1 and 3.18:1.
-    const frame = requestAnimationFrame(() =>
-      setSwatches(resolveThemeSwatches()),
-    );
-    return () => cancelAnimationFrame(frame);
+    //
+    // And then a beat longer, because a frame is not enough. Even with the
+    // transitions suppressed this is ~150ms of forced recalculation, and the
+    // frame after the drawer mounts is the frame its entrance animation is
+    // playing on: resolving there is what turned a 200ms ease into a snap.
+    // The picker draws unstyled names for that one beat and paints itself in
+    // once — a cost the cache above charges once per world per polarity, not
+    // once per opening.
+    let timer = 0;
+    const frame = requestAnimationFrame(() => {
+      timer = window.setTimeout(() => {
+        const resolved = resolveThemeSwatches();
+        CACHE.set(key, resolved);
+        setSwatches(resolved);
+      }, SETTLE_MS);
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
   }, [theme, isDark, enabled]);
 
   return swatches;

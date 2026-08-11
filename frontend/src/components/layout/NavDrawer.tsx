@@ -42,6 +42,27 @@ const IRIDESCENT =
   "linear-gradient(120deg, var(--ttm-irid-a), var(--ttm-irid-b), var(--ttm-irid-c), var(--ttm-irid-d), var(--ttm-irid-e))";
 
 /**
+ * The length of both eases, in ms. Kept in step with `duration-200` on the
+ * panel: this is how long the exiting drawer stays mounted, so a shorter value
+ * cuts the slide off and a longer one leaves a finished animation on screen.
+ */
+const EASE_MS = 200;
+
+/**
+ * Whether the visitor has asked for less motion.
+ *
+ * Read at the moment of closing rather than subscribed to: the panel's own
+ * `motion-reduce:animate-none` already handles the drawing, and what this
+ * decides is whether to hold the unmount for an animation that will not play.
+ */
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+/**
  * One sitemap row.
  *
  * The active row carries an iridescent rail on its leading edge — the same
@@ -130,10 +151,15 @@ function NavGroupBlock({
 /**
  * The hamburger sitemap: every route in the app, grouped, each entry carrying
  * a role line. ARIA disclosure semantics — dialog, focus trap, Esc, backdrop —
- * with the entrance animation inside the reduced-motion guard.
+ * with both animations inside the reduced-motion guard.
  *
- * Rendered only while open: unmounting is the exit path, so focus restoration
- * (in the cleanup effect) and the axe animation-settling contract stay simple.
+ * It eases out as well as in. Closing used to be an unmount, which is less a
+ * dismissal than a disappearance: the panel that took 200ms to arrive was
+ * simply not there on the next frame. So `open` going false starts the exit
+ * and the unmount waits for it. That is why the modal contract is keyed on
+ * `open` and not on being mounted — the drawer stops being modal the moment it
+ * starts leaving. Focus returns to the opener, Escape and the scroll lock are
+ * released, and the panel is inert for the beat it spends sliding out.
  *
  * Density is deliberate. The drawer holds the whole sitemap plus the theme,
  * data, and keyboard panels, and at the old rhythm — 20px gutters, a full line
@@ -156,19 +182,41 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const isFetching = useIsFetching() > 0;
   const panelRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
+  // The exit, and the only reason the panel outlives `open`.
+  const [leaving, setLeaving] = useState(false);
+  const wasOpen = useRef(open);
 
   // Focus management: close button first, trap Tab inside, Esc closes, focus
-  // returns to the opener when the drawer unmounts. Shared with the site-layer
-  // gate — see lib/useDialogFocus.ts.
+  // returns to the opener the moment the drawer stops being modal. Shared with
+  // the site-layer gate — see lib/useDialogFocus.ts.
   useDialogFocus(panelRef, { active: open, onClose });
+
+  // Whether to render is decided HERE, in render, not in an effect. The trap
+  // above reads panelRef in its own effect, on the commit where `open` turns
+  // true — so a panel that waits for an effect to mount it is not in the tree
+  // yet when the trap looks for it, and the drawer opens with no focus, no
+  // scroll lock, and no Escape. Only the exit needs state, because only the
+  // exit outlasts the prop.
+  useEffect(() => {
+    const dismissed = wasOpen.current && !open;
+    wasOpen.current = open;
+    if (open) {
+      setLeaving(false);
+      return;
+    }
+    if (!dismissed || prefersReducedMotion()) return;
+    setLeaving(true);
+    const timer = window.setTimeout(() => setLeaving(false), EASE_MS);
+    return () => window.clearTimeout(timer);
+  }, [open]);
 
   // Close on route change — a chosen destination is the natural dismissal.
   useEffect(() => {
     onClose();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- pathname is the trigger, onClose is stable-enough chrome state
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pathname is the trigger; onClose is stable
   }, [pathname]);
 
-  if (!open) return null;
+  if (!open && !leaving) return null;
 
   // The one label the sitemap cannot state, because it depends on what you
   // hold: the same route is Connect, Session, or Settings depending on whether
@@ -195,19 +243,38 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   // the map bled through the backdrop. From <body> the wrapper competes at
   // root with the token scale's top layer.
   return createPortal(
-    <div className="fixed inset-0" style={{ zIndex: "var(--z-overlay)" }}>
+    // Nothing catches a click on the way out: the overlay is still on screen
+    // for the length of the exit, and a dismissed menu that eats the click
+    // meant for what is behind it is worse than one that vanishes.
+    <div
+      className={`fixed inset-0 ${leaving ? "pointer-events-none" : ""}`}
+      style={{ zIndex: "var(--z-overlay)" }}
+    >
       <div
-        className="absolute inset-0 bg-black/50 animate-in fade-in duration-150 motion-reduce:animate-none"
+        className={`absolute inset-0 bg-black/50 duration-150 motion-reduce:animate-none ${
+          leaving
+            ? "animate-out fade-out ease-in"
+            : "animate-in fade-in ease-out"
+        }`}
         onClick={onClose}
         aria-hidden="true"
       />
+      {/* Out on the same curve it came in on, reversed: ease-out to arrive
+          (fast, then settling) and ease-in to leave (gathering speed as it
+          goes). Both are transform and opacity, so the compositor draws them
+          and no amount of work on the main thread can stutter the slide. */}
       <div
         ref={panelRef}
         role="dialog"
-        aria-modal="true"
+        aria-modal={leaving ? undefined : true}
         aria-label="Site menu"
         id="site-menu"
-        className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-border bg-card shadow-xl animate-in slide-in-from-right duration-200 motion-reduce:animate-none"
+        inert={leaving}
+        className={`absolute right-0 top-0 flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-border bg-card shadow-xl duration-200 motion-reduce:animate-none ${
+          leaving
+            ? "animate-out slide-out-to-right ease-in"
+            : "animate-in slide-in-from-right ease-out"
+        }`}
       >
         <div className="flex shrink-0 items-center justify-between px-4 py-1.5">
           <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -289,7 +356,13 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           <p aria-hidden="true" className={LABEL}>
             Theme
           </p>
-          <div className="grid grid-cols-2 gap-x-2 px-1">
+          {/* Tighter than it looks it can be. The rows stay 44px, because that
+              is the target size the accessibility page promises and the
+              responsive gate measures — what came out is the air INSIDE them:
+              the chip was a small pill floating in a tall row, so ten worlds
+              read as ten widely spaced words. The chip now fills its row's
+              height, which closes the gaps without moving a target edge. */}
+          <div className="grid grid-cols-2 gap-x-1.5 px-1">
             {themes.map(({ slug, label }) => {
               const swatch = swatches[slug];
               return (
@@ -321,7 +394,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     the surface the text lands on here.
                   */}
                   <span
-                    className="min-w-0 flex-1 truncate rounded px-1.5 py-0.5"
+                    className="min-w-0 flex-1 truncate rounded px-1.5 py-1.5"
                     style={
                       swatch
                         ? {
