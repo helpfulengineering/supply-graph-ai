@@ -28,6 +28,25 @@ MOM_FAILURE_COOLDOWN_SECONDS = 60.0
 # 30s was long enough that a few queued callers exceeded the gateway timeout.
 MOM_FETCH_TIMEOUT_SECONDS = 15.0
 
+# Joins on a Wikidata QID, so it only returns rows where our QID for a process
+# equals MoM's owl:sameAs for the matching concept. Expect nothing today, for
+# two separate reasons — neither of which is a bug here:
+#
+#   Coverage. As of 2026-08-11 the live endpoint carries owl:sameAs on four
+#   concepts (ThreeDPrinting, CNC, Electronics, EmbeddedSystems). Every other
+#   process has nothing to join against, whatever we send.
+#
+#   Disagreement. Of those four, CNC is Q174689 — San Jose, the city — and
+#   EmbeddedSystems is Q189443, Multimedia Messaging Service. Our taxonomy
+#   carried the same wrong value for CNC until it was corrected against the
+#   entity itself, which means this join used to "work" for cnc_machining by
+#   agreeing on the wrong QID and now returns nothing. Matching a partner's
+#   typo is not interoperability, so the fix belongs upstream in the vocabulary
+#   (nicolasdb/mapsofmaking_ontology), not by reverting ours.
+#
+# The live browse and match paths do not come through here — _ALL_SPACES_SPARQL
+# reads raw schema:knowsAbout tags and normalizes them locally through the
+# taxonomy's aliases, which is why none of the above affects them.
 _SPARQL_TEMPLATE = """
 SELECT DISTINCT ?space ?name ?lat ?lon WHERE {{
   GRAPH ?g {{
