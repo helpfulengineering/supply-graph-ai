@@ -94,16 +94,65 @@ mDNS (`_ohm._tcp.local.`) works on real WiFi LANs but is **unreliable inside Doc
 All routes are under `/v1/api/federation/` when federation is enabled and the
 node role exposes the federation API.
 
-| Endpoint | Description |
-|---|---|
-| `GET /identify` | Node DID, catalog summary |
-| `GET /status` | Dashboard status + sync metrics |
-| `GET /catalog` | Signed catalog records (shareable visibility only) |
-| `GET /records/{content_hash}` | Full signed manifest |
-| `POST /sync/digest` | Anti-entropy hash exchange |
-| `POST /sync/run` | Pull missing records from followed peers (`?peer_url=` auto-follows) |
-| `POST /peers/{did}/follow` | Allow ingest from peer |
-| `DELETE /peers/{did}/follow` | Remove allowlist entry |
+| Endpoint | Auth | Description |
+|---|---|---|
+| `GET /identify` | peer | Node DID, catalog summary |
+| `GET /status` | peer | Dashboard status + sync metrics |
+| `GET /catalog` | peer | Signed catalog records (shareable visibility only) |
+| `GET /records/{content_hash}` | peer | Full signed manifest |
+| `POST /sync/digest` | peer | Anti-entropy hash exchange |
+| `POST /peers/discover` | **write** | Refresh the local peer registry from manual URLs + mDNS |
+| `POST /sync/run` | **write** | Pull missing records from followed peers (`?peer_url=` auto-follows) |
+| `POST /peers/{did}/follow` | **write** | Allow ingest from peer |
+| `DELETE /peers/{did}/follow` | **write** | Remove allowlist entry |
+| `POST /packages/fetch` | **write** | On-demand package fetch from a peer |
+| `POST /okw/sync/run` | **write** | Pull OKW records from followed peers |
+
+**"peer"** means anonymous: a peer authenticates with a DID it signs for, not
+with one of this node's API keys, so the read side of the protocol and the
+digest exchange stay open and are bounded by the per-DID rate limiter instead.
+
+**"write"** means the `write` permission, enforced wherever
+`require_auth_for_writes` is on — which peacetime turns on for any
+production-like `ENVIRONMENT`. These routes mutate local trust or local storage,
+or make this node fetch a URL the caller chose; `POST /sync/run?peer_url=` does
+all three at once, auto-following whatever DID the URL claims and ingesting its
+manifests. They are ordinary local writes wearing federation clothing, and they
+authorize like any other write.
+
+## Production posture
+
+The public instance runs federation **read-only**: enabled, answering
+`/identify`, `/status` and `/catalog`, but with `OHM_FEDERATION_MANUAL_PEERS`
+and `OHM_FEDERATION_SEED_PEER_URL` unset. That is what makes it read-only —
+with no manual peers and nothing followed, the background sync loop iterates an
+empty registry and the node makes no outbound peer calls. There is no separate
+"read-only" switch.
+
+Settings live in `config/environments/<env>.toml` and reach the container
+through `deploy_env_vars()`, which **uppercases each key verbatim**. The keys
+must therefore be spelled `ohm_federation_*`: a key named `federation_enabled`
+would set `FEDERATION_ENABLED`, which nothing reads — a silent no-op that looks
+correct in the diff. `tests/unit/test_config_schema.py` pins this.
+
+`ohm_federation_data_dir` is not optional in a container. The default is
+`~/.ohm/federation`, the image's `ohm` user has no home directory, and the
+entrypoint's `/app/storage/federation` fallback is a shell variable it never
+exports — so identity load raises inside the request handler and every
+federation route returns **500 instead of 404**.
+
+### Turning it back off
+
+Deleting the key from the TOML and redeploying is **not** enough.
+`deploy_azure.py` applies config with `az containerapp update --set-env-vars`,
+which is additive: it adds and updates the listed variables and leaves every
+other existing variable alone. Removing a key from the file simply stops
+mentioning it, so the value already on the app persists. Turning federation off
+is an out-of-band step on both container apps:
+
+```bash
+az containerapp update -n <app> -g <rg> --set-env-vars OHM_FEDERATION_ENABLED=false
+```
 
 ## Trust model
 
