@@ -24,8 +24,28 @@ import { parseRgb } from "../../lib/contrastInk";
  * new added to tokens.css is themed by construction, with nothing to remember.
  */
 
-/** Sepia's resulting hue in degrees — the origin every rotation starts from. */
-const SEPIA_HUE = 38;
+/**
+ * OSM's water, in degrees — the hue everything else on a tile is drawn against.
+ *
+ * The rotation is anchored here rather than on a flattened image. The first
+ * version ran `grayscale(1) sepia(1)` first, which does guarantee the world's
+ * hue lands exactly — and throws away every hue relationship on the tile to do
+ * it, so water, parks, land and motorways all came out the same colour
+ * separated only by lightness. The map became one flat wash: technically the
+ * right hue, and unreadable as a map.
+ *
+ * Rotating OSM's palette as a SET keeps those relationships. Water arrives on
+ * the world's hue and everything else keeps its own distance from it, so the
+ * coastline is still a coastline.
+ */
+const OSM_WATER_HUE = 205;
+
+/**
+ * Inverting flips every hue to its opposite, so a dark world's rotation starts
+ * from the other side of the wheel. Getting this wrong is not obvious — the
+ * map still looks tinted, just not the colour anybody chose.
+ */
+const INVERTED_WATER_HUE = (OSM_WATER_HUE + 180) % 360;
 
 /**
  * A token's value as channels, whichever way it was written.
@@ -115,24 +135,25 @@ export function tileFilter({ accent, isDark }: TileFilterOptions): string {
   // the hue the world just supplied.
   const steps: string[] = [];
   if (isDark) steps.push("invert(1)", "brightness(0.92)");
-  steps.push("grayscale(1)");
 
   if (hue === null) {
-    // A neutral world stays neutral — the greyscale IS the answer.
-    steps.push("contrast(0.9)");
+    // A neutral world stays neutral, and here flattening IS the answer: with
+    // no hue to carry, the honest map is a grey one.
+    steps.push("grayscale(1)", "contrast(0.9)");
     return steps.join(" ");
   }
 
   steps.push(
-    "sepia(1)",
-    `hue-rotate(${Math.round(hue - SEPIA_HUE)}deg)`,
-    // Restrained on purpose: the map is the ground a reader looks past, and
-    // the two source colours have to stay the loudest things on it. Enough
-    // hue to belong to the world, not enough to compete with the key — the
-    // markers read chart-1 and chart-2, which are near neighbours of this
-    // hue, so a saturated map would camouflage the points on it.
-    "saturate(0.55)",
-    "contrast(0.9)",
+    // No grayscale before this. The whole palette turns together, so water
+    // lands on the world's hue and land, parks and roads keep their own
+    // distance from it — which is what makes the thing still read as a map.
+    `hue-rotate(${Math.round(hue - (isDark ? INVERTED_WATER_HUE : OSM_WATER_HUE))}deg)`,
+    // Under 1: the map is the ground a reader looks past, and the two source
+    // colours have to stay the loudest things on it. The markers read
+    // --chart-1 and --chart-2, which are near neighbours of this hue, so a
+    // fully saturated map would camouflage the points sitting on it.
+    "saturate(0.6)",
+    "contrast(0.95)",
   );
   return steps.join(" ");
 }

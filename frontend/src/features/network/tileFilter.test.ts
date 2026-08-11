@@ -58,15 +58,29 @@ describe("tileFilter", () => {
     expect(warm).not.toBe(ocean);
   });
 
-  it("always flattens OSM's own palette before tinting", () => {
-    // Without this the world's hue lands on top of OSM's greens and blues
-    // rather than replacing them, and the map reads as two palettes at once.
+  it("keeps more than one colour on the map", () => {
+    // The regression this pins: flattening to greyscale and re-tinting through
+    // sepia does land the world's hue exactly, and collapses water, land,
+    // parks and roads onto one of it — a flat wash separated only by
+    // lightness, which is the right colour and not a map. OSM's palette has to
+    // survive the rotation.
     for (const isDark of [true, false]) {
-      const filter = tileFilter({ accent: "rgb(250, 247, 242)", isDark });
-      expect(filter.indexOf("grayscale(1)")).toBeLessThan(
-        filter.indexOf("sepia(1)"),
-      );
+      const filter = tileFilter({ accent: "rgb(56, 189, 248)", isDark });
+      expect(filter).not.toContain("grayscale");
+      expect(filter).not.toContain("sepia");
+      expect(filter).toContain("hue-rotate");
     }
+  });
+
+  it("starts a dark world's rotation from the inverted wheel", () => {
+    // invert(1) flips every hue by 180 before the rotation lands, so sharing
+    // one anchor between the polarities puts dark worlds on the opposite
+    // colour — still tinted, just never the one anybody chose.
+    const accent = "rgb(56, 189, 248)";
+    const light = tileFilter({ accent, isDark: false });
+    const dark = tileFilter({ accent, isDark: true });
+    const deg = (f: string) => Number(/hue-rotate\((-?\d+)deg\)/.exec(f)![1]);
+    expect(Math.abs(deg(light) - deg(dark))).toBe(180);
   });
 
   it("leaves a neutral world neutral", () => {

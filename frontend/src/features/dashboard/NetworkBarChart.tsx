@@ -5,7 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useChartTokens } from "../../lib/chartTokens";
 import { NARROW, useMediaQuery } from "../../hooks/useMediaQuery";
-import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import {
+  BODY_MUTED,
+  CAPTION,
+  CARD_TITLE,
+} from "../../components/ui/typography";
 import { PANEL } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 import type { Row } from "./networkStats";
@@ -20,6 +24,23 @@ interface NetworkBarChartProps {
   hrefFor?: (row: Row) => string;
   /** Plural noun for the rows ("countries"), for the keyboard list's summary. */
   noun?: string;
+  /**
+   * What to say when there is nothing to chart, and why.
+   *
+   * Required rather than optional, because the default this replaces was
+   * `return null` — the card removed itself from the page. On a dashboard whose
+   * two charts sit in a two-column grid that left one card beside a blank
+   * column and no clue that a second one had ever existed: "What it can make"
+   * vanished whenever the facilities on an instance carried no manufacturing
+   * processes, which is the ordinary state of a fresh instance and of the
+   * seeded demo world.
+   *
+   * A missing card cannot be read as "nothing to show yet", only as something
+   * broken or, worse, as nothing at all. Making the caller supply the sentence
+   * means each chart says which data is absent and what would fill it, rather
+   * than sharing one shrug.
+   */
+  empty: string;
 }
 
 /** Pixels per row: the bar, its label, and the gap that keeps them legible. */
@@ -63,11 +84,11 @@ export function NetworkBarChart({
   seriesIndex = 0,
   hrefFor,
   noun = "rows",
+  empty,
 }: NetworkBarChartProps) {
   const t = useChartTokens();
   const narrow = useMediaQuery(NARROW);
   const router = useRouter();
-  if (rows.length === 0) return null;
 
   // Ascending, because echarts' y-axis runs bottom-up: the largest bar ends up
   // at the top, where a reader starts.
@@ -138,6 +159,20 @@ export function NetworkBarChart({
   };
 
   const chartHeight = Math.max(140, rows.length * ROW_HEIGHT);
+
+  // The card keeps its heading, its caption, and its place in the grid; only
+  // the chart is replaced. Same rhythm as the panel beside it, so a reader
+  // comparing the two sees one answer and one absence rather than a layout
+  // that changed shape.
+  if (rows.length === 0) {
+    return (
+      <section className={PANEL} aria-label={title}>
+        <h3 className={CARD_TITLE}>{title}</h3>
+        <p className={cn(BODY_MUTED, "mt-0.5 mb-2 min-h-12")}>{caption}</p>
+        <p className={cn(CAPTION, "py-6 text-center")}>{empty}</p>
+      </section>
+    );
+  }
 
   return (
     <section className={PANEL} aria-label={title}>
