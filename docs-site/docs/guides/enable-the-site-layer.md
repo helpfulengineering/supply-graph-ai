@@ -8,7 +8,7 @@ surface: selfhost
 
 The site layer is the optional part of OHM that tracks **who visited the site
 and how it looks** — a visitor gate, batched telemetry, whitelabel theme
-config, and the Mission Control page. It is **off by default**, and an instance
+config, and the Operator Tools page. It is **off by default**, and an instance
 that never enables it is not degraded; it is the normal deployment.
 
 It never grants application permissions. Whether you may create a design or
@@ -29,6 +29,12 @@ It creates four tables — `ohmgr_visitors`, `ohmgr_telemetry_events`,
 `ohmgr_site_config`, `ohmgr_admin_secrets` — with row-level security on all
 four, and the `SECURITY DEFINER` functions that are the only way in. The script
 is idempotent, so re-running it is safe.
+
+**Already running an earlier version? Re-run it.** `ohmgr_admin_events` now
+returns the `props` column, so the events an operator reads carry their
+outcomes. Without the re-run the panel still works and simply shows no outcome
+figures. The file drops that one function before recreating it, because
+Postgres will not let `create or replace` change a return type.
 
 Confirm it landed:
 
@@ -71,16 +77,17 @@ Generate a long random string yourself, then:
 
 ```sql
 insert into public.ohmgr_admin_secrets (id, token_hash)
-values (1, encode(digest('PASTE-A-LONG-RANDOM-TOKEN-HERE', 'sha256'), 'hex'))
+values (1, encode(sha256(convert_to('PASTE-A-LONG-RANDOM-TOKEN-HERE', 'UTF8')), 'hex'))
 on conflict (id) do update
   set token_hash = excluded.token_hash, updated_at = now();
 ```
 
-If `digest` is not available, enable pgcrypto first:
-
-```sql
-create extension if not exists pgcrypto;
-```
+This is core `sha256()`, not pgcrypto's `digest()`, and needs no extension. The
+two produce the same bytes, but on Supabase pgcrypto is installed into the
+`extensions` schema, so `digest` does not resolve from the `SECURITY DEFINER`
+functions — they pin `search_path = public` precisely so nothing can be
+shadowed. `ohmgr_check_admin` hashes the same way, so a token stored by any
+other expression will not compare equal.
 
 Verify the token works — this returns `true` only for the right string:
 
@@ -93,9 +100,17 @@ one tab and never persists it.
 
 ## 3. Grant an operator marker (optional)
 
-`is_admin` on a visitor row is a *marker*, not the credential — it decides
-whether Mission Control offers the operator card, while the token above is what
-actually authorises anything. It is grantable only from here:
+`is_admin` on a visitor row is a *marker*, not a credential. It is a label
+Operator Tools renders beside a name, and nothing more — it unlocks no view
+and authorises no call. The token from step 2 is the only thing that does.
+
+That distinction is load-bearing rather than pedantic: gate emails are never
+verified, so anyone can type any address. If the marker granted anything,
+knowing an operator's email address would be enough to have it. Operator Tools
+therefore offers the token field to everyone, signed in or not, and decides
+what to show from what the server accepts.
+
+The marker is grantable only from here:
 
 ```sql
 update public.ohmgr_visitors
@@ -121,7 +136,7 @@ check the operator token server-side before returning anything.
 
 ## 5. Write the gate (optional)
 
-Once the layer is on, opening `/mission-control` without a visitor record on
+Once the layer is on, opening `/operator-tools` without a visitor record on
 that device raises the sign-in gate. Nothing else is gated: the dashboard,
 designs, facilities and matching stay open to everyone, because site sign-in is
 not an OHM permission.
@@ -133,17 +148,61 @@ one field and leave the rest:
 select public.ohmgr_publish_config('PASTE-THE-SAME-TOKEN-HERE', jsonb_build_object(
   'gate', jsonb_build_object(
     'enabled', true,
-    'title',   'Sign in to Mission Control',
+    'title',   'Sign in to Operator Tools',
     'body',    'So your visit has a record you own.',
     'fine',    'Unverified, kept on this device, and no permissions in OHM.'
   )
 ));
 ```
 
-Set `"enabled": false` if this instance should ask nobody to sign in. Mission
-Control then shows the unsigned view with no dialog and no sign-in button.
+Set `"enabled": false` if this instance should ask nobody to sign in. Operator
+Tools then shows the unsigned view with no dialog and no sign-in button.
 
-## 6. Verify the boundary holds
+## 6. What Operator Tools shows
+
+The page is composed from the tier you hold. The two tiers are **independent
+doors, not a ladder** — signing in never makes you an operator, and unlocking
+never requires a visitor record.
+
+| | Nobody | Visitor (signed in at the gate) | Operator (holds the token) |
+|---|---|---|---|
+| **My record** | — | name, first/last seen, rename, erase | same, if also signed in |
+| **Visitors** | — | 200 most recent, addresses masked `a***@e***` | 100 most recent, real addresses |
+| **Telemetry** | — | 200 most recent events, addresses masked, no outcomes | same, plus the address, session, and outcome behind each |
+| **Mutations** | — | own row only | rename, admin marker, delete any visitor; purge by retention window |
+| **Operator field** | offered | offered | Lock |
+
+The masked reads withhold the raw address at the *function* level, not in the
+browser — `ohmgr_visitors_masked` and `ohmgr_events_masked` never return one,
+so there is nothing in a visitor's page to un-mask. User agents are returned to
+nobody.
+
+**Erasure is self-service.** A visitor can delete their own row and every
+telemetry event attributed to it, without asking an operator. That is the point
+of showing people their own record.
+
+**Retention is a window, not a button.** The purge control takes a number of
+days to keep and reports how many rows went, so the ordinary operation is
+"keep 30 days" rather than "delete everything".
+
+**Unmet demand is the actionable one.** The Telemetry panel leads with counts
+rather than a log, and the figure worth opening the page for is the list of
+designs someone matched here that came back with nothing. Every other number
+says what the instance did; that one says what it could not do, and names the
+capability gap to go and fill. It needs the operator token — outcomes live in
+the `props` column, which only `ohmgr_admin_events` returns.
+
+Outcome figures are withheld from the self-service tier rather than shown as
+zero. A masked read returns no props, so "0 of 3" would mean "cannot see" while
+reading as "none failed".
+
+None of these views cache. The app persists its other queries to storage so a
+reload starts warm; these panels deliberately opt out, because an operator's
+unmasked read would otherwise be spooled onto the device. The token itself
+lives in `sessionStorage` for one tab and is verified server-side before it is
+stored at all.
+
+## 7. Verify the boundary holds
 
 Run these as the **anon** role (a fresh SQL editor session is not anon — use
 the REST endpoint with the anon key, or the API docs' "Run" button):
@@ -170,7 +229,7 @@ select public.ohmgr_update_own_name('someone@else.com', 'Nope');     -- refused
 ## Turning it off
 
 Unset the two environment variables and rebuild. The app returns to its default
-posture: no gate, no telemetry, `/mission-control` 404s, no nav entry, and
+posture: no gate, no telemetry, `/operator-tools` 404s, no nav entry, and
 theme and mode continue to work from the device. The Supabase client is
 code-split, so a build with the layer off never fetches it.
 
@@ -188,7 +247,12 @@ schema**, or a tab that was open beforehand stays quiet and keeps looking broken
 
 **`unauthorized` from every operator call** — the token in the browser does not
 hash to what is stored. Re-run step 2 and paste the same string into Mission
-Control.
+Control. Operator Tools reports this as "that operator token was not
+accepted"; a rejected token is never stored, so the next call does not silently
+retry with it.
+
+**Signed in as a visitor with `is_admin`, but the panels are still masked** —
+working as intended. The marker is a label; unlock with the token from step 2.
 
 **Telemetry silently absent** — expected when the layer is off. Telemetry is
 fail-soft by design and must never break a page; matching designs to facilities

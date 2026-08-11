@@ -222,8 +222,8 @@ export const SITE_GROUP: NavGroup = {
   accent: "text-chart-5",
   entries: [
     {
-      href: "/mission-control",
-      name: "Mission Control",
+      href: "/operator-tools",
+      name: "Operator Tools",
       desc: "telemetry, visitor records, and instance administration",
       icon: EfficiencyIcon,
     },

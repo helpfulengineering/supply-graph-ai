@@ -446,6 +446,28 @@
 
 /* ── Ocean — deep water dark · foam light ── */
 :root[data-ttm-theme="ocean"] {
+  /* This world's categorical ramp, overriding the shared hue mapping.
+
+     The shared mapping points --chart-1/2 at --ttm-cyan/--ttm-pink, so every
+     world led with blue then pink whatever else it was made of — and Ocean and
+     Synthwave, whose chrome is already blue and pink, doubled down until the
+     two were hard to tell apart. Worse, both dark ramps carried TWO pinks
+     (--ttm-pink and --ttm-hot-red land in the same region), so a five-way
+     categorical scale had four distinguishable steps.
+
+     Validated rather than eyeballed, against the checks in the dataviz
+     skill: chroma floor, adjacent-pair CVD separation, the normal-vision
+     floor, and contrast against this world's own card. The lightness band is
+     the one check these deliberately sit outside — it wants L 0.48–0.67 on
+     dark, and every TTM dark world runs its series brighter than that on a
+     near-black ground. That is the house register, not an accident. */
+
+  --chart-1: #075985;
+  --chart-2: #15803d;
+  --chart-3: #b45309;
+  --chart-4: #7c3aed;
+  --chart-5: #be123c;
+
   --ttm-accent-cta: var(--ttm-cta-src);
   --ttm-bg: #f4f8fb;
   --ttm-bg-alt: #e9f1f7;
@@ -499,6 +521,28 @@
   --ttm-wash-hover: rgba(20, 20, 30, 0.09);
 }
 :root[data-ttm-theme="ocean"].dark {
+  /* This world's categorical ramp, overriding the shared hue mapping.
+
+     The shared mapping points --chart-1/2 at --ttm-cyan/--ttm-pink, so every
+     world led with blue then pink whatever else it was made of — and Ocean and
+     Synthwave, whose chrome is already blue and pink, doubled down until the
+     two were hard to tell apart. Worse, both dark ramps carried TWO pinks
+     (--ttm-pink and --ttm-hot-red land in the same region), so a five-way
+     categorical scale had four distinguishable steps.
+
+     Validated rather than eyeballed, against the checks in the dataviz
+     skill: chroma floor, adjacent-pair CVD separation, the normal-vision
+     floor, and contrast against this world's own card. The lightness band is
+     the one check these deliberately sit outside — it wants L 0.48–0.67 on
+     dark, and every TTM dark world runs its series brighter than that on a
+     near-black ground. That is the house register, not an accident. */
+
+  --chart-1: #38bdf8;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #c084fc;
+  --chart-5: #f87171;
+
   --ttm-accent-cta: var(--ttm-cta-src);
   --ttm-bg: #081018;
   --ttm-bg-alt: #0d1722;
@@ -660,6 +704,28 @@
 
 /* ── Synthwave — neon grid dark · pastel horizon light ── */
 :root[data-ttm-theme="synthwave"] {
+  /* This world's categorical ramp, overriding the shared hue mapping.
+
+     The shared mapping points --chart-1/2 at --ttm-cyan/--ttm-pink, so every
+     world led with blue then pink whatever else it was made of — and Ocean and
+     Synthwave, whose chrome is already blue and pink, doubled down until the
+     two were hard to tell apart. Worse, both dark ramps carried TWO pinks
+     (--ttm-pink and --ttm-hot-red land in the same region), so a five-way
+     categorical scale had four distinguishable steps.
+
+     Validated rather than eyeballed, against the checks in the dataviz
+     skill: chroma floor, adjacent-pair CVD separation, the normal-vision
+     floor, and contrast against this world's own card. The lightness band is
+     the one check these deliberately sit outside — it wants L 0.48–0.67 on
+     dark, and every TTM dark world runs its series brighter than that on a
+     near-black ground. That is the house register, not an accident. */
+
+  --chart-1: #4d7c0f;
+  --chart-2: #6d28d9;
+  --chart-3: #b45309;
+  --chart-4: #0891b2;
+  --chart-5: #be123c;
+
   --ttm-accent-cta: var(--ttm-cta-src);
   --ttm-bg: #f8f5ff;
   --ttm-bg-alt: #efeafc;
@@ -713,6 +779,28 @@
   --ttm-wash-hover: rgba(20, 20, 30, 0.09);
 }
 :root[data-ttm-theme="synthwave"].dark {
+  /* This world's categorical ramp, overriding the shared hue mapping.
+
+     The shared mapping points --chart-1/2 at --ttm-cyan/--ttm-pink, so every
+     world led with blue then pink whatever else it was made of — and Ocean and
+     Synthwave, whose chrome is already blue and pink, doubled down until the
+     two were hard to tell apart. Worse, both dark ramps carried TWO pinks
+     (--ttm-pink and --ttm-hot-red land in the same region), so a five-way
+     categorical scale had four distinguishable steps.
+
+     Validated rather than eyeballed, against the checks in the dataviz
+     skill: chroma floor, adjacent-pair CVD separation, the normal-vision
+     floor, and contrast against this world's own card. The lightness band is
+     the one check these deliberately sit outside — it wants L 0.48–0.67 on
+     dark, and every TTM dark world runs its series brighter than that on a
+     near-black ground. That is the house register, not an accident. */
+
+  --chart-1: #d8ff4d;
+  --chart-2: #a78bfa;
+  --chart-3: #fbbf24;
+  --chart-4: #67e8f9;
+  --chart-5: #fb923c;
+
   --ttm-accent-cta: var(--ttm-cta-src);
   --ttm-bg: #120826;
   --ttm-bg-alt: #180d31;
@@ -880,11 +968,11 @@
   --ttm-border: #c9c9c9;
   --ttm-border-subtle: #e2e2e2;
   --ttm-control: #303030;
-  --ttm-cta-src: #262626;
-  --ttm-cyan: #5c5c5c;
+  --ttm-cta-src: #1d4f66;
+  --ttm-cyan: #256b87;
   --ttm-cyan-hover: color-mix(in srgb, var(--ttm-cyan) 82%, #000000);
   --ttm-danger: #a02c2c;
-  --ttm-focus: #303030;
+  --ttm-focus: #1d4f66;
   --ttm-font-sans: var(--ttm-font-mono);
   --ttm-font-serif: var(--ttm-font-mono);
   --ttm-glass: color-mix(in srgb, var(--ttm-surface) 90%, transparent);
@@ -902,7 +990,7 @@
   --ttm-lime-hover: color-mix(in srgb, var(--ttm-lime) 82%, #000000);
   --ttm-on-accent: #f7f7f7;
   --ttm-overlay: rgba(30, 30, 40, 0.5);
-  --ttm-pink: #4a4a4a;
+  --ttm-pink: #4a5b73;
   --ttm-pink-hover: color-mix(in srgb, var(--ttm-pink) 82%, #000000);
   --ttm-scrollbar-thumb: color-mix(
     in srgb,
@@ -935,8 +1023,8 @@
   --ttm-border: #383838;
   --ttm-border-subtle: #202020;
   --ttm-control: #d4d4d4;
-  --ttm-cta-src: #f2f2f2;
-  --ttm-cyan: #bdbdbd;
+  --ttm-cta-src: #9ed6ef;
+  --ttm-cyan: #86c9e6;
   --ttm-cyan-hover: color-mix(in srgb, var(--ttm-cyan) 82%, #ffffff);
   --ttm-danger: #e08585;
   --ttm-focus: #d4d4d4;
@@ -957,7 +1045,7 @@
   --ttm-lime-hover: color-mix(in srgb, var(--ttm-lime) 82%, #ffffff);
   --ttm-on-accent: #0d0d0d;
   --ttm-overlay: rgba(0, 0, 0, 0.72);
-  --ttm-pink: #dedede;
+  --ttm-pink: #b6c3d8;
   --ttm-pink-hover: color-mix(in srgb, var(--ttm-pink) 82%, #ffffff);
   --ttm-scrollbar-thumb: color-mix(
     in srgb,

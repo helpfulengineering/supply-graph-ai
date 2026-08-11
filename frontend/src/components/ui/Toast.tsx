@@ -3,6 +3,7 @@
 import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 import { AlertTriangle, CheckCircle2, Info, XCircle, X } from "lucide-react";
 import type { ReactNode } from "react";
+import { BODY_MUTED } from "./typography";
 import { userFacingError } from "@/lib/userMessage";
 import { cn } from "@/lib/utils";
 
@@ -121,7 +122,7 @@ function ToastList() {
             <ToastPrimitive.Title
               className={cn("text-sm font-medium", tone.ink)}
             />
-            <ToastPrimitive.Description className="text-sm text-muted-foreground" />
+            <ToastPrimitive.Description className={BODY_MUTED} />
             {toast.actionProps && (
               <ToastPrimitive.Action className="mt-1.5 self-start rounded-md border border-border px-2 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted" />
             )}

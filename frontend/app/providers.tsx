@@ -11,8 +11,10 @@ import { Layout } from "@/components/layout/Layout";
 import { LogoLoader } from "@/components/ui/LogoLoader";
 import { ToastProvider } from "@/components/ui/Toast";
 import { TooltipProvider } from "@/components/ui/Tooltip";
+import { BODY_MUTED } from "@/components/ui/typography";
 import { installDemoFetch } from "@/lib/demo/demoFetch";
 import { siteConfig } from "@/lib/site/config";
+import { RouteTelemetry } from "@/lib/site/RouteTelemetry";
 
 /**
  * The client provider stack, mounted once by the root layout.
@@ -90,10 +92,10 @@ function BootLoader() {
     <div
       role="status"
       aria-live="polite"
-      className="flex min-h-screen flex-col items-center justify-center gap-3 text-muted-foreground"
+      className="flex min-h-screen flex-col items-center justify-center gap-3"
     >
       <LogoLoader className="h-12 w-12" />
-      <span className="text-sm">Loading Open Hardware Manager…</span>
+      <span className={BODY_MUTED}>Loading Open Hardware Manager…</span>
     </div>
   );
 }
@@ -110,6 +112,12 @@ function MountedProviders({ children }: { children: ReactNode }) {
       >
         <AuthProvider>
           <TooltipProvider>
+            {/*
+              Above the routed subtree and rendered once, so a page view
+              belongs to the router rather than to whichever component
+              happened to mount. Renders nothing; a no-op with the layer off.
+            */}
+            <RouteTelemetry />
             {/* Inside the query client, so a toast fired from a mutation's
                 onError has one; outside Layout, so its viewport is a sibling
                 of the page rather than a child of <main> — a fixed element

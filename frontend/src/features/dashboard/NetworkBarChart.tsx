@@ -172,7 +172,15 @@ export function NetworkBarChart({
         <ReactECharts
           option={option}
           style={{ height: chartHeight }}
-          opts={{ renderer: "canvas" }}
+          /*
+            SVG, not canvas. A canvas chart is one opaque element to every
+            accessibility checker there is — the axe matrix scans twenty theme
+            variants and cannot see a single label inside it, which is how
+            unreadable axis text survived every gate the app has. As SVG the
+            labels are real text: scannable, selectable, and they scale with
+            browser zoom.
+          */
+          opts={{ renderer: "svg" }}
           onEvents={hrefFor ? { click: onClick } : undefined}
           notMerge
         />

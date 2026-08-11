@@ -21,8 +21,8 @@ export function proxy(request: NextRequest) {
   // page-level notFound() renders the boundary but leaves the response 200 —
   // the page looks right while the status lies, which misleads monitors and
   // crawlers. This runs per request and can answer with a real 404. On the
-  // default deployment /mission-control genuinely does not exist.
-  if (!siteConfig.enabled && pathname.startsWith("/mission-control")) {
+  // default deployment /operator-tools genuinely does not exist.
+  if (!siteConfig.enabled && pathname.startsWith("/operator-tools")) {
     return new NextResponse(null, { status: 404 });
   }
 

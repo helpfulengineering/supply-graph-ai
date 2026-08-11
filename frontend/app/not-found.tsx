@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHero } from "@/components/layout/PageHero";
 import { NAV_GROUPS } from "@/components/layout/nav";
 import { PANEL_MUTED } from "@/components/ui/surface";
-import { SECTION_LABEL } from "@/components/ui/typography";
+import { BODY_MUTED, CAPTION, SECTION_LABEL } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 /**
@@ -44,7 +44,7 @@ export default function NotFound() {
           only after hydration, and would claim membership of a section the
           address does not actually belong to. */}
       <PageHero title="Not found" crumb="404 · no such page" icon={null} />
-      <p className="max-w-prose text-sm text-muted-foreground">
+      <p className={cn(BODY_MUTED, "max-w-prose")}>
         That address does not match anything on this instance. It may have
         moved, or it may be a capability this instance has not enabled.
       </p>
@@ -74,9 +74,7 @@ export default function NotFound() {
                     className="flex min-h-11 flex-wrap items-baseline gap-x-2 text-sm text-primary-ink hover:underline"
                   >
                     {entry.name}
-                    <span className="text-caption text-muted-foreground">
-                      {entry.desc}
-                    </span>
+                    <span className={CAPTION}>{entry.desc}</span>
                   </Link>
                 </li>
               )),

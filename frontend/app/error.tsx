@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { PageHero } from "@/components/layout/PageHero";
 import { PANEL_MUTED } from "@/components/ui/surface";
+import { BODY_MUTED, CAPTION } from "@/components/ui/typography";
 import { userFacingError } from "@/lib/userMessage";
 import { cn } from "@/lib/utils";
 
@@ -68,9 +69,7 @@ export default function Error({
         icon={null}
       />
 
-      <p className="max-w-prose text-sm text-muted-foreground">
-        {message.body}
-      </p>
+      <p className={cn(BODY_MUTED, "max-w-prose")}>{message.body}</p>
 
       <div className="flex flex-wrap items-center gap-2">
         {/* Offered unconditionally, unlike in ErrorMessage. A render that threw
@@ -110,7 +109,7 @@ export default function Error({
       */}
       {(error.digest || error.message) && (
         <div className={cn(PANEL_MUTED, "space-y-1")}>
-          <p className="text-sm text-muted-foreground">
+          <p className={BODY_MUTED}>
             Quote this if you report the problem — it is what an operator needs
             to find it in the instance&apos;s logs.
           </p>
@@ -118,7 +117,7 @@ export default function Error({
             <p className="font-mono text-sm text-foreground">{error.digest}</p>
           )}
           {error.message && (
-            <p className="font-mono text-caption break-words text-muted-foreground">
+            <p className={cn(CAPTION, "break-words font-mono")}>
               {error.message}
             </p>
           )}

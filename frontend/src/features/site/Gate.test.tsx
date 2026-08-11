@@ -12,7 +12,7 @@ vi.mock("../../lib/site/stack", () => ({
 
 const COPY: GateCopy = {
   enabled: true,
-  title: "Sign in to Mission Control",
+  title: "Sign in to Operator Tools",
   body: "This site keeps a record of who visited.",
   fine: "Grants nothing in OHM.",
 };
