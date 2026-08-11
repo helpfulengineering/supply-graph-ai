@@ -31,10 +31,9 @@ import {
 } from "../components/ui/typography";
 import {
   buildNetworkSummary,
-  unplottedColor,
   SOURCE_STYLES,
-  sourceColor,
 } from "../features/network/networkSummary";
+import { useSourceColors } from "../features/network/useSourceColors";
 
 /**
  * One figure on the dashboard.
@@ -123,6 +122,7 @@ export function HomePage() {
     staleTime: 60_000,
   });
 
+  const colors = useSourceColors();
   const online = !domains.isError && !metrics.isError;
   const m = map.data;
 
@@ -179,16 +179,16 @@ export function HomePage() {
               style={{ zIndex: 500 }}
             >
               <LegendDot
-                color={sourceColor("local")}
+                color={colors.local}
                 label={SOURCE_STYLES.local.label}
               />
               <LegendDot
-                color={sourceColor("mom")}
+                color={colors.mom}
                 label={SOURCE_STYLES.mom.label}
               />
               {m.dropped_no_coords > 0 && (
                 <LegendDot
-                  color={unplottedColor()}
+                  color={colors.unplotted}
                   label="Without coordinates"
                 />
               )}
@@ -213,9 +213,9 @@ export function HomePage() {
               className="absolute bottom-7 left-2 flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs font-semibold tabular-nums"
               style={{
                 zIndex: 500,
-                backgroundColor: unplottedColor(),
+                backgroundColor: colors.unplotted,
                 color: "var(--card)",
-                boxShadow: `0 0 0 2px color-mix(in srgb, ${unplottedColor()} 35%, transparent)`,
+                boxShadow: `0 0 0 2px color-mix(in srgb, ${colors.unplotted} 35%, transparent)`,
               }}
             >
               {m.dropped_no_coords.toLocaleString()}
