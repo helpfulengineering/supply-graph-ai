@@ -40,6 +40,17 @@ export interface Visitor {
 let queue: TelemetryEvent[] = [];
 let timer: ReturnType<typeof setTimeout> | null = null;
 
+/**
+ * Set when the backing schema is absent (the RPCs 404).
+ *
+ * "Fail-soft" has to mean the failure stops, not that it repeats quietly: a
+ * project with the env vars set but supabase/schema.sql not yet run would
+ * otherwise 404 on every batch, once per page view, forever — noisy in the
+ * console and pointless on the wire. One 404 is enough to conclude the layer
+ * is not provisioned, so the client goes dormant for the session.
+ */
+let schemaMissing = false;
+
 function sessionId(): string {
   if (typeof window === "undefined") return "";
   try {
@@ -88,19 +99,30 @@ async function client() {
 }
 
 export async function flush(): Promise<void> {
-  if (!siteConfig.enabled || queue.length === 0) return;
+  if (!siteConfig.enabled || schemaMissing || queue.length === 0) return;
   const batch = queue.slice(0, MAX_BATCH);
   queue = queue.slice(batch.length);
   try {
     const sb = await client();
-    await sb?.rpc("ohmgr_track", { p_events: batch });
+    const { error } = (await sb?.rpc("ohmgr_track", { p_events: batch })) ?? {};
+    if (isMissingSchema(error)) {
+      schemaMissing = true;
+      queue = [];
+    }
   } catch {
     // Fail-soft: a dropped telemetry batch is not worth surfacing.
   }
 }
 
+/** A 404/PGRST202 means the RPC does not exist, i.e. schema.sql was never run. */
+function isMissingSchema(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const { code, message } = error as { code?: string; message?: string };
+  return code === "PGRST202" || code === "404" || /not exist|not found/i.test(message ?? "");
+}
+
 export function track(event: string, props: Record<string, unknown> = {}): void {
-  if (!siteConfig.enabled) return;
+  if (!siteConfig.enabled || schemaMissing) return;
   queue.push({ event, props, session: sessionId(), ts: new Date().toISOString() });
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => void flush(), FLUSH_MS);
@@ -134,7 +156,7 @@ export async function signIn(name: string, email: string): Promise<boolean> {
  * leave RequireAdmin obeying two disagreeing truths.
  */
 export async function isOperator(): Promise<boolean> {
-  if (!siteConfig.enabled) return false;
+  if (!siteConfig.enabled || schemaMissing) return false;
   const v = visitor();
   if (!v?.email) return false;
   try {

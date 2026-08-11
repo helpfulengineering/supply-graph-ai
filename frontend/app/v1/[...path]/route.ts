@@ -48,6 +48,33 @@ async function proxy(request: Request): Promise<Response> {
       { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } },
     );
   }
+  // Self-reference guard. Pointing API_UPSTREAM_URL at this deployment's own
+  // origin makes /v1/* proxy to itself: the platform answers 508 INFINITE_LOOP
+  // after burning an invocation per hop, and the message names neither the
+  // variable nor the value. Cheap to detect, so detect it.
+  const forwardedHost =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (forwardedHost) {
+    let upstreamHost: string;
+    try {
+      upstreamHost = new URL(base).host;
+    } catch {
+      return new Response(
+        `API upstream is not a valid URL: ${base}\nSet API_UPSTREAM_URL to the ` +
+          "OHM API origin (scheme + host, no /v1 path).\n",
+        { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } },
+      );
+    }
+    if (upstreamHost === forwardedHost) {
+      return new Response(
+        `API upstream points at this deployment (${forwardedHost}), so /v1 ` +
+          "would proxy to itself.\nSet API_UPSTREAM_URL to the OHM API origin, " +
+          "not the frontend's own URL.\n",
+        { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } },
+      );
+    }
+  }
+
   const target = `${base}${url.pathname}${url.search}`;
 
   const headers = new Headers();
