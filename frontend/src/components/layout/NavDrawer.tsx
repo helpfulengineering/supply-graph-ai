@@ -301,29 +301,35 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     className={CHECKBOX}
                   />
                   {/*
-                    The name IS the preview: rendered in that world's own
-                    accent and typeface. Two markers per row (a radio and a
-                    swatch dot) was one too many, and the colour belongs on the
-                    thing you are reading.
+                    The row IS the preview: the name in that world's accent and
+                    typeface, ON that world's own ground.
+
+                    The name alone was not enough. Ten worlds do not have ten
+                    accents — Warm, Zine, Terminal, Synthwave and Bubblegum all
+                    land on a magenta — so five rows painted the same colour and
+                    the reader chose between them by word. The ground is what
+                    actually separates them, and it is most of what a world
+                    looks like: cream, near-black, ink-blue. Now each row shows
+                    it.
 
                     swatch.ink, not swatch.accent: raw accents sit between
                     3.8:1 and 4.5:1 as ink in several worlds — the finding
-                    behind --color-primary-ink — so the colour is blended
-                    toward the current world's foreground before it is used as
-                    text. Terminal and Mono also repoint every font stack at
-                    the monospace face, which their names then show.
+                    behind --color-primary-ink. It is now solved against THAT
+                    world's ground rather than the drawer's, because that is
+                    the surface the text lands on here.
                   */}
                   <span
-                    className="truncate"
+                    className="min-w-0 flex-1 truncate rounded px-1.5 py-0.5"
                     style={
                       swatch
                         ? {
                             fontFamily: swatch.fontSans,
                             color: swatch.ink,
-                            // Raw accent here, not ink: a shadow is decoration
-                            // and carries no contrast requirement, so it can
-                            // use the undiluted colour the ink had to temper.
-                            textShadow: `0 0 10px color-mix(in srgb, ${swatch.accent} 45%, transparent)`,
+                            backgroundColor: swatch.ground,
+                            // An edge in the world's own border colour, so a
+                            // chip whose ground is near the drawer's does not
+                            // dissolve into it.
+                            boxShadow: `inset 0 0 0 1px ${swatch.edge}`,
                           }
                         : undefined
                     }

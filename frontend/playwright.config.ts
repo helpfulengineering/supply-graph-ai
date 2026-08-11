@@ -28,7 +28,12 @@ export default defineConfig({
       // scripts/seed_demo_data.py; there is nothing for it to assert here.
       // responsive belongs to the `mobile` lane below — running it here would
       // measure a 1280px viewport and assert nothing about the phone layout.
-      testIgnore: /demo-data\.spec\.ts|responsive\.spec\.ts/,
+      // readme-assets asserts nothing at all: it captures the four images the
+      // README embeds, and it is run on demand. Left in the default lane it
+      // rewrote four committed binaries on every run, so an unrelated frontend
+      // change arrived with four modified screenshots attached.
+      testIgnore:
+        /demo-data\.spec\.ts|responsive\.spec\.ts|readme-assets\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
     // Narrow-viewport lane. Every other lane is Desktop Chrome at 1280px, so
@@ -53,7 +58,26 @@ export default defineConfig({
     // Opt-in lane: real OHM API via the dev-server proxy. Run on demand / in CI.
     {
       name: "real-api",
-      testIgnore: /screenshots\.spec\.ts|responsive\.spec\.ts/,
+      testIgnore:
+        /screenshots\.spec\.ts|responsive\.spec\.ts|readme-assets\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    /**
+     * Opt-in lane: regenerate the four images the README embeds.
+     *
+     *     npx playwright test --project=assets
+     *
+     * Its own project rather than a file the other lanes skip, because a
+     * skipped file cannot be run by naming it — `testIgnore` wins over a path
+     * argument, so excluding it everywhere would have made it unrunnable. This
+     * captures rather than asserts: it writes committed binaries, which is
+     * exactly why it must never be part of `npm run e2e`. It was, once, and an
+     * unrelated frontend change arrived with four rewritten screenshots
+     * attached and nothing to say why.
+     */
+    {
+      name: "assets",
+      testMatch: /readme-assets\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
   ],

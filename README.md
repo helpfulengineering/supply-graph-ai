@@ -73,7 +73,9 @@ deciding nothing about its chrome.
   `prefers-reduced-motion`.
 - **Data surfaces on tokens.** The Leaflet map, the cytoscape supply-tree
   graph, and the ECharts charts resolve their colours from the live token
-  layer instead of carrying private palettes.
+  layer instead of carrying private palettes. The map's raster tiles arrive
+  from a server already painted, so they are rotated onto the world's own hue
+  rather than left as the one surface a theme could not reach.
 - **Built for a phone.** The map frames where the network is dense rather than
   fitting a world that will not fit, one-finger swipes scroll the page while
   two fingers move the map, and charts drop the axis furniture that a narrow
@@ -87,9 +89,19 @@ deciding nothing about its chrome.
   records themselves rather than a build flag.
 - **One spelling per control.** Fields, panels, and heading roles come from
   shared constants, enforced by unit tests that read the source.
+- **Failures in one vocabulary.** Every error — a dead connection, a rate
+  limit, a record that is gone — becomes a title, a sentence, and whether
+  retrying could help, so the same fault reads the same in a panel, a toast,
+  and the catch-all error page. An unknown address returns a real 404 with the
+  sitemap on it, and a thrown render lands on a page that keeps the app's
+  chrome rather than the browser's default.
+- **The mark, animating, wherever you wait.** Loading states draw the product's
+  own logo — the open nut traced, its three nodes surfacing in the order the
+  edges reach them — from the same geometry the favicon is generated from.
 
-Verification for the whole surface: **423 unit tests** and **123 Playwright E2E
-specs**, including the twenty-variant accessibility matrix.
+Verification for the whole surface: **542 unit tests** and **159 Playwright E2E
+specs**, including the twenty-variant accessibility matrix and a
+narrow-viewport lane that measures every route at 360px.
 
 **Two independent ways to get a demo world, both optional:**
 

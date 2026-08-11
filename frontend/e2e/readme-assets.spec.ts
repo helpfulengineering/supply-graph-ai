@@ -11,10 +11,15 @@ import { test } from "./mock-api";
  * is the first thing anyone sees of this project and it was advertising an
  * interface that no longer exists.
  *
- * Run on demand rather than in the gate — `npx playwright test --project=mocked
- * e2e/readme-assets.spec.ts` — because these are committed artefacts, not
- * assertions, and a lane that rewrites four binaries on every CI run would put
- * a diff in every pull request that touched the frontend.
+ * Run on demand, in its own lane:
+ *
+ *     npx playwright test --project=assets
+ *
+ * It captures rather than asserts, and what it writes is four committed
+ * binaries — which is why it is a project of its own and not part of
+ * `npm run e2e`. The first version of this file sat in the default lane, so an
+ * unrelated frontend change arrived with four rewritten screenshots attached
+ * and nothing to say why.
  *
  * The mocked lane supplies the data, so the catalogue and the map are the same
  * fixture world the rest of the suite runs against: repeatable, and free of

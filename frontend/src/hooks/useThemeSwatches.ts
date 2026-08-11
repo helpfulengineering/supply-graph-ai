@@ -23,6 +23,20 @@ export interface ThemeSwatch {
    * tokens. See lib/contrastInk.
    */
   ink: string;
+  /**
+   * That world's OWN card surface, so the row can be painted in it.
+   *
+   * The differentiator, and the reason this field exists. Ten worlds do not
+   * have ten accents: Warm, Zine, Terminal, Synthwave and Bubblegum all land
+   * on a magenta, so a picker that tinted only the name drew five rows in the
+   * same colour and the reader had to choose between them by word alone. What
+   * those worlds do not share is their ground — cream, near-black, ink-blue —
+   * which is most of what a world looks like and none of what the picker was
+   * showing.
+   */
+  ground: string;
+  /** That world's border, so the chip has an edge in its own palette. */
+  edge: string;
   /** The world's sans stack. Terminal and Mono repoint it at the mono face. */
   fontSans: string;
 }
@@ -73,12 +87,6 @@ export function resolveThemeSwatches(): Record<ThemeSlug, ThemeSwatch> {
   };
 
   try {
-    // The surface the names are drawn on, read in the ACTIVE world: the drawer
-    // is painted in the world you are in, not the one you are previewing.
-    const surface = parseRgb(
-      resolve(getComputedStyle(root).getPropertyValue("--card").trim()),
-    );
-
     for (const { slug } of THEMES) {
       root.setAttribute("data-ttm-theme", slug);
       // getComputedStyle forces the style recalc, so the read below sees this
@@ -89,11 +97,19 @@ export function resolveThemeSwatches(): Record<ThemeSlug, ThemeSwatch> {
       const textRgb = parseRgb(
         resolve(style.getPropertyValue("--ttm-text").trim()),
       );
+      // Each world's own card, not the active one's. The row is now painted in
+      // the world it names, so the ink has to clear AA against that world's
+      // ground rather than against the drawer's — otherwise a pale accent that
+      // was legible on the current surface goes invisible on its own.
+      const ground = resolve(style.getPropertyValue("--card").trim());
+      const groundRgb = parseRgb(ground);
       out[slug] = {
         accent,
+        ground,
+        edge: resolve(style.getPropertyValue("--border").trim()),
         ink:
-          accentRgb && textRgb && surface
-            ? formatRgb(inkFor(accentRgb, textRgb, surface))
+          accentRgb && textRgb && groundRgb
+            ? formatRgb(inkFor(accentRgb, textRgb, groundRgb))
             : accent,
         fontSans: style.getPropertyValue("--ttm-font-sans").trim(),
       };
