@@ -1,5 +1,6 @@
 "use client";
 
+import { ClipboardList, Factory, Ruler } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -209,7 +210,7 @@ export function OkhDetailView({ id }: Props) {
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <BuildPackageButton okh={okh} />
           <Button onClick={() => router.push(`/match?okh_id=${okh.id}`)}>
-            ⚡ Run Match
+            Run Match
           </Button>
           <Button
             variant="outline"
@@ -351,19 +352,19 @@ export function OkhDetailView({ id }: Props) {
                 <OkhFileGroup
                   okhId={okh.id}
                   title="Design Files"
-                  icon="📐"
+                  icon={<Ruler aria-hidden="true" className="h-4 w-4" />}
                   files={okh.design_files}
                 />
                 <OkhFileGroup
                   okhId={okh.id}
                   title="Manufacturing Files"
-                  icon="🏭"
+                  icon={<Factory aria-hidden="true" className="h-4 w-4" />}
                   files={okh.manufacturing_files}
                 />
                 <OkhFileGroup
                   okhId={okh.id}
                   title="Making Instructions"
-                  icon="📋"
+                  icon={<ClipboardList aria-hidden="true" className="h-4 w-4" />}
                   files={okh.making_instructions}
                 />
               </div>

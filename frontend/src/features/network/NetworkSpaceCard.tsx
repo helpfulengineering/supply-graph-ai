@@ -1,5 +1,6 @@
 "use client";
 
+import { MapPin } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge } from "../../components/ui/Badge";
@@ -33,11 +34,11 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
           </Badge>
         </div>
         {location && (
-          <p className="mt-0.5 text-sm text-muted-foreground">📍 {location}</p>
+          <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground"><MapPin aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /> {location}</p>
         )}
         {space.ambiguous && (
           <p className="mt-1 text-xs text-warning">
-            ⚠ Ambiguous for the current filter (this source doesn’t report it)
+            Ambiguous for the current filter (this source doesn’t report it)
           </p>
         )}
       </div>

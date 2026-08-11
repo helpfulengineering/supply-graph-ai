@@ -1,5 +1,6 @@
 "use client";
 
+import { Package } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -161,7 +162,7 @@ export function PackageListView() {
         <>
           {filtered.length === 0 ? (
             <EmptyState
-              icon="📦"
+              icon={Package}
               heading={
                 packages.length === 0 ? "No packages built yet" : "No matches"
               }

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { X } from "lucide-react";
 import type { OkhFileRef } from "../../types/okh";
 import { OkhFileDirectoryGroup } from "./OkhFileDirectoryGroup";
 import { OkhFilePreviewContent } from "./OkhFilePreviewContent";
@@ -7,7 +8,7 @@ import { buildDirectoryTree } from "./okhFilePath";
 interface Props {
   okhId: string;
   title: string;
-  icon: string;
+  icon: ReactNode;
   files: OkhFileRef[];
 }
 
@@ -32,7 +33,7 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
   return (
     <div>
       <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
-        <span aria-hidden="true">{icon}</span>
+        <span aria-hidden="true" className="text-muted-foreground">{icon}</span>
         {title}
         <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
           {files.length}
@@ -47,7 +48,7 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
             className="absolute right-2 top-2 z-10 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
             aria-label="Close preview"
           >
-            ✕
+            <X aria-hidden="true" className="h-3.5 w-3.5" />
           </button>
           <OkhFilePreviewContent okhId={okhId} file={previewFile} />
         </div>

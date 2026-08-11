@@ -1,5 +1,6 @@
 "use client";
 
+import { Wrench } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOkhCatalog } from "./useOkhList";
@@ -257,7 +258,7 @@ export function OkhListView() {
 
           {!isLoading && !isError && !hasItems && (
             <EmptyState
-              icon="🔩"
+              icon={<Wrench aria-hidden="true" className="h-8 w-8" strokeWidth={1.5} />}
               title="No designs found"
               description={
                 selectedCount > 0 || filterText

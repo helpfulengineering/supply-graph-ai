@@ -1,5 +1,6 @@
 "use client";
 
+import { Network } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { fetchVisualization } from "../../api/ohm/supply-tree";
@@ -52,7 +53,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
   if (isSolutionEmpty(data)) {
     return (
       <EmptyState
-        icon="🌳"
+        icon={<Network aria-hidden="true" className="h-8 w-8" strokeWidth={1.5} />}
         title="No supply tree"
         description="This solution has no supply tree to visualize."
       />

@@ -96,7 +96,7 @@ export function RfqDocumentCard({ doc }: Props) {
             onClick={handleCopy}
             className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted"
           >
-            {copied ? "✓ Copied!" : "Copy text"}
+            {copied ? "Copied" : "Copy text"}
           </button>
           <button
             onClick={handleDownloadText}

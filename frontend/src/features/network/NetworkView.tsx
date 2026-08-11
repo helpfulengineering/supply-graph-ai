@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchX } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -192,7 +193,7 @@ export function NetworkView() {
             )}
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={matchAgainstThese}>
-                ⚡ Match a design against these
+                Match a design against these
               </Button>
               <ViewToggle view={view} onChange={setView} />
             </div>
@@ -212,7 +213,7 @@ export function NetworkView() {
 
           {!active.isLoading && !active.isError && spaces.length === 0 && (
             <EmptyState
-              icon="🔍"
+              icon={<SearchX aria-hidden="true" className="h-8 w-8" strokeWidth={1.5} />}
               title={hasFilters ? "No spaces match" : "No spaces yet"}
               description={
                 hasFilters

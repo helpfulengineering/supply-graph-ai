@@ -81,7 +81,7 @@ export function OkhCard({ okh }: Props) {
           }}
           className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-primary-ink hover:bg-accent transition-colors"
         >
-          Run Match ⚡
+          Run Match
         </button>
       </div>
     </div>

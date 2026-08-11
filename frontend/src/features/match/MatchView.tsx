@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchX } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { withNavState } from "../../lib/navState";
@@ -283,7 +284,7 @@ export function MatchView({
               mutation.mutate({ id: selected, m: mode, ids: facilityIds })
             }
           >
-            {mutation.isPending ? "Matching…" : "⚡ Run Match"}
+            {mutation.isPending ? "Matching…" : "Run Match"}
           </Button>
         </div>
         {requiresFacilityChoice && selected && facilityIds.length === 0 && (
@@ -348,7 +349,7 @@ export function MatchView({
         !mutation.isPending &&
         (view.solutions.length === 0 ? (
           <EmptyState
-            icon="🔍"
+            icon={<SearchX aria-hidden="true" className="h-8 w-8" strokeWidth={1.5} />}
             title="No matches found"
             description="No facilities can currently produce this design."
           />
