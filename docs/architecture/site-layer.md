@@ -43,6 +43,11 @@ is specified to work without one.
 
 ## Enabling it
 
+The operator runbook — every statement to run, and how to verify the boundary
+holds — is
+[Enable the site layer](../../docs-site/docs/guides/enable-the-site-layer.md).
+In outline:
+
 1. Create a Supabase project.
 2. Run [`supabase/schema.sql`](../../supabase/schema.sql) in its SQL editor.
    It is idempotent and safe to re-run.
