@@ -21,6 +21,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | --- | --- | --- |
 | `build_docs_site` ✎ | Stage docs-site/docs into docs-site/.build with status badges injected, for any static site generator to build. | `uv run python scripts/build_docs_site.py` |
 | `dump_api_routes` | Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count. | `uv run python scripts/dump_api_routes.py [--count-only]` |
+| `generate_demo_world` ✎ | Emit frontend/src/lib/demo/world.ts from the seed dataset so the client Demo data toggle shows the same world make seed-demo produces; --check gates drift. | `uv run python scripts/generate_demo_world.py [--check]` |
 | `generate_env_template` ✎ | Regenerate the schema-owned block of .env.example from the config schema; --check gates staleness. | `uv run python scripts/generate_env_template.py [--check]` |
 | `generate_process_definitions` ✎ | Generate the PROCESS_DEFINITIONS fallback literal from processes.yaml; --check gates drift between the two. | `uv run python scripts/generate_process_definitions.py [--check]` |
 | `generate_repo_map` ✎ | Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation. | `uv run python scripts/generate_repo_map.py` |

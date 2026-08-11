@@ -118,6 +118,13 @@ summary = "Seed a local OHM storage directory with a realistic repair-workflow s
 run = "uv run python scripts/seed_repair_scenario.py [options]"
 mutates = true
 
+[scripts.generate_demo_world]
+category = "generate"
+summary = "Emit frontend/src/lib/demo/world.ts from the seed dataset so the client Demo data toggle shows the same world make seed-demo produces; --check gates drift."
+run = "uv run python scripts/generate_demo_world.py [--check]"
+mutates = true
+used_by = ["make ready (demo-world-check)", "frontend demo mode"]
+
 [scripts.seed_demo_data]
 category = "data"
 summary = "Seed a deterministic demo world (10 designs, 7 facilities, every design buildable) so browse -> match -> supply tree completes with real data; --summary reports match coverage without writing."

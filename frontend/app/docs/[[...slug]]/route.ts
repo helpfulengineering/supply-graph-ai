@@ -10,6 +10,15 @@ import path from "node:path";
  * every docs path once masked an undeployed docs site. Directory requests
  * resolve their `index.html`, and a directory reached without its trailing
  * slash redirects so mkdocs' relative links keep resolving.
+ *
+ * That contract assumes the tree is present, which is true for our container
+ * (the image copies docs-dist) and false anywhere the docs are not built —
+ * a Vercel preview, for instance, which has no mkdocs step. Rather than 404
+ * every docs link on such a deployment, an absent tree redirects to the
+ * published docs site. The distinction is deliberate: a MISSING TREE is a
+ * deployment shape, while a missing FILE inside a present tree is the broken
+ * link the 404 exists to surface. Set DOCS_FALLBACK_URL to "" to opt out and
+ * get the strict 404 everywhere.
  */
 
 const DOCS_ROOT = path.resolve(
@@ -38,6 +47,20 @@ const MIME: Record<string, string> = {
   ".pdf": "application/pdf",
 };
 
+/** Where docs live when this deployment does not build them itself. */
+const DOCS_FALLBACK =
+  process.env.DOCS_FALLBACK_URL ?? "https://www.openhardwaremanager.org/docs/";
+
+let docsTreePresent: boolean | null = null;
+
+async function hasDocsTree(): Promise<boolean> {
+  if (docsTreePresent === null) {
+    const stat = await statOrNull(path.join(DOCS_ROOT, "index.html"));
+    docsTreePresent = Boolean(stat?.isFile());
+  }
+  return docsTreePresent;
+}
+
 function notFound(): Response {
   return new Response("Not found\n", {
     status: 404,
@@ -64,6 +87,17 @@ async function statOrNull(p: string) {
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const pathname = decodeURIComponent(url.pathname);
+
+  // No tree in this deployment: send readers to the published docs instead of
+  // 404ing every link. Checked before the trailing-slash redirect so /docs and
+  // /docs/ behave the same.
+  if (!(await hasDocsTree()) && DOCS_FALLBACK) {
+    const rest = pathname.replace(/^\/docs\/?/, "");
+    return new Response(null, {
+      status: 302,
+      headers: { location: DOCS_FALLBACK.replace(/\/+$/, "/") + rest },
+    });
+  }
 
   // `location = /docs { return 301 /docs/; }`
   if (pathname === "/docs") {
