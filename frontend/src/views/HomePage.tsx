@@ -136,15 +136,19 @@ export function HomePage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <NetworkBarChart
             title="Where the network is"
-            caption="Facilities by country, top 8"
+            caption="Facilities by country"
             rows={facilitiesByCountry(spaces)}
             seriesIndex={0}
+            noun="countries"
+            hrefFor={(r) => `/facilities?country=${encodeURIComponent(r.key)}`}
           />
           <NetworkBarChart
             title="What it can make"
-            caption="Facilities offering each capability, top 8"
+            caption="Facilities offering each capability"
             rows={capabilityCoverage(spaces)}
             seriesIndex={1}
+            noun="capabilities"
+            hrefFor={(r) => `/facilities?process=${encodeURIComponent(r.key)}`}
           />
         </div>
       )}
