@@ -50,7 +50,7 @@ export function MatchResultCard({
                 <span className="text-xs text-muted-foreground">
                   #{solution.rank}
                 </span>
-                <h3 className={CARD_TITLE}>
+                <h3 className={cn(CARD_TITLE, "min-w-0 break-words")}>
                   {solution.facilityName}
                 </h3>
               </div>
