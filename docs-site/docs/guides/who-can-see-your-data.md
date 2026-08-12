@@ -73,6 +73,21 @@ than reasoning about what should happen.
 
 Where visibility is private, the preview says so plainly: nothing is exported.
 
+## Saved solutions
+
+Running a match can save its supply tree, and those saved solutions are listed
+back to you at **Solutions** in the menu. That listing is scoped to the account
+your API key belongs to: it returns your own solutions and no one else's, and
+it returns nothing at all to a caller with no key. Solutions saved before this
+scoping existed carry no owner and are listed for nobody.
+
+The supply tree itself is reachable by its own address, and that address is not
+account-scoped. The id is a long random UUID, so holding the link is the
+permission — which is what makes a supply tree shareable with a collaborator or
+a facility without either of you needing an account here. Treat the link the
+way you'd treat any unlisted URL: anyone you send it to can open it, and so can
+anyone they send it to.
+
 ## What this doesn't cover
 
 **Anyone who has already received a record has it.** Federation is

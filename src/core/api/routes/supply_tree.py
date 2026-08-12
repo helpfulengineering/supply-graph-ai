@@ -23,6 +23,9 @@ from ...services.storage_service import StorageService
 from ...services.visualization_service import VisualizationService
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_422_500
+from ..dependencies import created_by as owner_of
+from ..dependencies import get_viewer
+from ...models.auth import AuthenticatedUser
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
@@ -265,14 +268,19 @@ async def create_supply_tree(
     status_code=status.HTTP_200_OK,
     summary="List Supply Tree Solutions",
     description="""
-    List supply tree solutions with optional filtering and sorting.
-    
+    List the calling account's saved supply tree solutions.
+
+    Scoped to the caller: a solution is returned only to the account that ran
+    the match that saved it. An unauthenticated caller receives an empty list,
+    as does anyone asking after a solution saved before solutions carried an
+    owner.
+
     Supports filtering by:
     - okh_id: Filter by OKH manifest ID
     - matching_mode: Filter by matching mode (nested/single-level)
     - min_age_days, max_age_days: Filter by solution age
     - include_stale, only_stale: Filter by staleness
-    
+
     Supports sorting by:
     - created_at, updated_at, expires_at, score, age_days
     - sort_order: asc or desc (default: desc)
@@ -299,8 +307,15 @@ async def list_supply_tree_solutions(
     only_stale: bool = Query(False, description="Only return stale solutions"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
+    viewer: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
-    """List supply tree solutions with optional filtering and sorting"""
+    """List the caller's own supply tree solutions.
+
+    ``get_viewer`` rather than ``get_optional_user``: this endpoint answers
+    everyone, and decides *how much* to return rather than whether to reply, so
+    an expired key degrades to anonymous instead of 401ing a browser that is
+    merely holding a stale token.
+    """
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
     )
@@ -317,6 +332,7 @@ async def list_supply_tree_solutions(
             max_age_days=max_age_days,
             include_stale=include_stale,
             only_stale=only_stale,
+            created_by=owner_of(viewer),
         )
 
         logger.info(
@@ -795,8 +811,13 @@ async def save_supply_tree_solution(
     ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
+    viewer: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
-    """Save a supply tree solution to storage"""
+    """Save a supply tree solution to storage, owned by the caller.
+
+    An anonymous save still stores the solution — the explorer loads it by id —
+    but records no owner, so it will never appear in anyone's listing.
+    """
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
     )
@@ -828,6 +849,7 @@ async def save_supply_tree_solution(
             solution_id=solution_id,
             ttl_days=ttl_days,
             tags=tags,
+            created_by=owner_of(viewer),
         )
 
         logger.info(
@@ -1958,7 +1980,16 @@ async def get_solution_visualization_bundle(
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
 ) -> Any:
-    """Return canonical visualization bundle for a solution."""
+    """Return canonical visualization bundle for a solution.
+
+    Deliberately NOT owner-scoped, unlike the listing. A solution id is an
+    unguessable UUID, so this is a capability URL: holding the link is the
+    permission. The leak that removed the Solutions browse was *enumeration* —
+    anyone could ask for the whole store and read other people's searches —
+    and scoping this route would not have prevented that while it would break
+    the two flows that depend on it: a match run without a key still hands the
+    caller its own solution id, and shared supply-tree links stop resolving.
+    """
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
     )

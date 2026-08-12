@@ -443,12 +443,18 @@ async def report(
 @click.option("--offset", type=int, help="Number of results to skip")
 @standard_cli_command(
     help_text="""
-    List supply tree solutions with optional filtering and sorting.
-    
+    List your saved supply tree solutions, with optional filtering and sorting.
+
+    Scoped to the API key in use: a solution is listed only for the account
+    that ran the match that saved it. Without a key, and for solutions saved
+    before solutions carried an owner, the list is empty. There is deliberately
+    no flag to list another account's solutions — ownership is read from the
+    credential, never from an argument.
+
     Examples:
-      # List all solutions
+      # List your solutions
       ohm solution list
-      
+
       # List with filters
       ohm solution list --okh-id {uuid} --matching-mode nested
       ohm solution list --sort-by created_at --sort-order desc
