@@ -93,25 +93,67 @@ const LONG_SPACES = {
 };
 
 /**
- * Wait until the page has painted something worth measuring.
+ * How long the app must stay idle before its layout is called final. Long
+ * enough for a component that mounts on the previous query's data to mount and
+ * start its own fetch, which is the gap that made two rounds necessary.
+ */
+const QUIET_MS = 400;
+
+/**
+ * Wait until the page has painted the thing worth measuring.
  *
  * Not `networkidle`: Playwright discourages it, and it hangs outright on a
  * page that issues no requests of its own — /help is generated entirely from
  * NAV_GROUPS and SHORTCUTS, never fetches, and so never produces the quiet
  * transition the wait is listening for. Both /help checks sat there for the
- * full 30s timeout.
+ * full 30s timeout. It is also armed by the navigation and never re-armed, so
+ * a query fired after the document went quiet does not delay it at all, which
+ * is precisely the case that matters here.
  *
- * Waiting for the main landmark and then letting the layout settle is the
- * property actually needed here, and it holds for a page whether or not it
- * talks to the network.
+ * Nor the main landmark alone, which is what this used to settle on. `#main`
+ * is the frame, not the contents, and the audit ran against whatever was
+ * inside it at that instant — usually a loading state, sometimes a section
+ * that had not mounted yet. The lane read green because it was reporting on
+ * its own wait: fourteen routes at two widths finished in six seconds, and
+ * /okh/okh-0001 and /packages were each hiding two controls under the WCAG
+ * minimum that appeared a beat after the measurement was taken.
+ *
+ * Three waits, because there are three ways for content to still be coming:
+ *
+ *   1. The landmark exists at all.
+ *   2. No `LoadingState` is on screen. It is the single component behind every
+ *      loading surface in the app and carries `data-loading` for this; it also
+ *      covers the one source that is not a query, the lazily imported map.
+ *   3. React Query is idle, and stays idle. Loading states only speak for the
+ *      surfaces that render one — `ReleasesStrip` renders null until it knows
+ *      whether the design has packages — so the fetch count is the signal with
+ *      no blind spot. Idle is checked twice around a quiet window because the
+ *      count legitimately returns to zero mid-load: /okh/okh-0001 fetches the
+ *      design, renders it, and only then mounts the strip that fetches the
+ *      packages. Stopping at the first zero measures the page between them.
+ *
+ * A route that fetches nothing clears all three immediately, so the static
+ * pages settle as fast as they always did.
  */
 async function settle(page: import("@playwright/test").Page) {
   await page.waitForLoadState("load");
   await page.locator("#main").waitFor({ state: "visible" });
-  // Data-driven pages paint twice; give the second paint a chance to land.
-  await page.waitForLoadState("networkidle", { timeout: 3_000 }).catch(() => {
-    /* a page with no requests never goes idle; it is already settled */
-  });
+  await expect(page.locator("[data-loading]")).toHaveCount(0);
+
+  // `pending` until the provider stack mounts, so this cannot pass on an app
+  // whose queries have not started — "not yet" and "already done" are
+  // different answers and the attribute keeps them apart. See app/providers.tsx.
+  const idle = page.locator('html[data-fetching="0"]');
+  for (let round = 0; round < 2; round++) {
+    // Attached, not the default `visible`: this is an attribute on the root
+    // element, and whether <html> is visible is not a question with a useful
+    // answer — asking it turns "the app is still fetching" into a 30s timeout
+    // reporting that <html> never became visible, which sends you nowhere.
+    await idle.waitFor({ state: "attached" });
+    await page.waitForTimeout(QUIET_MS);
+  }
+  await expect(idle).toBeAttached();
+  await expect(page.locator("[data-loading]")).toHaveCount(0);
 }
 
 /** Measure the two properties from the live layout of whatever is loaded. */
@@ -233,10 +275,24 @@ function expectClean(result: Awaited<ReturnType<typeof audit>>) {
     .toEqual([]);
 }
 
+/**
+ * The Settings routes are admin-only, and `RequireAdmin` sends everyone else to
+ * `/`. Without a token this lane spent three of its fourteen routes measuring
+ * the home page under three different names — /settings and /settings/keys
+ * reported clean because they were never rendered. The token is the one
+ * settings.spec.ts uses; the mocked whoami fixture makes it an admin.
+ */
+async function signIn(page: import("@playwright/test").Page) {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("ohm_api_key", "test-admin-token");
+  });
+}
+
 for (const width of WIDTHS) {
   for (const route of ROUTES) {
     test(`${route} @${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
+      await signIn(page);
       const response = await page.goto(route);
       // See ROUTES: a 404 page passes every check below for the wrong reason.
       expect(
@@ -244,6 +300,20 @@ for (const width of WIDTHS) {
         `${route} did not answer 200 — the assertions below would measure the error page`,
       ).toBe(200);
       await settle(page);
+      // And neither does the page it bounced you to. A 200 only says the route
+      // exists; the app can still decide, client-side and after the fact, that
+      // you may not see it. That is how /settings/keys came to be audited as a
+      // second copy of the home page — silently, and for months.
+      //
+      // Landing deeper is not a bounce: /settings opens its default tab at
+      // /settings/session, which is the section rendering itself. Landing
+      // somewhere else entirely is, and `/` is checked exactly so that a route
+      // that dumps you at the home page cannot claim to be a descendant of it.
+      const landed = new URL(page.url()).pathname;
+      expect(
+        landed === route || landed.startsWith(`${route}/`),
+        `${route} left you on ${landed} — the assertions below would measure that page instead`,
+      ).toBe(true);
       expectClean(await audit(page));
     });
   }

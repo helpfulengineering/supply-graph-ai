@@ -198,7 +198,10 @@ export function PackageListView() {
                         <button
                           key={selectionKey(pkg)}
                           type="button"
-                          className="rounded-full border border-border px-2 py-0.5 font-mono text-xs text-foreground hover:bg-background"
+                          // inline-flex + min-h-6 rather than more py: these
+                          // sit in a flex row, so 2.5.8's inline exception
+                          // does not apply and the 22px pill owes the full 24.
+                          className="inline-flex min-h-6 items-center rounded-full border border-border px-2 font-mono text-xs text-foreground hover:bg-background"
                           onClick={() =>
                             router.push(
                               packageDetailPath(pkg.package_name, pkg.version),
