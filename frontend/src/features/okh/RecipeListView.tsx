@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
 import { fetchAllRecipes } from "../../api/ohm/recipes";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 
@@ -8,6 +9,7 @@ import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states
  * uploaded to storage directly, not created here.
  */
 export function RecipeListView() {
+  const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["recipes"],
     queryFn: fetchAllRecipes,
@@ -43,14 +45,29 @@ export function RecipeListView() {
           {recipes.map((recipe) => (
             <div
               key={recipe.id}
-              className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"
+              className="group flex flex-col rounded-lg border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
             >
-              <h2 className="font-semibold text-foreground">{recipe.name}</h2>
-              <p className="mt-2 text-xs text-muted-foreground">
-                {recipe.ingredients.length} ingredient
-                {recipe.ingredients.length !== 1 ? "s" : ""} ·{" "}
-                {recipe.instructions.length} step{recipe.instructions.length !== 1 ? "s" : ""}
-              </p>
+              <Link to={`/okh/${recipe.id}`} className="flex flex-1 flex-col gap-2 p-4 no-underline">
+                <h2 className="font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors dark:text-slate-100 dark:group-hover:text-indigo-400">
+                  {recipe.name}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {recipe.ingredients.length} ingredient
+                  {recipe.ingredients.length !== 1 ? "s" : ""} ·{" "}
+                  {recipe.instructions.length} step{recipe.instructions.length !== 1 ? "s" : ""}
+                </p>
+              </Link>
+              <div className="flex items-center justify-end border-t border-slate-100 px-4 py-2.5 dark:border-slate-800">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/match?recipe_id=${recipe.id}`);
+                  }}
+                  className="rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900"
+                >
+                  Run Match ⚡
+                </button>
+              </div>
             </div>
           ))}
         </div>
