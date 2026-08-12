@@ -17,7 +17,14 @@ describe("fetchNetworkSpaces", () => {
     server.use(
       http.get("*/v1/api/okw/spaces", ({ request }) => {
         url = request.url;
-        return HttpResponse.json({ spaces: [], total: 0, local_count: 0, mom_count: 0, dropped_no_coords: 0, mom_available: true });
+        return HttpResponse.json({
+          spaces: [],
+          total: 0,
+          local_count: 0,
+          mom_count: 0,
+          dropped_no_coords: 0,
+          mom_available: true,
+        });
       }),
     );
     await fetchNetworkSpaces({ country: "FR", process: "laser_cutting" });
@@ -30,7 +37,14 @@ describe("fetchNetworkSpaces", () => {
     server.use(
       http.get("*/v1/api/okw/spaces", ({ request }) => {
         url = request.url;
-        return HttpResponse.json({ spaces: [], total: 0, local_count: 0, mom_count: 0, dropped_no_coords: 0, mom_available: false });
+        return HttpResponse.json({
+          spaces: [],
+          total: 0,
+          local_count: 0,
+          mom_count: 0,
+          dropped_no_coords: 0,
+          mom_available: false,
+        });
       }),
     );
     await fetchNetworkSpaces({ source: "local" });
@@ -39,7 +53,9 @@ describe("fetchNetworkSpaces", () => {
 
   it("throws ApiError on failure", async () => {
     server.use(
-      http.get("*/v1/api/okw/spaces", () => HttpResponse.json({ detail: "boom" }, { status: 500 })),
+      http.get("*/v1/api/okw/spaces", () =>
+        HttpResponse.json({ detail: "boom" }, { status: 500 }),
+      ),
     );
     await expect(fetchNetworkSpaces()).rejects.toBeInstanceOf(ApiError);
   });

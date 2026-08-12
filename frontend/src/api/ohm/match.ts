@@ -1,4 +1,10 @@
-import { apiBaseUrl, apiClient, ApiError, errorMessage, requestIdFromError } from "./client";
+import {
+  apiBaseUrl,
+  apiClient,
+  ApiError,
+  errorMessage,
+  requestIdFromError,
+} from "./client";
 
 export interface RunMatchParams {
   /** Catalogue design id. Omit when matching an inline manifest. */
@@ -31,8 +37,7 @@ export interface RawSolution {
   /** Structured explanation; carries per-requirement match status. */
   explanation?: {
     requirement_matches?:
-      | { status?: string | null; requirement_value?: string | null }[]
-      | null;
+      { status?: string | null; requirement_value?: string | null }[] | null;
     missing_capabilities?: unknown[] | null;
     overall_status?: string | null;
     /** Mean of the per-requirement confidences; see matchViewModel. */
@@ -58,7 +63,9 @@ export interface RawMatchResponse {
 }
 
 /** Run a domain-aware match for an OKH design; returns the raw envelope. */
-export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse> {
+export async function runMatch(
+  params: RunMatchParams,
+): Promise<RawMatchResponse> {
   // The API requires exactly one of okh_id / okh_manifest / okh_url and 422s
   // with "Must provide either..." when given none — reachable from the UI, and
   // opaque by the time it reaches a toast. Guarded here.
@@ -148,7 +155,10 @@ export async function fetchDesignsForFacility(
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      errorMessage(body, `Failed to load producible designs (HTTP ${response.status})`),
+      errorMessage(
+        body,
+        `Failed to load producible designs (HTTP ${response.status})`,
+      ),
       requestIdFromError(body, response),
     );
   }
@@ -156,6 +166,6 @@ export async function fetchDesignsForFacility(
   return {
     facility_name: data.facility_name ?? null,
     designs: (data.designs ?? []) as FacilityDesign[],
-    total_designs: data.total_designs ?? (data.designs?.length ?? 0),
+    total_designs: data.total_designs ?? data.designs?.length ?? 0,
   };
 }

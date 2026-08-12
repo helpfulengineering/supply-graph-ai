@@ -1085,8 +1085,100 @@ export const fileTypesFixture = {
   },
 };
 
+const capabilityRule = {
+  id: "cnc-milling-satisfies-machining",
+  type: "capability",
+  capability: "cnc_milling",
+  satisfies_requirements: ["machining", "milling"],
+  direction: "bidirectional",
+  confidence: 0.9,
+  domain: "manufacturing",
+  description: "A 3-axis mill satisfies general machining requirements",
+  source: "config/capability_rules.yaml",
+  tags: ["subtractive"],
+};
+
+export const rulesListFixture = {
+  status: "success",
+  message: "Rules retrieved successfully",
+  data: {
+    rules: [capabilityRule],
+    total: 1,
+    domains: ["manufacturing"],
+  },
+};
+
+export const rulesValidateFixture = {
+  status: "success",
+  message: "Validation completed",
+  data: { valid: true, errors: [], warnings: [] },
+};
+
+export const rulesCompareFixture = {
+  status: "success",
+  message: "Comparison completed",
+  data: {
+    domains: {
+      manufacturing: {
+        changes: {
+          added: ["laser-cutting"],
+          updated: ["cnc-milling"],
+          deleted: [],
+        },
+      },
+    },
+  },
+};
+
+export const rulesImportFixture = {
+  status: "success",
+  message: "Import completed",
+  data: { imported: 2, domains: ["manufacturing"] },
+};
+
+export const rulesExportFixture = {
+  status: "success",
+  message: "Export completed",
+  data: { file_content: "domain: manufacturing\nrules: []\n" },
+};
+
+export const taxonomyValidateFixture = {
+  status: "success",
+  message: "Taxonomy validation completed",
+  data: {
+    valid: true,
+    total_processes: 51,
+    errors: [],
+    source: "config/processes.yaml",
+  },
+};
+
+export const fileTypesValidationFixture = {
+  status: "success",
+  message: "File type taxonomy validation completed",
+  data: {
+    valid: true,
+    total_file_types: 3,
+    errors: [],
+    source: "config/file_types.yaml",
+  },
+};
 
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/match/rules": rulesListFixture,
+  "/v1/api/match/rules/": rulesListFixture,
+  "/v1/api/match/rules/validate": rulesValidateFixture,
+  "/v1/api/match/rules/compare": rulesCompareFixture,
+  "/v1/api/match/rules/import": rulesImportFixture,
+  "/v1/api/match/rules/export": rulesExportFixture,
+  "/v1/api/match/rules/reset": { status: "success", message: "Rules reset" },
+  "/v1/api/taxonomy/validate": taxonomyValidateFixture,
+  "/v1/api/taxonomy/reload": {
+    status: "success",
+    message: "Taxonomy reloaded",
+    data: { total_processes: 51 },
+  },
+  "/v1/api/file-types/validate": fileTypesValidationFixture,
   "/v1/api/file-types": fileTypesFixture,
   "/v1/api/asset": assetListFixture,
   "/v1/api/asset/": assetListFixture,

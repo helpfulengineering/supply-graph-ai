@@ -1,4 +1,9 @@
-import { apiClient, ApiError, errorMessage, requestIdFromError } from "./client";
+import {
+  apiClient,
+  ApiError,
+  errorMessage,
+  requestIdFromError,
+} from "./client";
 import type { OkhManifest } from "../../types/okh";
 import type { components } from "../generated/schema";
 
@@ -189,33 +194,52 @@ export async function createOkh(
   }
   const id = data.okh?.id;
   if (!id) {
-    throw new ApiError(response.status, "Create succeeded but response had no id");
+    throw new ApiError(
+      response.status,
+      "Create succeeded but response had no id",
+    );
   }
   return { id: String(id) };
 }
 
-export async function getOkhProvenance(id: string): Promise<RecordProvenance | null> {
-  const { data, error, response } = await apiClient.GET("/api/okh/{id}/provenance", {
-    params: { path: { id } },
-  });
+export async function getOkhProvenance(
+  id: string,
+): Promise<RecordProvenance | null> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okh/{id}/provenance",
+    {
+      params: { path: { id } },
+    },
+  );
   if (response.status === 404) return null;
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to load provenance (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to load provenance (HTTP ${response.status})`,
+      ),
     );
   }
   return data;
 }
 
-export async function getOkhVisibility(id: string): Promise<VisibilityResponse> {
-  const { data, error, response } = await apiClient.GET("/api/okh/{id}/visibility", {
-    params: { path: { id } },
-  });
+export async function getOkhVisibility(
+  id: string,
+): Promise<VisibilityResponse> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okh/{id}/visibility",
+    {
+      params: { path: { id } },
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to load visibility (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to load visibility (HTTP ${response.status})`,
+      ),
     );
   }
   return data;
@@ -225,10 +249,13 @@ export async function setOkhVisibility(
   id: string,
   visibility: VisibilityLevel,
 ): Promise<VisibilityResponse> {
-  const { data, error, response } = await apiClient.PUT("/api/okh/{id}/visibility", {
-    params: { path: { id } },
-    body: { visibility },
-  });
+  const { data, error, response } = await apiClient.PUT(
+    "/api/okh/{id}/visibility",
+    {
+      params: { path: { id } },
+      body: { visibility },
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -277,10 +304,13 @@ export async function generateOkhFromUrl(
   url: string,
   signal?: AbortSignal,
 ): Promise<GenerateOkhResult> {
-  const { data, error, response } = await apiClient.POST("/api/okh/generate-from-url", {
-    body: { url, verbose: true, skip_review: true, clone: true } as never,
-    signal,
-  });
+  const { data, error, response } = await apiClient.POST(
+    "/api/okh/generate-from-url",
+    {
+      body: { url, verbose: true, skip_review: true, clone: true } as never,
+      signal,
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -299,7 +329,8 @@ export async function generateOkhFromUrl(
 // --- async generate-from-URL jobs -----------------------------------------
 
 export type GenerateJobRef = components["schemas"]["OKHGenerateJobRef"];
-export type GenerateJobsBatch = components["schemas"]["OKHGenerateJobsResponse"];
+export type GenerateJobsBatch =
+  components["schemas"]["OKHGenerateJobsResponse"];
 export type GenerateJobStatus = components["schemas"]["OKHGenerateJobStatus"];
 
 /** Submit one async generation job per URL. */
@@ -322,14 +353,19 @@ export async function submitGenerateJobs(
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to submit generation jobs (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to submit generation jobs (HTTP ${response.status})`,
+      ),
       requestIdFromError(error, response),
     );
   }
   return data;
 }
 
-export async function getGenerateJobStatus(jobId: string): Promise<GenerateJobStatus> {
+export async function getGenerateJobStatus(
+  jobId: string,
+): Promise<GenerateJobStatus> {
   const { data, error, response } = await apiClient.GET(
     "/api/okh/generate-from-url/jobs/{job_id}",
     { params: { path: { job_id: jobId } } },
@@ -337,14 +373,19 @@ export async function getGenerateJobStatus(jobId: string): Promise<GenerateJobSt
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to load job status (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to load job status (HTTP ${response.status})`,
+      ),
       requestIdFromError(error, response),
     );
   }
   return data;
 }
 
-export async function revokeGenerateJob(jobId: string): Promise<GenerateJobStatus> {
+export async function revokeGenerateJob(
+  jobId: string,
+): Promise<GenerateJobStatus> {
   const { data, error, response } = await apiClient.POST(
     "/api/okh/generate-from-url/jobs/{job_id}/revoke",
     { params: { path: { job_id: jobId } } },

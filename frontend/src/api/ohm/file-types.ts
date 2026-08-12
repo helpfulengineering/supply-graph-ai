@@ -59,7 +59,6 @@ export async function fetchFileTypes(): Promise<FileTypeTaxonomy> {
   };
 }
 
-
 /** extension (no dot, lowercased) -> definition. */
 export function fileTypesByExtension(
   taxonomy: FileTypeTaxonomy,
@@ -71,4 +70,27 @@ export function fileTypesByExtension(
     }
   }
   return index;
+}
+
+export interface FileTypeValidation {
+  valid: boolean;
+  total_file_types: number;
+  errors: string[];
+  source: string;
+}
+
+/** Check the file-types YAML on the server's disk. */
+export async function validateFileTypes(): Promise<FileTypeValidation> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/file-types/validate",
+  );
+  if (error || !response.ok)
+    fail(error, response, "Failed to validate file types");
+  const body = payload<Partial<FileTypeValidation>>(data);
+  return {
+    valid: body.valid ?? false,
+    total_file_types: body.total_file_types ?? 0,
+    errors: body.errors ?? [],
+    source: body.source ?? "",
+  };
 }

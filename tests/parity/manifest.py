@@ -623,20 +623,10 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "Instance configuration that is edited as YAML on the server and has "
-        "no way to be inspected or reloaded from the app. Destined for a "
-        "/settings/matching panel: the capability rules, the process taxonomy "
-        "and the file-type taxonomy all share one validate-then-apply shape.",
-        "/api/match/rules/",
+        "Returns what GET /api/match/rules/ already carries for every rule, so "
+        "the settings panel reads the list rather than fetching one at a time. "
+        "A per-rule editor would want it; nothing does yet.",
         "/api/match/rules/{domain}/{rule_id}",
-        "/api/match/rules/import",
-        "/api/match/rules/export",
-        "/api/match/rules/validate",
-        "/api/match/rules/compare",
-        "/api/match/rules/reset",
-        "/api/taxonomy/validate",
-        "/api/taxonomy/reload",
-        "/api/file-types/validate",
     ),
     *_decision(
         "planned",

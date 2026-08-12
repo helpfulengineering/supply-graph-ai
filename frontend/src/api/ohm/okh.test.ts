@@ -20,7 +20,13 @@ describe("fetchOkhList", () => {
         return HttpResponse.json({ items: [], pagination: { total_items: 0 } });
       }),
     );
-    await fetchOkhList({ page: 2, page_size: 10, sort_by: "title", sort_order: "asc", filter: "vent" });
+    await fetchOkhList({
+      page: 2,
+      page_size: 10,
+      sort_by: "title",
+      sort_order: "asc",
+      filter: "vent",
+    });
     expect(captured!.get("page")).toBe("2");
     expect(captured!.get("page_size")).toBe("10");
     expect(captured!.get("sort_by")).toBe("title");
@@ -75,7 +81,9 @@ describe("fetchAllOkhList", () => {
 
     server.use(
       http.get("*/v1/api/okh", ({ request }) => {
-        const page = Number(new URL(request.url).searchParams.get("page") ?? "1");
+        const page = Number(
+          new URL(request.url).searchParams.get("page") ?? "1",
+        );
         pagesRequested.push(page);
         if (page === 1) {
           return HttpResponse.json({

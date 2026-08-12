@@ -42,7 +42,10 @@ export async function searchOkw(
   if (error || !response.ok) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to load facilities (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to load facilities (HTTP ${response.status})`,
+      ),
     );
   }
 
@@ -113,38 +116,60 @@ export async function createOkw(
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to create facility (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to create facility (HTTP ${response.status})`,
+      ),
     );
   }
   const id = data.okw?.id;
   if (!id) {
-    throw new ApiError(response.status, "Create succeeded but response had no id");
+    throw new ApiError(
+      response.status,
+      "Create succeeded but response had no id",
+    );
   }
   return { id: String(id) };
 }
 
-export async function getOkwProvenance(id: string): Promise<RecordProvenance | null> {
-  const { data, error, response } = await apiClient.GET("/api/okw/{id}/provenance", {
-    params: { path: { id } },
-  });
+export async function getOkwProvenance(
+  id: string,
+): Promise<RecordProvenance | null> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okw/{id}/provenance",
+    {
+      params: { path: { id } },
+    },
+  );
   if (response.status === 404) return null;
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to load provenance (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to load provenance (HTTP ${response.status})`,
+      ),
     );
   }
   return data;
 }
 
-export async function getOkwVisibility(id: string): Promise<VisibilityResponse> {
-  const { data, error, response } = await apiClient.GET("/api/okw/{id}/visibility", {
-    params: { path: { id } },
-  });
+export async function getOkwVisibility(
+  id: string,
+): Promise<VisibilityResponse> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okw/{id}/visibility",
+    {
+      params: { path: { id } },
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to load visibility (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to load visibility (HTTP ${response.status})`,
+      ),
     );
   }
   return data;
@@ -154,10 +179,13 @@ export async function setOkwVisibility(
   id: string,
   visibility: VisibilityLevel,
 ): Promise<VisibilityResponse> {
-  const { data, error, response } = await apiClient.PUT("/api/okw/{id}/visibility", {
-    params: { path: { id } },
-    body: { visibility },
-  });
+  const { data, error, response } = await apiClient.PUT(
+    "/api/okw/{id}/visibility",
+    {
+      params: { path: { id } },
+      body: { visibility },
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -175,14 +203,22 @@ export type DisclosureResponse = components["schemas"]["DisclosureResponse"];
 export type DisclosurePreviewResponse =
   components["schemas"]["DisclosurePreviewResponse"];
 
-export async function getOkwDisclosure(id: string): Promise<DisclosureResponse> {
-  const { data, error, response } = await apiClient.GET("/api/okw/{id}/disclosure", {
-    params: { path: { id } },
-  });
+export async function getOkwDisclosure(
+  id: string,
+): Promise<DisclosureResponse> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okw/{id}/disclosure",
+    {
+      params: { path: { id } },
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to load disclosure (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to load disclosure (HTTP ${response.status})`,
+      ),
     );
   }
   return data;
@@ -192,10 +228,13 @@ export async function setOkwDisclosure(
   id: string,
   body: Partial<DisclosureProfile>,
 ): Promise<DisclosureResponse> {
-  const { data, error, response } = await apiClient.PUT("/api/okw/{id}/disclosure", {
-    params: { path: { id } },
-    body,
-  });
+  const { data, error, response } = await apiClient.PUT(
+    "/api/okw/{id}/disclosure",
+    {
+      params: { path: { id } },
+      body,
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -216,7 +255,10 @@ export async function previewOkwDisclosure(
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to preview disclosure (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to preview disclosure (HTTP ${response.status})`,
+      ),
     );
   }
   return data;
@@ -234,7 +276,10 @@ export async function updateOkw(
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to update facility (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to update facility (HTTP ${response.status})`,
+      ),
     );
   }
   return data as unknown as OkwFacility;
@@ -248,7 +293,10 @@ export async function deleteOkw(id: string): Promise<void> {
   if (error || !response.ok) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to delete facility (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to delete facility (HTTP ${response.status})`,
+      ),
     );
   }
 }

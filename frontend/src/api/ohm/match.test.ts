@@ -24,7 +24,10 @@ describe("runMatch", () => {
   });
 
   it("sends network_filter together with okw_ids for a network subset", async () => {
-    let body: { network_filter?: Record<string, unknown>; okw_ids?: unknown } | null = null;
+    let body: {
+      network_filter?: Record<string, unknown>;
+      okw_ids?: unknown;
+    } | null = null;
     server.use(
       http.post("*/v1/api/match", async ({ request }) => {
         body = (await request.json()) as {
@@ -65,11 +68,21 @@ describe("fetchDesignsForFacility", () => {
     let body: { okw_id?: string; min_confidence?: number } | null = null;
     server.use(
       http.post("*/v1/api/match/facility", async ({ request }) => {
-        body = (await request.json()) as { okw_id?: string; min_confidence?: number };
+        body = (await request.json()) as {
+          okw_id?: string;
+          min_confidence?: number;
+        };
         return HttpResponse.json({
           data: {
             facility_name: "Laser Fab Lab",
-            designs: [{ okh_id: "okh-0001", okh_title: "Open Ventilator", confidence: 0.9, rank: 1 }],
+            designs: [
+              {
+                okh_id: "okh-0001",
+                okh_title: "Open Ventilator",
+                confidence: 0.9,
+                rank: 1,
+              },
+            ],
             total_designs: 1,
           },
         });
@@ -88,6 +101,8 @@ describe("fetchDesignsForFacility", () => {
         HttpResponse.json({ detail: "nope" }, { status: 404 }),
       ),
     );
-    await expect(fetchDesignsForFacility("missing")).rejects.toBeInstanceOf(ApiError);
+    await expect(fetchDesignsForFacility("missing")).rejects.toBeInstanceOf(
+      ApiError,
+    );
   });
 });

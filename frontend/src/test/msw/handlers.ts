@@ -32,6 +32,13 @@ import {
   disclosureFixture,
   disclosurePreviewFixture,
   fileTypesFixture,
+  fileTypesValidationFixture,
+  rulesCompareFixture,
+  rulesExportFixture,
+  rulesImportFixture,
+  rulesListFixture,
+  rulesValidateFixture,
+  taxonomyValidateFixture,
   llmCredentialsFixture,
   llmHealthFixture,
   llmProvidersFixture,
@@ -46,7 +53,36 @@ export const handlers = [
   // Before the generic */health below: that pattern's leading wildcard also
   // matches /v1/api/llm/health, so the node's liveness fixture would answer
   // the LLM service's health check.
+  http.get("*/v1/api/file-types/validate", () =>
+    HttpResponse.json(fileTypesValidationFixture),
+  ),
   http.get("*/v1/api/file-types", () => HttpResponse.json(fileTypesFixture)),
+  http.get("*/v1/api/match/rules/", () => HttpResponse.json(rulesListFixture)),
+  http.post("*/v1/api/match/rules/validate", () =>
+    HttpResponse.json(rulesValidateFixture),
+  ),
+  http.post("*/v1/api/match/rules/compare", () =>
+    HttpResponse.json(rulesCompareFixture),
+  ),
+  http.post("*/v1/api/match/rules/import", () =>
+    HttpResponse.json(rulesImportFixture),
+  ),
+  http.post("*/v1/api/match/rules/export", () =>
+    HttpResponse.json(rulesExportFixture),
+  ),
+  http.post("*/v1/api/match/rules/reset", () =>
+    HttpResponse.json({ status: "success", message: "Rules reset" }),
+  ),
+  http.get("*/v1/api/taxonomy/validate", () =>
+    HttpResponse.json(taxonomyValidateFixture),
+  ),
+  http.post("*/v1/api/taxonomy/reload", () =>
+    HttpResponse.json({
+      status: "success",
+      message: "Taxonomy reloaded",
+      data: { total_processes: 51 },
+    }),
+  ),
   http.get("*/v1/api/llm/health", () => HttpResponse.json(llmHealthFixture)),
   http.get("*/v1/api/llm/providers", () =>
     HttpResponse.json(llmProvidersFixture),

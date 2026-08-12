@@ -35,7 +35,8 @@ export async function listSolutions(): Promise<SolutionSummary[]> {
       errorMessage(error, `Failed to load solutions (HTTP ${response.status})`),
     );
   }
-  const result = (data as { data?: { result?: unknown[] } })?.data?.result ?? [];
+  const result =
+    (data as { data?: { result?: unknown[] } })?.data?.result ?? [];
   return result as SolutionSummary[];
 }
 
@@ -50,9 +51,13 @@ export async function fetchVisualization(
   if (error || !response.ok) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Failed to load visualization (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Failed to load visualization (HTTP ${response.status})`,
+      ),
     );
   }
   // Bundle is nested under the response envelope's `data`.
-  return ((data as { data?: VisualizationData })?.data ?? data) as VisualizationData;
+  return ((data as { data?: VisualizationData })?.data ??
+    data) as VisualizationData;
 }
