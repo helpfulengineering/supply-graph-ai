@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchAllRecipes } from "../../api/ohm/recipes";
 import { fetchAllKitchens } from "../../api/ohm/kitchens";
@@ -7,12 +8,14 @@ import { ApiError } from "../../api/ohm/client";
 import { solutionSelectionKey, toMatchView } from "./matchViewModel";
 import { defaultTolerance, toleranceCeiling, withinTolerance } from "./nearMiss";
 import { buildRecipeMatchRequest, SYSTEM_MODES, type SystemMode } from "./matchRequest";
+import { toRfqSolutions } from "./rfqHandoff";
 import { RecipePicker } from "./RecipePicker";
 import { KitchenFilter } from "./KitchenFilter";
 import { MatchResultCard } from "./MatchResultCard";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { cn } from "@/lib/utils";
+import type { CookingRfqNavigationState } from "../../types/rfq";
 
 interface Props {
   /** Recipe id to preselect, e.g. from a recipe card/detail page's "Run Match". */
@@ -21,11 +24,10 @@ interface Props {
 
 /**
  * Cooking-domain counterpart to MatchView: recipe + kitchens in, ranked
- * solutions out. List-only surfaces feed it (no generate-from-URL, no RFQ
- * handoff, no network/MoM scope — see the cooking-domain-instance plan's
- * "Out of scope").
+ * solutions out.
  */
 export function CookingMatchView({ initialRecipeId }: Props = {}) {
+  const navigate = useNavigate();
   const recipes = useQuery({ queryKey: ["recipes"], queryFn: fetchAllRecipes });
   const kitchens = useQuery({ queryKey: ["kitchens"], queryFn: fetchAllKitchens });
 
@@ -68,6 +70,7 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
   const hiddenCount = (rawView?.solutions.length ?? 0) - (view?.solutions.length ?? 0);
   const modeInfo = SYSTEM_MODES.find((s) => s.mode === mode);
   const canRun = !!selected && kitchenIds.length > 0 && !mutation.isPending;
+  const selectedRecipe = recipes.data?.find((r) => r.id === selected);
 
   return (
     <div className="space-y-6">
@@ -243,6 +246,25 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
                   onClick={() => setSelectedSolutionKeys([])}
                 >
                   Clear selection
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={selectedSolutionKeys.length === 0 || !selectedRecipe}
+                  onClick={() => {
+                    const selectedSolutions = view.solutions.filter((s, i) =>
+                      selectedSolutionKeys.includes(solutionSelectionKey(s, i)),
+                    );
+                    const state: CookingRfqNavigationState = {
+                      domain: "cooking",
+                      recipeId: selectedRecipe!.id,
+                      recipeTitle: selectedRecipe!.name,
+                      recipe: selectedRecipe,
+                      solutions: toRfqSolutions(selectedSolutions),
+                    };
+                    navigate("/rfq", { state });
+                  }}
+                >
+                  Contact selected kitchens →
                 </Button>
               </div>
             </div>

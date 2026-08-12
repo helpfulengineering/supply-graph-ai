@@ -22,15 +22,24 @@ def _fuzzy_match(a: str, b: str) -> bool:
     return a_l in b_l or b_l in a_l
 
 
-def _fuzzy_overlap_count(recipe_items: list, available_items: list) -> int:
-    """Count how many recipe items have at least one fuzzy match in available_items."""
-    count = 0
-    for r in recipe_items:
-        for a in available_items:
-            if _fuzzy_match(r, a):
-                count += 1
-                break
-    return count
+def _fuzzy_split(
+    original_items: List[str], available_lower: List[str]
+) -> "tuple[List[str], List[str]]":
+    """Split `original_items` into (matched, missing) against `available_lower`.
+
+    Matching is fuzzy (see `_fuzzy_match`) and case-insensitive; the original
+    (non-lowercased) item text is preserved in the output for display, e.g. in
+    a match explanation.
+    """
+    matched: List[str] = []
+    missing: List[str] = []
+    for item in original_items:
+        item_str = item if isinstance(item, str) else str(item)
+        if any(_fuzzy_match(item_str, a) for a in available_lower):
+            matched.append(item_str)
+        else:
+            missing.append(item_str)
+    return matched, missing
 
 
 class CookingMatcher(BaseMatcher):
@@ -135,24 +144,20 @@ class CookingMatcher(BaseMatcher):
         # Fuzzy ingredient overlap — "sugar" matches "brown sugar", "chocolate chip"
         # matches "chocolate chips", etc.  Plain set intersection is too strict for
         # real-world ingredient lists where names differ by qualifiers or plurals.
-        ingredient_match_count = _fuzzy_overlap_count(
-            ingredients_lower, available_ingredients_lower
+        matched_ingredients, missing_ingredients = _fuzzy_split(
+            list(ingredients), available_ingredients_lower
         )
         ingredient_score = (
-            ingredient_match_count / len(ingredients_lower)
+            len(matched_ingredients) / len(ingredients_lower)
             if ingredients_lower
             else 0.0
         )
 
         # Fuzzy tool / appliance availability
-        tool_match_count = _fuzzy_overlap_count(
-            tools_lower, combined_available_tools_lower
+        matched_tools, missing_tools = _fuzzy_split(
+            list(tools), combined_available_tools_lower
         )
-        tool_score = tool_match_count / len(tools_lower) if tools_lower else 0.0
-
-        # Keep overlap counts for metadata (exact count for ingredient, fuzzy for tool)
-        ingredient_overlap_count = ingredient_match_count
-        tool_overlap_count = tool_match_count
+        tool_score = len(matched_tools) / len(tools_lower) if tools_lower else 0.0
 
         # When the kitchen has no capability data at all (empty appliances, tools,
         # and ingredients), fall back to a moderate base confidence rather than 0.
@@ -180,8 +185,12 @@ class CookingMatcher(BaseMatcher):
                 "step_count": len(steps),
                 "ingredient_count": len(ingredients),
                 "tool_count": len(tools),
-                "ingredient_overlap": ingredient_overlap_count,
-                "tool_overlap": tool_overlap_count,
+                "ingredient_overlap": len(matched_ingredients),
+                "tool_overlap": len(matched_tools),
+                "matched_ingredients": matched_ingredients,
+                "missing_ingredients": missing_ingredients,
+                "matched_tools": matched_tools,
+                "missing_tools": missing_tools,
                 "generation_method": "simplified_cooking_matcher",
             },
         )

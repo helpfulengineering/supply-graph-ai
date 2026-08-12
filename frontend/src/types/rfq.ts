@@ -1,6 +1,7 @@
 /** RFQ generation request / response types. */
 
 import type { MatchSolution } from "./match";
+import type { Recipe } from "./recipe";
 
 export interface RFQSolutionInput {
   facility_id: string;
@@ -10,17 +11,25 @@ export interface RFQSolutionInput {
   rank: number;
   tree: Record<string, unknown>;
   facility: Record<string, unknown>;
+  /** Human-readable match explanation, shown in the cooking-domain RFQ's match summary. */
+  explanation_human?: string | null;
 }
 
 export interface RFQGenerateRequest {
-  okh_id: string;
-  okh_title: string;
+  /** "manufacturing" (default) or "cooking". Selects okh_* vs recipe_* fields. */
+  domain?: "manufacturing" | "cooking";
+  okh_id?: string;
+  okh_title?: string;
   okh_function?: string;
   okh_version?: string;
-  quantity: number;
-  solutions: RFQSolutionInput[];
   /** Full OKH manifest — embedded in the generated document and JSON export. */
   okh_manifest?: Record<string, unknown>;
+  recipe_id?: string;
+  recipe_title?: string;
+  /** Full recipe — embedded in the generated document and JSON export. */
+  recipe?: Record<string, unknown>;
+  quantity: number;
+  solutions: RFQSolutionInput[];
 }
 
 export interface RFQDocument {
@@ -37,8 +46,10 @@ export interface RFQDocument {
 export interface RFQGenerateResponseData {
   rfqs: RFQDocument[];
   total_rfqs: number;
-  okh_id: string;
-  okh_title: string;
+  okh_id?: string | null;
+  okh_title?: string | null;
+  recipe_id?: string | null;
+  recipe_title?: string | null;
   generated_at: string;
 }
 
@@ -50,10 +61,23 @@ export interface RFQGenerateResponse {
 }
 
 /** State passed via react-router when navigating to the RFQ page. */
-export interface RfqNavigationState {
+export interface ManufacturingRfqNavigationState {
+  domain?: "manufacturing";
   okhId: string;
   okhTitle: string;
   okhFunction?: string;
   okhVersion?: string;
   solutions: MatchSolution[];
 }
+
+export interface CookingRfqNavigationState {
+  domain: "cooking";
+  recipeId: string;
+  recipeTitle: string;
+  recipe?: Recipe;
+  solutions: MatchSolution[];
+}
+
+export type RfqNavigationState =
+  | ManufacturingRfqNavigationState
+  | CookingRfqNavigationState;

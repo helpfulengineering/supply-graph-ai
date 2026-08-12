@@ -34,6 +34,11 @@ from src.config.settings import (
 )
 
 from ...domains.cooking.models import KitchenCapability
+from ...models.match_explanation import (
+    MatchExplanation,
+    MatchStatus,
+    RequirementMatchDetail,
+)
 from ...models.okh import OKHManifest
 from ...models.okw import ManufacturingFacility
 from ...registry.domain_registry import DomainRegistry
@@ -2647,6 +2652,86 @@ async def _get_filtered_facilities(
         )
 
 
+def _build_cooking_match_explanation(
+    supply_tree: Any, facility_id: str, facility_name: str
+) -> MatchExplanation:
+    """Build a MatchExplanation for a cooking-domain result from the ingredient/tool
+    overlap CookingMatcher.generate_supply_tree() already computed (see its
+    matched_ingredients/missing_ingredients/matched_tools/missing_tools metadata).
+
+    Without this, cooking results never got a `requirement_matches` explanation
+    (that block was gated to `domain == "manufacturing"`), so the frontend's
+    coverage badge always fell back to "Coverage unknown" for a real recipe/kitchen
+    match.
+    """
+    metadata = getattr(supply_tree, "metadata", None) or {}
+    requirement_matches = (
+        [
+            RequirementMatchDetail(
+                requirement_value=name,
+                status=MatchStatus.MATCHED,
+                confidence=1.0,
+                requirement_source="ingredient",
+            )
+            for name in metadata.get("matched_ingredients", [])
+        ]
+        + [
+            RequirementMatchDetail(
+                requirement_value=name,
+                status=MatchStatus.NOT_MATCHED,
+                requirement_source="ingredient",
+            )
+            for name in metadata.get("missing_ingredients", [])
+        ]
+        + [
+            RequirementMatchDetail(
+                requirement_value=name,
+                status=MatchStatus.MATCHED,
+                confidence=1.0,
+                requirement_source="equipment",
+            )
+            for name in metadata.get("matched_tools", [])
+        ]
+        + [
+            RequirementMatchDetail(
+                requirement_value=name,
+                status=MatchStatus.NOT_MATCHED,
+                requirement_source="equipment",
+            )
+            for name in metadata.get("missing_tools", [])
+        ]
+    )
+
+    missing_ingredients = metadata.get("missing_ingredients", [])
+    missing_tools = metadata.get("missing_tools", [])
+    overall_status = (
+        MatchStatus.MATCHED
+        if not missing_ingredients and not missing_tools
+        else MatchStatus.NOT_MATCHED
+    )
+    confidence = getattr(supply_tree, "confidence_score", 0.0)
+
+    return MatchExplanation(
+        facility_id=facility_id,
+        facility_name=facility_name,
+        overall_status=overall_status,
+        overall_confidence=confidence,
+        requirement_matches=requirement_matches,
+        why_matched=(
+            "This kitchen has every ingredient and piece of equipment the recipe calls for."
+            if overall_status == MatchStatus.MATCHED
+            else ""
+        ),
+        why_not_matched=(
+            ""
+            if overall_status == MatchStatus.MATCHED
+            else "This kitchen is missing some ingredients or equipment the recipe calls for."
+        ),
+        matching_layers_used=["direct"],
+        missing_capabilities=list(missing_ingredients) + list(missing_tools),
+    )
+
+
 async def _perform_enhanced_matching(
     matching_service: MatchingService,
     requirements_data: Any,
@@ -2985,6 +3070,12 @@ async def _perform_enhanced_matching(
                         else 0.8
                     ),
                 }
+                if getattr(request, "include_explanation", False):
+                    explanation = _build_cooking_match_explanation(
+                        supply_tree, str(kitchen_id), kitchen_name_for_solution
+                    )
+                    solution["explanation"] = explanation.to_dict()
+                    solution["explanation_human"] = explanation.to_human_readable()
                 results.append(solution)
         else:
             raise ValueError(f"Unsupported domain: {domain}")

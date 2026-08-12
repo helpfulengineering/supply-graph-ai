@@ -40,18 +40,30 @@ class RFQSolutionInput(BaseModel):
     tree: Dict[str, Any]
     # full facility object for location / contact
     facility: Dict[str, Any]
+    # Human-readable match explanation, when the match response included one
+    # (see MatchExplanation.to_human_readable). Used for the cooking-domain
+    # RFQ's match summary section.
+    explanation_human: Optional[str] = None
 
 
 class RFQGenerateRequest(BaseModel):
-    okh_id: str
-    okh_title: str
+    # "manufacturing" (default, OKH design + facility) or "cooking" (recipe +
+    # kitchen). Selects which of the okh_* / recipe_* fields below are used.
+    domain: str = "manufacturing"
+    okh_id: Optional[str] = None
+    okh_title: Optional[str] = None
     okh_function: Optional[str] = None
     okh_version: Optional[str] = None
-    quantity: int = 1
-    solutions: List[RFQSolutionInput]
     # Full OKH manifest — included so the recipient has everything they need.
     # When present, a manifest appendix and package-pull instructions are added.
     okh_manifest: Optional[Dict[str, Any]] = None
+    recipe_id: Optional[str] = None
+    recipe_title: Optional[str] = None
+    # Full recipe (ingredients/instructions/equipment) — embedded in the
+    # generated document so the kitchen has everything they need.
+    recipe: Optional[Dict[str, Any]] = None
+    quantity: int = 1
+    solutions: List[RFQSolutionInput]
 
 
 class RFQDocument(BaseModel):
@@ -357,6 +369,117 @@ def _render_rfq(
 
 
 # ---------------------------------------------------------------------------
+# Cooking-domain template (recipe + kitchen)
+# ---------------------------------------------------------------------------
+
+_COOKING_TEMPLATE = """\
+REQUEST FOR QUOTATION (RFQ)
+
+Date: {date}
+RFQ Number: {rfq_number}
+Valid Until: {valid_until}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUED TO:
+  Kitchen:      {facility_name}
+  Location:     {facility_location}
+{facility_contact_block}
+ISSUED BY:
+  Platform:     Open Hardware Matching (OHM)
+  Recipe ID:    {recipe_id}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SUBJECT:  Kitchen Quotation Request — {recipe_name}
+
+1. RECIPE OVERVIEW
+  Name:         {recipe_name}
+  Ingredients:  {ingredient_list}
+  Equipment:    {equipment_list}
+
+2. SCOPE OF WORK
+  Quantity:     {quantity} batch(es)
+
+3. MATCH SUMMARY
+{match_summary_block}
+4. QUOTATION REQUIREMENTS
+  Please provide a response that includes all applicable items:
+  · Price per batch and total price for the quantity above
+  · Lead time from order to delivery or pickup
+  · Substitutions available for any missing ingredients or equipment noted above
+  · Dietary or allergen considerations
+  · Minimum order quantity (MOQ) if applicable
+
+5. TERMS & CONDITIONS
+  · This RFQ does not constitute a purchase order or commitment to buy.
+  · All submitted pricing and details will be treated as confidential unless
+    explicitly marked otherwise by the kitchen.
+
+Thank you for your consideration.
+"""
+
+
+def _extract_recipe_lists(recipe: Optional[Dict[str, Any]]) -> Dict[str, str]:
+    """Format a recipe's ingredients/equipment as comma-separated lists."""
+    if not recipe:
+        return {
+            "ingredient_list": "See recipe details",
+            "equipment_list": "See recipe details",
+        }
+    ingredients = recipe.get("ingredients") or []
+    equipment = recipe.get("equipment") or []
+    return {
+        "ingredient_list": ", ".join(str(i) for i in ingredients) or "None listed",
+        "equipment_list": ", ".join(str(e) for e in equipment) or "None listed",
+    }
+
+
+def _extract_cooking_match_summary(solution: "RFQSolutionInput") -> str:
+    """Summarise why this kitchen was selected.
+
+    Prefers the human-readable match explanation attached by POST /api/match
+    (ingredient/tool coverage), falling back to bare confidence/rank when the
+    match request did not ask for an explanation.
+    """
+    if solution.explanation_human:
+        return "\n".join(
+            f"  {line}" for line in solution.explanation_human.splitlines()
+        )
+    return (
+        f"  Match confidence: {round(solution.confidence * 100)}%\n"
+        f"  Match rank:       #{solution.rank}"
+    )
+
+
+def _render_cooking_rfq(
+    *,
+    solution: RFQSolutionInput,
+    recipe_title: str,
+    recipe_id: str,
+    quantity: int,
+    recipe: Optional[Dict[str, Any]] = None,
+) -> str:
+    lists = _extract_recipe_lists(recipe)
+    now = datetime.now()
+    valid_until = (now + timedelta(days=30)).strftime("%Y-%m-%d")
+    return _COOKING_TEMPLATE.format(
+        date=now.strftime("%Y-%m-%d"),
+        rfq_number=_rfq_number(),
+        valid_until=valid_until,
+        facility_name=solution.facility_name,
+        facility_contact_block=_extract_contact_block(solution.facility),
+        facility_location=_extract_location(solution.facility),
+        recipe_name=recipe_title,
+        recipe_id=recipe_id,
+        ingredient_list=lists["ingredient_list"],
+        equipment_list=lists["equipment_list"],
+        match_summary_block=_extract_cooking_match_summary(solution),
+        quantity=quantity,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Endpoint
 # ---------------------------------------------------------------------------
 
@@ -367,25 +490,38 @@ async def generate_rfq(request: RFQGenerateRequest) -> RFQGenerateResponse:
     Generate RFQ documents for selected match solutions.
 
     Accepts a subset of match results (as returned by POST /api/match) plus
-    OKH design metadata. Returns one RFQ document per selected solution.
+    either OKH design metadata (domain="manufacturing", the default) or
+    recipe metadata (domain="cooking"). Returns one RFQ document per selected
+    solution.
     """
+    is_cooking = request.domain == "cooking"
+    subject_id = request.recipe_id if is_cooking else request.okh_id
     logger.info(
-        f"Generating RFQs for okh_id={request.okh_id} "
+        f"Generating RFQs for domain={request.domain} subject_id={subject_id} "
         f"({len(request.solutions)} solution(s), qty={request.quantity})"
     )
 
     rfqs: List[Dict[str, Any]] = []
     for sol in request.solutions:
         rfq_num = _rfq_number()
-        text = _render_rfq(
-            solution=sol,
-            okh_title=request.okh_title,
-            okh_id=request.okh_id,
-            okh_function=request.okh_function,
-            okh_version=request.okh_version,
-            quantity=request.quantity,
-            okh_manifest=request.okh_manifest,
-        )
+        if is_cooking:
+            text = _render_cooking_rfq(
+                solution=sol,
+                recipe_title=request.recipe_title or "Unknown recipe",
+                recipe_id=request.recipe_id or "unknown",
+                quantity=request.quantity,
+                recipe=request.recipe,
+            )
+        else:
+            text = _render_rfq(
+                solution=sol,
+                okh_title=request.okh_title or "Unknown design",
+                okh_id=request.okh_id or "unknown",
+                okh_function=request.okh_function,
+                okh_version=request.okh_version,
+                quantity=request.quantity,
+                okh_manifest=request.okh_manifest,
+            )
         rfqs.append(
             RFQDocument(
                 rfq_number=rfq_num,
@@ -395,7 +531,7 @@ async def generate_rfq(request: RFQGenerateRequest) -> RFQGenerateResponse:
                 rank=sol.rank,
                 quantity=request.quantity,
                 text=text,
-                okh_manifest=request.okh_manifest,
+                okh_manifest=None if is_cooking else request.okh_manifest,
             ).model_dump()
         )
 
@@ -406,6 +542,8 @@ async def generate_rfq(request: RFQGenerateRequest) -> RFQGenerateResponse:
             "total_rfqs": len(rfqs),
             "okh_id": request.okh_id,
             "okh_title": request.okh_title,
+            "recipe_id": request.recipe_id,
+            "recipe_title": request.recipe_title,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         },
     )

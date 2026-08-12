@@ -51,32 +51,54 @@ export function RfqView({ navState }: Props) {
     );
   }
 
-  const { okhId, okhTitle, okhFunction, okhVersion, solutions } = navState;
+  const isCooking = navState.domain === "cooking";
+  const solutions = navState.solutions;
+  const subjectId = isCooking ? navState.recipeId : navState.okhId;
+  const subjectTitle = isCooking ? navState.recipeTitle : navState.okhTitle;
+  const okhFunction = isCooking ? undefined : navState.okhFunction;
+  const okhVersion = isCooking ? undefined : navState.okhVersion;
 
-  // Fetch the full manifest so we can embed it in the RFQ output
+  // Fetch the full manifest so we can embed it in the RFQ output. Recipes are
+  // passed in via nav state already (no detail endpoint round-trip needed).
   // eslint-disable-next-line react-hooks/rules-of-hooks -- legacy reference page: conditional hook after early return. RFQ is out of v1 scope (PRD #184) and this page is slated for removal/rebuild; not refactoring throwaway code.
   const { data: fullManifest } = useQuery({
-    queryKey: ["okh-detail-rfq", okhId],
-    queryFn: () => fetchOkhDetail(okhId),
+    queryKey: ["okh-detail-rfq", subjectId],
+    queryFn: () => fetchOkhDetail(subjectId),
+    enabled: !isCooking,
   });
 
   const handleGenerate = () => {
+    const solutionInputs = solutions.map((s) => ({
+      facility_id: s.facility_id,
+      facility_name: s.facility_name,
+      confidence: s.confidence,
+      score: s.score,
+      rank: s.rank,
+      tree: s.tree as unknown as Record<string, unknown>,
+      facility: s.facility as unknown as Record<string, unknown>,
+      explanation_human: s.explanation_human,
+    }));
+
+    if (isCooking) {
+      mutate({
+        domain: "cooking",
+        recipe_id: navState.recipeId,
+        recipe_title: navState.recipeTitle,
+        recipe: navState.recipe as unknown as Record<string, unknown> | undefined,
+        quantity,
+        solutions: solutionInputs,
+      });
+      return;
+    }
+
     mutate({
-      okh_id: okhId,
-      okh_title: okhTitle,
+      okh_id: navState.okhId,
+      okh_title: navState.okhTitle,
       okh_function: okhFunction,
       okh_version: okhVersion,
       quantity,
       okh_manifest: fullManifest as unknown as Record<string, unknown> | undefined,
-      solutions: solutions.map((s) => ({
-        facility_id: s.facility_id,
-        facility_name: s.facility_name,
-        confidence: s.confidence,
-        score: s.score,
-        rank: s.rank,
-        tree: s.tree as unknown as Record<string, unknown>,
-        facility: s.facility as unknown as Record<string, unknown>,
-      })),
+      solutions: solutionInputs,
     });
   };
 
@@ -88,19 +110,21 @@ export function RfqView({ navState }: Props) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `rfq-bundle-${okhId.slice(0, 8)}.txt`;
+    a.download = `rfq-bundle-${subjectId.slice(0, 8)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleDownloadAllJson = () => {
     const payload = {
-      okh_id: okhId,
-      okh_title: okhTitle,
+      domain: isCooking ? "cooking" : "manufacturing",
+      subject_id: subjectId,
+      subject_title: subjectTitle,
       quantity,
       generated_at: new Date().toISOString(),
-      // Full manifest is included so the recipient can inspect or rebuild the package
-      okh_manifest: fullManifest ?? null,
+      // Full manifest/recipe is included so the recipient can inspect the source
+      okh_manifest: isCooking ? null : fullManifest ?? null,
+      recipe: isCooking ? navState.recipe ?? null : null,
       rfqs,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -109,7 +133,7 @@ export function RfqView({ navState }: Props) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `rfq-bundle-${okhId.slice(0, 8)}.json`;
+    a.download = `rfq-bundle-${subjectId.slice(0, 8)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -125,7 +149,7 @@ export function RfqView({ navState }: Props) {
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Generating requests for quotation for{" "}
             <span className="font-medium text-slate-700 dark:text-slate-200">
-              {okhTitle}
+              {subjectTitle}
             </span>
             {okhVersion && (
               <span className="ml-1 text-slate-400">v{okhVersion}</span>
@@ -185,7 +209,7 @@ export function RfqView({ navState }: Props) {
               htmlFor="rfq-quantity"
               className="text-sm font-medium text-slate-700 dark:text-slate-200"
             >
-              Production quantity
+              {isCooking ? "Batch quantity" : "Production quantity"}
             </label>
             <input
               id="rfq-quantity"
@@ -195,7 +219,9 @@ export function RfqView({ navState }: Props) {
               onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
               className="w-24 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
             />
-            <span className="text-sm text-slate-500 dark:text-slate-400">units</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              {isCooking ? "batches" : "units"}
+            </span>
           </div>
 
           {okhFunction && (
