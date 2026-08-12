@@ -338,9 +338,10 @@ export function MatchView({
         />
       )}
 
-      {view &&
+      {rawView &&
+        view &&
         !mutation.isPending &&
-        (view.solutions.length === 0 ? (
+        (rawView.solutions.length === 0 ? (
           <EmptyState
             icon="🔍"
             title="No matches found"
@@ -400,85 +401,95 @@ export function MatchView({
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">
-                {view.totalSolutions} solution
-                {view.totalSolutions !== 1 ? "s" : ""}
-                {selectedSolutionKeys.length > 0
-                  ? ` · ${selectedSolutionKeys.length} selected`
-                  : ""}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={view.solutions.length === 0}
-                  onClick={() =>
-                    setSelectedSolutionKeys(
-                      view.solutions.map((s, i) => solutionSelectionKey(s, i)),
-                    )
-                  }
-                >
-                  Select all
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={selectedSolutionKeys.length === 0}
-                  onClick={() => setSelectedSolutionKeys([])}
-                >
-                  Clear selection
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={
-                    selectedSolutionKeys.length === 0 || !selectedDesign
-                  }
-                  onClick={() => {
-                    const selectedSolutions = view.solutions.filter((s, i) =>
-                      selectedSolutionKeys.includes(solutionSelectionKey(s, i)),
-                    );
-                    const state: RfqNavigationState = {
-                      okhId: selectedDesign!.id,
-                      okhTitle: formatOkhDisplayTitle(selectedDesign!.title),
-                      okhFunction: selectedDesign!.function ?? undefined,
-                      okhVersion: selectedDesign!.version ?? undefined,
-                      solutions: toRfqSolutions(
-                        selectedSolutions,
-                        websiteByFacilityId,
-                      ),
-                    };
-                    navigate("/rfq", { state });
-                  }}
-                >
-                  Contact selected facilities →
-                </Button>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Select one or more facilities to generate outreach RFQs and
-              arrange production. Each card also links to that solution’s supply
-              tree when available.
-            </p>
-            {view.solutions.map((s, i) => {
-              const key = solutionSelectionKey(s, i);
-              return (
-                <MatchResultCard
-                  key={key}
-                  solution={s}
-                  solutionId={view.solutionId}
-                  selectionKey={key}
-                  selected={selectedSolutionKeys.includes(key)}
-                  onToggle={() =>
-                    setSelectedSolutionKeys((prev) =>
-                      prev.includes(key)
-                        ? prev.filter((k) => k !== key)
-                        : [...prev, key],
-                    )
-                  }
-                />
-              );
-            })}
+            {view.solutions.length === 0 ? (
+              <EmptyState
+                icon="🔍"
+                title="No matches within tolerance"
+                description="Every facility is missing more than the tolerance above allows. Increase it to see them."
+              />
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    {view.totalSolutions} solution
+                    {view.totalSolutions !== 1 ? "s" : ""}
+                    {selectedSolutionKeys.length > 0
+                      ? ` · ${selectedSolutionKeys.length} selected`
+                      : ""}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={view.solutions.length === 0}
+                      onClick={() =>
+                        setSelectedSolutionKeys(
+                          view.solutions.map((s, i) => solutionSelectionKey(s, i)),
+                        )
+                      }
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={selectedSolutionKeys.length === 0}
+                      onClick={() => setSelectedSolutionKeys([])}
+                    >
+                      Clear selection
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={
+                        selectedSolutionKeys.length === 0 || !selectedDesign
+                      }
+                      onClick={() => {
+                        const selectedSolutions = view.solutions.filter((s, i) =>
+                          selectedSolutionKeys.includes(solutionSelectionKey(s, i)),
+                        );
+                        const state: RfqNavigationState = {
+                          okhId: selectedDesign!.id,
+                          okhTitle: formatOkhDisplayTitle(selectedDesign!.title),
+                          okhFunction: selectedDesign!.function ?? undefined,
+                          okhVersion: selectedDesign!.version ?? undefined,
+                          solutions: toRfqSolutions(
+                            selectedSolutions,
+                            websiteByFacilityId,
+                          ),
+                        };
+                        navigate("/rfq", { state });
+                      }}
+                    >
+                      Contact selected facilities →
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Select one or more facilities to generate outreach RFQs and
+                  arrange production. Each card also links to that solution’s supply
+                  tree when available.
+                </p>
+                {view.solutions.map((s, i) => {
+                  const key = solutionSelectionKey(s, i);
+                  return (
+                    <MatchResultCard
+                      key={key}
+                      solution={s}
+                      solutionId={view.solutionId}
+                      selectionKey={key}
+                      selected={selectedSolutionKeys.includes(key)}
+                      onToggle={() =>
+                        setSelectedSolutionKeys((prev) =>
+                          prev.includes(key)
+                            ? prev.filter((k) => k !== key)
+                            : [...prev, key],
+                        )
+                      }
+                    />
+                  );
+                })}
+              </>
+            )}
           </div>
         ))}
     </div>
