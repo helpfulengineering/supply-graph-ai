@@ -632,22 +632,20 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "Single-record interchange for designs and facilities: a blank "
-        "template to seed a create form (the frontend hand-maintains its own "
-        "literal today, which will drift from the model), file upload as an "
-        "entry method, and requirement/capability extraction — the endpoints "
-        "that answer 'what will matching actually look for here?', which is "
-        "the most useful thing to show beside a failed match. The repair-doc "
-        "pair is preview-then-commit, and its conservative merge has to be "
-        "stated in the UI or the semantics go invisible.",
-        "/api/okh/template",
+        "File upload as an entry method, and the repair-doc pair. /okh/upload "
+        "and /okw/upload validate AND store in one step, which is the wrong "
+        "shape for the guided flow — /api/convert is what the create page uses "
+        "instead, because it returns a manifest without saving it. Upload "
+        "earns a surface once there is a bulk path that wants it. "
+        "extract-repair-docs and import-repair-doc are a genuine "
+        "preview-then-commit pair worth building: the merge is deliberately "
+        "conservative (new components land replaceable=false, salvageable="
+        "false for a human to annotate) and the UI has to say so or the "
+        "semantics go invisible.",
         "/api/okh/upload",
-        "/api/okh/extract",
         "/api/okh/extract-repair-docs",
         "/api/okh/import-repair-doc",
-        "/api/okw/template",
         "/api/okw/upload",
-        "/api/okw/extract",
     ),
     *_decision(
         "planned",

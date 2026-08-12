@@ -24,6 +24,7 @@ import { humanizeProcess } from "./processDisplay";
 import { FacilityDesigns } from "./FacilityDesigns";
 import { AuthorshipPanel } from "../okh/AuthorshipPanel";
 import { SharingPanel } from "./SharingPanel";
+import { CapabilitiesDisclosure } from "./CapabilitiesDisclosure";
 import { deleteConfirmMessage } from "./deleteConfirmMessage";
 import {
   isSyncedFacilityProvenance,
@@ -317,6 +318,10 @@ export function OkwDetailView({ id }: { id: string }) {
         <AuthorshipPanel kind="okw" id={id} />
       </div>
       <SharingPanel id={id} />
+
+      <div className="mt-6">
+        <CapabilitiesDisclosure facility={f} />
+      </div>
 
       {f.description && (
         <section className={PANEL}>

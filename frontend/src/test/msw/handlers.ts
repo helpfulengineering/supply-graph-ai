@@ -33,6 +33,10 @@ import {
   disclosurePreviewFixture,
   fileTypesFixture,
   fileTypesValidationFixture,
+  okhRequirementsFixture,
+  okhTemplateFixture,
+  okwCapabilitiesFixture,
+  okwTemplateFixture,
   rulesCompareFixture,
   rulesExportFixture,
   rulesImportFixture,
@@ -53,6 +57,20 @@ export const handlers = [
   // Before the generic */health below: that pattern's leading wildcard also
   // matches /v1/api/llm/health, so the node's liveness fixture would answer
   // the LLM service's health check.
+  // Before the "*/v1/api/okh/:id" rule below, whose param would swallow
+  // "extract" and "template" as ids.
+  http.post("*/v1/api/okh/extract", () =>
+    HttpResponse.json(okhRequirementsFixture),
+  ),
+  http.get("*/v1/api/okh/template", () =>
+    HttpResponse.json(okhTemplateFixture),
+  ),
+  http.post("*/v1/api/okw/extract", () =>
+    HttpResponse.json(okwCapabilitiesFixture),
+  ),
+  http.get("*/v1/api/okw/template", () =>
+    HttpResponse.json(okwTemplateFixture),
+  ),
   http.get("*/v1/api/file-types/validate", () =>
     HttpResponse.json(fileTypesValidationFixture),
   ),

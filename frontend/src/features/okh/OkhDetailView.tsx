@@ -15,6 +15,7 @@ import { LoadingState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
 import { OkhFileGroup } from "./OkhFileGroup";
+import { RequirementsDisclosure } from "./RequirementsDisclosure";
 import { BuildPackageButton } from "../package/BuildPackageButton";
 import { ReleasesStrip } from "../package/ReleasesStrip";
 import { AuthorshipPanel } from "./AuthorshipPanel";
@@ -273,7 +274,11 @@ export function OkhDetailView({ id }: Props) {
         <ValidationPanel result={result} />
       )}
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="mt-6">
+        <RequirementsDisclosure okh={okh} />
+      </div>
+
+      <div className="mt-6 grid gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
           <section className={PANEL}>
             <h2 className={cn(SECTION_LABEL, "mb-4")}>Design Info</h2>

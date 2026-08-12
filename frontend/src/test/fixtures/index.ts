@@ -1164,7 +1164,41 @@ export const fileTypesValidationFixture = {
   },
 };
 
+export const okhRequirementsFixture = {
+  requirements: [
+    { process_name: "3d_printing", quantity: 1 },
+    { process_name: "assembly", quantity: 1 },
+  ],
+};
+
+export const okwCapabilitiesFixture = {
+  capabilities: [
+    { process_name: "3d_printing" },
+    { process_name: "cnc_machining" },
+  ],
+};
+
+export const okhTemplateFixture = {
+  title: "",
+  version: "",
+  function: "",
+  license: { hardware: "", documentation: "", software: "" },
+  licensor: { name: "" },
+  documentation_language: "en",
+};
+
+export const okwTemplateFixture = {
+  name: "",
+  location: { address: {} },
+  access_type: "",
+  facility_status: "",
+};
+
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/okh/extract": okhRequirementsFixture,
+  "/v1/api/okh/template": okhTemplateFixture,
+  "/v1/api/okw/extract": okwCapabilitiesFixture,
+  "/v1/api/okw/template": okwTemplateFixture,
   "/v1/api/match/rules": rulesListFixture,
   "/v1/api/match/rules/": rulesListFixture,
   "/v1/api/match/rules/validate": rulesValidateFixture,

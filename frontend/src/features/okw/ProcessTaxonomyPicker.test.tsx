@@ -5,14 +5,24 @@ import { ProcessTaxonomyPicker } from "./ProcessTaxonomyPicker";
 import type { TaxonomyProcess } from "./facilityFormModel";
 
 const TAXONOMY: TaxonomyProcess[] = [
-  { canonical_id: "3d_printing", display_name: "3D Printing", parent: null, children: ["3d_printing_fdm"] },
+  {
+    canonical_id: "3d_printing",
+    display_name: "3D Printing",
+    parent: null,
+    children: ["3d_printing_fdm"],
+  },
   {
     canonical_id: "3d_printing_fdm",
     display_name: "FDM 3D Printing",
     parent: "3d_printing",
     children: [],
   },
-  { canonical_id: "cnc_machining", display_name: "CNC Machining", parent: null, children: [] },
+  {
+    canonical_id: "cnc_machining",
+    display_name: "CNC Machining",
+    parent: null,
+    children: [],
+  },
 ];
 
 describe("ProcessTaxonomyPicker", () => {

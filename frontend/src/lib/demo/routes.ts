@@ -9,6 +9,8 @@ import {
   identityFixture,
   matchResponseFixture,
   okhDetailFixture,
+  okhRequirementsFixture,
+  okwCapabilitiesFixture,
   okwDetailFixture,
   packageMetadataFixture,
   provenanceFixture,
@@ -215,6 +217,8 @@ const QUERY_POSTS: Record<string, unknown> = {
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okh/validate": validationResultFixture,
+  "/v1/api/okh/extract": okhRequirementsFixture,
+  "/v1/api/okw/extract": okwCapabilitiesFixture,
   "/v1/api/okw/validate": validationResultFixture,
   "/v1/api/asset/salvage-match": salvageMatchFixture,
 };

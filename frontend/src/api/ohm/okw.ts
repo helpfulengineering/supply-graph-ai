@@ -300,3 +300,39 @@ export async function deleteOkw(id: string): Promise<void> {
     );
   }
 }
+
+export type Capability = components["schemas"]["Capability"];
+
+/** What matching sees this facility as able to do — the mirror of okh/extract. */
+export async function extractOkwCapabilities(
+  content: Record<string, unknown>,
+): Promise<Capability[]> {
+  const { data, error, response } = await apiClient.POST("/api/okw/extract", {
+    body: { content },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Could not read capabilities (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return data?.capabilities ?? [];
+}
+
+/** A blank facility record from the server. See fetchOkhTemplate on why. */
+export async function fetchOkwTemplate(): Promise<Record<string, unknown>> {
+  const { data, error, response } = await apiClient.GET("/api/okw/template");
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Could not load the template (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return (data ?? {}) as Record<string, unknown>;
+}

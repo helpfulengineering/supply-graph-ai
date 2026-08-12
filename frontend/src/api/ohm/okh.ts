@@ -399,3 +399,50 @@ export async function revokeGenerateJob(
   }
   return data;
 }
+
+export type ProcessRequirement = components["schemas"]["ProcessRequirement"];
+
+/**
+ * What matching will look for in this design.
+ *
+ * The most useful thing to put beside a failed match: it answers "what was it
+ * actually asking for?", which no other surface says out loud.
+ */
+export async function extractOkhRequirements(
+  content: Record<string, unknown>,
+): Promise<ProcessRequirement[]> {
+  const { data, error, response } = await apiClient.POST("/api/okh/extract", {
+    body: { content },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Could not read requirements (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return data?.requirements ?? [];
+}
+
+/**
+ * A blank manifest from the server.
+ *
+ * The create form carries its own literal, which is a second copy of the model
+ * and will drift from it. This is the authoritative shape; the literal stays
+ * as the offline fallback.
+ */
+export async function fetchOkhTemplate(): Promise<Record<string, unknown>> {
+  const { data, error, response } = await apiClient.GET("/api/okh/template");
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Could not load the template (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return (data ?? {}) as Record<string, unknown>;
+}
