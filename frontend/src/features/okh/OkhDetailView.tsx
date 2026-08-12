@@ -1,9 +1,9 @@
 "use client";
 
+import { Breadcrumb } from "../../components/layout/Breadcrumb";
 import { ClipboardList, Factory, Ruler } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   fetchOkhDetail,
@@ -172,13 +172,9 @@ export function OkhDetailView({ id }: Props) {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/okh" className="hover:text-primary-ink">
-          Designs
-        </Link>
-        <span aria-hidden="true">›</span>
-        <span className="truncate text-foreground">{title}</span>
-      </nav>
+      <Breadcrumb
+        trail={[{ label: "Designs", href: "/okh" }, { label: title }]}
+      />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">

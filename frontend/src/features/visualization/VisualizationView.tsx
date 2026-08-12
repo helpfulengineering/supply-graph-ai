@@ -3,7 +3,6 @@
 import { NetworkIllustration } from "../../components/ui/illustrations";
 import { PageHero } from "../../components/layout/PageHero";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { fetchVisualization } from "../../api/ohm/supply-tree";
 import {
   deriveKpis,
@@ -37,7 +36,6 @@ import { PANEL } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 
 export function VisualizationView({ solutionId }: { solutionId: string }) {
-  const router = useRouter();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["visualization", solutionId],
     queryFn: () => fetchVisualization(solutionId),
@@ -73,14 +71,14 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
           { label: "facilities", href: "/facilities" },
           { label: "dependencies" },
         ]}
-        breadcrumb={
-          <button
-            onClick={() => router.back()}
-            className="hover:text-primary-ink"
-          >
-            ← Back
-          </button>
-        }
+        // A trail, not `router.back()`. A supply tree opens from the match that
+        // produced it, so Match is where it came from — and unlike history,
+        // that is still true when the page is reached from a shared link,
+        // where Back led out of the app entirely.
+        breadcrumb={[
+          { label: "Match", href: "/match" },
+          { label: "Supply Tree" },
+        ]}
         actions={
           <Button
             variant="outline"
