@@ -29,7 +29,7 @@ MIRRORED_SECRET_ENV_REFS: Dict[str, str] = {
     # environment cannot catch it, because the guard only fires when ENVIRONMENT
     # is literally "production".
     "LLM_ENCRYPTION_SALT": "llm-encryption-salt",
-    "LLM_ENCRYPTION_PASSWORD": "llm-encryption-password",
+    "LLM_ENCRYPTION_PASSWORD": "llm-encrypt-password",
 }
 
 # The API additionally serves authenticated routes; a worker consumes jobs and

@@ -1,0 +1,35 @@
+# Non-secret configuration for the `cooking-test` environment
+# (ENVIRONMENT=cooking-test).
+#
+# A disposable, parallel instance for a colleague to try the cooking-domain
+# functionality (see docs-site/docs/guides/deploy-a-cooking-domain-instance.md).
+# Isolated from production by BLOB CONTAINER only — same account, same
+# Container Apps environment, no new Azure resources. No worker/Redis table:
+# this instance does not need async generate-from-url jobs.
+#
+# NEVER put secrets here. Its app's secrets are mirrored from the production
+# app at deploy time (`deploy_azure.py --mirror-secrets-from openhardwaremanager`).
+
+storage_provider = "azure_blob"
+azure_storage_account = "projdatablobstorage"
+
+# Its own container in the shared account, holding recipe/kitchen JSON instead
+# of OKH manifests / OKW facilities. See the cooking-domain-instance guide.
+azure_storage_container = "newformats"
+
+# Fresh browser tabs on this instance open to the cooking domain by default
+# (see OHM_DEFAULT_DOMAIN in src/config/settings.py). This is a UI convenience
+# only -- it does not restrict the API.
+ohm_default_domain = "cooking"
+
+cache_backend = "memory"
+
+gunicorn_workers = "1"
+gunicorn_timeout = "300"
+
+# Frontend (nginx) container deploy config, applied by deploy_azure_frontend.py.
+# FQDN is predictable: this Container App shares production's `ohm-env`
+# environment, so it gets the same default domain suffix.
+[frontend]
+api_upstream_url = "https://openhardwaremanager-cooking-test.blackdune-e38fce01.westus3.azurecontainerapps.io"
+port = 8080
