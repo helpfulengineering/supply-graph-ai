@@ -41,53 +41,48 @@ yourself.
 
 ![The dashboard — network map, live counts, and system status](docs/assets/ux/dashboard-warm-light.png)
 
-The frontend is a Next.js App Router application that ships with the API and
-serves its own UI. It is built to be driven by keyboard alone, at 360px wide, in
-light or dark, and in any of ten colour themes. Each of those is a gate in CI
-rather than a claim: **549 unit tests** and **168 Playwright E2E specs**,
-including a twenty-variant accessibility matrix and a narrow-viewport lane that
-measures every route at 360px and 768px.
+A Next.js App Router application, served by the API. Ten themes in light and
+dark, drivable by keyboard, and laid out down to 360px. Those three are enforced
+by **549 unit tests** and **168 Playwright specs**, including an axe matrix over
+all twenty theme variants and a narrow-viewport lane at 360px and 768px.
 
-Every route is reachable from one hamburger sitemap, grouped by purpose, each
-entry carrying a role line rather than a bare label. Adding a page requires
-deciding nothing about its chrome.
+One hamburger sitemap reaches every route, grouped by purpose, each entry
+carrying a role line. Header, drawer, and footer are a single implementation, so
+a new page inherits its chrome.
 
 ![The sitemap drawer, grouped by purpose](docs/assets/ux/sitemap-drawer.png)
 
 ### Themes
 
-Ten themes x light/dark — twenty palettes behind shadcn's token names, so
-components re-theme without being edited. Colour is defined in one token file; a
-unit test fails the build on a raw hex or a hardcoded Tailwind shade anywhere
-else.
+Ten themes x light/dark is twenty palettes, bound to shadcn's token names so
+components re-theme without being edited. Colour lives in
+`frontend/src/styles/tokens.css`; a unit test fails the build on a raw hex or a
+hardcoded Tailwind shade anywhere else.
 
 ![The theme picker and keyboard reference at the foot of the drawer](docs/assets/ux/theme-picker.png)
 
-Each row in the picker is drawn in its own theme's ink on its own theme's
-ground, resolved from the live tokens rather than from a second copy of the
-palette that would be free to drift.
+The picker paints each row in that theme's own ink on its own ground, resolved
+from the live tokens at runtime. There is no second copy of the palette.
 
 | | |
 |---|---|
 | ![Synthwave, dark](docs/assets/ux/dashboard-synthwave-dark.png) | ![Blueprint, dark](docs/assets/ux/catalog-blueprint-dark.png) |
 | The dashboard in Synthwave dark | The design catalog in Blueprint dark |
 
-Data surfaces read the same tokens. The Leaflet map, the cytoscape supply-tree
-graph, and the ECharts charts resolve their colours from the live token layer
-instead of carrying private palettes. OpenStreetMap's raster tiles arrive from
-their server already painted, so the token layer cannot reach them the way it
-reaches the rest of the page; a filter chain computed from the active theme's
-accent rotates them onto its hue instead, leaving land and water separated by
-lightness rather than flattening the tile to one wash.
+The Leaflet map, the cytoscape supply-tree graph, and the ECharts charts read
+the same tokens instead of carrying private palettes. OpenStreetMap's raster
+tiles arrive from the tile server already painted, so `tileFilter.ts` computes a
+CSS filter chain from the active accent and rotates them onto its hue; land and
+water stay separated by lightness.
 
-Theme and mode ride in the query string, as do filters, view mode, sort,
-grouping, and page, so a copied URL reopens what the sender was looking at.
+Theme, mode, filters, view mode, sort, grouping, and page are all held in the
+query string, so copying the URL reproduces the view.
 
 ### Keyboard
 
-Every route in the menu has a shortcut, and the reference is generated from the
-same constants the key handler reads — a shortcut that works but is undocumented
-fails a unit test.
+Every route in the menu has a chord. `CHORD_ROUTES` and `SHORTCUTS` in
+`frontend/src/components/layout/shortcuts.ts` drive the key handler, the
+drawer's help block, and `/help`. A unit test fails if a nav route has no chord.
 
 ![The keyboard and accessibility tables on /help](docs/assets/ux/help-keyboard-accessibility.png)
 
@@ -99,70 +94,79 @@ fails a unit test.
 | `g` then `d` `k` `f` `m` `p` `r` `s` | dashboard, designs, facilities, match, packages, RFQ, settings |
 | `g` then `g` `n` `w` `h` `o` | generate from URL, new design, new facility, help, documentation |
 
-Shortcuts are ignored while typing in a field or a contenteditable editor, so a
-search box takes `g` as a letter and the JSON editor takes `t` as one.
+Shortcuts are suppressed while typing in an input, textarea, select, or
+contenteditable, so a search box takes `g` as a letter.
+
+### Navigation inside the page
+
+The role line under each page title and the trail above it are links, rendered
+by `PageHero` and `Breadcrumb` rather than written out per view. A term links
+only where the crumb is the only route to its target: Settings names
+`session · keys · identities` directly above a tab bar of the same three, so
+those stay text rather than becoming a duplicate control.
+
+Trails carry `aria-label="Breadcrumb"`, mark their last term `aria-current="page"`,
+and meet the 24px target minimum — they sit in a flex container, so the WCAG
+2.5.8 exception for inline targets does not apply to them. `crumb.spec.ts` and
+`breadcrumb.spec.ts` tab to every link, assert a visible focus ring, and press
+Enter.
 
 ### Accessibility
 
-An axe scan covers all twenty theme variants in CI, reading token values
-resolved from the live page rather than numbers copied into a test — so adding a
-theme extends the matrix without editing it. Four feature journeys carry their
-own scans. Colours a DOM scanner cannot see, such as chart axis labels drawn on
-a canvas and the theme picker's own names, are solved against the surface they
-land on.
+axe scans all twenty theme variants in CI, reading token values resolved from
+the live page, so adding a theme extends the matrix without editing it. Four
+feature journeys carry their own scans. Chart axis labels drawn on a canvas and
+the theme picker's own names are out of a DOM scanner's reach, so their contrast
+is computed against the surface they sit on.
 
 ![The skip link, revealed by the first Tab](docs/assets/ux/skip-link.png)
 
-One header, sitemap drawer, and footer serve every route, with focus trapping,
-`aria-current`, skip-to-content, 44px targets, and animation behind
-`prefers-reduced-motion`. `/help` documents the accessibility contract next to
-the keyboard one, both generated from the source the app uses.
+The chrome provides focus trapping, `aria-current`, skip-to-content, 44px
+targets, and animation behind `prefers-reduced-motion`. `/help` renders its
+keyboard and accessibility tables from the same constants the app uses.
 
 ### Responsive
 
-The narrow lane runs every route at 360px and 768px and asserts two properties
-measured from the live layout: nothing overflows the viewport horizontally, and
-interactive controls meet the WCAG 2.5.8 target size. It runs a narrow desktop
-window rather than device emulation deliberately — Chrome's mobile emulation
-applies Android form-control metrics that round undersized controls up past the
-minimum, hiding the defect the lane exists to catch.
+`responsive.spec.ts` runs every route at 360px and 768px and asserts two
+properties measured from the live layout: nothing overflows the viewport
+horizontally, and interactive controls meet the WCAG 2.5.8 minimum of 24px. It
+uses a narrow desktop window rather than device emulation, because Chrome's
+mobile emulation applies Android form-control metrics that round undersized
+controls up past the minimum.
 
 ![The dashboard at 360px](docs/assets/ux/dashboard-mobile.png)
 
-The map frames where the network is dense instead of fitting a whole world that
-will not fit; one-finger swipes scroll the page while two fingers move the map;
-charts drop the axis furniture a narrow screen only crowds.
+The map frames the dense part of the network rather than the whole world. One
+finger scrolls the page and two fingers pan the map. Charts drop their axis
+labels below 640px.
 
 ### Consistency and failure
 
-- **One spelling per control.** Fields, panels, and heading roles come from
-  shared constants, enforced by unit tests that read the source.
-- **One vocabulary for failures.** Every error — a dead connection, a rate
-  limit, a record that is gone — becomes a title, a sentence, and whether
-  retrying could help, so the same fault reads the same in a panel, a toast, and
-  the catch-all error page. An unknown address returns a real 404 with the
-  sitemap on it; a thrown render lands on a page that keeps the app's chrome.
-- **A deterministic demo dataset** (`make seed-demo`) — ten designs and seven
-  facilities covering the golden path, with content-derived ids so deep links
-  survive reseeding. The **Demo data** chip in the header is derived from the
-  records themselves rather than a build flag.
-- **Loading states draw the product's logo** from the same geometry the favicon
-  is generated from.
+- Field names, panel titles, and heading roles come from shared constants, with
+  unit tests that read the source.
+- Errors normalise to a title, a sentence, and whether retrying can help, so the
+  same fault reads the same in a panel, a toast, and the error page. An unknown
+  address returns a 404 with the sitemap on it; a thrown render keeps the app's
+  chrome instead of the browser's default.
+- `make seed-demo` seeds ten designs and seven facilities with content-derived
+  ids, so deep links survive reseeding. The **Demo data** chip reads the records
+  rather than a build flag.
+- Loading states animate the logo from the same geometry that generates the
+  favicon.
 
-The images above are captured, not curated: `npx playwright test
---project=assets` regenerates all eight from the mocked fixture world, so a
-README that no longer matches the interface is a one-command fix rather than a
-screenshot session.
+The eight screenshots above are generated: `npx playwright test
+--project=assets` recaptures them from the mocked fixture world.
 
-**Two independent ways to get a demo world, both optional:**
+### Demo data
 
-*As a visitor* — open the sitemap and switch on **Demo data**. The app swaps its
-data source to a bundled sample world, needs no backend at all, and switches
-back the same way. It is a source swap at the fetch boundary, not a mode the
-components know about, so everything you see runs the same code path real data
-does.
+Two independent routes to a demo world, both optional.
 
-*As an operator* — seed the records server-side:
+*In the browser* — open the sitemap and switch on **Demo data**. The app reads a
+bundled sample world instead of the API, needs no backend, and switches back the
+same way. The swap happens at the fetch boundary, so components run the same
+code path they do against real data.
+
+*On the server* — seed the records:
 
 ```bash
 make seed-demo   # then restart the API — list responses are cached for an hour
