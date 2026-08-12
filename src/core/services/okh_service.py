@@ -9,6 +9,8 @@ import yaml
 
 from src.config import settings
 
+from ..domains.cooking.models import Recipe
+
 # Lazy import: GenerationEngine imports heavy dependencies (spacy, numpy, thinc)
 # from ..generation.engine import GenerationEngine
 from ..generation.models import LayerConfig, PlatformType
@@ -457,6 +459,72 @@ class OKHService(BaseService["OKHService"]):
             paginated_manifests = all_manifests[start_idx : start_idx + page_size]
 
             return paginated_manifests, total
+
+    async def list_recipes(self) -> List[Recipe]:
+        """Return all recipes found under the ``okh/`` prefix.
+
+        Returns only ``Recipe`` objects.  Any file under ``okh/`` that is
+        *not* identified as a recipe by ``Recipe.is_cooking_recipe()`` (e.g.
+        an OKH manifest) is skipped and logged at DEBUG level.
+
+        Mirrors ``OKWService.list_kitchens()``:
+        - Only returns files that pass ``Recipe.is_cooking_recipe()``.
+        - Deduplicates by ``Recipe.id``, keeping the most-recently modified
+          file when the same ID appears at multiple paths.
+        """
+        await self.ensure_initialized()
+        logger.info("Listing recipes")
+
+        if not self.storage:
+            return []
+
+        discovery = SmartFileDiscovery(self.storage.manager)
+        file_infos = await discovery.discover_files("okh")
+
+        logger.info(f"Scanning {len(file_infos)} OKH files for recipes")
+
+        recipes_by_id: Dict[UUID, Recipe] = {}
+        file_info_by_id: Dict[UUID, Any] = {}
+
+        for file_info in file_infos:
+            try:
+                data = await self.storage.manager.get_object(file_info.key)
+                raw = json.loads(data.decode("utf-8"))
+
+                if not Recipe.is_cooking_recipe(raw):
+                    logger.debug(
+                        f"Skipping non-recipe file {file_info.key} in list_recipes()"
+                    )
+                    continue
+
+                recipe = Recipe.from_dict(raw)
+                recipe_id = recipe.id
+
+                if recipe_id not in recipes_by_id:
+                    recipes_by_id[recipe_id] = recipe
+                    file_info_by_id[recipe_id] = file_info
+                else:
+                    existing_modified = getattr(
+                        file_info_by_id[recipe_id], "last_modified", None
+                    )
+                    current_modified = getattr(file_info, "last_modified", None)
+                    if current_modified and (
+                        not existing_modified or current_modified > existing_modified
+                    ):
+                        recipes_by_id[recipe_id] = recipe
+                        file_info_by_id[recipe_id] = file_info
+                        logger.debug(
+                            f"Replacing recipe {recipe_id} with more recent version from {file_info.key}"
+                        )
+            except Exception as e:
+                logger.warning(
+                    f"Skipping file {file_info.key}: could not parse as Recipe: {e}"
+                )
+                continue
+
+        recipes = list(recipes_by_id.values())
+        logger.info(f"Found {len(recipes)} unique recipes")
+        return recipes
 
     def _invalidate_catalog_cache(self) -> None:
         """Drop the cached catalogue after a write.

@@ -424,6 +424,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/recipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Recipes
+         * @description Get a paginated list of cooking-domain recipes found under the okh/ prefix.
+         *
+         *         Read-only browse surface for a cooking-domain instance — no create, edit,
+         *         or delete. See ``OKHService.list_recipes()``.
+         */
+        get: operations["list_recipes_api_okh_recipes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/{id}": {
         parameters: {
             query?: never;
@@ -1007,6 +1030,30 @@ export interface paths {
          *         `include_mom=false` returns local only; `force_refresh=true` refreshes MoM.
          */
         get: operations["get_okw_spaces_api_okw_spaces_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/kitchens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Kitchens
+         * @description Get a paginated list of cooking-domain kitchen capabilities found under
+         *         the okw/ prefix.
+         *
+         *         Read-only browse surface for a cooking-domain instance — no create,
+         *         edit, or delete. See ``OKWService.list_kitchens()``.
+         */
+        get: operations["list_kitchens_api_okw_kitchens_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10379,6 +10426,59 @@ export interface operations {
             };
         };
     };
+    list_recipes_api_okh_recipes_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                sort_by?: string | null;
+                sort_order?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     get_okh_api_okh__id__get: {
         parameters: {
             query?: {
@@ -11673,6 +11773,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_kitchens_api_okw_kitchens_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                sort_by?: string | null;
+                sort_order?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse"];
                 };
             };
             /** @description Bad Request */

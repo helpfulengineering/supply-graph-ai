@@ -413,6 +413,12 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         path="guides/deploy-a-node-on-azure.md",
     ),
     SiteDoc(
+        "selfhost",
+        "Deploy a cooking-domain instance",
+        "deployed",
+        path="guides/deploy-a-cooking-domain-instance.md",
+    ),
+    SiteDoc(
         "api",
         "Use the OHM API from your own software",
         "deployed",
@@ -425,6 +431,21 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "deployed",
         path="guides/import-from-a-url.md",
         requires_fe_call="/api/okh/generate-from-url",
+    ),
+    # Backend + CLI exist (GET /api/okh/recipes, GET /api/okw/kitchens); the
+    # frontend browse views land separately. Flip to "deployed" once the
+    # frontend actually calls these endpoints (R9 checks this).
+    SiteDoc(
+        "okh",
+        "Browse recipes",
+        "in_progress",
+        requires_fe_call="/api/okh/recipes",
+    ),
+    SiteDoc(
+        "okw",
+        "Browse kitchens",
+        "in_progress",
+        requires_fe_call="/api/okw/kitchens",
     ),
     SiteDoc("okw", "Search facilities by name", "roadmap"),
     SiteDoc("convert", "Bulk-import a design collection", "roadmap"),

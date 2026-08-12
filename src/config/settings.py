@@ -156,6 +156,11 @@ AUTH_KEY_LENGTH = int(_get_secret_or_env("AUTH_KEY_LENGTH", "32"))  # bytes
 # SecurityPolicy via src/config/security_policy.py. See docs/architecture/security-modes.md.
 OHM_SECURITY_MODE = _get_secret_or_env("OHM_SECURITY_MODE", "peacetime")
 
+# Default matching domain hint for a fresh browser session on this instance
+# (see GET /api/utility/domains -> default_domain). A dedicated cooking-domain
+# deployment sets this to "cooking"; every other instance keeps the default.
+OHM_DEFAULT_DOMAIN = _get_secret_or_env("OHM_DEFAULT_DOMAIN", "manufacturing")
+
 # Storage Configuration
 try:
     STORAGE_CONFIG = get_default_storage_config()

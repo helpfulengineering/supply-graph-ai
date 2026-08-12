@@ -59,6 +59,21 @@ export function buildMatchRequest(
 }
 
 /**
+ * Cooking-domain equivalent of `buildMatchRequest`: matches a recipe against a
+ * set of kitchens (kitchen ids share the OKW id space — see
+ * `KitchenCapability.is_cooking_capability`, so they pass through as okwIds).
+ */
+export function buildRecipeMatchRequest(
+  recipeId: string,
+  mode: SystemMode,
+  maxResults?: number,
+  kitchenIds?: string[],
+): RunMatchParams {
+  const subset = kitchenIds && kitchenIds.length > 0 ? { okwIds: kitchenIds } : {};
+  return { recipeId, ...MODE_PARAMS[mode], maxResults, ...subset };
+}
+
+/**
  * Same, for a design that is not in the catalogue — a manifest generated from a
  * repository URL and reviewed in-session. Generation deliberately does not save,
  * so there is no id to match by.

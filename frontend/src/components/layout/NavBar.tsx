@@ -1,26 +1,23 @@
 import { NavLink } from "react-router-dom";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { useTheme } from "../../context/ThemeContext";
+import { useDomain } from "../../context/DomainContext";
 import { useAuth } from "../../context/AuthContext";
+import { navItemsForDomain } from "../../features/settings/domainPreference";
 import { refreshLowVolatilityData } from "../../queryClient";
-
-const navItems = [
-  { to: "/okh", label: "Designs", icon: "🔩" },
-  { to: "/facilities", label: "Facilities", icon: "🏭" },
-  { to: "/packages", label: "Packages", icon: "📦" },
-  { to: "/match", label: "Match", icon: "⚡" },
-  // Saved solutions are per-search, user-specific, and go stale fast — a supply
-  // tree is reached directly from its match (and can be downloaded), so there is
-  // no browse list. Revisit as user-scoped history once auth lands.
-  // RFQ stays dormant in v1 nav.
-] as const;
 
 export function NavBar() {
   const { isDark, toggle } = useTheme();
+  const { domain } = useDomain();
   const { isAdmin, token } = useAuth();
   const queryClient = useQueryClient();
   const isFetching = useIsFetching() > 0;
   const settingsLabel = isAdmin ? "Settings" : token ? "Session" : "Connect";
+  // Saved solutions are per-search, user-specific, and go stale fast — a supply
+  // tree is reached directly from its match (and can be downloaded), so there is
+  // no browse list. Revisit as user-scoped history once auth lands.
+  // RFQ stays dormant in v1 nav.
+  const navItems = navItemsForDomain(domain);
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">

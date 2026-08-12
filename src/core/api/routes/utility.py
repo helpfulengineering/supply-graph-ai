@@ -13,6 +13,8 @@ from fastapi import (
     status,
 )
 
+from src.config import settings
+
 from ...errors.metrics import get_metrics_tracker
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_422_500
@@ -120,6 +122,7 @@ async def get_domains(
         # Return dict for api_endpoint decorator to wrap
         return {
             "domains": [domain.model_dump(mode="json") for domain in domains],
+            "default_domain": settings.OHM_DEFAULT_DOMAIN,
             "processing_time": processing_time,
             "validation_results": [
                 vr.model_dump(mode="json") if hasattr(vr, "model_dump") else vr

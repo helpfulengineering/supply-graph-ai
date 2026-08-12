@@ -894,6 +894,97 @@ async def list_manifests(
         raise
 
 
+@okh_group.command("list-recipes")
+@click.option("--limit", default=10, help="Maximum number of recipes to list")
+@click.option("--offset", default=0, help="Number of recipes to skip")
+@standard_cli_command(
+    help_text="""
+    List cooking-domain recipes stored under okh/ in the system.
+
+    Read-only browse command for a cooking-domain OHM instance. Recipes are
+    uploaded as JSON directly to storage (see the cooking-domain deployment
+    docs), not created via this CLI. Mirrors `ohm okw list-kitchens`.
+    """,
+    epilog="""
+    Examples:
+      # List all recipes
+      ohm okh list-recipes
+
+      # List with pagination
+      ohm okh list-recipes --limit 20 --offset 10
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def list_recipes_cmd(
+    ctx,
+    limit: int,
+    offset: int,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """List cooking-domain recipes."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-list-recipes")
+
+    try:
+
+        async def http_list():
+            cli_ctx.log("Listing via HTTP API...", "info")
+            return await cli_ctx.api_client.request(
+                "GET", "/api/okh/recipes", params={"limit": limit, "offset": offset}
+            )
+
+        async def fallback_list():
+            cli_ctx.log("Using direct service listing...", "info")
+            okh_service = await OKHService.get_instance()
+            recipes = await okh_service.list_recipes()
+            page = recipes[offset : offset + limit]
+            return {
+                "recipes": [recipe.to_dict() for recipe in page],
+                "total": len(recipes),
+            }
+
+        command = SmartCommand(cli_ctx)
+        result = await command.execute_with_fallback(http_list, fallback_list)
+
+        if "data" in result and isinstance(result["data"], dict):
+            recipes = result["data"].get("items", result["data"].get("recipes", []))
+            pagination = result["data"].get("pagination", {})
+            total = pagination.get("total_items", len(recipes))
+        else:
+            recipes = result.get("items", result.get("recipes", []))
+            pagination = result.get("pagination", {})
+            total = pagination.get("total_items", result.get("total", len(recipes)))
+
+        if output_format == "json":
+            click.echo(json.dumps(result, indent=2, default=str))
+        elif recipes:
+            click.echo(f"\n🍳 Found {total} recipe(s):\n")
+            for i, recipe in enumerate(recipes, 1):
+                click.echo(f"  {i}. {recipe.get('name', 'Unknown')}")
+                click.echo(f"     Recipe ID: {recipe.get('id', 'Unknown')}")
+                click.echo(f"     Ingredients: {len(recipe.get('ingredients', []))}")
+            click.echo(f"\nTotal: {total} recipe(s)")
+        else:
+            click.echo("\nNo recipes found\n")
+
+        cli_ctx.end_command_tracking()
+
+    except Exception as e:
+        cli_ctx.log(f"Listing failed: {str(e)}", "error")
+        raise
+
+
 @okh_group.command()
 @click.argument("manifest_id", type=str)
 @click.option("--force", is_flag=True, help="Force deletion without confirmation")

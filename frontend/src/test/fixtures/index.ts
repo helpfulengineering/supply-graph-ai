@@ -19,6 +19,7 @@ export const domainsFixture = {
       { id: "manufacturing", name: "Manufacturing", description: "Hardware manufacturing" },
       { id: "cooking", name: "Cooking & Food Prep", description: "Recipe matching" },
     ],
+    default_domain: "manufacturing",
   },
 };
 
