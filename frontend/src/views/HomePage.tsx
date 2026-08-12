@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   DataProcessingIcon,
@@ -10,10 +11,11 @@ import type { JSX } from "react";
 import { PageHero } from "../components/layout/PageHero";
 import { BRAND_TAGLINE_LINKS } from "../../app/brand";
 import { fetchDomains, fetchMetrics } from "../api/ohm/utility";
-import { fetchNetworkSpaces } from "../api/ohm/network";
+import { fetchNetworkSpaces, type NetworkSpace } from "../api/ohm/network";
 import { Badge } from "../components/ui/Badge";
 import { LoadingState, ErrorState } from "../components/ui/states";
 import { NetworkMap } from "../features/network/NetworkMapLazy";
+import { MapSpacesSheet } from "../features/network/MapSpacesSheet";
 import { GettingStarted } from "../features/dashboard/GettingStarted";
 import { NetworkBarChart } from "../features/dashboard/NetworkBarChart";
 import {
@@ -144,6 +146,15 @@ export function HomePage() {
   const online = !domains.isError && !metrics.isError;
   const m = map.data;
 
+  // What the map frames, and whether the reader has asked to read it. The
+  // sheet opens on the first gesture and then follows the viewport; closing it
+  // does not stop the reports, so re-opening is not a second question.
+  const [inView, setInView] = useState<NetworkSpace[]>([]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const onVisibleChange = useCallback((v: NetworkSpace[]) => setInView(v), []);
+  const onInteract = useCallback(() => setSheetOpen(true), []);
+  const closeSheet = useCallback(() => setSheetOpen(false), []);
+
   return (
     <div className="space-y-3 sm:space-y-4">
       <div>
@@ -180,7 +191,11 @@ export function HomePage() {
             />
           )}
           {m && !map.isLoading && !map.isError && (
-            <NetworkMap spaces={m.spaces} />
+            <NetworkMap
+              spaces={m.spaces}
+              onVisibleChange={onVisibleChange}
+              onInteract={onInteract}
+            />
           )}
 
           {/*
@@ -247,6 +262,11 @@ export function HomePage() {
             </span>
           )}
         </div>
+
+        {/* Outside the map's box on purpose: the sheet belongs to the viewport,
+            and inside a `relative overflow-hidden` 440px card it would be
+            clipped by the very thing it is meant to rise in front of. */}
+        <MapSpacesSheet spaces={inView} open={sheetOpen} onClose={closeSheet} />
 
         {m && (
           <p className="mt-2 text-sm text-muted-foreground">
