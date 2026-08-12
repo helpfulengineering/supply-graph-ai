@@ -105,9 +105,12 @@ async def lifespan(app: FastAPI):
             from .storage.organizer import StorageOrganizer
 
             organizer = StorageOrganizer(storage_service.manager)
-            # Check if structure exists by looking for a known placeholder
+            # Check if structure exists by looking for a known placeholder.
+            # This must name a key the organizer actually writes: it seeds the
+            # domain roots and enforces nothing beneath them, so a probe for a
+            # subdirectory never finds anything and re-seeds on every startup.
             try:
-                await storage_service.manager.get_object("okh/manifests/.gitkeep")
+                await storage_service.manager.get_object("okh/.gitkeep")
                 logger.debug("Storage directory structure already exists")
             except FileNotFoundError:
                 logger.info("Storage directory structure not found, creating it...")
