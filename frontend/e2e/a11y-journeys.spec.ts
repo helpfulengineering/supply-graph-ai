@@ -16,6 +16,13 @@ const ROUTES = [
   "/packages",
   "/packages/demo/widget/1.0.0",
   "/solutions",
+  "/assets",
+  "/assets/11111111-1111-4111-8111-111111111111",
+  "/assets/11111111-1111-4111-8111-111111111111/triage",
+  // With results on the page, not just the unsearched state: the salvage rows
+  // and their claim controls only render after a query, and a scan of the
+  // empty form would report the surface as clean without seeing it.
+  "/assets/salvage?component=Pump",
 ];
 
 for (const route of ROUTES) {
@@ -85,7 +92,9 @@ test("no serious a11y violations: generate result + tiered editor", async ({
   );
 
   await page.goto("/okh/generate");
-  await page.getByLabel(/Repository URL/i).fill("https://github.com/nasa-jpl/rover");
+  await page
+    .getByLabel(/Repository URL/i)
+    .fill("https://github.com/nasa-jpl/rover");
   await page.getByRole("button", { name: "Generate" }).click();
   await expect(page.getByLabel("Title")).toBeVisible();
 
@@ -110,14 +119,18 @@ test("no serious a11y violations: guided new-design form", async ({
   await expectNoA11yViolations(page);
 });
 
-test("no serious a11y violations: match results", async ({ page }, testInfo) => {
+test("no serious a11y violations: match results", async ({
+  page,
+}, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
   await page.goto("/match");
   await page.getByLabel("Search designs").fill("Ventilator");
   await page.getByRole("option", { name: /Open Ventilator/i }).click();
   await page.getByLabel("Laser Fab Lab").check();
   await page.getByRole("button", { name: /run match/i }).click();
-  await expect(page.getByRole("heading", { name: "FabLab Drome" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "FabLab Drome" }),
+  ).toBeVisible();
 
   await expectNoA11yViolations(page);
 });

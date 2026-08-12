@@ -87,6 +87,19 @@ function concrete(path: string): string {
  * answer — see READ_ONLY in routes.ts — so they are checked separately.
  */
 const WRITE_ONLY = [
+  // Moving a package between this node and a remote store. The demo has no
+  // remote, and pretending a push succeeded would be a lie about where the
+  // bytes went.
+  // Moves bytes between nodes; the demo has no peer to move them from.
+  "/api/federation/packages/fetch",
+  "/api/package/push",
+  "/api/package/pull",
+  // Conversions. Nothing is stored, but they are still POSTs that transform a
+  // payload the caller supplied — the demo world has no file to convert, and
+  // answering with a canned manifest would claim a conversion that never ran.
+  "/api/convert/to-datasheet",
+  "/api/convert/from-okh-losh",
+  "/api/convert/from-datasheet",
   "/api/okh/create",
   "/api/okw/create",
   "/api/identity/spaces/claim",
@@ -99,8 +112,11 @@ const WRITE_ONLY = [
   "/api/identity/keys/{key_id}",
   "/api/identity/grants/{grant_id}",
   "/api/identity/grants/bootstrap-edge",
-  "/api/llm/credentials/{param}",
-  "/api/llm/credentials/{param}/test",
+  // Spelled {provider} rather than {param} since llm.ts moved onto the typed
+  // client: the generated paths carry the parameter's real name, where a
+  // template literal only ever showed an interpolation.
+  "/api/llm/credentials/{provider}",
+  "/api/llm/credentials/{provider}/test",
   "/api/federation/peers/discover",
   "/api/federation/peers/{did}/follow",
   "/api/federation/sync/run",

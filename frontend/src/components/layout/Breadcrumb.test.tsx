@@ -47,7 +47,9 @@ describe("Breadcrumb", () => {
   });
 
   it("renders a trail of one without a leading separator", () => {
-    const { container } = render(<Breadcrumb trail={[{ label: "Packages" }]} />);
+    const { container } = render(
+      <Breadcrumb trail={[{ label: "Packages" }]} />,
+    );
     expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
   });
 });

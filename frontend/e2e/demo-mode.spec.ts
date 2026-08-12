@@ -26,7 +26,9 @@ test("enabling demo mode surfaces the badge and the sample catalog", async ({
   await page.addInitScript(() => localStorage.setItem("ohm-demo-mode", "1"));
   await page.goto("/okh");
 
-  await expect(page.getByRole("heading", { name: "Open Ventilator" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Open Ventilator" }),
+  ).toBeVisible();
   // The header states the source, so a visitor is never misled about whether
   // what they are looking at is real.
   await expect(page.getByText("Demo data").first()).toBeVisible();
@@ -47,6 +49,8 @@ test("turning demo mode off returns to the real source", async ({ page }) => {
 
   // The toggle reloads deliberately, so the source cannot be half-swapped.
   await page.waitForLoadState("networkidle");
-  const stored = await page.evaluate(() => localStorage.getItem("ohm-demo-mode"));
+  const stored = await page.evaluate(() =>
+    localStorage.getItem("ohm-demo-mode"),
+  );
   expect(stored).toBeNull();
 });

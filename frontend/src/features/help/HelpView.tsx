@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { PageHero } from "../../components/layout/PageHero";
-import { ACCOUNT_GROUP, NAV_GROUPS } from "../../components/layout/nav";
+import {
+  ACCOUNT_GROUP,
+  UNLISTED_GROUP,
+  NAV_GROUPS,
+} from "../../components/layout/nav";
 import { SHORTCUTS } from "../../components/layout/shortcuts";
 import { SECTION_LABEL_SM } from "../../components/ui/typography";
 import { SectionHeading } from "../../components/ui/SectionHeading";
@@ -82,7 +86,14 @@ export function HelpView() {
         <SectionHeading id="h-routes" role="label">
           Where things are
         </SectionHeading>
-        {[...NAV_GROUPS, ACCOUNT_GROUP].map((group) => (
+        {/*
+          UNLISTED_GROUP is here and not in the drawer. The drawer is a menu —
+          a list of places worth going — while this is the sitemap, and a route
+          the chrome binds a chord to has to appear on the page that documents
+          the chords. /icons moved out of the menu for exactly that reason and
+          would otherwise have a key nothing explains.
+        */}
+        {[...NAV_GROUPS, ACCOUNT_GROUP, UNLISTED_GROUP].map((group) => (
           <div key={group.label} className={PANEL}>
             <h3 className={cn(SECTION_LABEL_SM, "mb-3")}>{group.label}</h3>
             <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">

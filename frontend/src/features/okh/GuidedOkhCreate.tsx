@@ -13,7 +13,9 @@
  * is no longer the only way in.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchOkhTemplate } from "../../api/ohm/okh";
 import { PageHero } from "../../components/layout/PageHero";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
@@ -52,6 +54,29 @@ export function GuidedOkhCreate() {
   const router = useRouter();
   const { hasWrite, reportAuthFailure } = useAuth();
   const [manifest, setManifest] = useState<Manifest>(emptyManifest);
+  // Seed the blank form from the server's own template, so a field the model
+  // grows appears here without this file being edited. `emptyManifest` stays
+  // as the offline shape — it is what the form opens with, and this only fills
+  // keys it does not already carry, so nothing a user has typed is replaced.
+  const template = useQuery({
+    queryKey: ["okh-template"],
+    queryFn: fetchOkhTemplate,
+    retry: false,
+    retryOnMount: false,
+    staleTime: Infinity,
+  });
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current || !template.data) return;
+    seeded.current = true;
+    setManifest((current) => {
+      const merged = { ...current } as Record<string, unknown>;
+      for (const [key, value] of Object.entries(template.data)) {
+        if (merged[key] === undefined) merged[key] = value;
+      }
+      return merged as Manifest;
+    });
+  }, [template.data]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 

@@ -1,5 +1,7 @@
 import {
+  assetDetailFixture,
   attestationsFixture,
+  claimComponentFixture,
   disclosureFixture,
   disclosurePreviewFixture,
   facilityDesignsFixture,
@@ -7,9 +9,18 @@ import {
   identityFixture,
   matchResponseFixture,
   okhDetailFixture,
+  okhRequirementsFixture,
+  okwCapabilitiesFixture,
   okwDetailFixture,
   packageMetadataFixture,
+  packageSignatureFixture,
   provenanceFixture,
+  salvageMatchFixture,
+  solutionHierarchyFixture,
+  solutionStalenessFixture,
+  sourcingResolutionFixture,
+  triageChecklistFixture,
+  triageReportFixture,
   validationResultFixture,
   visibilityFixture,
   vizBundleFixture,
@@ -142,6 +153,24 @@ const PARAMETERISED: Array<{
   },
   {
     method: "GET",
+    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/staleness$/,
+    resolve: (id) => ({
+      ...solutionStalenessFixture,
+      data: { ...solutionStalenessFixture.data, solution_id: id },
+    }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/hierarchy$/,
+    resolve: () => solutionHierarchyFixture,
+  },
+  {
+    method: "POST",
+    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/extend$/,
+    resolve: () => ({ status: "success", message: "TTL extended" }),
+  },
+  {
+    method: "GET",
     pattern: /^\/v1\/api\/identity\/reputation\/(.+)$/,
     resolve: () => attestationsFixture,
   },
@@ -158,8 +187,54 @@ const PARAMETERISED: Array<{
   },
   {
     method: "GET",
+    pattern: /^\/v1\/api\/package\/[^/]+\/[^/]+\/[^/]+\/verify$/,
+    resolve: () => ({ valid: true, errors: [] }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/package\/[^/]+\/[^/]+\/[^/]+\/verify-signature$/,
+    resolve: () => packageSignatureFixture,
+  },
+  {
+    method: "GET",
     pattern: /^\/v1\/api\/okh\/generate-from-url\/jobs\/([^/]+)$/,
     resolve: (jobId) => finishedGenerateJob(jobId),
+  },
+  // Assets. The id is re-badged onto the fixture rather than matched, for the
+  // reason the OKH detail route gives: handing back somebody else's asset tag
+  // under this URL is worse than a generic answer.
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/asset\/([^/]+)$/,
+    resolve: (id) => ({ ...assetDetailFixture, id }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/triage-checklist$/,
+    resolve: (id) => ({ ...triageChecklistFixture, asset_id: id }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/triage-report$/,
+    resolve: (id) => ({ ...triageReportFixture, asset_id: id }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/resolve-sourcing$/,
+    resolve: (id) => ({ ...sourcingResolutionFixture, asset_id: id }),
+  },
+  // Two writes the demo answers rather than refuses. Triage and claiming are
+  // the things a visitor would actually try in this section, and a demo that
+  // shows the form then refuses the submit teaches less than not offering it.
+  {
+    method: "POST",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/triage$/,
+    resolve: (id) => ({ ...assetDetailFixture, id }),
+  },
+  {
+    method: "POST",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/claim-component$/,
+    resolve: (id) => ({ ...claimComponentFixture, asset_id: id }),
   },
 ];
 
@@ -173,7 +248,10 @@ const QUERY_POSTS: Record<string, unknown> = {
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okh/validate": validationResultFixture,
+  "/v1/api/okh/extract": okhRequirementsFixture,
+  "/v1/api/okw/extract": okwCapabilitiesFixture,
   "/v1/api/okw/validate": validationResultFixture,
+  "/v1/api/asset/salvage-match": salvageMatchFixture,
 };
 
 /**

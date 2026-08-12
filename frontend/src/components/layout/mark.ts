@@ -38,17 +38,19 @@ export const MARK_STROKE_WIDTH = 2.2;
 
 /** Nut silhouette, opened at the top edge. Two arms from the gap rather than
  *  a closed polygon, so the opening is structural rather than drawn on. */
-export const MARK_OUTLINE = "M19.4 3.2 L27.4 8.0 V24.0 L16 29.6 L4.6 24.0 V8.0 L12.6 3.2";
+export const MARK_OUTLINE =
+  "M19.4 3.2 L27.4 8.0 V24.0 L16 29.6 L4.6 24.0 V8.0 L12.6 3.2";
 
 /** Interior edges: the design above, resolving to two makers below. */
 export const MARK_EDGES = "M16 12 L10.6 21 M16 12 L21.4 21";
 
 /** Interior nodes, in the same order the edges reach them. */
-export const MARK_NODES: ReadonlyArray<{ cx: number; cy: number; r: number }> = [
-  { cx: 16, cy: 11.4, r: 3.1 },
-  { cx: 10.3, cy: 21.4, r: 2.7 },
-  { cx: 21.7, cy: 21.4, r: 2.7 },
-];
+export const MARK_NODES: ReadonlyArray<{ cx: number; cy: number; r: number }> =
+  [
+    { cx: 16, cy: 11.4, r: 3.1 },
+    { cx: 10.3, cy: 21.4, r: 2.7 },
+    { cx: 21.7, cy: 21.4, r: 2.7 },
+  ];
 
 /** The five iridescent stops, light to dark end, as the ramp is declared. */
 export type MarkRamp = readonly [string, string, string, string, string];

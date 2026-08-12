@@ -52,10 +52,14 @@ used_by = ["make format", "make ready (repo-map-check)", "ci: quality"]
 
 [scripts.dump_api_routes]
 category = "generate"
-summary = "Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count."
-run = "uv run python scripts/dump_api_routes.py [--count-only]"
+summary = "Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count; --openapi for the spec itself."
+run = "uv run python scripts/dump_api_routes.py [--count-only|--openapi]"
 mutates = false
-used_by = ["make ready (scripts)", "OpenAPI /v1/docs is the route catalog"]
+used_by = [
+  "make ready (scripts)",
+  "OpenAPI /v1/docs is the route catalog",
+  "npm run gen:api (--openapi, offline schema regeneration)",
+]
 
 [scripts.build_docs_site]
 category = "generate"

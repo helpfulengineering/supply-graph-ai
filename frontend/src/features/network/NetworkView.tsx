@@ -228,8 +228,10 @@ export function NetworkView() {
             crumb={[
               { label: "local", href: "/facilities?source=local" },
               { label: "federated", href: "/facilities?source=mom" },
-              // The page can be filtered; there is no "filtered" to go to.
-              { label: "filtered" },
+              // Was text, on the reasoning that "filtered" is a state rather
+              // than a place. The controls that produce it ARE a place, and
+              // they are what a reader following this term wants.
+              { label: "filtered", href: "#filters" },
             ]}
           />
         </div>
@@ -248,7 +250,7 @@ export function NetworkView() {
       <SeedPeerCta />
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[260px_1fr]">
-        <aside className="space-y-4">
+        <aside id="filters" className="scroll-mt-20 space-y-4">
           {/*
             First control in the sidebar, above the filters: the site's primary
             call to action is "find your workshop on the map", and among several

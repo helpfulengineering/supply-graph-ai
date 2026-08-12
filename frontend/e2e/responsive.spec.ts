@@ -60,6 +60,13 @@ const ROUTES = [
   "/solutions",
   "/icons",
   "/visualization/sol-1",
+  "/assets",
+  "/assets/11111111-1111-4111-8111-111111111111",
+  // The densest control surface the app has: N components, each with a
+  // condition segmented control and up to three tri-state groups.
+  "/assets/11111111-1111-4111-8111-111111111111/triage",
+  "/assets/salvage",
+  "/okh/collection",
 ];
 
 /** 360 is the practical Android floor; 768 is the tablet/`md:` boundary. */

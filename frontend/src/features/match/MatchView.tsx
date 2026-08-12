@@ -9,7 +9,7 @@ import { withNavState } from "../../lib/navState";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchAllOkhList } from "../../api/ohm/okh";
 import { fetchNetworkSpaces } from "../../api/ohm/network";
-import { runMatch } from "../../api/ohm/match";
+import { listMatchDomains, runMatch } from "../../api/ohm/match";
 import { track } from "../../lib/site/stack";
 import { EVENTS, type MatchRunProps } from "../../lib/site/events";
 import { ApiError } from "../../api/ohm/client";
@@ -41,6 +41,7 @@ import {
   PANEL_WARNING,
 } from "../../components/ui/surface";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import { FIELD_SM } from "../../components/ui/field";
 import { humanizeProcessId } from "../network/deriveFilterOptions";
 import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
 import { cn } from "@/lib/utils";
@@ -131,6 +132,16 @@ export function MatchView({
   });
   const [selected, setSelected] = useState(okhId ?? "");
   const [mode, setMode] = useState<SystemMode>("standard");
+  // "" is "detect automatically", which is what the server does when the field
+  // is absent — so the empty option is a real instruction, not a placeholder.
+  const [domain, setDomain] = useState("");
+  const domains = useQuery({
+    queryKey: ["match-domains"],
+    queryFn: listMatchDomains,
+    retry: false,
+    retryOnMount: false,
+    staleTime: Infinity,
+  });
   const [facilityIds, setFacilityIds] = useState<string[]>(() =>
     okwId ? [okwId] : [],
   );
@@ -151,7 +162,7 @@ export function MatchView({
       return runMatch(
         inlineManifest
           ? buildInlineMatchRequest(inlineManifest, m, undefined, ids, scope)
-          : buildMatchRequest(id, m, undefined, ids, scope),
+          : buildMatchRequest(id, m, undefined, ids, scope, domain),
       );
     },
     onSuccess: (raw, variables) => {
@@ -246,7 +257,10 @@ export function MatchView({
           { label: "facilities", href: "/facilities" },
           // Solutions are what this page produces; there is no list of them to
           // send anyone to.
-          { label: "solutions" },
+          // Was text. /solutions is a real route holding exactly these —
+          // the supply trees saved from matches — so the term names a place
+          // after all.
+          { label: "solutions", href: "/solutions" },
         ]}
       />
 
@@ -299,6 +313,28 @@ export function MatchView({
               <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">
                 {modeInfo.description}
               </p>
+            )}
+            {/* Only when the node offers more than one: a selector with a
+                single option is a control that cannot be used. */}
+            {(domains.data?.length ?? 0) > 1 && (
+              <label className="mt-3 block text-sm text-muted-foreground">
+                <span className="mb-1 block">Domain</span>
+                <select
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  className={`${FIELD_SM} text-foreground`}
+                >
+                  <option value="">Detect automatically</option>
+                  {domains.data?.map((d) => (
+                    <option key={d.name} value={d.name}>
+                      {d.name}
+                      {d.status && d.status !== "available"
+                        ? ` (${d.status})`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
             )}
           </div>
           <Button

@@ -123,8 +123,5 @@ export function deriveFacetGroups(
 }
 
 export function countSelected(selections: FacetSelections): number {
-  return FACET_DEFS.reduce(
-    (n, d) => n + (selections[d.key]?.length ?? 0),
-    0,
-  );
+  return FACET_DEFS.reduce((n, d) => n + (selections[d.key]?.length ?? 0), 0);
 }

@@ -13,6 +13,7 @@ import { BindingsPanel } from "../features/settings/BindingsPanel";
 import { DirectoryPanel } from "../features/settings/DirectoryPanel";
 import { FederationPanel } from "../features/settings/FederationPanel";
 import { LLMCredentialsPanel } from "../features/settings/LLMCredentialsPanel";
+import { MatchingRulesPanel } from "../features/settings/MatchingRulesPanel";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { useAuth } from "../context/AuthContext";
 import { SECTION_LABEL_SM } from "../components/ui/typography";
@@ -23,6 +24,7 @@ const sessionTab = { to: "/settings/session", label: "Session" } as const;
 const adminTabs = [
   { to: "/settings/keys", label: "Keys & accounts" },
   { to: "/settings/llm", label: "LLM providers" },
+  { to: "/settings/matching", label: "Matching rules" },
   { to: "/settings/identities", label: "Identities" },
   { to: "/settings/grants", label: "Grants" },
   { to: "/settings/spaces", label: "Spaces" },
@@ -35,6 +37,7 @@ const adminTabs = [
 function panelFor(pathname: string) {
   if (pathname.includes("/keys")) return <KeysAccountsPanel />;
   if (pathname.includes("/llm")) return <LLMCredentialsPanel />;
+  if (pathname.includes("/matching")) return <MatchingRulesPanel />;
   if (pathname.includes("/identities")) return <IdentitiesPanel />;
   if (pathname.includes("/grants")) return <GrantsPanel />;
   if (pathname.includes("/spaces")) return <SpacesPanel />;

@@ -10,10 +10,12 @@ import {
   validateOkh,
   type ValidationResult,
 } from "../../api/ohm/okh";
+import { toDatasheet } from "../../api/ohm/convert";
 import { LoadingState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
 import { OkhFileGroup } from "./OkhFileGroup";
+import { RequirementsDisclosure } from "./RequirementsDisclosure";
 import { BuildPackageButton } from "../package/BuildPackageButton";
 import { ReleasesStrip } from "../package/ReleasesStrip";
 import { AuthorshipPanel } from "./AuthorshipPanel";
@@ -125,6 +127,10 @@ export function OkhDetailView({ id }: Props) {
   >("idle");
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [validateError, setValidateError] = useState<string | null>(null);
+  const [datasheetState, setDatasheetState] = useState<
+    "idle" | "running" | "error"
+  >("idle");
+  const [datasheetError, setDatasheetError] = useState<string | null>(null);
 
   const {
     data: okh,
@@ -136,6 +142,35 @@ export function OkhDetailView({ id }: Props) {
     queryKey: ["okh-detail", id],
     queryFn: () => fetchOkhDetail(id),
   });
+
+  /**
+   * Download the design as an MSF datasheet.
+   *
+   * The failure worth handling: DatasheetConverter throws when the manifest is
+   * missing a field the MSF template needs, and "export failed" would leave
+   * the reader with nothing to do about it. The server names the fields, so
+   * the server's message is what gets rendered.
+   */
+  const handleDatasheet = async () => {
+    if (!okh) return;
+    setDatasheetState("running");
+    setDatasheetError(null);
+    try {
+      const blob = await toDatasheet(okh);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${okh.id ?? "design"}-datasheet.docx`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setDatasheetState("idle");
+    } catch (e) {
+      setDatasheetError(
+        e instanceof Error ? e.message : "Could not build the datasheet.",
+      );
+      setDatasheetState("error");
+    }
+  };
 
   const handleValidate = async () => {
     if (!okh) return;
@@ -212,9 +247,23 @@ export function OkhDetailView({ id }: Props) {
           >
             {validateState === "running" ? "Validating…" : "Validate"}
           </Button>
+          <Button
+            variant="outline"
+            onClick={handleDatasheet}
+            disabled={datasheetState === "running"}
+          >
+            {datasheetState === "running" ? "Building…" : "Export datasheet"}
+          </Button>
         </div>
       </div>
 
+      {datasheetState === "error" && (
+        <ErrorState
+          title="Could not build the datasheet"
+          description={datasheetError ?? undefined}
+          onRetry={handleDatasheet}
+        />
+      )}
       {validateState === "error" && (
         <ErrorState
           description={validateError ?? "Validation failed."}
@@ -225,7 +274,11 @@ export function OkhDetailView({ id }: Props) {
         <ValidationPanel result={result} />
       )}
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="mt-6">
+        <RequirementsDisclosure okh={okh} />
+      </div>
+
+      <div className="mt-6 grid gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
           <section className={PANEL}>
             <h2 className={cn(SECTION_LABEL, "mb-4")}>Design Info</h2>

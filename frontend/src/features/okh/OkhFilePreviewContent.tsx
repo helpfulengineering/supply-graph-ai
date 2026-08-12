@@ -12,11 +12,12 @@ import {
   canPreviewFile,
   encodePathSegments,
   filePrimaryLabel,
-  inferRenderTier,
+  renderTierFrom,
   isImageFile,
   isMarkdownFile,
   isPdfFile,
 } from "./okhFilePath";
+import { useFileTypeTaxonomy } from "./useFileTypeTaxonomy";
 import { okhFileHref } from "./okhFileHref";
 
 const MAX_TEXT_PREVIEW_BYTES = 5 * 1024 * 1024;
@@ -32,14 +33,19 @@ export function OkhFilePreviewContent({
   file,
   fullPage = false,
 }: Props) {
+  const fileTypes = useFileTypeTaxonomy();
   const href = okhFileHref(okhId, file);
   const label = filePrimaryLabel(file);
   const [textContent, setTextContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // The server's own answer first, then the taxonomy, then the regex. The
+  // middle step is the new one: a type the taxonomy knows and the regex does
+  // not was landing on download_only.
   const tier =
-    file.render_tier ?? inferRenderTier(file.display_path ?? file.path);
+    file.render_tier ??
+    renderTierFrom(file.display_path ?? file.path, fileTypes);
   const previewable = canPreviewFile(file);
   const showImage = previewable && isImageFile(file);
   const showPdf = previewable && isPdfFile(file) && !showImage;

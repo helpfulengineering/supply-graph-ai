@@ -36,7 +36,10 @@ export const SYSTEM_MODES: SystemModeInfo[] = [
   },
 ];
 
-const MODE_PARAMS: Record<SystemMode, { qualityLevel: string; strictMode: boolean }> = {
+const MODE_PARAMS: Record<
+  SystemMode,
+  { qualityLevel: string; strictMode: boolean }
+> = {
   minimal: { qualityLevel: "hobby", strictMode: false },
   standard: { qualityLevel: "professional", strictMode: false },
   strict: { qualityLevel: "medical", strictMode: true },
@@ -48,14 +51,25 @@ export function buildMatchRequest(
   maxResults?: number,
   okwIds?: string[],
   networkFilter?: Record<string, string | boolean>,
+  domain?: string,
 ): RunMatchParams {
   const subset = okwIds && okwIds.length > 0 ? { okwIds } : {};
+  // Empty string is the selector's "detect automatically", and the server
+  // detects when the field is absent — so it is dropped rather than sent.
+  const chosen = domain ? { domain } : {};
   // Network filter (local ∪ MoM) can combine with an explicit id subset so the
   // Match page can pick individual MoM/local spaces from the network list.
   if (networkFilter) {
-    return { okhId, ...MODE_PARAMS[mode], maxResults, networkFilter, ...subset };
+    return {
+      okhId,
+      ...MODE_PARAMS[mode],
+      maxResults,
+      networkFilter,
+      ...subset,
+      ...chosen,
+    };
   }
-  return { okhId, ...MODE_PARAMS[mode], maxResults, ...subset };
+  return { okhId, ...MODE_PARAMS[mode], maxResults, ...subset, ...chosen };
 }
 
 /**

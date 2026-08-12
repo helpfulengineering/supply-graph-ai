@@ -158,10 +158,7 @@ export function SupplyTreeGraph({ data }: Props) {
           {t.series
             .slice(0, Math.max(1, new Set(nodes.map((n) => n.depth)).size))
             .map((color: string, i: number) => (
-              <span
-                key={i}
-                className={cn(CAPTION, "flex items-center gap-1")}
-              >
+              <span key={i} className={cn(CAPTION, "flex items-center gap-1")}>
                 <span
                   className="inline-block h-3 w-3 rounded-full"
                   style={{ background: color }}

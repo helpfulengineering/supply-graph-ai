@@ -6,7 +6,11 @@ import {
   listSpaceClaims,
   mintIdentity,
 } from "./identity";
-import { identityFixture, grantsFixture, spaceClaimsFixture } from "../../test/fixtures";
+import {
+  identityFixture,
+  grantsFixture,
+  spaceClaimsFixture,
+} from "../../test/fixtures";
 
 describe("identity F3 wrappers", () => {
   it("mints an identity", async () => {

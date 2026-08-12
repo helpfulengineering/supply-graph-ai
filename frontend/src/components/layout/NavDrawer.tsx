@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { FlaskConical, Link2, RefreshCw, X } from "lucide-react";
+import { ShowcaseIcon } from "../icons";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useThemeSwatches } from "../../hooks/useThemeSwatches";
@@ -443,9 +444,28 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         </fieldset>
 
         <div className="shrink-0 border-t border-border px-4 py-2">
-          <p className="pb-1 text-[0.6875rem] font-semibold uppercase tracking-wider text-muted-foreground">
-            Keyboard
-          </p>
+          <div className="flex items-center justify-between gap-2 pb-1">
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-wider text-muted-foreground">
+              Keyboard
+            </p>
+            {/*
+              The glyph gallery, as a glyph. It used to be a full Reference row
+              — icon, name and a role line — for a page that documents the icon
+              set rather than being somewhere to go. One mark of the thing it
+              leads to is the whole label it needs; the accessible name carries
+              the rest, and the 44px box keeps it a real target next to a
+              heading that is not one.
+            */}
+            <Link
+              href="/icons"
+              onClick={onClose}
+              title="Icons"
+              className="-mr-2 flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ShowcaseIcon aria-hidden="true" className="h-4 w-4" />
+              <span className="sr-only">Icons — the glyph set</span>
+            </Link>
+          </div>
           <ul className="m-0 grid list-none grid-cols-1 gap-x-4 gap-y-0.5 p-0 sm:grid-cols-2">
             {SHORTCUTS.map((s) => (
               <li

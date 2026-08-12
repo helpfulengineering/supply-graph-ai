@@ -43,12 +43,17 @@ yourself.
 
 A Next.js App Router application, served by the API. Ten themes in light and
 dark, drivable by keyboard, and laid out down to 360px. Those three are enforced
-by **573 unit tests** and **193 Playwright specs**, including an axe matrix over
+by **647 unit tests** and **227 Playwright specs**, including an axe matrix over
 all twenty theme variants and a narrow-viewport lane at 360px and 768px.
 
 One hamburger sitemap reaches every route, grouped by purpose, each entry
 carrying a role line. Header, drawer, and footer are a single implementation, so
 a new page inherits its chrome.
+
+Six browse surfaces: designs, facilities, **assets**, packages, solutions, and
+the dashboard that frames them. Assets are the physical units built from those
+designs — what condition each is in, what triage concluded, and which of its
+parts another unit could use.
 
 ![The sitemap drawer, grouped by purpose](docs/assets/ux/sitemap-drawer.png)
 
@@ -104,12 +109,19 @@ land on a 404 wherever it does not.
 | `?` | open the menu, with the full reference |
 | `Esc` | close any menu or dialog, returning focus to the control that opened it |
 | `t` / `m` | next theme / light-dark |
-| `g` then `d` `k` `f` `m` `p` `r` `s` | dashboard, designs, facilities, match, packages, RFQ, settings |
+| `g` then `d` `k` `f` `m` `a` `p` `r` `s` | dashboard, designs, facilities, match, assets, packages, RFQ, settings |
 | `g` then `g` `n` `w` `h` `o` | generate from URL, new design, new facility, help, documentation |
 | `g` then `l` `i` | solutions, icons |
 
 Shortcuts are suppressed while typing in an input, textarea, select, or
 contenteditable, so a search box takes `g` as a letter.
+
+The drawer and `/help` are not the same list, and the difference is deliberate:
+the drawer is a menu — places worth going — while `/help` is the sitemap, and it
+renders the unlisted routes too. `/icons` is the case that forced the
+distinction. It documents the glyph set rather than being somewhere to go, so it
+left the menu for a single mark in the drawer's footer; it keeps its chord, and
+`/help` is where that chord is explained.
 
 ### Navigation inside the page
 
@@ -118,6 +130,14 @@ by `PageHero` and `Breadcrumb` rather than written out per view. A term links
 only where the crumb is the only route to its target: Settings names
 `session · keys · identities` directly above a tab bar of the same three, so
 those stay text rather than becoming a duplicate control.
+
+Where a term names a section rather than a sibling page, it links to that
+section. A page with no tab strip has no other route to its own parts, which is
+exactly the condition for a crumb term to lead somewhere: an asset's
+`components · triage report · sourcing` and the collection page's
+`export · compare · import` are both the page's own structure, addressable.
+Terms that genuinely name no place still stay text, and each one carries the
+reason beside it.
 
 Trails carry `aria-label="Breadcrumb"`, mark their last term `aria-current="page"`,
 and meet the 24px target minimum — they sit in a flex container, so the WCAG
@@ -138,6 +158,17 @@ is computed against the surface they sit on.
 The chrome provides focus trapping, `aria-current`, skip-to-content, 44px
 targets, and animation behind `prefers-reduced-motion`. `/help` renders its
 keyboard and accessibility tables from the same constants the app uses.
+
+The densest control surface is asset triage — one row per component, each with
+a condition control and up to three follow-up questions — and it is where the
+accessibility rules and the data model meet. Those follow-ups are
+`Optional[bool]` on the server, where `null` is not `false`: the server infers a
+null flag from the condition and the design's own flags, and reads a stated
+`false` as the technician overruling that. A checkbox cannot say which of those
+it means, so they are three-option controls, shown only where the condition
+implies work and cleared when it stops implying it. One `<fieldset>` wraps the
+whole checklist rather than one per component, and every choice is a
+`SegmentedControl` — arrow-key operable, full-width at 360px.
 
 ### Responsive
 
@@ -167,6 +198,13 @@ labels below 640px.
   rather than a build flag.
 - Loading states animate the logo from the same geometry that generates the
   favicon.
+- Every path the API serves is either called by the frontend or carries a row
+  saying why not — `tests/parity/test_api_coverage.py`. `fe_api_prefixes` asks
+  whether the frontend touches a *tag*, which one call satisfies; this asks per
+  *endpoint*, and the difference was 91 of 158 paths. The gate runs both ways:
+  an endpoint nothing calls and no row explains fails it, and so does a recorded
+  endpoint the UI has since started calling — so the backlog shrinks by
+  deletion rather than accreting.
 
 The eight screenshots above are generated: `npx playwright test
 --project=assets` recaptures them from the mocked fixture world.
@@ -185,6 +223,25 @@ code path they do against real data.
 ```bash
 make seed-demo   # then restart the API — list responses are cached for an hour
 ```
+
+### What the app reaches
+
+Every OHM capability with a web surface, and where it lives:
+
+| Surface | What it does |
+|---|---|
+| `/okh`, `/okh/collection` | Browse designs; move a whole catalogue between nodes with a compare step before any write |
+| `/facilities` | The network, local and federated, on a map and as a list |
+| `/assets` | Physical units in the field: triage a unit component by component, resolve where its parts come from, and claim a part from another unit |
+| `/match` | Pair a design with facilities, in a chosen domain or a detected one |
+| `/solutions`, `/visualization` | Saved supply trees, what they are made of, and when they expire |
+| `/packages` | Built archives, local and remote, with pin and signature verification |
+| `/settings/matching` | The capability rules and taxonomies behind every match — validate a file, see what importing it would change, then import |
+| `/settings/llm` | Provider keys, and whether generation will actually work right now |
+
+Anything the API serves that is deliberately *not* here — the federation wire
+protocol, bulk-destructive operations, endpoints superseded by another — is
+recorded with its reason in `tests/parity/manifest.py`, not merely absent.
 
 ---
 

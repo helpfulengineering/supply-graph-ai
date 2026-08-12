@@ -64,12 +64,17 @@ export async function fetchNetworkSpaces(
     if (value) params.set(key, value);
   }
 
-  const response = await globalThis.fetch(`${apiBaseUrl}/api/okw/spaces?${params}`);
+  const response = await globalThis.fetch(
+    `${apiBaseUrl}/api/okw/spaces?${params}`,
+  );
   const body = await response.json().catch(() => null);
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      errorMessage(body, `Failed to load network spaces (HTTP ${response.status})`),
+      errorMessage(
+        body,
+        `Failed to load network spaces (HTTP ${response.status})`,
+      ),
     );
   }
   const d = (body ?? {}) as Partial<NetworkData>;

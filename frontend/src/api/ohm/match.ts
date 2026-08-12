@@ -1,4 +1,10 @@
-import { apiBaseUrl, apiClient, ApiError, errorMessage, requestIdFromError } from "./client";
+import {
+  apiBaseUrl,
+  apiClient,
+  ApiError,
+  errorMessage,
+  requestIdFromError,
+} from "./client";
 
 export interface RunMatchParams {
   /** Catalogue design id. Omit when matching an inline manifest. */
@@ -15,6 +21,14 @@ export interface RunMatchParams {
   maxResults?: number;
   qualityLevel?: string;
   strictMode?: boolean;
+  /**
+   * Which matching domain to use.
+   *
+   * Optional on the server, which auto-detects when it is absent — so leaving
+   * it unset is a real choice rather than a missing field, and the selector
+   * offers "Detect automatically" as its first option.
+   */
+  domain?: string;
   /** Restrict matching to these facility IDs; empty/undefined means all. */
   okwIds?: string[];
   /** Match against the filtered network (local ∪ MoM); supersedes okwIds. */
@@ -31,8 +45,7 @@ export interface RawSolution {
   /** Structured explanation; carries per-requirement match status. */
   explanation?: {
     requirement_matches?:
-      | { status?: string | null; requirement_value?: string | null }[]
-      | null;
+      { status?: string | null; requirement_value?: string | null }[] | null;
     missing_capabilities?: unknown[] | null;
     overall_status?: string | null;
     /** Mean of the per-requirement confidences; see matchViewModel. */
@@ -58,7 +71,9 @@ export interface RawMatchResponse {
 }
 
 /** Run a domain-aware match for an OKH design; returns the raw envelope. */
-export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse> {
+export async function runMatch(
+  params: RunMatchParams,
+): Promise<RawMatchResponse> {
   // The API requires exactly one of okh_id / okh_manifest / okh_url and 422s
   // with "Must provide either..." when given none — reachable from the UI, and
   // opaque by the time it reaches a toast. Guarded here.
@@ -93,6 +108,9 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
       save_solution: !params.okhManifest,
       quality_level: params.qualityLevel,
       strict_mode: params.strictMode,
+      // Omitted rather than nulled when unset: absent is what makes the server
+      // auto-detect, which is a different instruction from "no domain".
+      ...(params.domain ? { domain: params.domain } : {}),
       // Network match (local ∪ MoM) can combine with an explicit id subset.
       ...(params.networkFilter ? { network_filter: params.networkFilter } : {}),
       ...(params.okwIds && params.okwIds.length > 0
@@ -148,7 +166,10 @@ export async function fetchDesignsForFacility(
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      errorMessage(body, `Failed to load producible designs (HTTP ${response.status})`),
+      errorMessage(
+        body,
+        `Failed to load producible designs (HTTP ${response.status})`,
+      ),
       requestIdFromError(body, response),
     );
   }
@@ -156,6 +177,34 @@ export async function fetchDesignsForFacility(
   return {
     facility_name: data.facility_name ?? null,
     designs: (data.designs ?? []) as FacilityDesign[],
-    total_designs: data.total_designs ?? (data.designs?.length ?? 0),
+    total_designs: data.total_designs ?? data.designs?.length ?? 0,
   };
+}
+
+export interface MatchDomain {
+  name: string;
+  status?: string | null;
+  version?: string | null;
+  supported_input_types?: string[] | null;
+}
+
+/**
+ * The domains this node can match in.
+ *
+ * Richer than /api/utility/domains, which the app already calls: this carries
+ * status, version and supported input types, which is what makes a selector
+ * worth having rather than a list of names.
+ */
+export async function listMatchDomains(): Promise<MatchDomain[]> {
+  const { data, error, response } = await apiClient.GET("/api/match/domains");
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Could not load domains (HTTP ${response.status})`),
+    );
+  }
+  const body = (data ?? {}) as Record<string, unknown>;
+  const payload = (body.data as Record<string, unknown>) ?? body;
+  const items = (payload.domains ?? payload.items ?? []) as MatchDomain[];
+  return Array.isArray(items) ? items : [];
 }

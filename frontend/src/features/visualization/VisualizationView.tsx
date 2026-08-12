@@ -11,6 +11,7 @@ import {
   toProductionSequence,
 } from "./supplyTreeAdapter";
 import { KpiCards } from "./KpiCards";
+import { StalenessBanner } from "./StalenessBanner";
 import dynamic from "next/dynamic";
 
 // Cytoscape and ECharts are browser-only at module scope; load them client-side.
@@ -24,6 +25,7 @@ const FacilityChart = dynamic(
   { ssr: false },
 );
 import { ArtifactLinks } from "./ArtifactLinks";
+import { ComponentsPanel } from "./ComponentsPanel";
 import { downloadSolutionJson } from "./downloadSolution";
 import {
   LoadingState,
@@ -92,6 +94,8 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         }
       />
 
+      <StalenessBanner solutionId={solutionId} />
+
       <KpiCards kpis={deriveKpis(data)} />
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -129,7 +133,11 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
             </section>
 
             <section className={PANEL} aria-labelledby="st-dependencies">
-              <SectionHeading id="st-dependencies" role="label" className="mb-4">
+              <SectionHeading
+                id="st-dependencies"
+                role="label"
+                className="mb-4"
+              >
                 Dependencies
               </SectionHeading>
               {deps.length === 0 ? (
@@ -150,6 +158,8 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
           </div>
         );
       })()}
+
+      <ComponentsPanel solutionId={solutionId} />
 
       <ArtifactLinks data={data} solutionId={solutionId} />
     </div>

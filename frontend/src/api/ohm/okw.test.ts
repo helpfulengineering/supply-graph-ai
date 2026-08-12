@@ -18,7 +18,10 @@ describe("searchOkw", () => {
         HttpResponse.json({ message: "boom" }, { status: 500 }),
       ),
     );
-    await expect(searchOkw()).rejects.toMatchObject({ name: "ApiError", status: 500 });
+    await expect(searchOkw()).rejects.toMatchObject({
+      name: "ApiError",
+      status: 500,
+    });
     await expect(searchOkw()).rejects.toBeInstanceOf(ApiError);
   });
 });

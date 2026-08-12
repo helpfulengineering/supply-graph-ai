@@ -159,19 +159,32 @@ export function OkhListView() {
           <PageHero
             title="Open Hardware Designs"
             crumb={[
-              // Self-link, marked aria-current by PageHero: the term names the
-              // page you are on, and saying so is more use than dropping it.
-              { label: "catalog", href: "/okh" },
-              // Stays text. The facet panel is `hidden lg:block`, and below
-              // that width filtering is behind the Filters toggle instead — a
-              // fragment pointing at it would scroll nowhere on a phone, which
-              // is a worse answer than not offering the link.
-              { label: "facets" },
+              // Was a self-link to /okh, which is a control that does nothing
+              // from the page it appears on. It names the results, so it goes
+              // to the results.
+              { label: "catalog", href: "#catalog" },
+              // Was text, on the reasoning that the facet panel is
+              // `hidden lg:block` and a fragment would scroll nowhere on a
+              // phone. True of the panel, not of the controls: the row below
+              // holds the search field at every width and the Filters toggle
+              // that opens the facets on the widths where the panel is hidden,
+              // so the anchor lands on something real on both.
+              { label: "facets", href: "#facets" },
               { label: "matching", href: "/match" },
             ]}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {/* The collection page is an operation ON the catalogue, so it is
+              reached from here rather than from the menu — navEntryFor resolves
+              /okh/collection to Designs by prefix, which is the correct
+              reading of what it is. */}
+          <Button
+            variant="outline"
+            onClick={() => router.push("/okh/collection")}
+          >
+            Collection
+          </Button>
           {/* Generation needs no write key: it produces a file to download, and
               deliberately does not save to the catalogue. */}
           <Button
@@ -199,7 +212,10 @@ export function OkhListView() {
         <aside className="hidden w-60 shrink-0 lg:block">{panel}</aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="flex flex-col gap-2 sm:gap-3">
+          <div
+            id="facets"
+            className="flex scroll-mt-20 flex-col gap-2 sm:gap-3"
+          >
             {/*
               Search and Filters share a row at every width. Stacked, the two
               controls plus the view/sort/group row below them spent four rows
@@ -293,7 +309,7 @@ export function OkhListView() {
 
           {!isLoading && !isError && hasItems && (
             <>
-              <div className="space-y-6">
+              <div id="catalog" className="scroll-mt-20 space-y-6">
                 {pageGroups.map((group) => (
                   <section key={group.label || "__all__"} className="space-y-3">
                     {group.label ? (

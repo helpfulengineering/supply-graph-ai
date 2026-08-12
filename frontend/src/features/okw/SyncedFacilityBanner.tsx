@@ -15,10 +15,7 @@ export function SyncedFacilityBanner({
   publishedBy: string | null | undefined;
 }) {
   return (
-    <div
-      role="status"
-      className={`${FIELD} text-foreground`}
-    >
+    <div role="status" className={`${FIELD} text-foreground`}>
       <p className="font-medium">Synced from a federation peer</p>
       <p className="mt-1 text-xs">
         {publishedBy ? (

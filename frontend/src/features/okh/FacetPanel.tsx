@@ -40,10 +40,7 @@ export function FacetPanel({
         return (
           <div key={group.key}>
             <h3
-              className={cn(
-                SECTION_LABEL_SM,
-                "mb-2 flex items-center gap-1.5",
-              )}
+              className={cn(SECTION_LABEL_SM, "mb-2 flex items-center gap-1.5")}
             >
               {group.label}
               {group.key === PRIMARY_FACET && (
