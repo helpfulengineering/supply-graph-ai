@@ -77,7 +77,15 @@ AREAS: tuple[Area, ...] = (
         fe_routes=("/facilities",),
         fe_api_prefixes=("/api/okw",),
     ),
-    Area("asset", "asset", "asset", "asset", "aligned"),
+    Area(
+        "asset",
+        "asset",
+        "asset",
+        "asset",
+        "aligned",
+        fe_routes=("/assets",),
+        fe_api_prefixes=("/api/asset",),
+    ),
     Area(
         "package",
         "package",
@@ -605,20 +613,10 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "The asset lifecycle: register a physical unit, triage it, resolve "
-        "sourcing for what it needs, find harvestable parts across the fleet, "
-        "claim them. A full service, a CLI group and docs, and no web surface "
-        "at all — the largest single gap this table found. /api/okh/harvest-"
-        "parts belongs with them: it calls asset_service.salvage_match and "
-        "enriches components with fleet availability.",
-        "/api/asset/",
-        "/api/asset/{id}",
-        "/api/asset/{id}/triage",
-        "/api/asset/{id}/triage-report",
-        "/api/asset/{id}/triage-checklist",
-        "/api/asset/{id}/resolve-sourcing",
-        "/api/asset/salvage-match",
-        "/api/asset/{id}/claim-component",
+        "Calls asset_service.salvage_match and enriches a design's components "
+        "with fleet availability, so it belongs to the /assets section rather "
+        "than to the design catalogue — the salvage surface is where a reader "
+        "is already asking which parts exist and where.",
         "/api/okh/harvest-parts",
     ),
     *_decision(

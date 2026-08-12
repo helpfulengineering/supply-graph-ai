@@ -14,6 +14,7 @@ import {
   ShowcaseIcon,
   SmartFactoryIcon,
   ArtificialLeavesIcon,
+  ToolBoxIcon,
   type IconProps,
 } from "../icons";
 import type { JSX } from "react";
@@ -111,6 +112,15 @@ export const NAV_GROUPS: NavGroup[] = [
         name: "Facilities",
         desc: "manufacturing spaces, local and federated",
         icon: SmartFactoryIcon,
+      },
+      // Maintenance rather than design or place, which is why it is ToolBox
+      // and not CubeIcon (a design) or SmartFactory (a space): an asset is a
+      // built unit somebody has to keep working.
+      {
+        href: "/assets",
+        name: "Assets",
+        desc: "physical units in the field and their condition",
+        icon: ToolBoxIcon,
       },
       {
         href: "/packages",

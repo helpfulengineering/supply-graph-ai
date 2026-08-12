@@ -809,7 +809,215 @@ export const solutionsListFixture = {
 };
 
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
+/**
+ * Assets.
+ *
+ * Ids are real UUIDs, not "asset-1". The API declares them as `UUID` path
+ * params, unlike OKH/OKW's string ids, so a readable placeholder makes the
+ * real backend answer 422 — and the mocked lanes would then be measuring an
+ * error panel while reporting the page as fine.
+ */
+export const ASSET_ID = "11111111-1111-4111-8111-111111111111";
+export const ASSET_ID_B = "22222222-2222-4222-8222-222222222222";
+
+const pumpState = {
+  component_name: "Pump assembly",
+  condition: "damaged",
+  repair_feasible: false,
+  harvest_viable: true,
+  source_required: null,
+  notes: "Impeller cracked",
+  observed_at: "2026-08-09T10:00:00Z",
+  assessed_by: "ana",
+  claimed_by: null,
+  claimed_at: null,
+};
+
+export const assetDetailFixture = {
+  id: ASSET_ID,
+  manifest_id: "okh-0001",
+  asset_tag: "OHM-0042",
+  location: "Bay 3",
+  status: "under_triage",
+  component_states: [pumpState],
+  last_triaged_at: "2026-08-09T10:00:00Z",
+  triage_notes: "Back panel removed for access.",
+  message: "Asset record retrieved",
+};
+
+export const assetListFixture = {
+  assets: [
+    assetDetailFixture,
+    {
+      id: ASSET_ID_B,
+      manifest_id: "okh-0001",
+      asset_tag: "OHM-0043",
+      location: null,
+      status: "active",
+      component_states: [],
+      last_triaged_at: null,
+      triage_notes: null,
+      message: "",
+    },
+  ],
+  total: 2,
+  message: "2 asset(s)",
+};
+
+export const triageChecklistFixture = {
+  asset_id: ASSET_ID,
+  manifest_id: "okh-0001",
+  asset_tag: "OHM-0042",
+  status: "under_triage",
+  last_triaged_at: "2026-08-09T10:00:00Z",
+  items: [
+    {
+      component_name: "Pump assembly",
+      assessed: true,
+      replaceable: true,
+      salvageable: true,
+      consumable: false,
+      part_number: "P-1042",
+      current_condition: "damaged",
+      current_state: pumpState,
+    },
+    {
+      component_name: "Control board",
+      assessed: false,
+      replaceable: true,
+      salvageable: false,
+      consumable: false,
+      part_number: "CB-7",
+      current_condition: null,
+      current_state: null,
+    },
+  ],
+  total_components: 2,
+  assessed_count: 1,
+  pending_count: 1,
+  message: "1/2 components assessed",
+};
+
+export const triageReportFixture = {
+  asset_id: ASSET_ID,
+  manifest_id: "okh-0001",
+  asset_tag: "OHM-0042",
+  last_triaged_at: "2026-08-09T10:00:00Z",
+  triage_notes: "Back panel removed for access.",
+  items: [
+    {
+      component_name: "Pump assembly",
+      recommended_action: "harvest",
+      condition: "damaged",
+      repair_feasible: false,
+      harvest_viable: true,
+      source_required: null,
+      notes: "Impeller cracked",
+      replaceable: true,
+      salvageable: true,
+      consumable: false,
+      part_number: "P-1042",
+    },
+    {
+      component_name: "Control board",
+      recommended_action: "assess",
+      condition: "unknown",
+      repair_feasible: null,
+      harvest_viable: null,
+      source_required: null,
+      notes: null,
+      replaceable: true,
+      salvageable: false,
+      consumable: false,
+      part_number: "CB-7",
+    },
+  ],
+  summary: {
+    total_components: 2,
+    needs_assessment: 1,
+    repair_in_place: 0,
+    harvest: 1,
+    source_new: 0,
+    no_action: 0,
+    decommission: 0,
+  },
+  message: "Triage report generated",
+};
+
+export const salvageMatchItemFixture = {
+  asset_id: ASSET_ID_B,
+  asset_tag: "OHM-0043",
+  manifest_id: "okh-0001",
+  location: "Store room",
+  component_name: "Pump assembly",
+  condition: "intact",
+  notes: null,
+  assessed_by: "ana",
+  observed_at: "2026-08-01T09:00:00Z",
+  part_number: "P-1042",
+  salvageable: true,
+  replaceable: true,
+  claimed_by: null,
+  claimed_at: null,
+};
+
+export const salvageMatchFixture = {
+  matches: [salvageMatchItemFixture],
+  total: 1,
+  query: {
+    component_name: "Pump assembly",
+    part_number: null,
+    manifest_id: null,
+  },
+  message: "1 harvestable match(es) found",
+};
+
+export const sourcingResolutionFixture = {
+  asset_id: ASSET_ID,
+  asset_tag: "OHM-0042",
+  manifest_id: "okh-0001",
+  items: [
+    {
+      component_name: "Control board",
+      verdict: "fleet_available",
+      part_number: "CB-7",
+      matches: [{ ...salvageMatchItemFixture, component_name: "Control board" }],
+      match_count: 1,
+    },
+    {
+      component_name: "Pump assembly",
+      verdict: "procure_new",
+      part_number: "P-1042",
+      matches: [],
+      match_count: 0,
+    },
+  ],
+  total_components: 2,
+  fleet_available_count: 1,
+  procure_new_count: 1,
+  message: "Sourcing resolved",
+};
+
+export const claimComponentFixture = {
+  success: true,
+  asset_id: ASSET_ID_B,
+  component_name: "Pump assembly",
+  claimed_by: "ana",
+  claimed_at: "2026-08-12T09:00:00Z",
+  message: "Component claimed",
+};
+
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/asset": assetListFixture,
+  "/v1/api/asset/": assetListFixture,
+  [`/v1/api/asset/${ASSET_ID}`]: assetDetailFixture,
+  [`/v1/api/asset/${ASSET_ID}/triage`]: assetDetailFixture,
+  [`/v1/api/asset/${ASSET_ID}/triage-checklist`]: triageChecklistFixture,
+  [`/v1/api/asset/${ASSET_ID}/triage-report`]: triageReportFixture,
+  [`/v1/api/asset/${ASSET_ID}/resolve-sourcing`]: sourcingResolutionFixture,
+  [`/v1/api/asset/${ASSET_ID_B}`]: assetListFixture.assets[1],
+  [`/v1/api/asset/${ASSET_ID_B}/claim-component`]: claimComponentFixture,
+  "/v1/api/asset/salvage-match": salvageMatchFixture,
   "/v1/api/supply-tree/solutions": solutionsListFixture,
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,

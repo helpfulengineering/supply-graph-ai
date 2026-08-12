@@ -1,5 +1,7 @@
 import {
+  assetDetailFixture,
   attestationsFixture,
+  claimComponentFixture,
   disclosureFixture,
   disclosurePreviewFixture,
   facilityDesignsFixture,
@@ -10,6 +12,10 @@ import {
   okwDetailFixture,
   packageMetadataFixture,
   provenanceFixture,
+  salvageMatchFixture,
+  sourcingResolutionFixture,
+  triageChecklistFixture,
+  triageReportFixture,
   validationResultFixture,
   visibilityFixture,
   vizBundleFixture,
@@ -161,6 +167,42 @@ const PARAMETERISED: Array<{
     pattern: /^\/v1\/api\/okh\/generate-from-url\/jobs\/([^/]+)$/,
     resolve: (jobId) => finishedGenerateJob(jobId),
   },
+  // Assets. The id is re-badged onto the fixture rather than matched, for the
+  // reason the OKH detail route gives: handing back somebody else's asset tag
+  // under this URL is worse than a generic answer.
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/asset\/([^/]+)$/,
+    resolve: (id) => ({ ...assetDetailFixture, id }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/triage-checklist$/,
+    resolve: (id) => ({ ...triageChecklistFixture, asset_id: id }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/triage-report$/,
+    resolve: (id) => ({ ...triageReportFixture, asset_id: id }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/resolve-sourcing$/,
+    resolve: (id) => ({ ...sourcingResolutionFixture, asset_id: id }),
+  },
+  // Two writes the demo answers rather than refuses. Triage and claiming are
+  // the things a visitor would actually try in this section, and a demo that
+  // shows the form then refuses the submit teaches less than not offering it.
+  {
+    method: "POST",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/triage$/,
+    resolve: (id) => ({ ...assetDetailFixture, id }),
+  },
+  {
+    method: "POST",
+    pattern: /^\/v1\/api\/asset\/([^/]+)\/claim-component$/,
+    resolve: (id) => ({ ...claimComponentFixture, asset_id: id }),
+  },
 ];
 
 /**
@@ -174,6 +216,7 @@ const QUERY_POSTS: Record<string, unknown> = {
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okh/validate": validationResultFixture,
   "/v1/api/okw/validate": validationResultFixture,
+  "/v1/api/asset/salvage-match": salvageMatchFixture,
 };
 
 /**

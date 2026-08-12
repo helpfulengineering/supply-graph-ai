@@ -16,6 +16,13 @@ const ROUTES = [
   "/packages",
   "/packages/demo/widget/1.0.0",
   "/solutions",
+  "/assets",
+  "/assets/11111111-1111-4111-8111-111111111111",
+  "/assets/11111111-1111-4111-8111-111111111111/triage",
+  // With results on the page, not just the unsearched state: the salvage rows
+  // and their claim controls only render after a query, and a scan of the
+  // empty form would report the surface as clean without seeing it.
+  "/assets/salvage?component=Pump",
 ];
 
 for (const route of ROUTES) {

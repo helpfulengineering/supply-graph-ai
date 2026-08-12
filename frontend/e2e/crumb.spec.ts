@@ -29,6 +29,8 @@ const ROUTES = [
   "/solutions",
   "/packages",
   "/icons",
+  "/assets",
+  "/assets/salvage",
 ];
 // Deliberately not here: /operator-tools. Its crumb links to three panels on
 // the page, but the route 404s unless the site layer is configured, and this
@@ -53,6 +55,11 @@ const MIN_LINKS: Record<string, number> = {
   "/solutions": 3,
   "/packages": 1,
   "/icons": 2,
+  // "triage" is text: it names an aspect, and there are as many triage
+  // pages as there are units with no index over them.
+  "/assets": 3,
+  // "harvestable" is text: it names the filter this page applies.
+  "/assets/salvage": 2,
 };
 
 /**
