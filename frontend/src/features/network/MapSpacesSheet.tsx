@@ -70,7 +70,15 @@ export function MapSpacesSheet({ spaces, open, onClose }: MapSpacesSheetProps) {
         // wearing a sheet's clothes, and it inherits that box's clipping,
         // rounding and 440px of height as constraints on a surface that should
         // have none of them.
-        "fixed inset-x-0 bottom-0 z-50 flex max-h-[70svh] flex-col",
+        // z-2000 and not the z-50 a sheet would normally take. The map card is
+        // `relative` with `z-index: auto`, so it opens no stacking context of
+        // its own and Leaflet's internal layers — 400 for the tile and marker
+        // panes, 700 for popups, 800 and 1000 for the controls — are compared
+        // against this element directly. At z-50 the sheet rose in front of the
+        // page and behind the map it belongs to: cards under tiles, the footer
+        // under the attribution. Above 1000 clears the lot; the toast layer at
+        // 9999 still outranks it, which is correct.
+        "fixed inset-x-0 bottom-0 z-[2000] flex max-h-[70svh] flex-col",
         "rounded-t-2xl border-t border-panel-border bg-card/95 shadow-2xl backdrop-blur-md",
         "pb-[env(safe-area-inset-bottom)]",
         "transition-transform duration-200 ease-out motion-reduce:transition-none",
