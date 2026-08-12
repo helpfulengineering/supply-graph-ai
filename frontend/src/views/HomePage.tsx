@@ -6,8 +6,7 @@ import {
   SmartFactoryIcon,
   type IconProps,
 } from "../components/icons";
-import { Fragment, type JSX } from "react";
-import Link from "next/link";
+import type { JSX } from "react";
 import { PageHero } from "../components/layout/PageHero";
 import { BRAND_TAGLINE_LINKS } from "../../app/brand";
 import { fetchDomains, fetchMetrics } from "../api/ohm/utility";
@@ -153,45 +152,8 @@ export function HomePage() {
           three places to start. They read as a tagline and were dead text, one
           line under the h1 and above a map, on the page a first-time visitor
           lands on.
-
-          A dotted underline at rest rather than colour on hover alone: the
-          whole crumb is one muted line, so a link that only announces itself
-          under a cursor is invisible to anyone arriving by keyboard, and
-          "hover to discover" is not an affordance on a touch screen.
-
-          Separators are text nodes beside the links inside PageHero's single
-          span, not wrappers around them. That is what makes these inline text
-          under WCAG 2.5.8's inline exception, which responsive.spec.ts
-          implements literally: it exempts an inline element whose parent is
-          neither flex nor grid and carries text besides the link itself. Give
-          each term its own flex row and the same three links become standalone
-          targets that must reach 24px, which at caption scale they cannot
-          without breaking the line box.
         */}
-        <PageHero
-          title="Open Hardware Manager"
-          crumb={BRAND_TAGLINE_LINKS.map((term, i) => (
-            <Fragment key={term.href}>
-              {i > 0 && " · "}
-              <Link
-                href={term.href}
-                /*
-                  The `!` is load-bearing, and not a shortcut. index.css carries
-                  an unlayered `a { text-decoration: none }`; Tailwind v4 puts
-                  utilities in a cascade layer, and unlayered rules beat layered
-                  ones whatever their specificity — so a plain `underline` class
-                  on an anchor resolves to text-decoration-line: none. That is
-                  true of the other 19 `underline`/`hover:underline` links in
-                  this app too, which is a fix for the reset itself rather than
-                  for one hero.
-                */
-                className="rounded-sm underline! decoration-dotted! underline-offset-4 hover:text-foreground hover:decoration-solid! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {term.label}
-              </Link>
-            </Fragment>
-          ))}
-        />
+        <PageHero title="Open Hardware Manager" crumb={BRAND_TAGLINE_LINKS} />
       </div>
 
       {/*

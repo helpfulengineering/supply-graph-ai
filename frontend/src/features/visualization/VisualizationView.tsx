@@ -68,7 +68,11 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
     <div className="space-y-6">
       <PageHero
         title="Supply Tree"
-        crumb="plan · facilities · dependencies"
+        crumb={[
+          { label: "plan" },
+          { label: "facilities", href: "/facilities" },
+          { label: "dependencies" },
+        ]}
         breadcrumb={
           <button
             onClick={() => router.back()}

@@ -158,7 +158,11 @@ export function OkhListView() {
         <div>
           <PageHero
             title="Open Hardware Designs"
-            crumb="catalog · facets · matching"
+            crumb={[
+              { label: "catalog" },
+              { label: "facets" },
+              { label: "matching", href: "/match" },
+            ]}
           />
         </div>
         <div className="flex gap-2">

@@ -106,7 +106,17 @@ function SectionHeading({
 export function HelpView() {
   return (
     <div className="space-y-8">
-      <PageHero title="Help" crumb="routes · shortcuts · accessibility" />
+      {/* The three terms are this page's three sections, so they are its own
+          table of contents rather than a description of it. Same ids the
+          section headings already publish as permalinks. */}
+      <PageHero
+        title="Help"
+        crumb={[
+          { label: "routes", href: "#h-routes" },
+          { label: "shortcuts", href: "#h-keys" },
+          { label: "accessibility", href: "#h-a11y" },
+        ]}
+      />
 
       <section aria-labelledby="h-routes" className="space-y-4">
         <SectionHeading id="h-routes">Where things are</SectionHeading>

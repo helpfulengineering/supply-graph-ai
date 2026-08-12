@@ -1,21 +1,104 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { NavIcon } from "./nav";
 import { navEntryFor } from "./nav";
 import { CAPTION, PAGE_TITLE } from "../ui/typography";
 import { cn } from "@/lib/utils";
 
+/** One term in a hero crumb. */
+export interface CrumbTerm {
+  label: string;
+  /**
+   * Where the term leads.
+   *
+   * Omitted when the term names an aspect of the page rather than a place —
+   * "facets", "versions", "federated" are descriptions, and linking them
+   * somewhere approximate is worse than leaving them as text.
+   *
+   * Also omitted when the page already carries that navigation: Settings names
+   * "session · keys · identities" over a tab bar of exactly those, and linking
+   * the crumb there put two links to the same href under the same name on one
+   * page — a duplicate control for a pointer, a second identical stop for a
+   * screen reader. A crumb links where it is the only way to somewhere.
+   */
+  href?: string;
+}
+
+/** Between terms. A text node, deliberately — see CrumbTerms. */
+const CRUMB_SEPARATOR = " · ";
+
+/**
+ * The one place a crumb link is styled.
+ *
+ * A dotted underline at rest rather than a colour change on hover: a crumb is
+ * one muted line, so a link that only announces itself under a cursor is
+ * invisible to anyone arriving by keyboard, and "hover to discover" is not an
+ * affordance on a touch screen.
+ *
+ * The `!` is load-bearing. index.css carries an unlayered
+ * `a { text-decoration: none }`, and Tailwind v4 puts utilities in a cascade
+ * layer — unlayered rules beat layered ones whatever their specificity, so a
+ * plain `underline` class on an anchor computes to text-decoration-line: none.
+ * The same is true of the other underline utilities on links in this app, which
+ * is a fix for the reset's layer rather than for one component.
+ */
+const CRUMB_LINK =
+  "rounded-sm underline! decoration-dotted! underline-offset-4 hover:text-foreground hover:decoration-solid! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+/**
+ * The terms of a crumb, linked where they lead somewhere.
+ *
+ * Separators are emitted as text nodes beside the links rather than as wrappers
+ * around them, and the whole crumb stays inside PageHero's single inline span.
+ * That is what keeps these inline text under WCAG 2.5.8's inline exception,
+ * which responsive.spec.ts implements literally: it exempts an inline element
+ * whose parent is neither flex nor grid and carries text besides the link
+ * itself. A term is roughly 19px tall, so giving each its own flex row would
+ * turn all of them into standalone targets required to reach 24px — which
+ * caption scale cannot do without breaking the line box.
+ */
+function CrumbTerms({
+  terms,
+  pathname,
+}: {
+  terms: readonly CrumbTerm[];
+  pathname: string;
+}) {
+  return terms.map((term, i) => (
+    <Fragment key={term.label}>
+      {i > 0 && CRUMB_SEPARATOR}
+      {term.href ? (
+        <Link
+          href={term.href}
+          // A crumb names siblings, so one of them is often the page you are
+          // already on — "session" while on /settings/session. Marked rather
+          // than removed: the term still belongs in the line, and a screen
+          // reader should be told which one is the current page instead of
+          // being offered three destinations that look alike.
+          aria-current={term.href === pathname ? "page" : undefined}
+          className={CRUMB_LINK}
+        >
+          {term.label}
+        </Link>
+      ) : (
+        term.label
+      )}
+    </Fragment>
+  ));
+}
+
 interface PageHeroProps {
   title: ReactNode;
   /**
    * Mono role line beside the title — the admin page's "telemetry · visitors"
-   * idiom. A node rather than a string so the terms can be links, as the
-   * dashboard's are; it renders inside one inline span, which is what keeps
-   * links in it inline text rather than standalone targets.
+   * idiom. Terms rather than a sentence, so any of them that names a
+   * destination is a link without each view rebuilding the markup; a plain
+   * string still renders as it always did.
    */
-  crumb?: ReactNode;
+  crumb?: string | readonly CrumbTerm[];
   /** Trail above the title, for pages reached from a list. */
   breadcrumb?: ReactNode;
   /** One line under the rule. Keep it to what the page is for. */
@@ -62,7 +145,8 @@ export function PageHero({
   icon,
   accent,
 }: PageHeroProps) {
-  const resolved = navEntryFor(usePathname() ?? "");
+  const pathname = usePathname() ?? "";
+  const resolved = navEntryFor(pathname);
   // `undefined` means "resolve from the route"; `null` means "no icon".
   const Icon: NavIcon | null =
     icon === undefined ? (resolved?.entry.icon ?? null) : icon;
@@ -91,7 +175,20 @@ export function PageHero({
           />
         )}
         <h1 className={PAGE_TITLE}>{title}</h1>
-        {crumb && <span className={cn(CAPTION, "font-mono")}>{crumb}</span>}
+        {crumb && (
+          // data-crumb marks the role line for the cross-view gate in
+          // crumb.spec.ts. The hero's other slots hold links too — the
+          // breadcrumb above it, and `actions` beside it — so a spec looking
+          // for "links in the hero" would measure those and pass while a crumb
+          // stayed unreachable.
+          <span data-crumb="" className={cn(CAPTION, "font-mono")}>
+            {typeof crumb === "string" ? (
+              crumb
+            ) : (
+              <CrumbTerms terms={crumb} pathname={pathname} />
+            )}
+          </span>
+        )}
         {actions && (
           <span className="ml-auto flex items-center gap-2">{actions}</span>
         )}
