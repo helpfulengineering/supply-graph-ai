@@ -293,6 +293,32 @@ function ViewportReport({
 }
 
 /**
+ * Raised the first time the reader touches the map, and on every touch after.
+ *
+ * Gestures at the container, not Leaflet's `moveend`: the initial fit is a move
+ * the reader did not make, and a surface that opened itself on load would be a
+ * surface nobody asked for. Pointer, wheel and key cover drag, pinch, scroll
+ * zoom, the zoom control, and arrow-key panning — every way the map moves that
+ * a person is behind.
+ */
+function InteractionReport({ onInteract }: { onInteract: () => void }) {
+  const map = useMap();
+  useEffect(() => {
+    const el = map.getContainer();
+    const fire = () => onInteract();
+    el.addEventListener("pointerdown", fire, { passive: true });
+    el.addEventListener("wheel", fire, { passive: true });
+    el.addEventListener("keydown", fire);
+    return () => {
+      el.removeEventListener("pointerdown", fire);
+      el.removeEventListener("wheel", fire);
+      el.removeEventListener("keydown", fire);
+    };
+  }, [map, onInteract]);
+  return null;
+}
+
+/**
  * One finger scrolls the page, two fingers move the map.
  *
  * Leaflet's default — one-finger drag pans — makes a map embedded in a
@@ -347,9 +373,15 @@ interface NetworkMapProps {
   spaces: NetworkSpace[];
   /** Called with the spaces inside the viewport each time it settles. */
   onVisibleChange?: (visible: NetworkSpace[]) => void;
+  /** Called on each gesture at the map — not on the initial fit. */
+  onInteract?: () => void;
 }
 
-export function NetworkMap({ spaces, onVisibleChange }: NetworkMapProps) {
+export function NetworkMap({
+  spaces,
+  onVisibleChange,
+  onInteract,
+}: NetworkMapProps) {
   const [showHint, raiseHint] = useTransientFlag(2400);
   // Same resolver the markers and the key read, so the ground and the points
   // on it cannot come from two different worlds — which is the failure the
@@ -375,6 +407,7 @@ export function NetworkMap({ spaces, onVisibleChange }: NetworkMapProps) {
         {onVisibleChange && (
           <ViewportReport spaces={spaces} onChange={onVisibleChange} />
         )}
+        {onInteract && <InteractionReport onInteract={onInteract} />}
         <TouchGestures onOneFinger={raiseHint} />
       </MapContainer>
       {showHint && (
