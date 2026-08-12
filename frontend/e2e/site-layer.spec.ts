@@ -25,14 +25,21 @@ import type { Page } from "@playwright/test";
 /** What posture is the app under test actually in? */
 async function layerEnabled(page: Page): Promise<boolean> {
   await page.goto("/");
-  const posture = await page
-    .locator("html")
-    .getAttribute("data-site-layer", { timeout: 15_000 });
-  expect(
-    posture,
+  // toHaveAttribute, not getAttribute. That timeout governs FINDING <html>,
+  // which arrives in the first byte of the response — the attribute is written
+  // by the client bundle, so the read resolves against an element that exists
+  // and an attribute that does not yet, returns null, and never retries.
+  //
+  // A fast machine wins that race and the helper looks correct. A loaded CI
+  // runner loses it, and every spec that reads the posture fails claiming the
+  // app never published the attribute while the app publishes it a moment
+  // later — including the ones whose only use for it is to skip. This is the
+  // assertion that waits for the value rather than for the element.
+  await expect(
+    page.locator("html"),
     "the app did not publish data-site-layer — see app/providers.tsx",
-  ).not.toBeNull();
-  return posture === "on";
+  ).toHaveAttribute("data-site-layer", /^(on|off)$/, { timeout: 15_000 });
+  return (await page.locator("html").getAttribute("data-site-layer")) === "on";
 }
 
 test("the sitemap advertises Operator Tools only when the layer is on", async ({
