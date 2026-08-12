@@ -69,6 +69,8 @@ export const LOW_VOLATILITY_QUERY_KEYS = [
   ["network"],
   ["package-list"],
   ["domains"],
+  ["recipes"],
+  ["kitchens"],
 ] as const;
 
 /** Invalidate (and trigger refetch of) the low-volatility datasets. */
