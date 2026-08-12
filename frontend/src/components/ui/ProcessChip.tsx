@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "./Badge";
-import { PROCESS_FAMILY_SWATCH, processFamily } from "./processFamily";
+import { PROCESS_FAMILY_INK, processFamily } from "./processFamily";
 import { processIcon } from "../icons/processIcons";
 import { cn } from "@/lib/utils";
 
@@ -14,19 +14,22 @@ interface ProcessChipProps {
 }
 
 /**
- * One process, as a chip: family swatch, tool glyph, name.
+ * One process, as a chip: the tool glyph in its family's colour, then the name.
  *
- * Shared rather than spelled at each card, because the swatch is only worth
- * anything while the same family is the same colour on every surface it
- * appears on — a card that draws its own would be a second legend.
+ * The glyph IS the swatch. This drew both for a while — a 10px coloured square
+ * and then a monochrome glyph beside it — which put two marks in front of the
+ * label where one would do, and made the colour read as a legend key rather
+ * than as a property of the thing named. Painting the glyph says the same in
+ * one mark, on the element a reader already looks at to tell a printer from a
+ * mill.
  *
- * The swatch is a square with the world's own corner (`rounded-sm`), not a
- * pill-dot: the badge around it is cut with `--ttm-radius` for the same
- * reason, and in the squarer worlds a circle inside it reads as borrowed.
+ * Shared rather than spelled at each card, because the colour is only worth
+ * anything while the same family is the same hue on every surface it appears
+ * on — a card that drew its own would be a second legend.
  *
- * `aria-hidden`, because it says nothing the label does not. Colour here
- * groups chips for an eye scanning a card; the process is named in text beside
- * it, so nothing is carried by hue alone.
+ * The glyph is `aria-hidden`: it says nothing the label does not. Colour groups
+ * chips for an eye scanning a card, and the process is named in text beside it,
+ * so nothing is carried by hue alone.
  */
 export function ProcessChip({ process, label, className }: ProcessChipProps) {
   const Icon = processIcon(process);
@@ -35,16 +38,14 @@ export function ProcessChip({ process, label, className }: ProcessChipProps) {
   return (
     <Badge variant="default" className={className}>
       <span className="inline-flex items-center gap-1.5">
-        {family && (
-          <span
-            aria-hidden="true"
+        {Icon && (
+          <Icon
             className={cn(
-              "h-2.5 w-2.5 shrink-0 rounded-sm",
-              PROCESS_FAMILY_SWATCH[family],
+              "h-3.5 w-3.5 shrink-0",
+              family && PROCESS_FAMILY_INK[family],
             )}
           />
         )}
-        {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
         {label}
       </span>
     </Badge>

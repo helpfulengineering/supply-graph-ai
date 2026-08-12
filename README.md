@@ -76,9 +76,10 @@ CSS filter chain from the active accent and rotates them onto its hue; land and
 water stay separated by lightness.
 
 The process chips on facility and design cards read that same categorical ramp:
-each carries a swatch for its family of making — additive, subtractive, forming,
-joining, finishing — so a card says what kind of shop it is before its labels
-are read.
+each tool glyph is painted in its family of making — additive, subtractive,
+forming, joining, finishing — so a card says what kind of shop it is before its
+labels are read. The glyph carries the colour rather than a swatch beside it,
+which keeps one mark per chip instead of two.
 
 Theme, mode, filters, view mode, sort, grouping, and page are all held in the
 query string, so copying the URL reproduces the view.

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { PROCESS_FAMILY_SWATCH, processFamily } from "./processFamily";
+import { PROCESS_FAMILY_INK, processFamily } from "./processFamily";
 
 /**
  * The canonical ids, read from the taxonomy rather than copied here — same
  * reasoning as the glyph coverage test: a copied list still passes on the day
- * someone adds a process and the app renders a chip with no swatch.
+ * someone adds a process and the app renders a chip with no colour.
  */
 function taxonomyProcessIds(): string[] {
   const yaml = readFileSync(
@@ -27,12 +27,12 @@ describe("processFamily", () => {
     ).toEqual([]);
   });
 
-  it("gives every family a swatch", () => {
+  it("gives every family an ink", () => {
     const families = new Set(
       taxonomyProcessIds().map((id) => processFamily(id)!),
     );
     for (const family of families) {
-      expect(PROCESS_FAMILY_SWATCH[family]).toBeTruthy();
+      expect(PROCESS_FAMILY_INK[family]).toBeTruthy();
     }
   });
 

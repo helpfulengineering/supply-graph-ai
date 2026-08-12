@@ -1,5 +1,5 @@
 /**
- * Which family of making a process belongs to — the thing its swatch colours.
+ * Which family of making a process belongs to — the thing its glyph is coloured by.
  *
  * Six names for 51 taxonomy ids, because a categorical scale is only readable
  * while its stops are few. They are the taxonomy's own sections
@@ -117,11 +117,24 @@ export function processFamily(process: string): ProcessFamily | null {
 }
 
 /** The family's swatch fill. Tokens live in styles/tokens.css. */
-export const PROCESS_FAMILY_SWATCH: Record<ProcessFamily, string> = {
-  additive: "bg-process-additive",
-  subtractive: "bg-process-subtractive",
-  forming: "bg-process-forming",
-  joining: "bg-process-joining",
-  finishing: "bg-process-finishing",
-  other: "bg-process-other",
+/**
+ * The family's colour, as INK for the process glyph.
+ *
+ * These were `bg-process-*` fills painting a 10px square beside the glyph, so
+ * every chip carried two marks: a colour with no shape and a shape with no
+ * colour, sat next to each other. The glyph already says which tool the
+ * process uses; colouring it is the same information in one mark instead of
+ * two, and it gives the categorical ramp something to land on that a reader
+ * was going to look at anyway.
+ *
+ * Decorative either way — the process is named in text beside it, so nothing
+ * is carried by hue alone and the glyph stays `aria-hidden`.
+ */
+export const PROCESS_FAMILY_INK: Record<ProcessFamily, string> = {
+  additive: "text-process-additive",
+  subtractive: "text-process-subtractive",
+  forming: "text-process-forming",
+  joining: "text-process-joining",
+  finishing: "text-process-finishing",
+  other: "text-process-other",
 };
