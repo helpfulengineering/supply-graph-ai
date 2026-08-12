@@ -18,7 +18,13 @@ import { Button } from "../../components/ui/button";
 import { useAuth } from "../../context/AuthContext";
 import { AttestationsPanel } from "../identity/AttestationsPanel";
 import { CertifyPackagePanel } from "./CertifyPackagePanel";
-import { PANEL } from "../../components/ui/surface";
+import { verifyPackageSignature } from "../../api/ohm/package";
+import {
+  PANEL,
+  PANEL_DANGER,
+  PANEL_SUCCESS,
+  PANEL_WARNING,
+} from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 import { PAGE_TITLE } from "../../components/ui/typography";
 
@@ -40,6 +46,10 @@ export function PackageDetailView({ org, project, version }: Props) {
   const meta = useQuery({
     queryKey: ["package", org, project, version],
     queryFn: () => fetchPackageMetadata(org, project, version),
+  });
+
+  const signature = useMutation({
+    mutationFn: () => verifyPackageSignature(org, project, version),
   });
 
   const pin = useMutation({
@@ -116,6 +126,13 @@ export function PackageDetailView({ org, project, version }: Props) {
           >
             {verify.isPending ? "Verifying…" : "Verify pin"}
           </Button>
+          <Button
+            variant="outline"
+            disabled={signature.isPending}
+            onClick={() => signature.mutate()}
+          >
+            {signature.isPending ? "Checking…" : "Verify signature"}
+          </Button>
         </div>
       </div>
 
@@ -170,6 +187,31 @@ export function PackageDetailView({ org, project, version }: Props) {
             ? ((pin.error ?? verify.error) as Error).message
             : "Action failed."}
         </p>
+      )}
+
+      {signature.data && (
+        // Three outcomes, not two. No signature is a normal posture — the
+        // package was built without a federation identity — where an invalid
+        // one means the file manifest has been tampered with, and rendering
+        // them the same would either alarm people about unsigned packages or
+        // hide a real problem.
+        <div
+          role="status"
+          className={cn(
+            signature.data.valid === null
+              ? PANEL_WARNING
+              : signature.data.valid
+                ? PANEL_SUCCESS
+                : PANEL_DANGER,
+            "p-3 text-sm",
+          )}
+        >
+          {signature.data.valid === null
+            ? signature.data.message
+            : signature.data.valid
+              ? `Signature valid${signature.data.signedBy ? ` — signed by ${signature.data.signedBy}` : ""}.`
+              : "Signature does NOT match this package's file manifest. Its contents have changed since it was signed."}
+        </div>
       )}
 
       <CertifyPackagePanel version={version} pin={pinResult} />

@@ -13,6 +13,7 @@ import {
   okwCapabilitiesFixture,
   okwDetailFixture,
   packageMetadataFixture,
+  packageSignatureFixture,
   provenanceFixture,
   salvageMatchFixture,
   solutionHierarchyFixture,
@@ -183,6 +184,16 @@ const PARAMETERISED: Array<{
     // org/project/version — three segments, one package.
     pattern: /^\/v1\/api\/package\/[^/]+\/[^/]+\/[^/]+$/,
     resolve: () => packageMetadataFixture,
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/package\/[^/]+\/[^/]+\/[^/]+\/verify$/,
+    resolve: () => ({ valid: true, errors: [] }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/package\/[^/]+\/[^/]+\/[^/]+\/verify-signature$/,
+    resolve: () => packageSignatureFixture,
   },
   {
     method: "GET",

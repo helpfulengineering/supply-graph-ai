@@ -660,20 +660,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "Packages beyond this node. The list shows only what this node built, "
-        "so /remote, /push and /pull are the missing half. /verify checks "
-        "package integrity and /verify-signature checks the Ed25519 signature "
-        "over the file manifest — the third and strongest check beside the "
-        "pin verification the detail page already offers.",
-        "/api/package/remote",
-        "/api/package/push",
-        "/api/package/pull",
-        "/api/package/{org}/{project}/{version}/verify",
-        "/api/package/{org}/{project}/{version}/verify-signature",
-    ),
-    *_decision(
-        "planned",
-        "backlog",
         "The one federation endpoint that is not peer protocol: it takes a "
         "peer_url and a bundle_hash, requires write, and pulls a package INTO "
         "this node with an allow_rebuild fallback. An outbound action by this "

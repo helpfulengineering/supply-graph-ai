@@ -49,6 +49,8 @@ import {
   llmHealthFixture,
   llmProvidersFixture,
   packageListFixture,
+  packageSignatureFixture,
+  remotePackagesFixture,
   packageMetadataFixture,
   taxonomyFixture,
 } from "../fixtures";
@@ -355,6 +357,14 @@ export const handlers = [
       message: "pinned",
       data: { pin_record: pinRecordFixture },
     }),
+  ),
+  // Before the ":org/:project/:version" rule, which would read "remote" as an
+  // org.
+  http.get("*/v1/api/package/remote", () =>
+    HttpResponse.json(remotePackagesFixture),
+  ),
+  http.get("*/v1/api/package/:org/:project/:version/verify-signature", () =>
+    HttpResponse.json(packageSignatureFixture),
   ),
   http.get("*/v1/api/package/list", () =>
     HttpResponse.json(packageListFixture),

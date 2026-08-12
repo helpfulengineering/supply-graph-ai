@@ -87,6 +87,11 @@ function concrete(path: string): string {
  * answer — see READ_ONLY in routes.ts — so they are checked separately.
  */
 const WRITE_ONLY = [
+  // Moving a package between this node and a remote store. The demo has no
+  // remote, and pretending a push succeeded would be a lie about where the
+  // bytes went.
+  "/api/package/push",
+  "/api/package/pull",
   // Conversions. Nothing is stored, but they are still POSTs that transform a
   // payload the caller supplied — the demo world has no file to convert, and
   // answering with a canned manifest would claim a conversion that never ran.

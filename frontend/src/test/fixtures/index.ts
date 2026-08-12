@@ -1223,7 +1223,23 @@ export const solutionHierarchyFixture = {
   },
 };
 
+export const remotePackagesFixture = {
+  status: "success",
+  message: "Remote packages listed",
+  data: {
+    packages: [{ name: "demo/widget", version: "1.1.0" }],
+    total: 1,
+  },
+};
+
+export const packageSignatureFixture = {
+  valid: true,
+  signed_by: "did:key:z6MkDemo",
+};
+
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/package/remote": remotePackagesFixture,
+  "/v1/api/package/demo/widget/1.0.0/verify-signature": packageSignatureFixture,
   "/v1/api/supply-tree/solution/sol-1/staleness": solutionStalenessFixture,
   "/v1/api/supply-tree/solution/sol-1/hierarchy": solutionHierarchyFixture,
   "/v1/api/supply-tree/solution/sol-1/extend": {
