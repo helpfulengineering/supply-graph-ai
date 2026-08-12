@@ -44,7 +44,7 @@ yourself.
 The frontend is a Next.js App Router application that ships with the API and
 serves its own UI. It is built to be driven by keyboard alone, at 360px wide, in
 light or dark, and in any of ten colour themes. Each of those is a gate in CI
-rather than a claim: **542 unit tests** and **157 Playwright E2E specs**,
+rather than a claim: **542 unit tests** and **160 Playwright E2E specs**,
 including a twenty-variant accessibility matrix and a narrow-viewport lane that
 measures every route at 360px and 768px.
 

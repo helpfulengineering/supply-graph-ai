@@ -28,8 +28,27 @@ export const BRAND_NAME = "Open Hardware Manager";
 export const BRAND_SHORT = "OHM";
 export const BRAND_TITLE = `${BRAND_SHORT} — ${BRAND_NAME}`;
 
-/** The crumb under the dashboard's h1, said once more for share cards. */
-export const BRAND_TAGLINE = "designs · facilities · supply chains";
+/**
+ * The crumb under the dashboard's h1, said once more for share cards.
+ *
+ * Structured rather than written out, because each term is also the name of a
+ * destination and the dashboard links them. The string is derived from the
+ * terms and not the other way round, so renaming one cannot leave the share
+ * card saying a word the hero no longer uses.
+ *
+ * `supply chains` points at /match rather than a list of its own: a supply tree
+ * is a result, opened from the match that produced it, so there is no
+ * collection to browse — the term points at where one is made.
+ */
+export const BRAND_TAGLINE_LINKS = [
+  { label: "designs", href: "/okh" },
+  { label: "facilities", href: "/facilities" },
+  { label: "supply chains", href: "/match" },
+] as const;
+
+export const BRAND_TAGLINE = BRAND_TAGLINE_LINKS.map((t) => t.label).join(
+  " · ",
+);
 
 export const BRAND_DESCRIPTION =
   "Browse open hardware designs, match them to the manufacturing facilities that can build them, and follow the supply tree that results.";

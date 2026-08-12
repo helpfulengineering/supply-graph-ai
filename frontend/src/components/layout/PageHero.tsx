@@ -9,8 +9,13 @@ import { cn } from "@/lib/utils";
 
 interface PageHeroProps {
   title: ReactNode;
-  /** Mono role line beside the title — the admin page's "telemetry · visitors" idiom. */
-  crumb?: string;
+  /**
+   * Mono role line beside the title — the admin page's "telemetry · visitors"
+   * idiom. A node rather than a string so the terms can be links, as the
+   * dashboard's are; it renders inside one inline span, which is what keeps
+   * links in it inline text rather than standalone targets.
+   */
+  crumb?: ReactNode;
   /** Trail above the title, for pages reached from a list. */
   breadcrumb?: ReactNode;
   /** One line under the rule. Keep it to what the page is for. */
