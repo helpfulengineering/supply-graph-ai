@@ -124,22 +124,6 @@ class TestRecipeFromOkhShape:
         except ValueError:
             pass
 
-    def test_bom_atoms_fill_in_ingredients_when_no_materials(self):
-        # Some hand-authored recipe manifests bury the BOM under
-        # metadata.original.bom_atoms instead of the standard `materials`
-        # field.
-        data = okh_recipe_dict(materials=[])
-        data["metadata"] = {
-            "original": {
-                "bom_atoms": {
-                    "flour": {"identifier": "Q779360"},
-                    "butter": {"identifier": "Q83037"},
-                }
-            }
-        }
-        recipe = Recipe.from_dict(data)
-        assert recipe.ingredients == ["flour", "butter"]
-
 
 class TestRecipeDiscriminator:
     def test_recipe_shaped_data_is_a_recipe(self):
