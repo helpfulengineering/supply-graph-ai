@@ -162,9 +162,7 @@ def _has_okh_cooking_process(data: Dict[str, Any]) -> bool:
 
 
 def _okh_material_names(data: Dict[str, Any]) -> List[str]:
-    """Ingredient names from an OKH manifest's ``materials`` field, falling
-    back to the non-standard ``metadata.original.bom_atoms`` mapping some
-    hand-authored recipe manifests use instead (keys are ingredient names)."""
+    """Ingredient names from an OKH manifest's ``materials`` field."""
     names: List[str] = []
     for material in data.get("materials") or []:
         if isinstance(material, str):
@@ -178,12 +176,6 @@ def _okh_material_names(data: Dict[str, Any]) -> List[str]:
             )
             if name:
                 names.append(str(name))
-    if not names:
-        bom_atoms = ((data.get("metadata") or {}).get("original") or {}).get(
-            "bom_atoms"
-        )
-        if isinstance(bom_atoms, dict):
-            names = [str(k) for k in bom_atoms.keys()]
     return names
 
 
