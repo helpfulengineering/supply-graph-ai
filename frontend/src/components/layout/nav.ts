@@ -11,6 +11,7 @@ import {
   PackingIcon,
   RobotIcon,
   SettingsIcon,
+  ShowcaseIcon,
   SmartFactoryIcon,
   ArtificialLeavesIcon,
   type IconProps,
@@ -117,6 +118,17 @@ export const NAV_GROUPS: NavGroup[] = [
         desc: "versioned design bundles",
         icon: PackingIcon,
       },
+      // Shares ArtificialLeavesIcon with the Supply Tree entry below: this is
+      // the browse for those results, and the two cannot inherit from each
+      // other the way a detail route inherits from its list (navEntryFor
+      // matches on prefix, and /visualization/:id is not under /solutions).
+      // Same glyph is what keeps them reading as one section anyway.
+      {
+        href: "/solutions",
+        name: "Solutions",
+        desc: "supply trees saved from your matches",
+        icon: ArtificialLeavesIcon,
+      },
     ],
   },
   {
@@ -173,14 +185,30 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: NotebookIcon,
         external: true,
       },
+      // Reference rather than Operator: the gallery documents the icon set this
+      // interface is drawn from, which is the same kind of thing as the docs
+      // beside it. It was in no group at all, so navEntryFor("/icons") returned
+      // undefined and the one page whose subject is icons rendered without one.
+      {
+        href: "/icons",
+        name: "Icons",
+        desc: "the glyph set, drawn at the sizes it ships at",
+        icon: ShowcaseIcon,
+      },
     ],
   },
 ];
-// Deliberately absent from NAV_GROUPS: /visualization redirects home by
-// design — supply trees are per-match results, with no browse list. Detail
-// routes (/okh/[id], /facilities/[id], /packages/[org]/[project]/[version],
+// Deliberately absent from NAV_GROUPS: bare /visualization is a redirect, now
+// to /solutions — the browse it lacked when it redirected home. Detail routes
+// (/okh/[id], /facilities/[id], /packages/[org]/[project]/[version],
 // /okh/[id]/files/*) are reached from their lists, and /settings/* subtabs
-// from the Settings page's own tab strip. tests/parity guards the set.
+// from the Settings page's own tab strip.
+//
+// tests/parity guards only the top-level segment set, not the route set —
+// /okh/generate and /settings/reputation both collapse to an existing segment
+// and would raise nothing. Menu membership is guarded by e2e/chrome.spec.ts
+// and chord coverage by shortcuts.test.ts, which are the checks that actually
+// fail when a row is missing.
 
 /**
  * The account entry, in the sitemap rather than inline in the drawer.
@@ -240,7 +268,10 @@ export const SITE_GROUP: NavGroup = {
  */
 export const UNLISTED_GROUP: NavGroup = {
   label: "Results",
-  accent: "text-chart-2",
+  // Explore's accent, not its own: a supply tree is the detail view of the
+  // Solutions row, and giving the pair one hue keeps the list and the thing it
+  // opens from reading as two unrelated sections.
+  accent: "text-chart-1",
   entries: [
     {
       href: "/visualization",

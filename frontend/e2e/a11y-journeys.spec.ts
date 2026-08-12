@@ -15,6 +15,7 @@ const ROUTES = [
   "/match",
   "/packages",
   "/packages/demo/widget/1.0.0",
+  "/solutions",
 ];
 
 for (const route of ROUTES) {
