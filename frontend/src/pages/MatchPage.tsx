@@ -15,7 +15,16 @@ export function MatchPage() {
   const { domain } = useDomain();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  if (domain === "cooking") return <CookingMatchView />;
+  if (domain === "cooking") {
+    const recipeId = searchParams.get("recipe_id") ?? undefined;
+    // Remount when the preselected recipe changes so RecipePicker resets cleanly.
+    return (
+      <CookingMatchView
+        key={recipeId ?? "__none__"}
+        initialRecipeId={recipeId}
+      />
+    );
+  }
   const okhId = searchParams.get("okh_id") ?? undefined;
   const okwId = searchParams.get("okw_id") ?? undefined;
 

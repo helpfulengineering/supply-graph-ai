@@ -14,17 +14,22 @@ import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states
 import { Button } from "../../components/ui/button";
 import { cn } from "@/lib/utils";
 
+interface Props {
+  /** Recipe id to preselect, e.g. from a recipe card/detail page's "Run Match". */
+  initialRecipeId?: string;
+}
+
 /**
  * Cooking-domain counterpart to MatchView: recipe + kitchens in, ranked
  * solutions out. List-only surfaces feed it (no generate-from-URL, no RFQ
  * handoff, no network/MoM scope — see the cooking-domain-instance plan's
  * "Out of scope").
  */
-export function CookingMatchView() {
+export function CookingMatchView({ initialRecipeId }: Props = {}) {
   const recipes = useQuery({ queryKey: ["recipes"], queryFn: fetchAllRecipes });
   const kitchens = useQuery({ queryKey: ["kitchens"], queryFn: fetchAllKitchens });
 
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = useState(initialRecipeId ?? "");
   const [mode, setMode] = useState<SystemMode>("standard");
   const [kitchenIds, setKitchenIds] = useState<string[]>([]);
   const [selectedSolutionKeys, setSelectedSolutionKeys] = useState<string[]>([]);
