@@ -87,6 +87,12 @@ function concrete(path: string): string {
  * answer — see READ_ONLY in routes.ts — so they are checked separately.
  */
 const WRITE_ONLY = [
+  // Conversions. Nothing is stored, but they are still POSTs that transform a
+  // payload the caller supplied — the demo world has no file to convert, and
+  // answering with a canned manifest would claim a conversion that never ran.
+  "/api/convert/to-datasheet",
+  "/api/convert/from-okh-losh",
+  "/api/convert/from-datasheet",
   "/api/okh/create",
   "/api/okw/create",
   "/api/identity/spaces/claim",

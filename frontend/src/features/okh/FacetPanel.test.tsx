@@ -28,7 +28,9 @@ describe("FacetPanel", () => {
       />,
     );
     expect(screen.getByText("Manufacturing process")).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /3D Printing/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /3D Printing/ }),
+    ).toBeInTheDocument();
     expect(screen.getByText("14")).toBeInTheDocument();
   });
 
@@ -43,7 +45,9 @@ describe("FacetPanel", () => {
         onClear={vi.fn()}
       />,
     );
-    await userEvent.click(screen.getByRole("checkbox", { name: /Laser Cutting/ }));
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /Laser Cutting/ }),
+    );
     expect(onToggle).toHaveBeenCalledWith("process", "Laser Cutting");
   });
 

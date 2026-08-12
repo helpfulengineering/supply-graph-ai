@@ -27,6 +27,13 @@ interface Props {
   detailHref: (id: string) => string;
   validate: ValidateFn;
   create: CreateFn;
+  /**
+   * Text the editor opens with, for a record that came from somewhere else —
+   * a converted OKH-LOSH file, a datasheet. Read once, at mount: this is a
+   * starting point, not a controlled value, and re-seeding it under a typing
+   * cursor would discard the edits it is there to invite.
+   */
+  initialJson?: string;
 }
 
 export function CreateJsonRecordPage({
@@ -36,10 +43,11 @@ export function CreateJsonRecordPage({
   detailHref,
   validate,
   create,
+  initialJson = "",
 }: Props) {
   const router = useRouter();
   const { hasWrite, reportAuthFailure } = useAuth();
-  const [jsonText, setJsonText] = useState("");
+  const [jsonText, setJsonText] = useState(initialJson);
   const [author, setAuthor] = useState("");
   const [onBehalfOf, setOnBehalfOf] = useState("");
   const [validation, setValidation] = useState<ValidationResult | null>(null);

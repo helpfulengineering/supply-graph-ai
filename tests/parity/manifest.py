@@ -116,6 +116,7 @@ AREAS: tuple[Area, ...] = (
         note="REVIEW: backed by src/core/services/datasheet_converter.py, which "
         "does not follow the *_service.py convention. Rename candidate "
         "(datasheet_converter -> convert_service).",
+        fe_api_prefixes=("/api/convert",),
     ),
     Area(
         "taxonomy",
@@ -631,18 +632,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "Format conversion, CLI-only today: MSF datasheet export from a "
-        "design, and OKH-LOSH TOML / MSF datasheet import. Both importers "
-        "return a manifest WITHOUT saving, which makes them a better fit for "
-        "the guided create flow than /api/okh/upload — the file can land in "
-        "TieredEditor for review before anything is written.",
-        "/api/convert/to-datasheet",
-        "/api/convert/from-okh-losh",
-        "/api/convert/from-datasheet",
-    ),
-    *_decision(
-        "planned",
-        "backlog",
         "Single-record interchange for designs and facilities: a blank "
         "template to seed a create form (the frontend hand-maintains its own "
         "literal today, which will drift from the model), file upload as an "
@@ -856,6 +845,7 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "convert",
         "Convert OKH-LOSH TOML and MSF datasheets",
         "deployed",
+        requires_fe_call="/api/convert",
         path="guides/bring-your-collection.md",
     ),
     SiteDoc(
