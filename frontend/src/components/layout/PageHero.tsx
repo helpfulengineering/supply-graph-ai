@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { NavIcon } from "./nav";
 import { navEntryFor } from "./nav";
+import { Breadcrumb, type BreadcrumbTerm } from "./Breadcrumb";
+import { CHROME_LINK } from "./chromeLink";
 import { CAPTION, PAGE_TITLE } from "../ui/typography";
 import { cn } from "@/lib/utils";
 
@@ -29,24 +31,6 @@ export interface CrumbTerm {
 
 /** Between terms. A text node, deliberately — see CrumbTerms. */
 const CRUMB_SEPARATOR = " · ";
-
-/**
- * The one place a crumb link is styled.
- *
- * A dotted underline at rest rather than a colour change on hover: a crumb is
- * one muted line, so a link that only announces itself under a cursor is
- * invisible to anyone arriving by keyboard, and "hover to discover" is not an
- * affordance on a touch screen.
- *
- * The `!` is load-bearing. index.css carries an unlayered
- * `a { text-decoration: none }`, and Tailwind v4 puts utilities in a cascade
- * layer — unlayered rules beat layered ones whatever their specificity, so a
- * plain `underline` class on an anchor computes to text-decoration-line: none.
- * The same is true of the other underline utilities on links in this app, which
- * is a fix for the reset's layer rather than for one component.
- */
-const CRUMB_LINK =
-  "rounded-sm underline! decoration-dotted! underline-offset-4 hover:text-foreground hover:decoration-solid! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
  * The terms of a crumb, linked where they lead somewhere.
@@ -79,7 +63,7 @@ function CrumbTerms({
           // reader should be told which one is the current page instead of
           // being offered three destinations that look alike.
           aria-current={term.href === pathname ? "page" : undefined}
-          className={CRUMB_LINK}
+          className={CHROME_LINK}
         >
           {term.label}
         </Link>
@@ -99,8 +83,12 @@ interface PageHeroProps {
    * string still renders as it always did.
    */
   crumb?: string | readonly CrumbTerm[];
-  /** Trail above the title, for pages reached from a list. */
-  breadcrumb?: ReactNode;
+  /**
+   * Trail above the title, for pages reached from a list. Terms rather than
+   * markup: the four views that had one wrote their own <nav>, and three of
+   * them shipped it without an accessible name. See Breadcrumb.
+   */
+  breadcrumb?: readonly BreadcrumbTerm[];
   /** One line under the rule. Keep it to what the page is for. */
   description?: ReactNode;
   actions?: ReactNode;
@@ -154,14 +142,7 @@ export function PageHero({
 
   return (
     <header className="mb-3">
-      {breadcrumb && (
-        <nav
-          aria-label="Breadcrumb"
-          className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground"
-        >
-          {breadcrumb}
-        </nav>
-      )}
+      {breadcrumb && <Breadcrumb trail={breadcrumb} className="mb-1" />}
       <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
         {Icon && (
           // Decorative: the h1 beside it already says which page this is, and

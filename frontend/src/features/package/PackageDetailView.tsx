@@ -1,5 +1,6 @@
 "use client";
 
+import { Breadcrumb } from "../../components/layout/Breadcrumb";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -77,15 +78,12 @@ export function PackageDetailView({ org, project, version }: Props) {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/packages" className="hover:text-primary-ink">
-          Packages
-        </Link>
-        <span aria-hidden="true">›</span>
-        <span className="truncate text-foreground">
-          {packageName}@{version}
-        </span>
-      </nav>
+      <Breadcrumb
+        trail={[
+          { label: "Packages", href: "/packages" },
+          { label: `${packageName}@${version}` },
+        ]}
+      />
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
