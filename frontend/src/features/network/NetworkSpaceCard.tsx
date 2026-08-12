@@ -34,7 +34,19 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
     <>
       <div>
         <div className="flex items-start justify-between gap-2">
-          <h3 className={cn(CARD_TITLE, "group-hover:text-primary-ink")}>
+          {/*
+            `min-w-0 break-words` is the other half of the badge's
+            `whitespace-nowrap`. A flex item's default `min-width: auto` is its
+            min-content width, so a name carrying one long unbroken word —
+            "die|frauenmöbelwerkstatt" — refuses to shrink and pushes the badge
+            that must not wrap straight off the card's right edge.
+          */}
+          <h3
+            className={cn(
+              CARD_TITLE,
+              "min-w-0 break-words group-hover:text-primary-ink",
+            )}
+          >
             {space.name || "Unnamed"}
           </h3>
           <Badge variant={space.source === "local" ? "indigo" : "green"}>

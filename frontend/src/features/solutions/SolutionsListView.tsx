@@ -17,7 +17,11 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { Badge } from "../../components/ui/Badge";
 import { buttonVariants } from "../../components/ui/button";
 import { PANEL, PANEL_INSET } from "../../components/ui/surface";
-import { BODY_MUTED, CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import {
+  BODY_MUTED,
+  CAPTION,
+  CARD_TITLE,
+} from "../../components/ui/typography";
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +45,9 @@ function SolutionCard({ solution }: { solution: SolutionSummary }) {
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <h2 className={CARD_TITLE}>{solutionLabel(solution)}</h2>
+        <h2 className={cn(CARD_TITLE, "min-w-0 break-words")}>
+          {solutionLabel(solution)}
+        </h2>
         {percent !== null && (
           <Badge variant={scoreVariant(percent)}>{percent}%</Badge>
         )}
