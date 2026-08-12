@@ -102,7 +102,7 @@ def test_mirrored_names_match_the_live_secret_names():
         "azure-storage-key",
         "github-token",
         "gitlab-token",
-        "llm-encryption-password",
+        "llm-encrypt-password",
         "llm-encryption-salt",
     ]
 
@@ -118,7 +118,7 @@ def test_worker_carries_the_llm_encryption_secrets_even_without_llm():
     env_vars = mirrored_secret_env_vars()
 
     assert env_vars["LLM_ENCRYPTION_SALT"] == "secretref:llm-encryption-salt"
-    assert env_vars["LLM_ENCRYPTION_PASSWORD"] == "secretref:llm-encryption-password"
+    assert env_vars["LLM_ENCRYPTION_PASSWORD"] == "secretref:llm-encrypt-password"
 
 
 # --- The deploy itself -------------------------------------------------------
