@@ -660,15 +660,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "The one federation endpoint that is not peer protocol: it takes a "
-        "peer_url and a bundle_hash, requires write, and pulls a package INTO "
-        "this node with an allow_rebuild fallback. An outbound action by this "
-        "node's operator, which is exactly what the federation panel is for.",
-        "/api/federation/packages/fetch",
-    ),
-    *_decision(
-        "planned",
-        "backlog",
         "MatchRequest already carries an optional `domain`, auto-detected when "
         "absent, and the UI has no way to set it. /domains is richer than the "
         "/api/utility/domains the app calls today — it carries status, version "

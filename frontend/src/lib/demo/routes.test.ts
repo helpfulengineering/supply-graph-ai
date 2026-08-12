@@ -90,6 +90,8 @@ const WRITE_ONLY = [
   // Moving a package between this node and a remote store. The demo has no
   // remote, and pretending a push succeeded would be a lie about where the
   // bytes went.
+  // Moves bytes between nodes; the demo has no peer to move them from.
+  "/api/federation/packages/fetch",
   "/api/package/push",
   "/api/package/pull",
   // Conversions. Nothing is stored, but they are still POSTs that transform a

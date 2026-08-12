@@ -171,3 +171,52 @@ export async function seedFromPeerUrl(seedPeerUrl: string): Promise<{
     okwPulled: okw.total_pulled ?? 0,
   };
 }
+
+export interface PackageFetchResult {
+  /** "fetched" | "rebuilt" | "local" — what actually happened. */
+  action: string;
+  bundle_hash?: string | null;
+  detail?: string | null;
+  message: string;
+}
+
+/**
+ * Pull a package from a peer into this node.
+ *
+ * The one federation endpoint that is not peer protocol: it takes a peer URL
+ * and a bundle hash, requires write, and moves bytes INWARD. Everything else
+ * under /api/federation is what another node calls on us.
+ */
+export async function fetchPeerPackage(params: {
+  peerUrl: string;
+  bundleHash: string;
+  manifestId?: string;
+  allowRebuild: boolean;
+}): Promise<PackageFetchResult> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/federation/packages/fetch",
+    {
+      body: {
+        peer_url: params.peerUrl,
+        bundle_hash: params.bundleHash,
+        manifest_id: params.manifestId ?? null,
+        allow_rebuild: params.allowRebuild,
+      },
+    },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Fetch failed (HTTP ${response.status})`),
+    );
+  }
+  return data as PackageFetchResult;
+}
+
+/** The `action` field as a sentence. It is the whole result. */
+export function packageFetchSentence(result: PackageFetchResult): string {
+  if (result.action === "local") return "Already present on this node.";
+  if (result.action === "rebuilt") return "Rebuilt from the peer's manifest.";
+  if (result.action === "fetched") return "Fetched from the peer.";
+  return result.message;
+}

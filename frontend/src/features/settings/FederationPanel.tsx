@@ -16,6 +16,7 @@ import { useAuth } from "../../context/AuthContext";
 import { PANEL, PANEL_WARNING } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 import { SECTION_TITLE } from "../../components/ui/typography";
+import { PeerPackageFetch } from "./PeerPackageFetch";
 
 export function FederationPanel() {
   const queryClient = useQueryClient();
@@ -236,6 +237,8 @@ export function FederationPanel() {
           </p>
         )}
       </section>
+
+      <PeerPackageFetch peers={peers.data ?? []} />
     </div>
   );
 }
