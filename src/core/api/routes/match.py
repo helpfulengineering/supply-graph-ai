@@ -40,6 +40,7 @@ from ...registry.domain_registry import DomainRegistry
 from ...services.domain_service import DomainDetector
 from ...services.matching_service import MatchingService
 from ...models.auth import AuthenticatedUser
+from ..dependencies import created_by as owner_of
 from ..dependencies import get_viewer
 from ...services.okh_service import OKHService
 from ...services.okw_service import (
@@ -187,6 +188,7 @@ async def match_requirements_to_capabilities(
     request: MatchRequest,
     http_request: Request,
     storage_service: StorageService = Depends(get_storage_service),
+    viewer: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> dict[str, Any]:
     """
     Enhanced matching endpoint with standardized patterns.
@@ -376,6 +378,7 @@ async def match_requirements_to_capabilities(
                 processing_time,
                 storage_service,
                 required_processes=required_processes,
+                created_by=owner_of(viewer),
             )
 
             total_trees = sum(len(s.all_trees) for s in solutions)
@@ -574,6 +577,7 @@ async def match_requirements_to_capabilities(
                         solution,
                         ttl_days=request.solution_ttl_days,
                         tags=request.solution_tags,
+                        created_by=owner_of(viewer),
                     )
                     response_data["solution_id"] = str(solution_id)
                     logger.info(
@@ -1736,8 +1740,13 @@ async def _format_nested_response(
     processing_time: float,
     storage_service: Optional[StorageService] = None,
     required_processes: Optional[List[str]] = None,
+    created_by: Optional[str] = None,
 ) -> dict:
-    """Format nested matching response with optional tree filtering"""
+    """Format nested matching response with optional tree filtering.
+
+    ``created_by`` is passed down rather than resolved here: this is a plain
+    helper, not a route, so it has no request to read a credential from.
+    """
     from ..error_handlers import create_success_response
 
     # Apply tree filtering if any filters are specified
@@ -1917,6 +1926,7 @@ async def _format_nested_response(
                 solution,
                 ttl_days=request.solution_ttl_days,
                 tags=request.solution_tags,
+                created_by=created_by,
             )
             response_data["solution_id"] = str(solution_id)
             logger.info(

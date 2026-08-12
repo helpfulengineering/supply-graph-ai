@@ -49,11 +49,19 @@ async def test_saved_solution_lists_with_design_title_and_facility(tmp_path):
         },
     )
 
+    # Saved and listed as one account. The subject here is the friendly-name
+    # metadata, but listing is owner-scoped now — an unowned solution is
+    # returned to nobody — so the round trip has to happen under an owner or
+    # there is nothing to assert about.
+    owner = "acct-friendly-name-test"
+
     solution_id = await storage.save_supply_tree_solution(
-        solution, ttl_days=1, tags=["friendly-name-test"]
+        solution, ttl_days=1, tags=["friendly-name-test"], created_by=owner
     )
     try:
-        solutions = await storage.list_supply_tree_solutions(limit=200)
+        solutions = await storage.list_supply_tree_solutions(
+            limit=200, created_by=owner
+        )
         saved = next(s for s in solutions if s["id"] == str(solution_id))
         assert saved["okh_title"] == "Open Ventilator"
         assert saved["facility_name"] == "FabLab Drome"
