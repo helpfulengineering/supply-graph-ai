@@ -17,6 +17,18 @@ import { displayCountryName } from "../match/geoDisplay";
 import { SECTION_LABEL } from "../../components/ui/typography";
 import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
+import type { CrumbTerm } from "../../components/layout/PageHero";
+
+/**
+ * One crumb for both of this view's heroes — the empty state and the generated
+ * documents render the same page under two conditions, and the terms had been
+ * written out twice.
+ */
+const RFQ_CRUMB: readonly CrumbTerm[] = [
+  { label: "facilities", href: "/facilities" },
+  { label: "quotes" },
+  { label: "documents" },
+];
 
 interface Props {
   navState: RfqNavigationState | null;
@@ -39,10 +51,7 @@ export function RfqView({ navState }: Props) {
   if (!navState || navState.solutions.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHero
-          title="RFQ Generation"
-          crumb="facilities · quotes · documents"
-        />
+        <PageHero title="RFQ Generation" crumb={RFQ_CRUMB} />
         <EmptyState
           icon={() => <QuotesIllustration className="h-10 w-10" />}
           heading="No facilities selected"
@@ -131,7 +140,7 @@ export function RfqView({ navState }: Props) {
     <div className="space-y-6">
       <PageHero
         title="RFQ Generation"
-        crumb="facilities · quotes · documents"
+        crumb={RFQ_CRUMB}
         description={
           <>
             Generating requests for quotation for{" "}

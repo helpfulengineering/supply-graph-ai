@@ -53,6 +53,11 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
+        {/* Left as text on purpose. These three terms are the tab bar
+            immediately below, so linking them puts two links to
+            /settings/identities on the page under the same name — a duplicate
+            control for a pointer and a second identical stop for a screen
+            reader. A crumb links where it is the only way to somewhere. */}
         <PageHero title="Settings" crumb="session · keys · identities" />
       </div>
 

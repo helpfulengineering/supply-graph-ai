@@ -241,7 +241,13 @@ export function MatchView({
     <div className="space-y-6">
       <PageHero
         title="Match a Design"
-        crumb="design · facilities · solutions"
+        crumb={[
+          { label: "design", href: "/okh" },
+          { label: "facilities", href: "/facilities" },
+          // Solutions are what this page produces; there is no list of them to
+          // send anyone to.
+          { label: "solutions" },
+        ]}
       />
 
       <div className="space-y-4">
