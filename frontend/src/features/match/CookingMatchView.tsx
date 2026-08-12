@@ -168,9 +168,10 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
         />
       )}
 
-      {view &&
+      {rawView &&
+        view &&
         !mutation.isPending &&
-        (view.solutions.length === 0 ? (
+        (rawView.solutions.length === 0 ? (
           <EmptyState
             icon="🔍"
             title="No matches found"
@@ -223,68 +224,82 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">
-                {view.totalSolutions} solution{view.totalSolutions !== 1 ? "s" : ""}
-                {selectedSolutionKeys.length > 0 ? ` · ${selectedSolutionKeys.length} selected` : ""}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={view.solutions.length === 0}
-                  onClick={() =>
-                    setSelectedSolutionKeys(view.solutions.map((s, i) => solutionSelectionKey(s, i)))
-                  }
-                >
-                  Select all
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={selectedSolutionKeys.length === 0}
-                  onClick={() => setSelectedSolutionKeys([])}
-                >
-                  Clear selection
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={selectedSolutionKeys.length === 0 || !selectedRecipe}
-                  onClick={() => {
-                    const selectedSolutions = view.solutions.filter((s, i) =>
-                      selectedSolutionKeys.includes(solutionSelectionKey(s, i)),
-                    );
-                    const state: CookingRfqNavigationState = {
-                      domain: "cooking",
-                      recipeId: selectedRecipe!.id,
-                      recipeTitle: selectedRecipe!.name,
-                      recipe: selectedRecipe,
-                      solutions: toRfqSolutions(selectedSolutions),
-                    };
-                    navigate("/rfq", { state });
-                  }}
-                >
-                  Contact selected kitchens →
-                </Button>
-              </div>
-            </div>
-            {view.solutions.map((s, i) => {
-              const key = solutionSelectionKey(s, i);
-              return (
-                <MatchResultCard
-                  key={key}
-                  solution={s}
-                  solutionId={view.solutionId}
-                  selectionKey={key}
-                  selected={selectedSolutionKeys.includes(key)}
-                  onToggle={() =>
-                    setSelectedSolutionKeys((prev) =>
-                      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
-                    )
-                  }
-                />
-              );
-            })}
+            {view.solutions.length === 0 ? (
+              <EmptyState
+                icon="🔍"
+                title="No matches within tolerance"
+                description="Every kitchen is missing more than the tolerance above allows. Increase it to see them."
+              />
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    {view.totalSolutions} solution{view.totalSolutions !== 1 ? "s" : ""}
+                    {selectedSolutionKeys.length > 0
+                      ? ` · ${selectedSolutionKeys.length} selected`
+                      : ""}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={view.solutions.length === 0}
+                      onClick={() =>
+                        setSelectedSolutionKeys(
+                          view.solutions.map((s, i) => solutionSelectionKey(s, i)),
+                        )
+                      }
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={selectedSolutionKeys.length === 0}
+                      onClick={() => setSelectedSolutionKeys([])}
+                    >
+                      Clear selection
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={selectedSolutionKeys.length === 0 || !selectedRecipe}
+                      onClick={() => {
+                        const selectedSolutions = view.solutions.filter((s, i) =>
+                          selectedSolutionKeys.includes(solutionSelectionKey(s, i)),
+                        );
+                        const state: CookingRfqNavigationState = {
+                          domain: "cooking",
+                          recipeId: selectedRecipe!.id,
+                          recipeTitle: selectedRecipe!.name,
+                          recipe: selectedRecipe,
+                          solutions: toRfqSolutions(selectedSolutions),
+                        };
+                        navigate("/rfq", { state });
+                      }}
+                    >
+                      Contact selected kitchens →
+                    </Button>
+                  </div>
+                </div>
+                {view.solutions.map((s, i) => {
+                  const key = solutionSelectionKey(s, i);
+                  return (
+                    <MatchResultCard
+                      key={key}
+                      solution={s}
+                      solutionId={view.solutionId}
+                      selectionKey={key}
+                      selected={selectedSolutionKeys.includes(key)}
+                      onToggle={() =>
+                        setSelectedSolutionKeys((prev) =>
+                          prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+                        )
+                      }
+                    />
+                  );
+                })}
+              </>
+            )}
           </div>
         ))}
     </div>
