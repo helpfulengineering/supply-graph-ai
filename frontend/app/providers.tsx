@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useIsFetching } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { queryClient, persistOptions } from "@/queryClient";
 import { AuthProvider } from "@/context/AuthContext";
@@ -40,6 +41,13 @@ if (typeof document !== "undefined") {
   document.documentElement.dataset.siteLayer = siteConfig.enabled
     ? "on"
     : "off";
+  // Published for the same reason and in the same place: something observing
+  // the app needs to know whether it is still fetching, and every alternative
+  // is a guess. `pending` rather than `0` because the honest answer before the
+  // provider stack mounts is "no idea" — a query that has not started yet is
+  // indistinguishable from one that has finished, and the whole point of this
+  // attribute is to tell those two apart. See `settle()` in responsive.spec.ts.
+  document.documentElement.dataset.fetching = "pending";
 }
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -100,6 +108,27 @@ function BootLoader() {
   );
 }
 
+/**
+ * The number of in-flight queries, on the document.
+ *
+ * Loading states only speak for the surfaces that render one. A component that
+ * renders nothing while its query is pending — `ReleasesStrip` returns null
+ * until it knows whether the design has any packages — is invisible to anything
+ * watching the DOM, so a test waiting on the loading state measured the page
+ * before that section existed and reported it clean. This is the signal that
+ * has no such blind spot: it counts the fetches, not the placeholders.
+ *
+ * Renders nothing, and outside the router so a route change cannot unmount it
+ * mid-fetch and leave a stale count behind.
+ */
+function QueryActivity() {
+  const fetching = useIsFetching();
+  useEffect(() => {
+    document.documentElement.dataset.fetching = String(fetching);
+  }, [fetching]);
+  return null;
+}
+
 function MountedProviders({ children }: { children: ReactNode }) {
   const theme = useDarkMode();
   useLookInUrl(theme.theme, theme.isDark);
@@ -110,6 +139,7 @@ function MountedProviders({ children }: { children: ReactNode }) {
         client={queryClient}
         persistOptions={persistOptions}
       >
+        <QueryActivity />
         <AuthProvider>
           <TooltipProvider>
             {/*

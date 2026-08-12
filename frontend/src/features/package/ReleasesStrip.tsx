@@ -34,9 +34,13 @@ export function ReleasesStrip({ okhId }: { okhId: string }) {
       <ul className="space-y-2">
         {releases.map((p) => (
           <li key={`${p.package_name}@${p.version}`}>
+            {/* inline-flex + min-h-6 so the release clears the 24x24 WCAG
+                2.5.8 minimum: it is the only thing in its <li>, so 2.5.8's
+                inline exception does not apply and the text's 18px line box
+                is the whole target. */}
             <Link
               href={packageDetailPath(p.package_name, p.version)}
-              className="text-sm text-primary-ink hover:underline"
+              className="inline-flex min-h-6 items-center text-sm text-primary-ink hover:underline"
             >
               {p.package_name}
               <span className="ml-2 font-mono text-xs text-muted-foreground">

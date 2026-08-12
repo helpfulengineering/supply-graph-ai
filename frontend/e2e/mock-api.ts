@@ -11,14 +11,23 @@ import {
 } from "../src/test/fixtures";
 
 /**
- * Playwright test extended so the `mocked` project auto-intercepts OHM API
- * calls with shared fixtures (single source of truth with the MSW node tests).
- * The `real-api` project performs no interception and hits the live backend
- * through the dev-server proxy.
+ * Playwright test extended so every deterministic project auto-intercepts OHM
+ * API calls with shared fixtures (single source of truth with the MSW node
+ * tests). `real-api` is the one lane that performs no interception and hits the
+ * live backend through the dev-server proxy.
+ *
+ * Named for the lane that does NOT mock, because naming the ones that do got it
+ * wrong twice. The condition was `=== "mocked"`, so the two lanes added later
+ * silently ran against whatever was on :8001 — nothing, in a normal checkout.
+ * `responsive` measured "Something went wrong / path.id: Input should be a
+ * valid UUID" on every detail route and reported the error panel as a clean
+ * layout; `readme-assets` says in its own docstring that the mocked lane
+ * supplies its data and it was capturing the same error panels into the
+ * README's screenshots. A new lane should have to opt OUT of determinism.
  */
 export const test = base.extend({
   page: async ({ page }, use, testInfo) => {
-    if (testInfo.project.name === "mocked") {
+    if (testInfo.project.name !== "real-api") {
       const fulfill = async (route: import("@playwright/test").Route) => {
         const url = new URL(route.request().url());
         const pathname = url.pathname;
