@@ -37,6 +37,7 @@ from typing import Optional
 import pytest
 import yaml
 
+from tests.parity.inventory import fe_calls
 from tests.parity.manifest import (
     AREAS,
     DOC_STATUSES,
@@ -232,29 +233,24 @@ def test_r9_deployed_capabilities_are_actually_called_by_the_frontend():
     ``/api/okh/generate-from-url``. Status is declared per capability; this makes
     the evidence per capability too.
 
-    ``frontend/src/api/generated/`` is excluded deliberately. That directory is
-    generated from the backend's OpenAPI spec, so every endpoint appears there
-    whether or not the UI has ever called it — searching it would make this
-    assertion pass for everything and prove nothing.
+    Evidence comes from ``inventory.fe_calls``, the same scanner the endpoint
+    coverage gate uses, rather than a raw substring over every .ts file. Two
+    reasons. Generated types, MSW handlers and the demo route table all NAME
+    endpoints without calling them, so searching them makes this assertion pass
+    for everything and prove nothing. And the untyped client prefixes /v1/api,
+    so an exact path like "/api/rfq/generate" is spelled "/rfq/generate" at its
+    call site — a substring search reports a shipped capability as unbuilt.
     """
     src = _REPO_ROOT / "frontend" / "src"
     if not src.is_dir():
         pytest.skip("frontend/src not present")
-
-    sources = [
-        p
-        for p in src.rglob("*.ts*")
-        if "api/generated" not in p.relative_to(src).as_posix()
-    ]
 
     problems: list[str] = []
     for doc in SITE_DOCS:
         if doc.status != "deployed" or not doc.requires_fe_call:
             continue
         needle = doc.requires_fe_call
-        if not any(
-            needle in p.read_text(encoding="utf-8", errors="ignore") for p in sources
-        ):
+        if not fe_calls(needle):
             problems.append(
                 f"{doc.label!r} claims 'deployed' but no frontend source calls "
                 f"{needle!r}"

@@ -5,6 +5,7 @@
   "apiBaseUrl": "http://localhost:8001",
   "apiHealthUrl": "http://localhost:8001/health",
   "apiPathPrefix": "/v1/api",
+  "openapiSpecCommand": "uv run python scripts/dump_api_routes.py --openapi {out}",
   "openapiUrl": "http://localhost:8001/v1/openapi.json",
   "apiTypesOutput": "src/api/generated/schema.d.ts",
   "routesToScreenshot": [

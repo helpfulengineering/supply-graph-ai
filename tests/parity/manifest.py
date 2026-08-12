@@ -27,7 +27,10 @@ intentionally has no presence there:
   * ``fe_routes``   -> top-level React Router path prefixes the UI exposes
                        (``None`` = no frontend surface for this area).
   * ``fe_api_prefixes`` -> ``/api/<tag>`` path prefixes the frontend calls
-                           (``None`` = no frontend API usage declared).
+                           (``None`` = no frontend API usage declared). A
+                           prefix is not coverage: it is satisfied by one call
+                           to one endpoint under that tag. Per-endpoint
+                           coverage is ``UNCALLED_ENDPOINTS``, below.
 """
 
 from __future__ import annotations
@@ -329,6 +332,446 @@ AREAS: tuple[Area, ...] = (
 )
 
 
+# --- Frontend API coverage ------------------------------------------------
+#
+# `Area.fe_api_prefixes` answers "does the frontend touch this tag at all". It
+# cannot answer "does the frontend touch this endpoint", and the gap between
+# those two questions was 91 of the API's 158 paths: declaring
+# fe_api_prefixes=("/api/supply-tree",) is satisfied by a single call to
+# /api/supply-tree/solutions while nineteen siblings go uncalled, and the gate
+# stays green. Whole routers — asset, convert, file-types, match/rules — had
+# never had a caller and had never failed anything.
+#
+# This is the per-path answer, and it is the same convention commit 32b2f15
+# established for hero crumbs: a dead term is a decision and not an omission.
+# Every path the versioned app serves is either called by frontend app code
+# (inventory.fe_api_call_sites) or has a row here saying why not. There is no
+# third state, and no prefix that can stand in for one.
+#
+# Granularity is the path, not the operation. 19 paths carry more than one
+# method, so "the UI calls GET /api/okw/{id} but never DELETE" reads as
+# covered. Deliberate: it matches the altitude of the rows above, and the
+# upgrade is additive — the typed client already encodes the verb, while the
+# island's get/post helpers do not, and half a signal is worse than none.
+
+ENDPOINT_STATUSES: frozenset[str] = frozenset(
+    {
+        # No browser will ever call it. The row is the decision.
+        "never",
+        # A UI is intended. The row is the backlog, and the commit that wires
+        # the call DELETES it rather than editing it — which is what makes this
+        # table shrink instead of accrete.
+        "planned",
+        # The UI does call it; the scanner cannot see the URL because it is
+        # composed across statements. `evidence` and `anchor` are mandatory and
+        # are checked, so the escape hatch cannot become a blanket exemption.
+        "ui_indirect",
+    }
+)
+
+ENDPOINT_REASONS: frozenset[str] = frozenset(
+    {
+        "peer",  # another OHM node calls it, over the federation protocol
+        "machine",  # a non-browser client: a poller, a probe, an orchestrator
+        "operator",  # destructive with no undo; belongs behind a shell
+        "cli",  # the surface is `ohm ...`; no browser equivalent planned
+        "superseded",  # a different endpoint is what the UI calls instead
+        "blocked",  # wanted, but the UI cannot supply what the path needs
+        "composed",  # ui_indirect only: URL built from a base plus a suffix
+        "backlog",  # planned only: nothing blocks it, nobody has built it
+    }
+)
+
+
+@dataclass(frozen=True)
+class Endpoint:
+    """One API path and why the frontend does not (visibly) call it."""
+
+    path: str  # exact OpenAPI path, params included: "/api/okh/{id}"
+    status: str  # one of ENDPOINT_STATUSES
+    reason: str  # one of ENDPOINT_REASONS
+    note: str  # who DOES call it, or what has to land first
+    # ui_indirect only: "<repo-relative file>:<line>" of the composed call, and
+    # the substring the test greps for. Without these a ui_indirect row is an
+    # unfalsifiable claim, which is the shape of every row that ever rotted.
+    evidence: Optional[str] = None
+    anchor: Optional[str] = None
+
+
+def _decision(status: str, reason: str, note: str, *paths: str) -> tuple[Endpoint, ...]:
+    """Expand ONE decision over the paths it covers.
+
+    The unit a reader holds is the decision, not the row: the federation peer
+    protocol is one decision over eight paths, and grouping it here makes this
+    table sixteen paragraphs rather than ninety-one lines.
+
+    Paths are still spelled out individually, deliberately. A prefix
+    ("/api/federation/*") would re-create the exact hole this table exists to
+    close — a new endpoint under that prefix would be swallowed silently
+    instead of failing until someone classified it.
+    """
+    return tuple(Endpoint(p, status, reason, note) for p in paths)
+
+
+def _composed(
+    note: str, evidence: str, anchor: str, *paths: str
+) -> tuple[Endpoint, ...]:
+    """A ui_indirect decision: the UI calls these, the scanner cannot see it."""
+    return tuple(
+        Endpoint(p, "ui_indirect", "composed", note, evidence=evidence, anchor=anchor)
+        for p in paths
+    )
+
+
+UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
+    # --- Never: another node is the client --------------------------------
+    *_decision(
+        "never",
+        "peer",
+        "Federation wire protocol. The client is another OHM node's "
+        "FederationService, authenticated by followed-peer DID and rate-limited "
+        "per peer — a browser has no peer DID and would be refused, and "
+        "/packages/blobs additionally requires an X-OHM-Peer-DID header naming "
+        "a followed peer. The catalog and records endpoints serve the "
+        "deliberately redacted projection this node offers peers; the browser "
+        "already has the unredacted view at /okh and /facilities, so rendering "
+        "the projection would show an operator a knowingly lossy copy of data "
+        "they can see whole. The UI's federation surface is the LOCAL half — "
+        "/status, /peers, /sync/run, /okw/sync/run — which it calls.",
+        "/api/federation/identify",
+        "/api/federation/catalog",
+        "/api/federation/records/{content_hash}",
+        "/api/federation/sync/digest",
+        "/api/federation/okw/catalog",
+        "/api/federation/okw/records/{content_hash}",
+        "/api/federation/okw/sync/digest",
+        "/api/federation/packages/blobs/{bundle_hash}",
+    ),
+    *_decision(
+        "never",
+        "machine",
+        "Machine clients that are not peers. /api/federation/health is an "
+        "orchestrator's readiness probe; the UI reads /api/federation/status, "
+        "which carries the sync metrics a human wants. /api/okw/{id}/spaceapi "
+        "serves one facility as a SpaceAPI document for Maps of Making's "
+        "poller — the outbound half of the maps-of-making capability, whose "
+        "SiteDoc row already declines to assert a frontend call for this "
+        "reason.",
+        "/api/federation/health",
+        "/api/okw/{id}/spaceapi",
+    ),
+    # --- Never: destructive, or a footgun behind a button ------------------
+    *_decision(
+        "never",
+        "operator",
+        "Bulk-destructive with no undo and no per-record review. "
+        "/api/supply-tree/solutions/cleanup sweeps stale solutions "
+        "instance-wide with no owner filter, across every caller's saved work; "
+        "/api/okh/scaffold/cleanup deletes scaffolded directories by age. Both "
+        "have a shell equivalent, which is where an operation nobody can undo "
+        "belongs. Contrast /api/taxonomy/reload, which looks similar and is "
+        "not: it fails safe, keeping the current taxonomy when the new file "
+        "does not validate, so it gets a button in /settings/matching.",
+        "/api/supply-tree/solutions/cleanup",
+        "/api/okh/scaffold/cleanup",
+    ),
+    *_decision(
+        "never",
+        "cli",
+        "Writes a directory to the SERVER's filesystem and returns its "
+        "filesystem_path. A browser cannot reach the artifact it produces, so "
+        "the CLI is the only caller that can do anything with the result.",
+        "/api/okh/scaffold",
+    ),
+    # --- Never: the UI calls something else instead ------------------------
+    *_decision(
+        "never",
+        "superseded",
+        "Aliases and older shapes of endpoints the UI already calls. "
+        "/api/okh/from-storage is a POST alias for GET /api/okh/{id}; "
+        "/api/okh/manifests/ is an alias for /api/okh/create, and "
+        "/api/okh/manifests/{id} says in its own docstring that it exists for "
+        "integration-test cleanup; bare /api/okw is superseded by "
+        "/api/okw/search, which is what the network view calls; "
+        "/api/package/build takes a manifest dictionary, where the UI holds a "
+        "stored id and calls /api/package/build/{manifest_id}.",
+        "/api/okh/from-storage",
+        "/api/okh/manifests/",
+        "/api/okh/manifests/{id}",
+        "/api/okw",
+        "/api/package/build",
+    ),
+    *_decision(
+        "never",
+        "superseded",
+        "The visualization bundle already carries this data. "
+        "/api/supply-tree/solution/{id}/visualization returns production_"
+        "sequence, dependency_graph and the KPI dashboard in one payload, and "
+        "supplyTreeAdapter.ts renders all three from it under unit test. "
+        "Calling these would give one picture two sources of truth. "
+        "/component/{component_id} and /facility/{facility_id} are server-side "
+        "filters of /trees, which the Trees table filters client-side.",
+        "/api/supply-tree/solution/{solution_id}/dependencies",
+        "/api/supply-tree/solution/{solution_id}/production-sequence",
+        "/api/supply-tree/solution/{solution_id}/summary",
+        "/api/supply-tree/solution/{solution_id}/component/{component_id}",
+        "/api/supply-tree/solution/{solution_id}/facility/{facility_id}",
+    ),
+    *_decision(
+        "never",
+        "superseded",
+        "Matching already saves. runMatch sends save_solution: true, so every "
+        "solution the UI holds was persisted when it was produced; a second "
+        "save button would be a control for something that already happened.",
+        "/api/supply-tree/solution/{solution_id}/save",
+    ),
+    *_decision(
+        "never",
+        "cli",
+        "Returns the JSON Schema for the format, not a record in it. Developer "
+        "reference, and the OpenAPI page at /v1/docs already serves it. Note "
+        "/api/okw/export and /api/okw/schema are literally the same handler — "
+        "two decorators on one function in routes/okw.py.",
+        "/api/okh/export",
+        "/api/okw/export",
+        "/api/okw/schema",
+    ),
+    # --- Never: the UI cannot supply what the path needs -------------------
+    *_decision(
+        "never",
+        "blocked",
+        "An id-space mismatch, not a value judgement. These take a SUPPLY-TREE "
+        "id; every id the frontend holds is a SOLUTION id — /solutions, "
+        "/visualization/[solutionId], and save_solution all speak solutions. "
+        "Nothing in the UI has a supply-tree id to pass. The honest fix is a "
+        "solution-scoped variant on the backend, not a frontend workaround.",
+        "/api/supply-tree",
+        "/api/supply-tree/create",
+        "/api/supply-tree/{id}",
+        "/api/supply-tree/{id}/export",
+        "/api/supply-tree/{id}/optimize",
+        "/api/supply-tree/{id}/validate",
+        "/api/supply-tree/solution/load",
+    ),
+    *_decision(
+        "never",
+        "machine",
+        "Developer probes for the matching engine's internals. "
+        "/detect-domain takes two raw dicts and returns a confidence score for "
+        "the detection heuristic — anything a user wants from it, POST "
+        "/api/match already does implicitly, and the domain selector makes the "
+        "override explicit. /domains/{name}/health returns Python class names "
+        "and the string 'available': a registry smoke test, not a fact about "
+        "the system anyone can act on.",
+        "/api/match/detect-domain",
+        "/api/match/domains/{domain_name}/health",
+    ),
+    *_decision(
+        "never",
+        "superseded",
+        "The browser does this better. js-yaml is already a dependency, so a "
+        "dropped manifest is parsed client-side and handed to the existing "
+        "inline-manifest path — which gives the user a review step in "
+        "TieredEditor before matching, something a multipart upload endpoint "
+        "cannot. Choosing the endpoint would mean choosing the worse flow.",
+        "/api/match/upload",
+    ),
+    *_decision(
+        "never",
+        "superseded",
+        "Returns quality levels for a domain — the ids behind the three System "
+        "Modes. Not wired, because the modes are a CURATED preset over "
+        "(quality_level, strict_mode) with hand-written explanations of what "
+        "each trades away, and this returns ids with server-generated labels "
+        "and no strict_mode at all: it would replace three good explanations "
+        "with three worse ones and leave half the hardcode standing. REVISIT "
+        "when the domain selector ships and a caller can be in `cooking`, "
+        "whose contexts (home/commercial/professional) the three-preset model "
+        "cannot express — at that point this becomes the right source.",
+        "/api/utility/contexts",
+    ),
+    # --- Called by the UI; the scanner cannot see the URL ------------------
+    *_composed(
+        "The supply-tree artifact links build one base and hang suffixes off "
+        "it, so no source literal contains a whole path. Following that needs "
+        "expression evaluation rather than a regex; recording it is cheaper "
+        "and, unlike a looser regex, cannot go quietly wrong.",
+        "frontend/src/features/visualization/ArtifactLinks.tsx:25",
+        "/v1/api/supply-tree/solution/${solutionId}",
+        "/api/supply-tree/solution/{solution_id}/report",
+        "/api/supply-tree/solution/{solution_id}/export",
+    ),
+    # --- Planned: the backlog, deleted by the commit that wires the call ---
+    *_decision(
+        "planned",
+        "backlog",
+        "The asset lifecycle: register a physical unit, triage it, resolve "
+        "sourcing for what it needs, find harvestable parts across the fleet, "
+        "claim them. A full service, a CLI group and docs, and no web surface "
+        "at all — the largest single gap this table found. /api/okh/harvest-"
+        "parts belongs with them: it calls asset_service.salvage_match and "
+        "enriches components with fleet availability.",
+        "/api/asset/",
+        "/api/asset/{id}",
+        "/api/asset/{id}/triage",
+        "/api/asset/{id}/triage-report",
+        "/api/asset/{id}/triage-checklist",
+        "/api/asset/{id}/resolve-sourcing",
+        "/api/asset/salvage-match",
+        "/api/asset/{id}/claim-component",
+        "/api/okh/harvest-parts",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "Instance configuration that is edited as YAML on the server and has "
+        "no way to be inspected or reloaded from the app. Destined for a "
+        "/settings/matching panel: the capability rules, the process taxonomy "
+        "and the file-type taxonomy all share one validate-then-apply shape.",
+        "/api/match/rules/",
+        "/api/match/rules/{domain}/{rule_id}",
+        "/api/match/rules/import",
+        "/api/match/rules/export",
+        "/api/match/rules/validate",
+        "/api/match/rules/compare",
+        "/api/match/rules/reset",
+        "/api/taxonomy/validate",
+        "/api/taxonomy/reload",
+        "/api/file-types/validate",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "The canonical file-type taxonomy. okhFilePath.ts::inferRenderTier is "
+        "a client-side regex duplicate of it, so a file type the regex has "
+        "never heard of falls to download_only even when the server knows how "
+        "to render it.",
+        "/api/file-types",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "Format conversion, CLI-only today: MSF datasheet export from a "
+        "design, and OKH-LOSH TOML / MSF datasheet import. Both importers "
+        "return a manifest WITHOUT saving, which makes them a better fit for "
+        "the guided create flow than /api/okh/upload — the file can land in "
+        "TieredEditor for review before anything is written.",
+        "/api/convert/to-datasheet",
+        "/api/convert/from-okh-losh",
+        "/api/convert/from-datasheet",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "Single-record interchange for designs and facilities: a blank "
+        "template to seed a create form (the frontend hand-maintains its own "
+        "literal today, which will drift from the model), file upload as an "
+        "entry method, and requirement/capability extraction — the endpoints "
+        "that answer 'what will matching actually look for here?', which is "
+        "the most useful thing to show beside a failed match. The repair-doc "
+        "pair is preview-then-commit, and its conservative merge has to be "
+        "stated in the UI or the semantics go invisible.",
+        "/api/okh/template",
+        "/api/okh/upload",
+        "/api/okh/extract",
+        "/api/okh/extract-repair-docs",
+        "/api/okh/import-repair-doc",
+        "/api/okw/template",
+        "/api/okw/upload",
+        "/api/okw/extract",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "Collection interchange — one archive, one flow, with a compare step "
+        "between export and import so a maintainer sees what an import would "
+        "do before it happens. One page, unlike the single-record endpoints "
+        "above, which belong on the page that owns the record.",
+        "/api/okh/export-collection",
+        "/api/okh/diff-collection",
+        "/api/okh/import-collection",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "Solutions carry a TTL and expire, and nothing in the UI says so: "
+        "/staleness and /extend turn an invisible server behaviour into "
+        "something a caller can act on. /hierarchy is the one supply-tree read "
+        "that adds data the visualization bundle does not carry — component "
+        "parent/child structure. /trees is the filterable index into the "
+        "graph.",
+        "/api/supply-tree/solution/{solution_id}/staleness",
+        "/api/supply-tree/solution/{solution_id}/extend",
+        "/api/supply-tree/solution/{solution_id}/hierarchy",
+        "/api/supply-tree/solution/{solution_id}/trees",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "Packages beyond this node. The list shows only what this node built, "
+        "so /remote, /push and /pull are the missing half. /verify checks "
+        "package integrity and /verify-signature checks the Ed25519 signature "
+        "over the file manifest — the third and strongest check beside the "
+        "pin verification the detail page already offers.",
+        "/api/package/remote",
+        "/api/package/push",
+        "/api/package/pull",
+        "/api/package/{org}/{project}/{version}/verify",
+        "/api/package/{org}/{project}/{version}/verify-signature",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "The one federation endpoint that is not peer protocol: it takes a "
+        "peer_url and a bundle_hash, requires write, and pulls a package INTO "
+        "this node with an allow_rebuild fallback. An outbound action by this "
+        "node's operator, which is exactly what the federation panel is for.",
+        "/api/federation/packages/fetch",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "MatchRequest already carries an optional `domain`, auto-detected when "
+        "absent, and the UI has no way to set it. /domains is richer than the "
+        "/api/utility/domains the app calls today — it carries status, version "
+        "and supported input types. /validate and /simulate take a supply tree "
+        "and belong on the visualization page rather than on Match.",
+        "/api/match/domains",
+        "/api/match/domains/{domain_name}",
+        "/api/match/validate",
+        "/api/match/simulate",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "LLM runtime state. The credentials panel can set a key and test it, "
+        "but cannot say whether generation will work right now — which is the "
+        "question a caller has when /okh/generate quietly degrades to "
+        "heuristic extraction. Note /providers cannot drive the provider "
+        "PICKER: it returns only instantiated providers, so a fresh node "
+        "returns [] and there is no way to add the first key.",
+        "/api/llm/health",
+        "/api/llm/providers",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
+        "An admin read of one space's claim. The spaces panel lists spaces but "
+        "cannot show the claim behind any of them.",
+        "/api/identity/spaces/{space_did}/claim",
+    ),
+)
+
+
+def uncalled_endpoint_paths() -> set[str]:
+    """Paths declared as not-called-by-the-browser, any status."""
+    return {e.path for e in UNCALLED_ENDPOINTS}
+
+
+def endpoints_by_status(status: str) -> tuple[Endpoint, ...]:
+    return tuple(e for e in UNCALLED_ENDPOINTS if e.status == status)
+
+
 # --- Public documentation status ----------------------------------------
 #
 # The public site (docs-site/) states plainly what works today. That claim must
@@ -344,7 +787,7 @@ AREAS: tuple[Area, ...] = (
 # `path` is the guides/ page documenting the capability, or None when the
 # capability is real enough for users to ask about but has no page yet. Rows
 # with path=None still appear on the generated "what's built" page, which is the
-# point: users need to know RFQ exists and isn't reachable yet.
+# point: a capability with no guide is still one users need to be able to find.
 
 DOC_STATUSES: frozenset[str] = frozenset(
     {"deployed", "in_progress", "roadmap", "non_goal"}
@@ -477,7 +920,6 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "deployed",
         path="guides/use-the-api.md",
     ),
-    # --- Not reachable from the web app yet -------------------------------
     SiteDoc(
         "okh",
         "Generate a design from a repository URL",
@@ -485,9 +927,22 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         path="guides/import-from-a-url.md",
         requires_fe_call="/api/okh/generate-from-url",
     ),
+    SiteDoc(
+        "rfq",
+        "Generate requests for quotation",
+        "deployed",
+        requires_fe_call="/api/rfq/generate",
+    ),
+    # --- Named so users can ask, not built yet ----------------------------
+    #
+    # This block said "Not reachable from the web app yet" and had stopped
+    # being true of its own contents: the row directly beneath it was
+    # `deployed` with frontend evidence, and RFQ — which ships with a nav row,
+    # a `g r` chord and a handoff from Match — sat here claiming `roadmap`.
+    # A section header that means nothing teaches the next reader to skip it,
+    # so this one now says only what the rows below actually have in common.
     SiteDoc("okw", "Search facilities by name", "roadmap"),
     SiteDoc("convert", "Bulk-import a design collection", "roadmap"),
-    SiteDoc("rfq", "Generate requests for quotation", "roadmap"),
     SiteDoc("okw", "Search facilities by material and thickness", "roadmap"),
 )
 

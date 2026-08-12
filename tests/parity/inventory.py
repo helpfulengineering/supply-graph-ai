@@ -126,6 +126,185 @@ def actual_fe_api_prefixes(frontend_src: Path | None = None) -> set[str]:
     return prefixes
 
 
+# --- Per-endpoint frontend coverage --------------------------------------
+#
+# `actual_fe_api_prefixes` above answers "does the frontend touch this tag at
+# all". It cannot answer "does the frontend touch this endpoint", and the gap
+# between those two questions was most of the API: declaring
+# fe_api_prefixes=("/api/supply-tree",) is satisfied by one call and says
+# nothing about the other nineteen paths under that tag.
+#
+# The scan below answers the per-path question. It scans for the POSITIVE —
+# what the frontend calls — because the negative is declared in manifest.py,
+# where the reasons live. A hand-written list of *called* endpoints would be
+# the thing under test: delete a feature and its row stays behind, green.
+
+# A path parameter as it appears in frontend source. Deliberately not
+# "any identifier": a bare-word wildcard makes "/api/supply-tree/{id}" match
+# the literal "/api/supply-tree/solutions", crediting a sibling endpoint with a
+# call it never receives.
+_PARAM = r"(?:\$\{[^}`'\"]*\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}|:[A-Za-z_]+)"
+
+# What may sit immediately before a path: a quote, or `}` — the close of an
+# interpolation, which is how the raw-fetch call sites are written
+# (`${apiBaseUrl}/api/okw/spaces`). Without `}` the scan misses them entirely.
+_BEFORE = r"""(?:["'`]|\})"""
+
+# What may sit immediately after: a quote; a trailing slash then a quote; a
+# query string; or `${` — an interpolation glued to the tail of the last
+# literal segment, which is the `/api/identity/bindings${q}` shape.
+_AFTER = r"""(?:["'`]|/["'`]|\?[^"'`]*["'`]|\$\{)"""
+
+# The untyped client (src/api/client.ts) prefixes every path with /v1/api, so
+# its call sites spell "/api/package/list" as "/package/list". Resolved by
+# import rather than hardcoded: a fourth island module should be picked up
+# without editing this file.
+_ISLAND_CLIENT = ("frontend", "src", "api", "client.ts")
+
+# Directories whose mention of a path proves nothing about the app calling it.
+_SCAN_EXCLUDED = (
+    # Generated from the spec — every path appears whether called or not.
+    "src/api/generated/",
+    # A mock is not a caller. handlers.ts alone names 40+ paths.
+    "src/test/",
+    # The demo world's (method, pathname) -> fixture table, same reason.
+    "src/lib/demo/",
+    # Catch-all proxies. They forward everything and prove nothing about any
+    # one endpoint.
+    "app/v1/",
+    "app/docs/",
+)
+
+
+def _scan_sources(roots: list[Path]) -> list[tuple[str, str, bool]]:
+    """(relative path, text, is-island-caller) for frontend app sources."""
+    out: list[tuple[str, str, bool]] = []
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix not in {".ts", ".tsx"}:
+                continue
+            rel = path.relative_to(_REPO_ROOT).as_posix()
+            scan_rel = path.relative_to(root.parent).as_posix()
+            if any(scan_rel.startswith(skip) for skip in _SCAN_EXCLUDED):
+                continue
+            if ".test." in rel or ".spec." in rel:
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            out.append((rel, text, _imports_island_client(path, text)))
+    return out
+
+
+def _imports_island_client(path: Path, text: str) -> bool:
+    """Does this file import the untyped /v1/api client?
+
+    Resolved rather than pattern-matched, because `from "./client"` means
+    src/api/client.ts in src/api/rfq.ts and src/api/ohm/client.ts — a different
+    module, with a different prefix — one directory down.
+    """
+    island = _REPO_ROOT.joinpath(*_ISLAND_CLIENT)
+    for spec in re.findall(r"""from\s+["']([^"']+)["']""", text):
+        if spec.startswith("@/"):
+            resolved = _REPO_ROOT / "frontend" / "src" / spec[2:]
+        elif spec.startswith("."):
+            resolved = (path.parent / spec).resolve()
+        else:
+            continue
+        if resolved.with_suffix(".ts") == island:
+            return True
+    return False
+
+
+def _call_site_patterns(api_path: str) -> list[re.Pattern[str]]:
+    """Regexes matching how `api_path` can be spelled at a call site.
+
+    Two spellings, because the app has two clients: the typed one writes the
+    OpenAPI path verbatim, optionally behind /v1; the island strips /api.
+    """
+
+    def compile_for(literal: str) -> re.Pattern[str]:
+        body = "".join(
+            _PARAM if seg.startswith("{") and seg.endswith("}") else re.escape(seg)
+            for seg in re.split(r"(\{[^}]+\})", literal)
+            if seg
+        )
+        return re.compile(f"{_BEFORE}(?:/v1)?{body}{_AFTER}")
+
+    patterns = [compile_for(api_path)]
+    if api_path.startswith("/api/"):
+        patterns.append(compile_for(api_path[len("/api") :]))
+    return patterns
+
+
+def fe_api_call_sites(roots: list[Path] | None = None) -> dict[str, str]:
+    """Map each OpenAPI path the frontend calls to the ``file:line`` proving it.
+
+    Evidence rather than a bare set, so a failure can name the call site instead
+    of leaving the reader to grep for it.
+    """
+    frontend = _REPO_ROOT / "frontend"
+    sources = _scan_sources(roots or [frontend / "src", frontend / "app"])
+    found: dict[str, str] = {}
+    for api_path in openapi_paths():
+        typed, *island = _call_site_patterns(api_path)
+        for rel, text, is_island in sources:
+            match = typed.search(text) or (
+                island[0].search(text) if island and is_island else None
+            )
+            if match:
+                line = text.count("\n", 0, match.start()) + 1
+                found[api_path] = f"{rel}:{line}"
+                break
+    return found
+
+
+def fe_called_api_paths(roots: list[Path] | None = None) -> set[str]:
+    """OpenAPI paths with at least one frontend call site."""
+    return set(fe_api_call_sites(roots))
+
+
+def fe_calls(needle: str) -> bool:
+    """Does frontend app code reach ``needle``?
+
+    Two shapes, because SiteDoc rows carry both. A prefix ("/api/okh") is a
+    substring question. An exact path ("/api/rfq/generate") is a coverage
+    question, and asking it as a substring gets the wrong answer: the island
+    strips /api, so that endpoint is spelled "/rfq/generate" at its call site
+    and a substring search would report a shipped feature as unbuilt.
+    """
+    if needle in fe_called_api_paths():
+        return True
+    frontend = _REPO_ROOT / "frontend"
+    return any(
+        needle in text
+        for _, text, _ in _scan_sources([frontend / "src", frontend / "app"])
+    )
+
+
+def openapi_paths() -> set[str]:
+    """Paths served by the versioned FastAPI app.
+
+    Read from the live app rather than frontend/src/api/generated/schema.d.ts:
+    that file is a lagging artifact, and reading it would exempt every endpoint
+    shipped since the last regeneration from the gate — the opposite of a
+    ratchet. ``openapi()`` also normalizes FastAPI's converters, so
+    "{content_hash:path}" arrives as "{content_hash}", matching declared rows.
+    """
+    from src.core.main import api_v1
+
+    return set(api_v1.openapi()["paths"])
+
+
+def schema_d_ts_paths(schema: Path | None = None) -> set[str]:
+    """Paths present in the committed typed-client schema."""
+    target = schema or (
+        _REPO_ROOT / "frontend" / "src" / "api" / "generated" / "schema.d.ts"
+    )
+    text = target.read_text(encoding="utf-8")
+    return set(re.findall(r'^\s{4}"(/[^"]*)":', text, re.MULTILINE))
+
+
 def layer_diff(expected: set[str], actual: set[str]) -> dict[str, list[str]]:
     """Compare declared manifest inventory to live enumeration."""
     return {
