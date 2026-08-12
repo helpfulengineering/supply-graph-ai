@@ -31,6 +31,7 @@ import {
   visibilityFixture,
   disclosureFixture,
   disclosurePreviewFixture,
+  fileTypesFixture,
   llmCredentialsFixture,
   llmHealthFixture,
   llmProvidersFixture,
@@ -45,6 +46,7 @@ export const handlers = [
   // Before the generic */health below: that pattern's leading wildcard also
   // matches /v1/api/llm/health, so the node's liveness fixture would answer
   // the LLM service's health check.
+  http.get("*/v1/api/file-types", () => HttpResponse.json(fileTypesFixture)),
   http.get("*/v1/api/llm/health", () => HttpResponse.json(llmHealthFixture)),
   http.get("*/v1/api/llm/providers", () =>
     HttpResponse.json(llmProvidersFixture),

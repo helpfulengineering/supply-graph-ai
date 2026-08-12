@@ -134,6 +134,7 @@ AREAS: tuple[Area, ...] = (
         "file-types",
         "exposed",
         note="No file_types_service module; logic lives under src/core/taxonomy/file_type_taxonomy.py.",
+        fe_api_prefixes=("/api/file-types",),
     ),
     Area(
         "federation",
@@ -636,15 +637,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/taxonomy/validate",
         "/api/taxonomy/reload",
         "/api/file-types/validate",
-    ),
-    *_decision(
-        "planned",
-        "backlog",
-        "The canonical file-type taxonomy. okhFilePath.ts::inferRenderTier is "
-        "a client-side regex duplicate of it, so a file type the regex has "
-        "never heard of falls to download_only even when the server knows how "
-        "to render it.",
-        "/api/file-types",
     ),
     *_decision(
         "planned",

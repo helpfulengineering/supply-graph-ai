@@ -6,6 +6,7 @@ import {
   fileBasename,
   fileDirectory,
   inferRenderTier,
+  renderTierFrom,
   isImageFile,
   normalizeDisplayPath,
   ROOT_DIRECTORY_LABEL,
@@ -121,5 +122,41 @@ describe("preview inference without API enrichment", () => {
     expect(file.render_tier).toBe("native_inline");
     expect(canPreviewFile(file)).toBe(true);
     expect(isImageFile(file)).toBe(true);
+  });
+});
+
+describe("renderTierFrom", () => {
+  const taxonomy = new Map([
+    ["step", { render_tier: "wasm_3d" }],
+    ["md", { render_tier: "text_viewer" }],
+    ["weird", { render_tier: "holodeck" }],
+  ]);
+
+  it("uses the server taxonomy for a type the regex has never heard of", () => {
+    // .step is the case this exists for: the client regex knows stl/obj/ply,
+    // so a STEP model was landing on download_only while the server knew it
+    // was a 3D model.
+    expect(inferRenderTier("parts/bracket.step")).toBe("download_only");
+    expect(renderTierFrom("parts/bracket.step", taxonomy)).toBe("wasm_3d");
+  });
+
+  it("falls back to the regex when no taxonomy is loaded", () => {
+    // A failed fetch must leave the browser behaving exactly as before.
+    expect(renderTierFrom("docs/index.md")).toBe("text_viewer");
+    expect(renderTierFrom("parts/bracket.step")).toBe("download_only");
+  });
+
+  it("ignores a tier this build cannot render", () => {
+    // A server that grows a new tier should degrade here, not hand the viewer
+    // a mode it has no branch for.
+    expect(renderTierFrom("thing.weird", taxonomy)).toBe("download_only");
+  });
+
+  it("is case-insensitive about the extension", () => {
+    expect(renderTierFrom("Parts/BRACKET.STEP", taxonomy)).toBe("wasm_3d");
+  });
+
+  it("falls back for a path with no extension", () => {
+    expect(renderTierFrom("LICENSE", taxonomy)).toBe("download_only");
   });
 });

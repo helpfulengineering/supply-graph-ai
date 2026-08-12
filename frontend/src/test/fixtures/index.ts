@@ -1045,7 +1045,49 @@ export const llmProvidersFixture = {
   available_providers: ["anthropic"],
 };
 
+export const fileTypesFixture = {
+  status: "success",
+  message: "File type taxonomy retrieved successfully",
+  data: {
+    total: 3,
+    source: "config/file_types.yaml",
+    file_types: [
+      {
+        canonical_id: "image.raster",
+        display_name: "Raster image",
+        parent: "image",
+        extensions: ["png", "jpg"],
+        mime_types: ["image/png"],
+        okh_role: "documentation",
+        render_tier: "native_inline",
+      },
+      {
+        canonical_id: "cad.step",
+        display_name: "STEP model",
+        parent: "cad",
+        // The point of the fixture: the client regex has never heard of .step,
+        // so without the taxonomy this file falls to download_only.
+        extensions: ["step", "stp"],
+        mime_types: ["model/step"],
+        okh_role: "design",
+        render_tier: "wasm_3d",
+      },
+      {
+        canonical_id: "doc.markdown",
+        display_name: "Markdown",
+        parent: "doc",
+        extensions: ["md"],
+        mime_types: ["text/markdown"],
+        okh_role: "documentation",
+        render_tier: "text_viewer",
+      },
+    ],
+  },
+};
+
+
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/file-types": fileTypesFixture,
   "/v1/api/asset": assetListFixture,
   "/v1/api/asset/": assetListFixture,
   [`/v1/api/asset/${ASSET_ID}`]: assetDetailFixture,
