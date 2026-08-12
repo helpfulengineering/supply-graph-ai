@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router-dom";
@@ -54,17 +54,25 @@ const cookingNavState: CookingRfqNavigationState = {
         production_stage: "",
         metadata: {},
       },
-      facility: { id: "kitchen-1", name: "Test Kitchen", location: { city: "", country: "" } },
+      facility: {
+        id: "kitchen-1",
+        name: "Test Kitchen",
+        location: { city: "", country: "" },
+        manufacturing_processes: [],
+      },
     },
   ],
 };
 
 describe("RfqView — cooking domain", () => {
   it("generates a recipe-flavoured RFQ, skipping the OKH manifest fetch", async () => {
-    let capturedBody: Record<string, unknown> | null = null;
+    let resolveBody: (body: Record<string, unknown>) => void;
+    const bodyPromise = new Promise<Record<string, unknown>>((resolve) => {
+      resolveBody = resolve;
+    });
     server.use(
       http.post("*/v1/api/rfq/generate", async ({ request }) => {
-        capturedBody = (await request.json()) as Record<string, unknown>;
+        resolveBody((await request.json()) as Record<string, unknown>);
         return HttpResponse.json({
           status: "success",
           message: "ok",
@@ -99,14 +107,14 @@ describe("RfqView — cooking domain", () => {
 
     await user.click(screen.getByRole("button", { name: /Generate 1 RFQ/ }));
 
-    await waitFor(() => expect(capturedBody).not.toBeNull());
-    expect(capturedBody).toMatchObject({
+    const body = await bodyPromise;
+    expect(body).toMatchObject({
       domain: "cooking",
       recipe_id: "recipe-1",
       recipe_title: "Chocolate Chip Cookies",
     });
-    expect(capturedBody?.okh_id).toBeUndefined();
-    expect(capturedBody?.okh_manifest).toBeUndefined();
+    expect(body.okh_id).toBeUndefined();
+    expect(body.okh_manifest).toBeUndefined();
 
     expect(await screen.findByText("RFQ-1", { exact: false })).toBeInTheDocument();
   });
