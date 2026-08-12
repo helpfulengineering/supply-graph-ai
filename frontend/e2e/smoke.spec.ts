@@ -11,7 +11,9 @@ test("home page renders the app shell", async ({ page }) => {
   // Chrome present: the header's home link is the mark now, so it is found by
   // its accessible name rather than by visible wordmark text.
   await expect(
-    page.getByRole("banner").getByRole("link", { name: /open hardware manager/i }),
+    page
+      .getByRole("banner")
+      .getByRole("link", { name: /open hardware manager/i }),
   ).toBeVisible();
 });
 

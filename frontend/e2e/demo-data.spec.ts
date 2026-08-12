@@ -33,20 +33,30 @@ const DEMO_DESIGNS = [
 
 test("catalog lists every seeded design", async ({ page }) => {
   await page.goto("/okh");
-  await expect(page.getByRole("heading", { name: /open hardware designs/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /open hardware designs/i }),
+  ).toBeVisible();
   for (const title of DEMO_DESIGNS) {
-    await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: title, exact: true }),
+    ).toBeVisible();
   }
 });
 
-test("category facet narrows to the designs that derive it", async ({ page }) => {
+test("category facet narrows to the designs that derive it", async ({
+  page,
+}) => {
   await page.goto("/okh");
   // Medical & PPE is derived from "ventilator" / "shield", so exactly the two
   // medical designs carry it. Derivation lives in features/okh/categories.ts.
   await page.getByRole("checkbox", { name: /Medical & PPE/ }).click();
   await expect(page).toHaveURL(/category=Medical/);
-  await expect(page.getByRole("heading", { name: "Open Ventilator" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Face Shield" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Open Ventilator" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Face Shield" }),
+  ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Grain Mill" })).toBeHidden();
 });
 
@@ -54,12 +64,16 @@ test("search narrows the catalog and survives a reload", async ({ page }) => {
   await page.goto("/okh");
   await page.getByPlaceholder(/search designs/i).fill("microscope");
   await expect(page).toHaveURL(/q=microscope/);
-  await expect(page.getByRole("heading", { name: "Microscope Stage" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Microscope Stage" }),
+  ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Grain Mill" })).toBeHidden();
 
   // The catalog's whole state lives in the URL; a cold load must restore it.
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Microscope Stage" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Microscope Stage" }),
+  ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Grain Mill" })).toBeHidden();
 });
 
@@ -75,13 +89,18 @@ test("a design deep-links to its detail page", async ({ page }) => {
   await expect(page.getByText(/not found/i)).toHaveCount(0);
 });
 
-test("matching a single-source design yields exactly one solution", async ({ page }) => {
+test("matching a single-source design yields exactly one solution", async ({
+  page,
+}) => {
   // Microscope Stage needs precision_grinding, which only Rotterdam Precision
   // Works has. One design, one buildable facility, one solution — the tightest
   // assertion the seeded world supports.
   await page.goto("/match");
   await page.getByText("Microscope Stage", { exact: true }).first().click();
-  await page.getByText(/select all visible/i).first().click();
+  await page
+    .getByText(/select all visible/i)
+    .first()
+    .click();
 
   const run = page.getByRole("button", { name: /run match/i }).first();
   await expect(run).toBeEnabled();
@@ -95,8 +114,14 @@ test("matching a single-source design yields exactly one solution", async ({ pag
 test("a match carries through to a rendered supply tree", async ({ page }) => {
   await page.goto("/match");
   await page.getByText("Bias Tape Maker", { exact: true }).first().click();
-  await page.getByText(/select all visible/i).first().click();
-  await page.getByRole("button", { name: /run match/i }).first().click();
+  await page
+    .getByText(/select all visible/i)
+    .first()
+    .click();
+  await page
+    .getByRole("button", { name: /run match/i })
+    .first()
+    .click();
 
   const tree = page.locator('a[href*="/visualization/"]').first();
   await expect(tree).toBeVisible({ timeout: 30_000 });
@@ -107,9 +132,11 @@ test("a match carries through to a rendered supply tree", async ({ page }) => {
   await tree.click();
   await page.waitForURL(/\/visualization\//, { timeout: 30_000 });
 
-  await expect(page.getByRole("heading", { name: /supply tree/i })).toBeVisible({
-    timeout: 30_000,
-  });
+  await expect(page.getByRole("heading", { name: /supply tree/i })).toBeVisible(
+    {
+      timeout: 30_000,
+    },
+  );
   // The graph (cytoscape) and the facility chart (echarts) both draw to canvas;
   // their presence is what proves the client-only boundaries actually mounted.
   await expect(page.locator("canvas").first()).toBeVisible({ timeout: 30_000 });
@@ -123,7 +150,9 @@ test("seeded facilities appear on the network surface", async ({ page }) => {
   const search = page.getByLabel(/search by name/i);
   await expect(search).toBeVisible({ timeout: 30_000 });
   await search.fill("Rotterdam");
-  await expect(page.getByText("Rotterdam Precision Works").first()).toBeVisible({
-    timeout: 30_000,
-  });
+  await expect(page.getByText("Rotterdam Precision Works").first()).toBeVisible(
+    {
+      timeout: 30_000,
+    },
+  );
 });

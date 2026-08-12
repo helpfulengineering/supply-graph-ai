@@ -31,6 +31,7 @@ const ROUTES = [
   "/icons",
   "/assets",
   "/assets/salvage",
+  "/okh/collection",
 ];
 // Deliberately not here: /operator-tools. Its crumb links to three panels on
 // the page, but the route 404s unless the site layer is configured, and this
@@ -60,6 +61,8 @@ const MIN_LINKS: Record<string, number> = {
   "/assets": 3,
   // "harvestable" is text: it names the filter this page applies.
   "/assets/salvage": 2,
+  // export · compare · import, all three anchors on a page with no tabs.
+  "/okh/collection": 3,
 };
 
 /**

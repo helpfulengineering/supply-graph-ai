@@ -650,17 +650,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "Collection interchange — one archive, one flow, with a compare step "
-        "between export and import so a maintainer sees what an import would "
-        "do before it happens. One page, unlike the single-record endpoints "
-        "above, which belong on the page that owns the record.",
-        "/api/okh/export-collection",
-        "/api/okh/diff-collection",
-        "/api/okh/import-collection",
-    ),
-    *_decision(
-        "planned",
-        "backlog",
         "Solutions carry a TTL and expire, and nothing in the UI says so: "
         "/staleness and /extend turn an invisible server behaviour into "
         "something a caller can act on. /hierarchy is the one supply-tree read "
@@ -889,6 +878,12 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "deployed",
         requires_fe_call="/api/rfq/generate",
     ),
+    SiteDoc(
+        "convert",
+        "Bulk-import a design collection",
+        "deployed",
+        requires_fe_call="/api/okh/import-collection",
+    ),
     # --- Named so users can ask, not built yet ----------------------------
     #
     # This block said "Not reachable from the web app yet" and had stopped
@@ -898,7 +893,6 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
     # A section header that means nothing teaches the next reader to skip it,
     # so this one now says only what the rows below actually have in common.
     SiteDoc("okw", "Search facilities by name", "roadmap"),
-    SiteDoc("convert", "Bulk-import a design collection", "roadmap"),
     SiteDoc("okw", "Search facilities by material and thickness", "roadmap"),
 )
 

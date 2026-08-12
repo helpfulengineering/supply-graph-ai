@@ -78,7 +78,9 @@ test("the Operator Tools route exists only when the layer is on", async ({
   }
 });
 
-test("Operator Tools gates entry, and dismissal is not a dead end", async ({ page }) => {
+test("Operator Tools gates entry, and dismissal is not a dead end", async ({
+  page,
+}) => {
   // The default posture has no route to gate: the test above asserts it 404s,
   // and the one below asserts — in both postures — that no gate ever blocks
   // the app itself. Re-navigating to the 404 here would add nothing.

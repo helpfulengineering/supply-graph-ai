@@ -21,7 +21,9 @@ test("? opens and closes the sitemap", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Site menu" })).toBeHidden();
 });
 
-test("Escape closes the drawer and returns focus to the burger", async ({ page }) => {
+test("Escape closes the drawer and returns focus to the burger", async ({
+  page,
+}) => {
   await page.goto("/");
   await keysReady(page);
   const burger = page.getByRole("button", { name: "Site menu" });
@@ -35,8 +37,10 @@ test("Escape closes the drawer and returns focus to the burger", async ({ page }
 test("t cycles the theme and m flips the mode", async ({ page }) => {
   await page.goto("/");
   await keysReady(page);
-  const world = () => page.evaluate(() => document.documentElement.dataset.ttmTheme);
-  const dark = () => page.evaluate(() => document.documentElement.classList.contains("dark"));
+  const world = () =>
+    page.evaluate(() => document.documentElement.dataset.ttmTheme);
+  const dark = () =>
+    page.evaluate(() => document.documentElement.classList.contains("dark"));
 
   const before = await world();
   await page.keyboard.press("t");
@@ -50,7 +54,7 @@ test("t cycles the theme and m flips the mode", async ({ page }) => {
 for (const [key, href] of Object.entries(CHORD_ROUTES)) {
   test(`g then ${key} navigates to ${href}`, async ({ page }) => {
     await page.goto("/");
-  await keysReady(page);
+    await keysReady(page);
     await page.keyboard.press("g");
     await page.keyboard.press(key);
     await page.waitForURL((url) => url.pathname === href, { timeout: 10_000 });
@@ -63,7 +67,9 @@ test("shortcuts do not fire while typing", async ({ page }) => {
   await keysReady(page);
   const search = page.getByPlaceholder(/search designs/i);
   await search.click();
-  const before = await page.evaluate(() => document.documentElement.dataset.ttmTheme);
+  const before = await page.evaluate(
+    () => document.documentElement.dataset.ttmTheme,
+  );
 
   // One keystroke, not a sequence: the catalog writes every keystroke to the
   // URL, so a multi-character sequence races that round-trip under parallel
@@ -73,12 +79,14 @@ test("shortcuts do not fire while typing", async ({ page }) => {
 
   await expect(search).toHaveValue("t");
   expect(new URL(page.url()).pathname).toBe("/okh");
-  expect(await page.evaluate(() => document.documentElement.dataset.ttmTheme)).toBe(
-    before,
-  );
+  expect(
+    await page.evaluate(() => document.documentElement.dataset.ttmTheme),
+  ).toBe(before);
 });
 
-test("/help documents every shortcut and route the chrome binds", async ({ page }) => {
+test("/help documents every shortcut and route the chrome binds", async ({
+  page,
+}) => {
   // Help is generated from NAV_GROUPS and SHORTCUTS, so this asserts the
   // contract itself rather than a hand-maintained copy of it.
   await page.goto("/help");
@@ -95,5 +103,7 @@ test("/help documents every shortcut and route the chrome binds", async ({ page 
     ).toHaveCount(1);
   }
 
-  await expect(page.getByRole("heading", { name: /accessibility/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /accessibility/i }),
+  ).toBeVisible();
 });

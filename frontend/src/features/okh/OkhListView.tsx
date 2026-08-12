@@ -174,7 +174,17 @@ export function OkhListView() {
             ]}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {/* The collection page is an operation ON the catalogue, so it is
+              reached from here rather than from the menu — navEntryFor resolves
+              /okh/collection to Designs by prefix, which is the correct
+              reading of what it is. */}
+          <Button
+            variant="outline"
+            onClick={() => router.push("/okh/collection")}
+          >
+            Collection
+          </Button>
           {/* Generation needs no write key: it produces a file to download, and
               deliberately does not save to the catalogue. */}
           <Button

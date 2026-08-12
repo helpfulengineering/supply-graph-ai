@@ -33,14 +33,18 @@ test("chart ramp resolves to five distinct colours in every variant", async ({
         [slug, mode],
       );
 
-      expect(stops.every((s) => s.length > 0), `${label} ${mode}: unresolved stop`).toBe(
-        true,
-      );
+      expect(
+        stops.every((s) => s.length > 0),
+        `${label} ${mode}: unresolved stop`,
+      ).toBe(true);
       if (new Set(stops).size !== stops.length) {
         collisions.push(`${label} ${mode}: ${stops.join(" ")}`);
       }
     }
   }
 
-  expect(collisions, `chart ramp collisions:\n${collisions.join("\n")}`).toEqual([]);
+  expect(
+    collisions,
+    `chart ramp collisions:\n${collisions.join("\n")}`,
+  ).toEqual([]);
 });

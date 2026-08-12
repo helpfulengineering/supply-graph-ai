@@ -89,16 +89,18 @@ async function mockGenerateJobs(
     });
   });
 
-  await page.route(`**/api/okh/generate-from-url/jobs/${jobId}/revoke`, (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        job_id: jobId,
-        state: "REVOKED",
-        message: "Job cancelled",
+  await page.route(
+    `**/api/okh/generate-from-url/jobs/${jobId}/revoke`,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          job_id: jobId,
+          state: "REVOKED",
+          message: "Job cancelled",
+        }),
       }),
-    }),
   );
 }
 
@@ -126,13 +128,18 @@ test("real API: submit-then-poll completes with a progress bar", async ({
   });
   // Heuristic-only path should finish well under the old 120s proxy ceiling.
   await expect(page.getByLabel("Title")).toBeVisible({ timeout: 120_000 });
-  await expect(page.getByRole("button", { name: "Download YAML" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Download YAML" }),
+  ).toBeVisible();
 });
 
 test("rejects an unsupported host before calling the API (mocked)", async ({
   page,
 }, testInfo) => {
-  test.skip(testInfo.project.name === "real-api", "asserts client-side validation");
+  test.skip(
+    testInfo.project.name === "real-api",
+    "asserts client-side validation",
+  );
   let called = false;
   await page.route("**/api/okh/generate-from-url/jobs", (route) => {
     called = true;
@@ -143,7 +150,9 @@ test("rejects an unsupported host before calling the API (mocked)", async ({
   await page.getByLabel(/Repository URL/i).fill("https://bitbucket.org/a/b");
   await page.getByRole("button", { name: "Generate" }).click();
 
-  await expect(page.getByRole("alert")).toContainText(/only public github and gitlab/i);
+  await expect(page.getByRole("alert")).toContainText(
+    /only public github and gitlab/i,
+  );
   expect(called).toBe(false);
 });
 
@@ -154,13 +163,17 @@ test("generates, then guides review of the result (mocked)", async ({
   await mockGenerateJobs(page);
 
   await page.goto("/okh/generate");
-  await page.getByLabel(/Repository URL/i).fill("https://github.com/nasa-jpl/rover");
+  await page
+    .getByLabel(/Repository URL/i)
+    .fill("https://github.com/nasa-jpl/rover");
   await page.getByRole("button", { name: "Generate" }).click();
 
   await expect(page.getByRole("progressbar").first()).toBeVisible();
 
   // Quality banner warns about the missing required field without blocking.
-  await expect(page.getByText(/1 required field could not be extracted/i)).toBeVisible();
+  await expect(
+    page.getByText(/1 required field could not be extracted/i),
+  ).toBeVisible();
   await expect(page.getByText("Add a description")).toBeVisible();
 
   // Tier 1 is present and pre-filled from the extraction.
@@ -168,9 +181,9 @@ test("generates, then guides review of the result (mocked)", async ({
   await expect(page.getByLabel("Licensor name")).toHaveValue("JPL");
 
   // Tier 2 list fields render as chips.
-  await expect(page.getByRole("list", { name: "Manufacturing processes values" })).toContainText(
-    "3D Printing",
-  );
+  await expect(
+    page.getByRole("list", { name: "Manufacturing processes values" }),
+  ).toContainText("3D Printing");
 
   // Both formats are offered, and both are gated until required fields are valid.
   const yaml = page.getByRole("button", { name: "Download YAML" });
@@ -182,7 +195,9 @@ test("generates, then guides review of the result (mocked)", async ({
   await expect(json).toBeEnabled();
 });
 
-test("downloads the reviewed manifest as YAML (mocked)", async ({ page }, testInfo) => {
+test("downloads the reviewed manifest as YAML (mocked)", async ({
+  page,
+}, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
   await mockGenerateJobs(page, {
     manifest: { ...MANIFEST, function: "Drives around" },
@@ -190,7 +205,9 @@ test("downloads the reviewed manifest as YAML (mocked)", async ({ page }, testIn
   });
 
   await page.goto("/okh/generate");
-  await page.getByLabel(/Repository URL/i).fill("https://github.com/nasa-jpl/rover");
+  await page
+    .getByLabel(/Repository URL/i)
+    .fill("https://github.com/nasa-jpl/rover");
   await page.getByRole("button", { name: "Generate" }).click();
 
   await page.getByLabel("Title").fill("Renamed Rover");
@@ -240,12 +257,16 @@ test("hands the reviewed design off to match without saving it (mocked)", async 
   });
 
   await page.goto("/okh/generate");
-  await page.getByLabel(/Repository URL/i).fill("https://github.com/nasa-jpl/rover");
+  await page
+    .getByLabel(/Repository URL/i)
+    .fill("https://github.com/nasa-jpl/rover");
   await page.getByRole("button", { name: "Generate" }).click();
   await page.getByRole("button", { name: "Find who can build this" }).click();
 
   await expect(page.getByText("Open Source Rover")).toBeVisible();
-  await expect(page.getByText(/not been saved to the catalogue/i)).toBeVisible();
+  await expect(
+    page.getByText(/not been saved to the catalogue/i),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: /Run Match/i }).click();
   await expect.poll(() => matchBody).not.toBeNull();

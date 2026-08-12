@@ -26,7 +26,11 @@ const TRAILS: Array<{ route: string; root: string; rootHref: string }> = [
     root: "Packages",
     rootHref: "/packages",
   },
-  { route: "/assets/11111111-1111-4111-8111-111111111111", root: "Assets", rootHref: "/assets" },
+  {
+    route: "/assets/11111111-1111-4111-8111-111111111111",
+    root: "Assets",
+    rootHref: "/assets",
+  },
   { route: "/assets/new", root: "Assets", rootHref: "/assets" },
   {
     route: "/assets/11111111-1111-4111-8111-111111111111/triage",

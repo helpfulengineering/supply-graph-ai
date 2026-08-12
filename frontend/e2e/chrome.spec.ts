@@ -8,7 +8,9 @@ import { NAV_GROUPS } from "../src/components/layout/nav";
  * about its chrome — plus the disclosure semantics the drawer promises.
  */
 
-test("every sitemap entry renders in the drawer with its role line", async ({ page }) => {
+test("every sitemap entry renders in the drawer with its role line", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Site menu" }).click();
   const nav = page.getByRole("navigation", { name: "Primary navigation" });
@@ -30,7 +32,9 @@ test("open drawer passes the a11y scan", async ({ page }) => {
   await expectNoA11yViolations(page);
 });
 
-test("drawer traps focus, closes on Escape, and returns focus", async ({ page }) => {
+test("drawer traps focus, closes on Escape, and returns focus", async ({
+  page,
+}) => {
   await page.goto("/");
   const burger = page.getByRole("button", { name: "Site menu" });
   await burger.click();
@@ -63,7 +67,9 @@ test("current route carries aria-current in the sitemap", async ({ page }) => {
   await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
 });
 
-test("skip link is the first focusable element and lands on main", async ({ page }) => {
+test("skip link is the first focusable element and lands on main", async ({
+  page,
+}) => {
   await page.goto("/");
 
   // Asserted from document order rather than by counting Tab presses: under
@@ -73,7 +79,9 @@ test("skip link is the first focusable element and lands on main", async ({ page
   // matters and it holds in both dev and production.
   // Wait for the app to be in the DOM before reading document order, or the
   // evaluate can run against a shell that holds only the dev overlay.
-  await page.getByRole("link", { name: "Skip to content" }).waitFor({ state: "attached" });
+  await page
+    .getByRole("link", { name: "Skip to content" })
+    .waitFor({ state: "attached" });
 
   const firstFocusable = await page.evaluate(() => {
     const focusable = [
