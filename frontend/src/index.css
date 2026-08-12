@@ -10,11 +10,6 @@
 /* Enable class-based dark mode: apply dark: variants when .dark is on any ancestor */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Sensible link reset so NavLink/Link styling is predictable */
-a {
-  text-decoration: none;
-}
-
 /* The theme switch, as one crossfade.
    The world changes inside a view transition (see applyThemeChange in
    hooks/useDarkMode), so the browser holds the old frame until the new one is
@@ -289,6 +284,20 @@ a {
     /* The world's sans, not a fixed one: Terminal and Mono repoint this at the
        monospace face, which is what makes those worlds feel like consoles. */
     font-family: var(--ttm-font-sans);
+  }
+
+  /* Sensible link reset so NavLink/Link styling is predictable.
+
+     In `base` and not at the top level, because that difference decides whether
+     any link in the app can opt back in. Tailwind v4 emits its utilities inside
+     a cascade layer, and unlayered CSS beats layered CSS whatever the
+     specificity — so as a bare top-level rule this reset silently won against
+     `underline`, `hover:underline` and `decoration-*` on every anchor that
+     asked for them, and against `no-underline` too, which made those classes
+     look like they were doing the work. In the base layer it is what it reads
+     as: the default a utility overrides. */
+  a {
+    text-decoration: none;
   }
 }
 
