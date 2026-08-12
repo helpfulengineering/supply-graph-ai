@@ -6,21 +6,14 @@ import {
   listLLMCredentials,
   testLLMCredential,
   upsertLLMCredential,
+  LLM_PROVIDERS,
 } from "../../api/ohm/llm";
+import { LLMRuntimePanel } from "./LLMRuntimePanel";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL, PANEL_INSET } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 import { SECTION_TITLE } from "../../components/ui/typography";
-
-const PROVIDERS = [
-  "anthropic",
-  "openai",
-  "azure_openai",
-  "aws_bedrock",
-  "google",
-  "local",
-] as const;
 
 export function LLMCredentialsPanel() {
   const queryClient = useQueryClient();
@@ -97,6 +90,8 @@ export function LLMCredentialsPanel() {
         </p>
       )}
 
+      <LLMRuntimePanel />
+
       <section aria-labelledby="llm-credentials-form-heading" className={PANEL}>
         <h2 id="llm-credentials-form-heading" className={SECTION_TITLE}>
           Set provider key
@@ -109,7 +104,7 @@ export function LLMCredentialsPanel() {
               onChange={(e) => setProvider(e.target.value)}
               className={`${FIELD} mt-1 w-full`}
             >
-              {PROVIDERS.map((p) => (
+              {LLM_PROVIDERS.map((p) => (
                 <option key={p} value={p}>
                   {p}
                 </option>

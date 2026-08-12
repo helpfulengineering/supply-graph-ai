@@ -981,7 +981,9 @@ export const sourcingResolutionFixture = {
       component_name: "Control board",
       verdict: "fleet_available",
       part_number: "CB-7",
-      matches: [{ ...salvageMatchItemFixture, component_name: "Control board" }],
+      matches: [
+        { ...salvageMatchItemFixture, component_name: "Control board" },
+      ],
       match_count: 1,
     },
     {
@@ -1005,6 +1007,42 @@ export const claimComponentFixture = {
   claimed_by: "ana",
   claimed_at: "2026-08-12T09:00:00Z",
   message: "Component claimed",
+};
+
+export const llmHealthFixture = {
+  status: "success",
+  message: "LLM service healthy",
+  health_status: "healthy",
+  providers: {
+    anthropic: {
+      name: "anthropic",
+      type: "anthropic",
+      status: "healthy",
+      model: "claude-sonnet-4-5-20250929",
+      is_connected: true,
+      available_models: ["claude-sonnet-4-5-20250929"],
+      error: null,
+    },
+  },
+  metrics: {},
+};
+
+export const llmProvidersFixture = {
+  status: "success",
+  message: "1 provider available",
+  providers: [
+    {
+      name: "anthropic",
+      type: "anthropic",
+      status: "healthy",
+      model: "claude-sonnet-4-5-20250929",
+      is_connected: true,
+      available_models: ["claude-sonnet-4-5-20250929"],
+      error: null,
+    },
+  ],
+  default_provider: "anthropic",
+  available_providers: ["anthropic"],
 };
 
 export const fixturesByPath: Record<string, unknown> = {
@@ -1050,6 +1088,8 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/identity/directory": directoryFixture,
   "/v1/api/identity/identities": identitiesFixture,
   "/v1/api/llm/credentials": llmCredentialsFixture,
+  "/v1/api/llm/health": llmHealthFixture,
+  "/v1/api/llm/providers": llmProvidersFixture,
   "/v1/api/federation/status": federationStatusFixture,
   "/v1/api/federation/peers": federationPeersFixture,
   "/v1/api/package/list": packageListFixture,

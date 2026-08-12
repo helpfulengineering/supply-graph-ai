@@ -742,18 +742,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "LLM runtime state. The credentials panel can set a key and test it, "
-        "but cannot say whether generation will work right now — which is the "
-        "question a caller has when /okh/generate quietly degrades to "
-        "heuristic extraction. Note /providers cannot drive the provider "
-        "PICKER: it returns only instantiated providers, so a fresh node "
-        "returns [] and there is no way to add the first key.",
-        "/api/llm/health",
-        "/api/llm/providers",
-    ),
-    *_decision(
-        "planned",
-        "backlog",
         "An admin read of one space's claim. The spaces panel lists spaces but "
         "cannot show the claim behind any of them.",
         "/api/identity/spaces/{space_did}/claim",

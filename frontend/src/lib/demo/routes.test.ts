@@ -99,8 +99,11 @@ const WRITE_ONLY = [
   "/api/identity/keys/{key_id}",
   "/api/identity/grants/{grant_id}",
   "/api/identity/grants/bootstrap-edge",
-  "/api/llm/credentials/{param}",
-  "/api/llm/credentials/{param}/test",
+  // Spelled {provider} rather than {param} since llm.ts moved onto the typed
+  // client: the generated paths carry the parameter's real name, where a
+  // template literal only ever showed an interpolation.
+  "/api/llm/credentials/{provider}",
+  "/api/llm/credentials/{provider}/test",
   "/api/federation/peers/discover",
   "/api/federation/peers/{did}/follow",
   "/api/federation/sync/run",
