@@ -109,14 +109,118 @@ class KitchenCapability:
         return KitchenCapability.is_kitchen_data(data)
 
 
-# Cooking-specific fields that distinguish a recipe file from an OKH manifest.
-# At least one of these keys must be present for a JSON blob to be treated as
-# a Recipe.
+# Cooking-specific fields that distinguish a simple-format recipe file from
+# an OKH manifest. At least one of these keys must be present for a JSON blob
+# to be treated as a Recipe via the simple format.
 _RECIPE_FIELDS = {"ingredients", "instructions", "equipment"}
 
-# Presence of this key unambiguously marks an OKH manifest file and takes
-# priority over any incidental recipe-shaped fields.
+# Presence of this key marks an OKH-shaped manifest file (license is required
+# on every real OKH manifest, recipe or hardware).
 _OKH_DISCRIMINATOR = "license"
+
+# manufacturing_processes verbs that mark an OKH-shaped manifest as a recipe
+# rather than a hardware design. The OKH schema is generic enough to describe
+# a recipe's bill of materials, tools, and instructions exactly as well as a
+# hardware design's (see CookingExtractor._detailed_extract_requirements(),
+# which already parses this same tool_list/materials/making_instructions
+# shape for matching) -- shape alone cannot tell the two apart, so this is the
+# one positive cooking signal available on legacy OKH-shaped recipe data that
+# predates the `domain` field.
+_OKH_COOKING_PROCESSES = {
+    "bake",
+    "boil",
+    "braise",
+    "broil",
+    "chill",
+    "cook",
+    "ferment",
+    "freeze",
+    "fry",
+    "grill",
+    "knead",
+    "marinate",
+    "mix",
+    "poach",
+    "roast",
+    "saute",
+    "sauté",
+    "simmer",
+    "steam",
+    "stir",
+    "whisk",
+}
+
+
+def _has_okh_cooking_process(data: Dict[str, Any]) -> bool:
+    processes = data.get("manufacturing_processes")
+    if not isinstance(processes, list):
+        return False
+    return any(
+        isinstance(p, str) and p.strip().lower() in _OKH_COOKING_PROCESSES
+        for p in processes
+    )
+
+
+def _okh_material_names(data: Dict[str, Any]) -> List[str]:
+    """Ingredient names from an OKH manifest's ``materials`` field, falling
+    back to the non-standard ``metadata.original.bom_atoms`` mapping some
+    hand-authored recipe manifests use instead (keys are ingredient names)."""
+    names: List[str] = []
+    for material in data.get("materials") or []:
+        if isinstance(material, str):
+            if material:
+                names.append(material)
+        elif isinstance(material, dict):
+            name = (
+                material.get("name")
+                or material.get("material_type")
+                or material.get("identifier")
+            )
+            if name:
+                names.append(str(name))
+    if not names:
+        bom_atoms = ((data.get("metadata") or {}).get("original") or {}).get(
+            "bom_atoms"
+        )
+        if isinstance(bom_atoms, dict):
+            names = [str(k) for k in bom_atoms.keys()]
+    return names
+
+
+def _okh_tool_names(data: Dict[str, Any]) -> List[str]:
+    """Equipment names from an OKH manifest's ``tool_list`` field."""
+    names: List[str] = []
+    for tool in data.get("tool_list") or []:
+        if isinstance(tool, str):
+            if tool:
+                names.append(tool)
+        elif isinstance(tool, dict):
+            name = tool.get("name") or tool.get("tool") or tool.get("identifier")
+            if name:
+                names.append(str(name))
+    return names
+
+
+def _okh_instructions(data: Dict[str, Any]) -> List[str]:
+    """Instruction steps from an OKH manifest's ``making_instructions`` field,
+    falling back to its ``manufacturing_processes`` (cooking techniques) when
+    no instructions are present."""
+    steps: List[str] = []
+    for instruction in data.get("making_instructions") or []:
+        if isinstance(instruction, str):
+            if instruction:
+                steps.append(instruction)
+        elif isinstance(instruction, dict):
+            step = instruction.get("title") or instruction.get("path")
+            if step:
+                steps.append(str(step))
+    if not steps:
+        steps = [
+            str(p)
+            for p in (data.get("manufacturing_processes") or [])
+            if isinstance(p, str)
+        ]
+    return steps
 
 
 @dataclass
@@ -142,19 +246,30 @@ class Recipe:
     def from_dict(cls, data: Dict[str, Any]) -> "Recipe":
         """Parse a raw dictionary into a Recipe.
 
-        Raises ``ValueError`` if required keys are missing.
+        Accepts both the simple format (``ingredients``/``instructions``/
+        ``equipment``) and an OKH-shaped recipe (``title``/``materials``/
+        ``tool_list``/``making_instructions``/``manufacturing_processes``),
+        falling back field-by-field to the OKH equivalent so a partially
+        simple-format file (e.g. explicit ``ingredients`` but no
+        ``instructions``) still fills in from OKH fields where present.
+        Mirrors ``CookingExtractor._detailed_extract_requirements()``, which
+        parses this same OKH shape for matching.
+
+        Raises ``ValueError`` if required keys (id, and either name or title)
+        are missing.
         """
         if "id" not in data:
             raise ValueError("Recipe requires an 'id' field")
-        if "name" not in data:
-            raise ValueError("Recipe requires a 'name' field")
+        name = data.get("name") or data.get("title")
+        if not name:
+            raise ValueError("Recipe requires a 'name' (or OKH 'title') field")
 
         return cls(
             id=UUID(str(data["id"])),
-            name=str(data["name"]),
-            ingredients=list(data.get("ingredients", [])),
-            instructions=list(data.get("instructions", [])),
-            equipment=list(data.get("equipment", [])),
+            name=str(name),
+            ingredients=list(data.get("ingredients") or _okh_material_names(data)),
+            instructions=list(data.get("instructions") or _okh_instructions(data)),
+            equipment=list(data.get("equipment") or _okh_tool_names(data)),
             domain=str(data.get("domain", "cooking")),
         )
 
@@ -180,16 +295,20 @@ class Recipe:
         """Return ``True`` when *data* looks like a recipe file.
 
         Rules (evaluated in order):
-        1. Any data containing ``license`` is an OKH manifest → False.
-        2. Data that contains at least one recipe-specific key
+        1. Data that contains at least one simple-format recipe key
            (``ingredients``, ``instructions``, ``equipment``) → True.
+        2. An OKH-shaped manifest (has ``license``) is a recipe only if its
+           ``manufacturing_processes`` name a cooking technique (e.g.
+           ``"bake"``) → True. Otherwise it is a hardware design → False.
         3. Everything else → False.
         """
         if not data:
             return False
+        if _RECIPE_FIELDS & data.keys():
+            return True
         if _OKH_DISCRIMINATOR in data:
-            return False
-        return bool(_RECIPE_FIELDS & data.keys())
+            return _has_okh_cooking_process(data)
+        return False
 
     @staticmethod
     def is_cooking_recipe(data: Dict[str, Any]) -> bool:
