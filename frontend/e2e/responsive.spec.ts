@@ -57,6 +57,8 @@ const ROUTES = [
   "/settings/keys",
   "/help",
   "/packages",
+  "/solutions",
+  "/icons",
   "/visualization/sol-1",
 ];
 

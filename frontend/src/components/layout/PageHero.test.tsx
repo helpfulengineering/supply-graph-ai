@@ -11,8 +11,17 @@ import { PageHero } from "./PageHero";
  * PageHero guarantees to all of them.
  */
 describe("PageHero crumb", () => {
-  it("renders a plain string unchanged", () => {
-    render(<PageHero title="Network" crumb="local · federated · filtered" />);
+  it("renders terms that name no destination as plain text", () => {
+    render(
+      <PageHero
+        title="Network"
+        crumb={[
+          { label: "local" },
+          { label: "federated" },
+          { label: "filtered" },
+        ]}
+      />,
+    );
     expect(
       screen.getByText("local · federated · filtered"),
     ).toBeInTheDocument();

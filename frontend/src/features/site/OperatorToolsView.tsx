@@ -94,10 +94,19 @@ export function OperatorToolsView() {
         own: nav.ts describes this page as "telemetry, visitor records, and
         instance administration", and a hero that said something else would
         make the drawer and the page disagree about what the reader opened.
+
+        Each noun is also a panel on this page, so each is a link to it. As a
+        plain string all three rendered as text — the terms named the three
+        things you came for and were the one part of the page that could not
+        take you to them.
       */}
       <PageHero
         title="Operator Tools"
-        crumb="telemetry · visitor records · administration"
+        crumb={[
+          { label: "telemetry", href: "#ops-telemetry" },
+          { label: "visitor records", href: "#ops-visitors" },
+          { label: "administration", href: "#ops-administration" },
+        ]}
       />
 
       {gateOpen && copy && (

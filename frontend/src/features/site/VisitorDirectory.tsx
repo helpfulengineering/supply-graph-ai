@@ -1,13 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { PANEL } from "../../components/ui/surface";
-import {
-  BODY_MUTED,
-  CAPTION,
-  CARD_TITLE,
-} from "../../components/ui/typography";
+import { SectionHeading } from "../../components/ui/SectionHeading";
+import { BODY_MUTED, CAPTION } from "../../components/ui/typography";
 import { FIELD_SM } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -51,7 +48,6 @@ export function VisitorDirectory({
   isOperator,
   onVisitorChanged,
 }: VisitorDirectoryProps) {
-  const headingId = useId();
   const directory = useSiteQuery(
     isOperator
       ? () => adminVisitors(operatorToken())
@@ -86,11 +82,11 @@ export function VisitorDirectory({
   const locked = !isOperator && !email;
 
   return (
-    <section className={PANEL} aria-labelledby={headingId}>
+    <section className={PANEL} aria-labelledby="ops-visitors">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id={headingId} className={CARD_TITLE}>
+        <SectionHeading id="ops-visitors" role="card">
           Visitors
-        </h2>
+        </SectionHeading>
         <Badge variant={isOperator ? "green" : "default"}>
           {isOperator ? "unmasked" : "masked"}
         </Badge>

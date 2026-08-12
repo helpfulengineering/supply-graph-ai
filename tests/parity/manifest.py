@@ -176,7 +176,7 @@ AREAS: tuple[Area, ...] = (
         note="REVIEW: NAME MISMATCH — API tag is 'supply-tree' but the CLI group "
         "is 'solution'. Pick one name (external surface; needs deprecation "
         "cycle, not a bare rename).",
-        fe_routes=("/visualization",),
+        fe_routes=("/visualization", "/solutions"),
         fe_api_prefixes=("/api/supply-tree",),
     ),
     # --- Partial exposure -------------------------------------------------

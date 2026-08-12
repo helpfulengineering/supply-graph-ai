@@ -100,7 +100,19 @@ export function PackageListView() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <PageHero title="Packages" crumb="archives · versions · downloads" />
+          {/* Terms, not a string, so the two that name a place are links. The
+              string form could not express that: it rendered whole, so
+              "designs" was as dead as "versions". "archives" and "versions"
+              stay text — they describe what a package is, and there is no
+              archive index or version index to send anyone to. */}
+          <PageHero
+            title="Packages"
+            crumb={[
+              { label: "archives" },
+              { label: "versions" },
+              { label: "designs", href: "/okh" },
+            ]}
+          />
         </div>
         <button
           type="button"

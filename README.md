@@ -43,7 +43,7 @@ yourself.
 
 A Next.js App Router application, served by the API. Ten themes in light and
 dark, drivable by keyboard, and laid out down to 360px. Those three are enforced
-by **559 unit tests** and **173 Playwright specs**, including an axe matrix over
+by **566 unit tests** and **187 Playwright specs**, including an axe matrix over
 all twenty theme variants and a narrow-viewport lane at 360px and 768px.
 
 One hamburger sitemap reaches every route, grouped by purpose, each entry
@@ -86,9 +86,16 @@ query string, so copying the URL reproduces the view.
 
 ### Keyboard
 
-Every route in the menu has a chord. `CHORD_ROUTES` and `SHORTCUTS` in
+Every route in the sitemap has a chord. `CHORD_ROUTES` and `SHORTCUTS` in
 `frontend/src/components/layout/shortcuts.ts` drive the key handler, the
-drawer's help block, and `/help`. A unit test fails if a nav route has no chord.
+drawer's help block, and `/help`. A unit test fails if a sitemap route has no
+chord — it reads every group, including the ones the drawer hides, so a route
+cannot fall outside the keyboard contract by being outside the menu. Two
+exemptions are named in that test rather than left implicit: bare
+`/visualization`, which redirects to `/solutions` and would otherwise cost two
+keys for one destination, and `/operator-tools`, which only exists when the
+instance runs the site layer — a static chord for a conditional route would
+land on a 404 wherever it does not.
 
 ![The keyboard and accessibility tables on /help](docs/assets/ux/help-keyboard-accessibility.png)
 
@@ -99,6 +106,7 @@ drawer's help block, and `/help`. A unit test fails if a nav route has no chord.
 | `t` / `m` | next theme / light-dark |
 | `g` then `d` `k` `f` `m` `p` `r` `s` | dashboard, designs, facilities, match, packages, RFQ, settings |
 | `g` then `g` `n` `w` `h` `o` | generate from URL, new design, new facility, help, documentation |
+| `g` then `l` `i` | solutions, icons |
 
 Shortcuts are suppressed while typing in an input, textarea, select, or
 contenteditable, so a search box takes `g` as a letter.

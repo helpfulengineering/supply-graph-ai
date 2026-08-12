@@ -222,9 +222,18 @@ export function GenerateView() {
   return (
     <div className="space-y-6">
       <div>
+        {/* Stages of one flow, not places — and two of the three do not exist
+            until you run it: the progress list and the manifest editor are
+            rendered conditionally, so anchors to them would be dead links on
+            the page as first loaded. Terms rather than a string so that reads
+            as the decision it is. */}
         <PageHero
           title="Generate a design from a URL"
-          crumb="repository · extraction · review"
+          crumb={[
+            { label: "repository" },
+            { label: "extraction" },
+            { label: "review" },
+          ]}
         />
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Point OHM at a public GitHub or GitLab repository and it will read

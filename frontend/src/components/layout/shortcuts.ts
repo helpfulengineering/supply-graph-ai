@@ -24,6 +24,14 @@ export const CHORD_ROUTES: Record<string, string> = {
   w: "/facilities/new",
   h: "/help",
   o: "/docs/",
+  // `l` for the list: `s` is settings, and Solutions cannot have its initial.
+  l: "/solutions",
+  i: "/icons",
+  // Deliberately absent: /operator-tools. This table is static and the route is
+  // not — it 404s unless the instance runs the site layer, and the drawer hides
+  // its row to match. A chord cannot be conditional, so binding one would send
+  // most instances to a 404 and would break the contract that /help documents
+  // every key the chrome binds, since Help lists only the unconditional groups.
 };
 
 /** How long `g` stays armed. Long enough to be deliberate, short enough that a
@@ -52,6 +60,8 @@ export const SHORTCUTS: ShortcutDoc[] = [
   { keys: ["g", "w"], desc: "new facility" },
   { keys: ["g", "h"], desc: "help" },
   { keys: ["g", "o"], desc: "documentation" },
+  { keys: ["g", "l"], desc: "solutions" },
+  { keys: ["g", "i"], desc: "icons" },
 ];
 
 /**

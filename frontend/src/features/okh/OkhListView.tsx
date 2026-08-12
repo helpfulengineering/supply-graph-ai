@@ -159,7 +159,13 @@ export function OkhListView() {
           <PageHero
             title="Open Hardware Designs"
             crumb={[
-              { label: "catalog" },
+              // Self-link, marked aria-current by PageHero: the term names the
+              // page you are on, and saying so is more use than dropping it.
+              { label: "catalog", href: "/okh" },
+              // Stays text. The facet panel is `hidden lg:block`, and below
+              // that width filtering is behind the Filters toggle instead — a
+              // fragment pointing at it would scroll nowhere on a phone, which
+              // is a worse answer than not offering the link.
               { label: "facets" },
               { label: "matching", href: "/match" },
             ]}

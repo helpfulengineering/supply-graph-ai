@@ -781,8 +781,36 @@ export const llmCredentialsFixture = {
   ],
 };
 
+/**
+ * The saved-solutions browse: one row, pointing at the one solution the
+ * visualization fixture answers for, so the list and the page it opens agree.
+ *
+ * Envelope is `data.result` because that is what the paginated list decorator
+ * emits and what listSolutions reads. Two rows would be more convincing and
+ * less useful — the second id has no visualization bundle behind it, so the
+ * card would lead to an error the demo cannot explain.
+ */
+export const solutionsListFixture = {
+  data: {
+    result: [
+      {
+        id: "sol-1",
+        okh_id: "okh-0001",
+        okh_title: "Foldable Solar Dryer",
+        facility_name: "FabLab Drome",
+        matching_mode: "single-level",
+        tree_count: 1,
+        facility_count: 1,
+        score: 0.95,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+  },
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/supply-tree/solutions": solutionsListFixture,
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,
   "/v1/api/utility/metrics": metricsFixture,

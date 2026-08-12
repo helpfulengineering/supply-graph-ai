@@ -80,7 +80,7 @@ export default function Error({
       <LogoLoader className="h-10 w-10" />
       <PageHero
         title={message.title}
-        crumb="error · this page did not load"
+        crumb={[{ label: "error" }, { label: "this page did not load" }]}
         icon={null}
       />
 
