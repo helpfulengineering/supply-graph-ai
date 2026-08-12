@@ -53,12 +53,24 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        {/* Left as text on purpose. These three terms are the tab bar
+        {/* Terms rather than a string, but still no hrefs — and that is the
+            decision, not an omission. These three names are the tab bar
             immediately below, so linking them puts two links to
-            /settings/identities on the page under the same name — a duplicate
+            /settings/identities on the page under the same name: a duplicate
             control for a pointer and a second identical stop for a screen
-            reader. A crumb links where it is the only way to somewhere. */}
-        <PageHero title="Settings" crumb="session · keys · identities" />
+            reader. A crumb links where it is the only way to somewhere.
+
+            Written as terms so that stays legible. As a string it was
+            indistinguishable from the pages that simply had not been migrated
+            yet, and the audit could not tell the two apart. */}
+        <PageHero
+          title="Settings"
+          crumb={[
+            { label: "session" },
+            { label: "keys" },
+            { label: "identities" },
+          ]}
+        />
       </div>
 
       <nav

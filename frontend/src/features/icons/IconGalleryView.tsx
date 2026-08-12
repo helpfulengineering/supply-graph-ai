@@ -4,11 +4,8 @@ import { useMemo, useState } from "react";
 import { PageHero } from "../../components/layout/PageHero";
 import { FIELD, LABEL } from "../../components/ui/field";
 import { PANEL } from "../../components/ui/surface";
-import {
-  BODY_MUTED,
-  CAPTION,
-  SECTION_TITLE,
-} from "../../components/ui/typography";
+import { BODY_MUTED, CAPTION } from "../../components/ui/typography";
+import { SectionHeading } from "../../components/ui/SectionHeading";
 import { ALL_ICONS } from "../../components/icons/gallery";
 import { MAPPED_PROCESS_IDS, processIcon } from "../../components/icons/processIcons";
 import { humanizeProcessId } from "../network/deriveFilterOptions";
@@ -40,7 +37,16 @@ export function IconGalleryView() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <PageHero title="Icons" crumb="glyphs · processes · internal" />
+      {/* "internal" stays text: it says what this page is — a reference for
+          people building the interface — rather than naming a third section. */}
+      <PageHero
+        title="Icons"
+        crumb={[
+          { label: "glyphs", href: "#glyphs-heading" },
+          { label: "processes", href: "#processes-heading" },
+          { label: "internal" },
+        ]}
+      />
 
       <div className="max-w-md">
         <label htmlFor="icon-search" className={LABEL}>
@@ -60,9 +66,9 @@ export function IconGalleryView() {
       </div>
 
       <section aria-labelledby="glyphs-heading" className="space-y-3">
-        <h2 id="glyphs-heading" className={SECTION_TITLE}>
+        <SectionHeading id="glyphs-heading">
           Glyphs ({glyphs.length})
-        </h2>
+        </SectionHeading>
         <p className={BODY_MUTED}>
           Every icon checked in under <code>components/icons/noun</code>. They
           take their colour from the token layer, so this grid re-themes with
@@ -79,9 +85,9 @@ export function IconGalleryView() {
       </section>
 
       <section aria-labelledby="processes-heading" className="space-y-3">
-        <h2 id="processes-heading" className={SECTION_TITLE}>
+        <SectionHeading id="processes-heading">
           Processes ({processes.length})
-        </h2>
+        </SectionHeading>
         <p className={BODY_MUTED}>
           Every process in the taxonomy and the glyph it draws. A row with no
           icon is a gap the coverage test would already have failed on.

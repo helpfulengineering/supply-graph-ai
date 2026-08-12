@@ -4,10 +4,8 @@ import Link from "next/link";
 import { PageHero } from "../../components/layout/PageHero";
 import { ACCOUNT_GROUP, NAV_GROUPS } from "../../components/layout/nav";
 import { SHORTCUTS } from "../../components/layout/shortcuts";
-import {
-  SECTION_LABEL,
-  SECTION_LABEL_SM,
-} from "../../components/ui/typography";
+import { SECTION_LABEL_SM } from "../../components/ui/typography";
+import { SectionHeading } from "../../components/ui/SectionHeading";
 import { PANEL } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 
@@ -65,44 +63,6 @@ const A11Y: Array<{ keys?: string[]; hint?: string; desc: string }> = [
   },
 ];
 
-/**
- * A section heading that is also a destination. `scroll-mt` keeps the sticky
- * header from covering the target when a #fragment lands on it.
- */
-function SectionHeading({
-  id,
-  children,
-}: {
-  id: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <h2 id={id} className={cn(SECTION_LABEL, "group scroll-mt-20")}>
-      {/*
-        inline-flex + min-h-6 so the permalink clears the 24x24 WCAG 2.5.8
-        minimum. The anchor wraps the whole heading, so its accessible name is
-        the heading text and 2.5.8's inline exception does not apply — there is
-        no surrounding non-target text constraining it. At section-label scale
-        the line box was 21px, and the only thing holding it there was the type
-        scale, which is the author's choice and therefore the author's problem.
-      */}
-      <a
-        href={`#${id}`}
-        className="inline-flex min-h-6 items-center no-underline hover:text-foreground"
-      >
-        {children}
-        <span
-          aria-hidden="true"
-          className="ml-2 opacity-0 transition-opacity group-hover:opacity-60 group-focus-within:opacity-60"
-        >
-          #
-        </span>
-        <span className="sr-only"> — link to this section</span>
-      </a>
-    </h2>
-  );
-}
-
 export function HelpView() {
   return (
     <div className="space-y-8">
@@ -119,7 +79,9 @@ export function HelpView() {
       />
 
       <section aria-labelledby="h-routes" className="space-y-4">
-        <SectionHeading id="h-routes">Where things are</SectionHeading>
+        <SectionHeading id="h-routes" role="label">
+          Where things are
+        </SectionHeading>
         {[...NAV_GROUPS, ACCOUNT_GROUP].map((group) => (
           <div key={group.label} className={PANEL}>
             <h3 className={cn(SECTION_LABEL_SM, "mb-3")}>{group.label}</h3>
@@ -177,7 +139,9 @@ export function HelpView() {
       </section>
 
       <section aria-labelledby="h-keys" className="space-y-3">
-        <SectionHeading id="h-keys">Keyboard shortcuts</SectionHeading>
+        <SectionHeading id="h-keys" role="label">
+          Keyboard shortcuts
+        </SectionHeading>
         <div className={PANEL}>
           <ul className="m-0 grid list-none gap-x-6 gap-y-2 p-0 sm:grid-cols-2">
             {SHORTCUTS.map((s) => (
@@ -211,7 +175,9 @@ export function HelpView() {
       </section>
 
       <section aria-labelledby="h-a11y" className="space-y-3">
-        <SectionHeading id="h-a11y">Accessibility</SectionHeading>
+        <SectionHeading id="h-a11y" role="label">
+          Accessibility
+        </SectionHeading>
         <div className={PANEL}>
           <ul className="m-0 grid list-none gap-x-6 gap-y-2 p-0 sm:grid-cols-2">
             {A11Y.map((item) => (

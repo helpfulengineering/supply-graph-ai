@@ -31,9 +31,8 @@ import {
   ErrorState,
 } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
-import { SECTION_LABEL } from "../../components/ui/typography";
+import { SectionHeading } from "../../components/ui/SectionHeading";
 import { PANEL } from "../../components/ui/surface";
-import { cn } from "@/lib/utils";
 
 export function VisualizationView({ solutionId }: { solutionId: string }) {
   const { data, isLoading, isError, error, refetch } = useQuery({
@@ -66,10 +65,13 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
     <div className="space-y-6">
       <PageHero
         title="Supply Tree"
+        // "plan" and "dependencies" are the two panels below, which had been
+        // named here and reachable only by scrolling past a graph and a chart
+        // to find them.
         crumb={[
-          { label: "plan" },
+          { label: "plan", href: "#st-plan" },
           { label: "facilities", href: "/facilities" },
-          { label: "dependencies" },
+          { label: "dependencies", href: "#st-dependencies" },
         ]}
         // A trail, not `router.back()`. A supply tree opens from the match that
         // produced it, so Match is where it came from — and unlike history,
@@ -102,8 +104,10 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         const deps = toDependencies(data);
         return (
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className={PANEL}>
-              <h2 className={cn(SECTION_LABEL, "mb-4")}>Production Sequence</h2>
+            <section className={PANEL} aria-labelledby="st-plan">
+              <SectionHeading id="st-plan" role="label" className="mb-4">
+                Production Sequence
+              </SectionHeading>
               {sequence.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No production stages.
@@ -124,8 +128,10 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
               )}
             </section>
 
-            <section className={PANEL}>
-              <h2 className={cn(SECTION_LABEL, "mb-4")}>Dependencies</h2>
+            <section className={PANEL} aria-labelledby="st-dependencies">
+              <SectionHeading id="st-dependencies" role="label" className="mb-4">
+                Dependencies
+              </SectionHeading>
               {deps.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No inter-component dependencies.

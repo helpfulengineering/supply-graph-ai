@@ -3,7 +3,8 @@
 import { cn } from "@/lib/utils";
 import { useId, useState, type FormEvent } from "react";
 import { PANEL } from "../../components/ui/surface";
-import { CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import { CAPTION } from "../../components/ui/typography";
+import { SectionHeading } from "../../components/ui/SectionHeading";
 import { FIELD, HINT, LABEL } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -66,19 +67,26 @@ export function OperatorPanel({
   }
 
   return (
-    <section className={PANEL} aria-labelledby={`${fieldId}-heading`}>
+    <section className={PANEL} aria-labelledby="ops-administration">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id={`${fieldId}-heading`} className={CARD_TITLE}>
-          {/*
-            "Operator access", not "Operator": the panel below is Operator
-            Tools, and two headings reading "Operator" on one page would make
-            the reader work out which is the door and which is the room.
-          */}
-          Operator access{" "}
-          <Badge variant={isOperator ? "green" : "default"} className="ml-1 align-middle">
+        {/*
+          "Operator access", not "Operator": the panel below is Operator
+          Tools, and two headings reading "Operator" on one page would make
+          the reader work out which is the door and which is the room.
+
+          The badge sits outside the heading rather than inside its permalink:
+          wrapped, "verified"/"locked" would join the link's accessible name
+          and the heading would announce as a different destination depending
+          on whether the reader happened to be signed in.
+        */}
+        <div className="flex items-center gap-2">
+          <SectionHeading id="ops-administration" role="card">
+            Operator access
+          </SectionHeading>
+          <Badge variant={isOperator ? "green" : "default"}>
             {isOperator ? "verified" : "locked"}
           </Badge>
-        </h2>
+        </div>
         {isOperator && (
           <Button type="button" variant="outline" size="lg" onClick={lock}>
             Lock

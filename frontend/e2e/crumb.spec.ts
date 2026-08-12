@@ -19,7 +19,22 @@ import { test } from "./mock-api";
  * own (/okh has "Generate from URL" and "New design"), and a looser selector
  * would measure those and report green while a crumb led nowhere.
  */
-const ROUTES = ["/", "/okh", "/match", "/rfq", "/help", "/visualization/sol-1"];
+const ROUTES = [
+  "/",
+  "/okh",
+  "/match",
+  "/rfq",
+  "/help",
+  "/visualization/sol-1",
+  "/solutions",
+  "/packages",
+  "/icons",
+];
+// Deliberately not here: /operator-tools. Its crumb links to three panels on
+// the page, but the route 404s unless the site layer is configured, and this
+// spec reads a flat list rather than the served posture the way
+// site-layer.spec.ts has to. Adding it would make a gate that is currently
+// unconditional depend on how the instance under test is deployed.
 
 /**
  * Routes whose crumb is expected to carry at least one link.
@@ -30,11 +45,14 @@ const ROUTES = ["/", "/okh", "/match", "/rfq", "/help", "/visualization/sol-1"];
  */
 const MIN_LINKS: Record<string, number> = {
   "/": 3,
-  "/okh": 1,
+  "/okh": 2,
   "/match": 2,
   "/rfq": 1,
   "/help": 3,
-  "/visualization/sol-1": 1,
+  "/visualization/sol-1": 3,
+  "/solutions": 3,
+  "/packages": 1,
+  "/icons": 2,
 };
 
 /**

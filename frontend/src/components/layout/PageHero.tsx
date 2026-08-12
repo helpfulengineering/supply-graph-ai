@@ -79,10 +79,16 @@ interface PageHeroProps {
   /**
    * Mono role line beside the title — the admin page's "telemetry · visitors"
    * idiom. Terms rather than a sentence, so any of them that names a
-   * destination is a link without each view rebuilding the markup; a plain
-   * string still renders as it always did.
+   * destination is a link without each view rebuilding the markup.
+   *
+   * Terms only. This accepted a plain string too, for views not yet migrated,
+   * and the shape outlived the migration: a string renders whole and therefore
+   * renders dead, so eight pages kept crumbs no term of which could ever be a
+   * link — and nothing distinguished them from the pages that had weighed each
+   * term and decided it named no destination. One shape means that decision is
+   * always visible in the call site.
    */
-  crumb?: string | readonly CrumbTerm[];
+  crumb?: readonly CrumbTerm[];
   /**
    * Trail above the title, for pages reached from a list. Terms rather than
    * markup: the four views that had one wrote their own <nav>, and three of
@@ -163,11 +169,7 @@ export function PageHero({
           // for "links in the hero" would measure those and pass while a crumb
           // stayed unreachable.
           <span data-crumb="" className={cn(CAPTION, "font-mono")}>
-            {typeof crumb === "string" ? (
-              crumb
-            ) : (
-              <CrumbTerms terms={crumb} pathname={pathname} />
-            )}
+            <CrumbTerms terms={crumb} pathname={pathname} />
           </span>
         )}
         {actions && (

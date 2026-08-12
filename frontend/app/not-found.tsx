@@ -43,7 +43,11 @@ export default function NotFound() {
           then served for any unmatched path — so a resolved icon would appear
           only after hydration, and would claim membership of a section the
           address does not actually belong to. */}
-      <PageHero title="Not found" crumb="404 · no such page" icon={null} />
+      <PageHero
+        title="Not found"
+        crumb={[{ label: "404" }, { label: "no such page" }]}
+        icon={null}
+      />
       <p className={cn(BODY_MUTED, "max-w-prose")}>
         That address does not match anything on this instance. It may have
         moved, or it may be a capability this instance has not enabled.
