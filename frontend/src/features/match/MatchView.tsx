@@ -246,7 +246,10 @@ export function MatchView({
           { label: "facilities", href: "/facilities" },
           // Solutions are what this page produces; there is no list of them to
           // send anyone to.
-          { label: "solutions" },
+          // Was text. /solutions is a real route holding exactly these —
+          // the supply trees saved from matches — so the term names a place
+          // after all.
+          { label: "solutions", href: "/solutions" },
         ]}
       />
 

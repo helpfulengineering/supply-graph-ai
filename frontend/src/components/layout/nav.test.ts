@@ -23,7 +23,9 @@ describe("navEntryFor", () => {
     expect(navEntryFor("/okh/okh-0001/files/readme.md")?.entry.name).toBe(
       "Designs",
     );
-    expect(navEntryFor("/facilities/okw-1/edit")?.entry.name).toBe("Facilities");
+    expect(navEntryFor("/facilities/okw-1/edit")?.entry.name).toBe(
+      "Facilities",
+    );
   });
 
   it("prefers the longer match when a sub-route has its own entry", () => {

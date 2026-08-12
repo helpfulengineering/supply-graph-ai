@@ -195,16 +195,6 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: NotebookIcon,
         external: true,
       },
-      // Reference rather than Operator: the gallery documents the icon set this
-      // interface is drawn from, which is the same kind of thing as the docs
-      // beside it. It was in no group at all, so navEntryFor("/icons") returned
-      // undefined and the one page whose subject is icons rendered without one.
-      {
-        href: "/icons",
-        name: "Icons",
-        desc: "the glyph set, drawn at the sizes it ships at",
-        icon: ShowcaseIcon,
-      },
     ],
   },
 ];
@@ -288,6 +278,22 @@ export const UNLISTED_GROUP: NavGroup = {
       name: "Supply Tree",
       desc: "the production plan a match resolved to",
       icon: ArtificialLeavesIcon,
+    },
+    // The glyph gallery documents the icon set this interface is drawn from,
+    // which is a fact about the app rather than a place in it. It sat in
+    // Reference and spent a full drawer row — a role line and all — on a page
+    // nobody navigates to twice. It keeps its entry so navEntryFor resolves
+    // its hero and shortcuts.test.ts still demands a chord; the drawer reaches
+    // it from a single glyph in the footer instead.
+    // Reference rather than Operator: the gallery documents the icon set this
+    // interface is drawn from, which is the same kind of thing as the docs
+    // beside it. It was in no group at all, so navEntryFor("/icons") returned
+    // undefined and the one page whose subject is icons rendered without one.
+    {
+      href: "/icons",
+      name: "Icons",
+      desc: "the glyph set, drawn at the sizes it ships at",
+      icon: ShowcaseIcon,
     },
   ],
 };
