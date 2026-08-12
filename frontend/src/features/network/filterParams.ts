@@ -50,6 +50,19 @@ export function filterUpdates(filters: Filters): Record<string, string | null> {
   return updates;
 }
 
+/**
+ * Whether two filter sets would write the same query string.
+ *
+ * The surface adopts the address whenever it changes underneath it, and
+ * `filtersFromParams` returns a fresh object every call — so identity is never
+ * equal, and adopting unconditionally would hand React a new object on every
+ * navigation, including the ones the surface itself just wrote. That re-keys
+ * the filtered query and refetches for no change.
+ */
+export function sameFilters(a: Filters, b: Filters): boolean {
+  return FILTER_KEYS.every((key) => (a[key] ?? null) === (b[key] ?? null));
+}
+
 export function filtersToSearch(filters: Filters, base?: URLSearchParams): string {
   return mergeParams(base ?? new URLSearchParams(), filterUpdates(filters));
 }

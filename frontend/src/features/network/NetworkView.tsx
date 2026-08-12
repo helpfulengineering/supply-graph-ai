@@ -3,7 +3,7 @@
 import { FacilitiesIllustration } from "../../components/ui/illustrations";
 import { FIELD, LABEL } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,8 +12,13 @@ import {
 } from "../../api/ohm/network";
 import { Button } from "../../components/ui/button";
 import { deriveFilterOptions } from "./deriveFilterOptions";
-import { filterUpdates, filtersFromParams } from "./filterParams";
-import { mergeParams, oneOf, pageFromParam, toSearch } from "../../lib/urlState";
+import { filterUpdates, filtersFromParams, sameFilters } from "./filterParams";
+import {
+  mergeParams,
+  oneOf,
+  pageFromParam,
+  toSearch,
+} from "../../lib/urlState";
 import { filterByName } from "./nameSearch";
 import { buildNetworkSummary } from "./networkSummary";
 import { NetworkFilters } from "./NetworkFilters";
@@ -76,9 +81,39 @@ export function NetworkView() {
   const [page, setPage] = useState(() =>
     pageFromParam(searchParams.get("page")),
   );
-  const [nameQuery, setNameQuery] = useState(
-    () => searchParams.get("q") ?? "",
-  );
+  const [nameQuery, setNameQuery] = useState(() => searchParams.get("q") ?? "");
+
+  /**
+   * Adopt the address when it changes underneath this component.
+   *
+   * The state above is seeded from the query string and then owned locally,
+   * which held while this view was the only thing writing to it. It is not: the
+   * hero crumb links to `?source=...`, and Back restores an earlier filter.
+   * Both replace the query string on the same route, so React never remounts
+   * and a seed-once initialiser never sees them — the address changed and the
+   * surface did not. The crumb links were dead on arrival because of it: the
+   * URL moved, the underline and focus ring said "link", and the list stayed
+   * exactly as it was.
+   *
+   * Guarded on a real difference so the write path does not feed itself.
+   * applyFilters sets state and then calls syncUrl, which lands back here with
+   * the values it just wrote; `sameFilters` keeps that from handing React a new
+   * object and re-keying the filtered query for no change.
+   *
+   * Filters only, deliberately. View, page, and the name query are written by
+   * this component alone, and `router.replace` lands asynchronously: adopting
+   * `q` here means that while someone types "ab", the navigation carrying "a"
+   * arrives afterwards and sets the box back to "a". Nothing outside the
+   * component sets those three on this route — a link from elsewhere is a
+   * different route and mounts the view fresh, which the initialisers already
+   * handle.
+   */
+  useEffect(() => {
+    setFilters((prev) => {
+      const next = filtersFromParams(searchParams);
+      return sameFilters(prev, next) ? prev : next;
+    });
+  }, [searchParams]);
 
   // Carry the active filter into the match flow: pick a design there, match
   // against exactly this filtered network (local ∪ MoM).
@@ -169,7 +204,15 @@ export function NetworkView() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <PageHero title="Network" crumb="local · federated · filtered" />
+          <PageHero
+            title="Network"
+            crumb={[
+              { label: "local", href: "/facilities?source=local" },
+              { label: "federated", href: "/facilities?source=mom" },
+              // The page can be filtered; there is no "filtered" to go to.
+              { label: "filtered" },
+            ]}
+          />
         </div>
         <Button
           title={
