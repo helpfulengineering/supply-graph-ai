@@ -9,7 +9,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchNetworkSpaces,
   type NetworkFilters as Filters,
+  type NetworkSpace,
 } from "../../api/ohm/network";
+import { CAPTION } from "../../components/ui/typography";
 import { Button } from "../../components/ui/button";
 import { deriveFilterOptions } from "./deriveFilterOptions";
 import { filterUpdates, filtersFromParams, sameFilters } from "./filterParams";
@@ -156,9 +158,26 @@ export function NetworkView() {
     [baseline.data],
   );
 
-  const totalPages = Math.max(1, Math.ceil(spaces.length / PAGE_SIZE));
+  /**
+   * What the map currently frames, or null before it has reported.
+   *
+   * Map view lists the spaces under the map rather than beside it, and the
+   * question the list answers there is "which ones are these" — about the part
+   * of the world on screen, not about all 3,000. Panning is the selection.
+   */
+  const [inView, setInView] = useState<NetworkSpace[] | null>(null);
+  const onVisibleChange = useCallback((visible: NetworkSpace[]) => {
+    setInView(visible);
+    // A new region is a new list; page 3 of the last one means nothing here.
+    // Not written to the address: the viewport is not in the query string, so
+    // a page number pinned to it would not survive being linked anyway.
+    setPage(1);
+  }, []);
+
+  const listed = view === "map" ? (inView ?? spaces) : spaces;
+  const totalPages = Math.max(1, Math.ceil(listed.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
-  const pageItems = spaces.slice(
+  const pageItems = listed.slice(
     (safePage - 1) * PAGE_SIZE,
     safePage * PAGE_SIZE,
   );
@@ -317,29 +336,37 @@ export function NetworkView() {
             />
           )}
 
-          {!active.isLoading &&
-            !active.isError &&
-            spaces.length > 0 &&
-            (view === "map" ? (
-              <div className="h-[520px] overflow-hidden rounded-xl border border-border">
-                <NetworkMap spaces={spaces} />
+          {!active.isLoading && !active.isError && spaces.length > 0 && (
+            <>
+              {view === "map" && (
+                <>
+                  <div className="h-[520px] overflow-hidden rounded-xl border border-border">
+                    <NetworkMap
+                      spaces={spaces}
+                      onVisibleChange={onVisibleChange}
+                    />
+                  </div>
+                  <p className={CAPTION} role="status">
+                    {listed.length === 0
+                      ? "No spaces in view — pan or zoom out."
+                      : `${listed.length.toLocaleString()} space${listed.length === 1 ? "" : "s"} in view`}
+                  </p>
+                </>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {pageItems.map((s) => (
+                  <NetworkSpaceCard key={`${s.source}-${s.id}`} space={s} />
+                ))}
               </div>
-            ) : (
-              <>
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {pageItems.map((s) => (
-                    <NetworkSpaceCard key={`${s.source}-${s.id}`} space={s} />
-                  ))}
-                </div>
-                <Pagination
-                  page={safePage}
-                  totalPages={totalPages}
-                  totalItems={spaces.length}
-                  pageSize={PAGE_SIZE}
-                  onPage={applyPage}
-                />
-              </>
-            ))}
+              <Pagination
+                page={safePage}
+                totalPages={totalPages}
+                totalItems={listed.length}
+                pageSize={PAGE_SIZE}
+                onPage={applyPage}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

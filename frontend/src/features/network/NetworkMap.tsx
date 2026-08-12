@@ -263,6 +263,36 @@ function FitBounds({ spaces }: { spaces: NetworkSpace[] }) {
 }
 
 /**
+ * Report which spaces the viewport currently frames, whenever it settles.
+ *
+ * The map answers "where are they"; the cards under it answer "which ones are
+ * these", and the second question is only worth asking about the part of the
+ * world on screen. Reported on `moveend` rather than on every frame of a pan:
+ * the consumer re-renders a grid of cards off it.
+ */
+function ViewportReport({
+  spaces,
+  onChange,
+}: {
+  spaces: NetworkSpace[];
+  onChange: (visible: NetworkSpace[]) => void;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    const report = () => {
+      const bounds = map.getBounds();
+      onChange(spaces.filter((s) => bounds.contains([s.lat, s.lon])));
+    };
+    report();
+    map.on("moveend", report);
+    return () => {
+      map.off("moveend", report);
+    };
+  }, [map, spaces, onChange]);
+  return null;
+}
+
+/**
  * One finger scrolls the page, two fingers move the map.
  *
  * Leaflet's default — one-finger drag pans — makes a map embedded in a
@@ -313,7 +343,13 @@ function useTransientFlag(ms: number): [boolean, () => void] {
   return [on, raise];
 }
 
-export function NetworkMap({ spaces }: { spaces: NetworkSpace[] }) {
+interface NetworkMapProps {
+  spaces: NetworkSpace[];
+  /** Called with the spaces inside the viewport each time it settles. */
+  onVisibleChange?: (visible: NetworkSpace[]) => void;
+}
+
+export function NetworkMap({ spaces, onVisibleChange }: NetworkMapProps) {
   const [showHint, raiseHint] = useTransientFlag(2400);
   // Same resolver the markers and the key read, so the ground and the points
   // on it cannot come from two different worlds — which is the failure the
@@ -336,6 +372,9 @@ export function NetworkMap({ spaces }: { spaces: NetworkSpace[] }) {
         />
         <SpaceMarkers spaces={spaces} />
         <FitBounds spaces={spaces} />
+        {onVisibleChange && (
+          <ViewportReport spaces={spaces} onChange={onVisibleChange} />
+        )}
         <TouchGestures onOneFinger={raiseHint} />
       </MapContainer>
       {showHint && (
