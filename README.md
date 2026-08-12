@@ -43,7 +43,7 @@ yourself.
 
 A Next.js App Router application, served by the API. Ten themes in light and
 dark, drivable by keyboard, and laid out down to 360px. Those three are enforced
-by **559 unit tests** and **173 Playwright specs**, including an axe matrix over
+by **566 unit tests** and **187 Playwright specs**, including an axe matrix over
 all twenty theme variants and a narrow-viewport lane at 360px and 768px.
 
 One hamburger sitemap reaches every route, grouped by purpose, each entry
