@@ -10,7 +10,7 @@ import { SOURCE_STYLES } from "./networkSummary";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
 import { PANEL } from "../../components/ui/surface";
 import { CARD_TITLE } from "../../components/ui/typography";
-import { processIcon } from "../../components/icons/processIcons";
+import { ProcessChip } from "../../components/ui/ProcessChip";
 import { cn } from "@/lib/utils";
 
 const CARD_CLASS = `${PANEL} group flex h-full flex-col gap-3 no-underline shadow-sm transition-shadow hover:shadow-md`;
@@ -56,17 +56,9 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
 
       {processes.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {processes.slice(0, 4).map((p) => {
-            const Icon = processIcon(p.id);
-            return (
-              <Badge key={p.id} variant="default">
-                <span className="inline-flex items-center gap-1">
-                  {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
-                  {p.label}
-                </span>
-              </Badge>
-            );
-          })}
+          {processes.slice(0, 4).map((p) => (
+            <ProcessChip key={p.id} process={p.id} label={p.label} />
+          ))}
           {processes.length > 4 && (
             <Badge variant="default">+{processes.length - 4}</Badge>
           )}

@@ -43,7 +43,7 @@ yourself.
 
 A Next.js App Router application, served by the API. Ten themes in light and
 dark, drivable by keyboard, and laid out down to 360px. Those three are enforced
-by **553 unit tests** and **172 Playwright specs**, including an axe matrix over
+by **559 unit tests** and **173 Playwright specs**, including an axe matrix over
 all twenty theme variants and a narrow-viewport lane at 360px and 768px.
 
 One hamburger sitemap reaches every route, grouped by purpose, each entry
@@ -74,6 +74,11 @@ the same tokens instead of carrying private palettes. OpenStreetMap's raster
 tiles arrive from the tile server already painted, so `tileFilter.ts` computes a
 CSS filter chain from the active accent and rotates them onto its hue; land and
 water stay separated by lightness.
+
+The process chips on facility and design cards read that same categorical ramp:
+each carries a swatch for its family of making — additive, subtractive, forming,
+joining, finishing — so a card says what kind of shop it is before its labels
+are read.
 
 Theme, mode, filters, view mode, sort, grouping, and page are all held in the
 query string, so copying the URL reproduces the view.
