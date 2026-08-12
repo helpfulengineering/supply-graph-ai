@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "../../components/ui/Badge";
+import { ProcessChip } from "../../components/ui/ProcessChip";
+import { humanizeProcessId } from "../network/deriveFilterOptions";
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "./categories";
 import { formatOkhDisplayTitle } from "./formatOkhDisplayTitle";
@@ -12,23 +14,6 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   okh: OkhManifest;
-}
-
-const PROCESS_COLORS: Record<string, "indigo" | "blue" | "green" | "yellow"> = {
-  "3DP": "indigo",
-  "3D Printing": "indigo",
-  PCB: "blue",
-  CNC: "green",
-  Assembly: "yellow",
-  Laser: "blue",
-  "Laser Cutting": "blue",
-  Welding: "yellow",
-};
-
-function processColor(
-  p: string,
-): "indigo" | "blue" | "green" | "yellow" | "default" {
-  return PROCESS_COLORS[p] ?? "default";
 }
 
 export function OkhCard({ okh }: Props) {
@@ -61,9 +46,11 @@ export function OkhCard({ okh }: Props) {
               </Badge>
             ))}
             {okh.manufacturing_processes.slice(0, 4).map((p) => (
-              <Badge key={`proc-${p}`} variant={processColor(p)}>
-                {p}
-              </Badge>
+              <ProcessChip
+                key={`proc-${p}`}
+                process={p}
+                label={humanizeProcessId(p)}
+              />
             ))}
             {okh.manufacturing_processes.length > 4 && (
               <Badge variant="default">

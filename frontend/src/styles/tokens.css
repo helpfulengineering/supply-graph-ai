@@ -1329,6 +1329,36 @@
   --chart-4: var(--ttm-goldenrod);
   --chart-5: var(--ttm-hot-red);
 
+  /* Manufacturing process families, as swatches.
+
+     A facility card lists the processes it runs, and until now the only thing
+     that told two of them apart was the glyph — which is a picture of a tool,
+     so "does this place cut metal or print it" was a question you answered by
+     reading four labels. A colour per family answers it at a glance.
+
+     Family, not process: the taxonomy carries 51 ids and no categorical scale
+     survives 51 stops. The families are the taxonomy's own sections, with the
+     two smallest folded into their neighbours (assembly is a kind of joining,
+     heat treatment a kind of finishing) to fit a ramp that is five wide.
+
+     The ramp is the chart ramp, not a private palette. It is the one
+     categorical scale in this system whose stops are already validated
+     distinguishable in all twenty variants — four worlds override it precisely
+     because their raw hues were not — and a second scale would mean doing that
+     work again and keeping the two in step. A map key and a process swatch are
+     different legends; sharing the vocabulary is what makes them look like one
+     product.
+
+     `other` is deliberately not on the ramp. Sewing, testing and packaging are
+     what the taxonomy has left over, not a sixth family, and a neutral says so
+     honestly where a sixth hue would invent a kinship that is not there. */
+  --process-additive: var(--chart-1);
+  --process-subtractive: var(--chart-2);
+  --process-forming: var(--chart-3);
+  --process-joining: var(--chart-4);
+  --process-finishing: var(--chart-5);
+  --process-other: var(--ttm-text-muted);
+
   --sidebar: var(--ttm-bg-alt);
   --sidebar-foreground: var(--ttm-text);
   --sidebar-primary: var(--ttm-accent-cta);

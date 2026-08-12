@@ -132,6 +132,16 @@ a {
     var(--ttm-text)
   );
 
+  /* Process family swatches as utilities (`bg-process-additive`), so a chip
+     names the family it belongs to rather than a colour. The values, and why
+     they ride the chart ramp, live in tokens.css. */
+  --color-process-additive: var(--process-additive);
+  --color-process-subtractive: var(--process-subtractive);
+  --color-process-forming: var(--process-forming);
+  --color-process-joining: var(--process-joining);
+  --color-process-finishing: var(--process-finishing);
+  --color-process-other: var(--process-other);
+
   /* Panel edge. The neutral --border is correct for a control, and flat as the
      outline of every card on the page: ten worlds drew the same grey box. A
      12% wash of the world's accent is enough to tell them apart and far too

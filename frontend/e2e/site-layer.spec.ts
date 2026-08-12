@@ -125,13 +125,33 @@ test("no gate, and no site-layer console errors, on a default instance", async (
 test("theme and mode still work with the layer off", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Site menu" }).click();
-  await page.getByRole("radio", { name: "Terminal" }).check();
+  // click(), not check(). check() clicks and then asserts `checked` in the same
+  // step, with no retry — and a theme change is applied inside
+  // `document.startViewTransition` (see applyThemeChange in hooks/useDarkMode),
+  // whose callback the browser runs a frame after the click, once it has
+  // snapshotted the old page. Until that callback flushes, React re-renders the
+  // controlled radio from unchanged state and returns it to unchecked, so
+  // check() reads false and throws. Measured: false at the click, true 50ms
+  // later. The lag is one frame of a deliberate crossfade, not a control that
+  // fails to register, so the assertion belongs in expect(), which polls.
+  const terminal = page.getByRole("radio", { name: "Terminal" });
+  await terminal.click();
+  await expect(terminal).toBeChecked();
   await expect(page.locator("html")).toHaveAttribute(
     "data-ttm-theme",
     "terminal",
   );
 
   // Device-level preference persists without any backend.
+  //
+  // The stored value is asserted before the reload, not because storage is the
+  // promise — the promise is what the visitor sees after coming back — but
+  // because it splits the two halves of it. Reloading on the attribute alone
+  // means a failure here could be either a write that never happened or a read
+  // that ignored it, and those live in different places.
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("ohm-theme")))
+    .toBe("terminal");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute(
     "data-ttm-theme",

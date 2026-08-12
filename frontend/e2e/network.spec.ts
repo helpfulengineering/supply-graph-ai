@@ -27,9 +27,13 @@ test("lists spaces from both sources with badges (mocked)", async ({
   // match a sentence of page copy, so removing that copy sent .first() to the
   // hidden <option> in the source filter and the test failed for a reason that
   // had nothing to do with badges.
+  //
+  // `rounded-lg`, which is what the Badge is cut with — it left the 9999px pill
+  // behind when the badges moved onto the world's own corner, and this locator
+  // stayed pointing at the old shape, matching nothing ever since.
   await expect(
     page
-      .locator("span.rounded-full")
+      .locator("span.rounded-lg")
       .filter({ hasText: "Maps of Making" })
       .first(),
   ).toBeVisible();
