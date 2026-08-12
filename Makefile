@@ -1,4 +1,15 @@
 # Code style and project map via uv-managed environment.
+#
+# Every recipe below shells out to `uv run`, and each one re-resolves the lock
+# before it runs. `en_core_web_md` is a direct-URL dependency, so re-resolving
+# means asking github.com for the wheel's metadata — 13 times over a `make
+# ready`, any one of which can fail the whole gate on a network hiccup that has
+# nothing to do with the change under test. Freezing pins every recipe to the
+# committed lock, which is what a verification gate should be measuring anyway.
+# `lock-check` still runs `uv lock --check`, so a lock that has drifted from
+# pyproject.toml is caught there rather than hidden here.
+export UV_FROZEN := 1
+
 .PHONY: format format-check lint test check black ruff repo-map repo-map-check env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
 
 # Web frontend verification harness (the frontend analogue of `ready`).
