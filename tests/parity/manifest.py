@@ -650,15 +650,11 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
-        "Solutions carry a TTL and expire, and nothing in the UI says so: "
-        "/staleness and /extend turn an invisible server behaviour into "
-        "something a caller can act on. /hierarchy is the one supply-tree read "
-        "that adds data the visualization bundle does not carry — component "
-        "parent/child structure. /trees is the filterable index into the "
-        "graph.",
-        "/api/supply-tree/solution/{solution_id}/staleness",
-        "/api/supply-tree/solution/{solution_id}/extend",
-        "/api/supply-tree/solution/{solution_id}/hierarchy",
+        "The filterable index into the graph — trees by component, facility, "
+        "depth and confidence. Deliberately not wired to DRIVE the graph, "
+        "which is built from the visualization bundle: two sources for one "
+        "picture is two truths. A table beside it is the honest pairing, and "
+        "it is the next thing this page wants.",
         "/api/supply-tree/solution/{solution_id}/trees",
     ),
     *_decision(

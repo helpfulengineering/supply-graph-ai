@@ -38,6 +38,8 @@ import {
   okwCapabilitiesFixture,
   okwTemplateFixture,
   rulesCompareFixture,
+  solutionHierarchyFixture,
+  solutionStalenessFixture,
   rulesExportFixture,
   rulesImportFixture,
   rulesListFixture,
@@ -70,6 +72,15 @@ export const handlers = [
   ),
   http.get("*/v1/api/okw/template", () =>
     HttpResponse.json(okwTemplateFixture),
+  ),
+  http.get("*/v1/api/supply-tree/solution/:id/staleness", () =>
+    HttpResponse.json(solutionStalenessFixture),
+  ),
+  http.get("*/v1/api/supply-tree/solution/:id/hierarchy", () =>
+    HttpResponse.json(solutionHierarchyFixture),
+  ),
+  http.post("*/v1/api/supply-tree/solution/:id/extend", () =>
+    HttpResponse.json({ status: "success", message: "TTL extended" }),
   ),
   http.get("*/v1/api/file-types/validate", () =>
     HttpResponse.json(fileTypesValidationFixture),

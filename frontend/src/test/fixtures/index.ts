@@ -1194,7 +1194,42 @@ export const okwTemplateFixture = {
   facility_status: "",
 };
 
+export const solutionStalenessFixture = {
+  status: "success",
+  message: "Staleness check completed",
+  data: {
+    solution_id: "sol-1",
+    // Fresh by default: the banner is the exception, and a fixture that made
+    // every mocked page shout would train readers to ignore it.
+    is_stale: false,
+    staleness_reason: null,
+    age_days: 2,
+  },
+};
+
+export const solutionHierarchyFixture = {
+  status: "success",
+  message: "Hierarchy retrieved",
+  data: {
+    hierarchy: {},
+    root_components: ["frame"],
+    component_details: { frame: { name: "Frame" } },
+    summary: {
+      total_components: 1,
+      root_components: 1,
+      total_trees: 1,
+      max_depth: 1,
+    },
+  },
+};
+
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/supply-tree/solution/sol-1/staleness": solutionStalenessFixture,
+  "/v1/api/supply-tree/solution/sol-1/hierarchy": solutionHierarchyFixture,
+  "/v1/api/supply-tree/solution/sol-1/extend": {
+    status: "success",
+    message: "TTL extended successfully",
+  },
   "/v1/api/okh/extract": okhRequirementsFixture,
   "/v1/api/okh/template": okhTemplateFixture,
   "/v1/api/okw/extract": okwCapabilitiesFixture,

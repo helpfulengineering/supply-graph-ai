@@ -15,6 +15,8 @@ import {
   packageMetadataFixture,
   provenanceFixture,
   salvageMatchFixture,
+  solutionHierarchyFixture,
+  solutionStalenessFixture,
   sourcingResolutionFixture,
   triageChecklistFixture,
   triageReportFixture,
@@ -147,6 +149,24 @@ const PARAMETERISED: Array<{
     // match returns the one bundled solution, so every id is that solution.
     pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/visualization$/,
     resolve: () => vizBundleFixture,
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/staleness$/,
+    resolve: (id) => ({
+      ...solutionStalenessFixture,
+      data: { ...solutionStalenessFixture.data, solution_id: id },
+    }),
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/hierarchy$/,
+    resolve: () => solutionHierarchyFixture,
+  },
+  {
+    method: "POST",
+    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/extend$/,
+    resolve: () => ({ status: "success", message: "TTL extended" }),
   },
   {
     method: "GET",
