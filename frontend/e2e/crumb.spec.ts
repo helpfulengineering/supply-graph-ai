@@ -37,12 +37,46 @@ const MIN_LINKS: Record<string, number> = {
   "/visualization/sol-1": 1,
 };
 
+/**
+ * Wait until the tab order has stopped changing.
+ *
+ * /visualization loads its graph and chart through `next/dynamic`, so focusable
+ * controls appear after first paint. Tabbing while that happens made the crumb
+ * test flaky in the full run and green on its own: focus advanced past the
+ * target as the document grew underneath it, and the bounded loop ran out. The
+ * property under test is the tab order, so the tab order has to be settled
+ * before it is walked.
+ */
+async function settle(page: import("@playwright/test").Page) {
+  await page.locator("#main").waitFor({ state: "visible" });
+  await page.waitForLoadState("networkidle", { timeout: 3_000 }).catch(() => {
+    /* a page with no requests never goes idle; it is already settled */
+  });
+  await page
+    .waitForFunction(
+      () => {
+        const n = document.querySelectorAll(
+          'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ).length;
+        const w = window as unknown as { __tabCount?: number };
+        const stable = w.__tabCount === n;
+        w.__tabCount = n;
+        return stable;
+      },
+      undefined,
+      { timeout: 5_000, polling: 250 },
+    )
+    .catch(() => {
+      /* still moving after 5s: measure anyway rather than fail on the wait */
+    });
+}
+
 for (const route of ROUTES) {
   test(`hero crumb links are keyboard-operable on ${route}`, async ({
     page,
   }) => {
     await page.goto(route);
-    await page.locator("#main").waitFor({ state: "visible" });
+    await settle(page);
 
     // Read every term up front, off this one load. Reading them lazily inside
     // the loop looked equivalent and was not: the previous iteration's Enter
@@ -67,7 +101,7 @@ for (const route of ROUTES) {
       // takes the page away, and the next link has to be reached from a fresh
       // document for the Tab count to mean anything.
       await page.goto(route);
-      await page.locator("#main").waitFor({ state: "visible" });
+      await settle(page);
 
       // Tabbed to rather than focused with .focus(): the property is that a
       // keyboard reaches these at all, which focusing directly asserts away.

@@ -1,5 +1,6 @@
 "use client";
 
+import { Breadcrumb } from "../../components/layout/Breadcrumb";
 import { MapPin } from "lucide-react";
 import { FIELD } from "../../components/ui/field";
 import { useState } from "react";
@@ -228,13 +229,12 @@ export function OkwDetailView({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/facilities" className="hover:text-primary-ink">
-          Facilities
-        </Link>
-        <span aria-hidden="true">›</span>
-        <span className="truncate text-foreground">{f.name || "Facility"}</span>
-      </nav>
+      <Breadcrumb
+        trail={[
+          { label: "Facilities", href: "/facilities" },
+          { label: f.name || "Facility" },
+        ]}
+      />
 
       {showCreatedBanner && (
         <PostCreateBanner

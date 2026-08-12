@@ -165,15 +165,10 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHero
         title={title}
-        breadcrumb={
-          <>
-            <Link href="/facilities" className="hover:text-primary-ink">
-              Facilities
-            </Link>
-            <span aria-hidden="true">›</span>
-            <span className="text-foreground">{title}</span>
-          </>
-        }
+        breadcrumb={[
+          { label: "Facilities", href: "/facilities" },
+          { label: title },
+        ]}
         description="Useful details up front; hours, equipment, and JSON import are optional. Visibility defaults to private until you share."
       />
 
