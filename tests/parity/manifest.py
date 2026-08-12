@@ -658,15 +658,21 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/supply-tree/solution/{solution_id}/trees",
     ),
     *_decision(
+        "never",
+        "superseded",
+        "One domain's detail. GET /api/match/domains already returns status, "
+        "version and supported input types for every domain, which is the "
+        "whole of what the selector shows — fetching one at a time would be a "
+        "request per option for data already in hand.",
+        "/api/match/domains/{domain_name}",
+    ),
+    *_decision(
         "planned",
         "backlog",
-        "MatchRequest already carries an optional `domain`, auto-detected when "
-        "absent, and the UI has no way to set it. /domains is richer than the "
-        "/api/utility/domains the app calls today — it carries status, version "
-        "and supported input types. /validate and /simulate take a supply tree "
-        "and belong on the visualization page rather than on Match.",
-        "/api/match/domains",
-        "/api/match/domains/{domain_name}",
+        "Both take a supply tree, so they belong on /visualization rather than "
+        "on Match — validate reuses the ValidationPanel the design page "
+        "already renders, and simulate projects a completion time from a start "
+        "date. Next thing that page wants after the Trees table.",
         "/api/match/validate",
         "/api/match/simulate",
     ),

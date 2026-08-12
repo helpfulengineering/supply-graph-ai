@@ -13,7 +13,9 @@ const explanation = (statuses: string[]) => ({
 
 describe("requirementStats", () => {
   it("counts total and missing requirements", () => {
-    const s = requirementStats(explanation(["matched", "matched", "unmatched"]));
+    const s = requirementStats(
+      explanation(["matched", "matched", "unmatched"]),
+    );
     expect(s).toEqual({ total: 3, missing: 1 });
   });
 
@@ -87,7 +89,9 @@ describe("coverageLabel", () => {
   });
 
   it("states plainly when everything is met", () => {
-    expect(coverageLabel({ total: 3, missing: 0 })).toBe("Meets every requirement");
+    expect(coverageLabel({ total: 3, missing: 0 })).toBe(
+      "Meets every requirement",
+    );
   });
 
   it("is explicit when coverage is unknown", () => {
@@ -132,7 +136,10 @@ describe("requirementStats deduplicates requirements", () => {
 
   it("is case- and whitespace-insensitive", () => {
     const stats = requirementStats({
-      requirement_matches: [dup("3D Printing", "matched"), dup(" 3d printing ", "matched")],
+      requirement_matches: [
+        dup("3D Printing", "matched"),
+        dup(" 3d printing ", "matched"),
+      ],
     });
     expect(stats).toEqual({ total: 1, missing: 0 });
   });

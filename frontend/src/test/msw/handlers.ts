@@ -48,6 +48,7 @@ import {
   llmCredentialsFixture,
   llmHealthFixture,
   llmProvidersFixture,
+  matchDomainsFixture,
   packageListFixture,
   packageSignatureFixture,
   remotePackagesFixture,
@@ -88,6 +89,9 @@ export const handlers = [
     HttpResponse.json(fileTypesValidationFixture),
   ),
   http.get("*/v1/api/file-types", () => HttpResponse.json(fileTypesFixture)),
+  http.get("*/v1/api/match/domains", () =>
+    HttpResponse.json(matchDomainsFixture),
+  ),
   http.get("*/v1/api/match/rules/", () => HttpResponse.json(rulesListFixture)),
   http.post("*/v1/api/match/rules/validate", () =>
     HttpResponse.json(rulesValidateFixture),

@@ -1237,7 +1237,29 @@ export const packageSignatureFixture = {
   signed_by: "did:key:z6MkDemo",
 };
 
+export const matchDomainsFixture = {
+  status: "success",
+  message: "Domains listed",
+  data: {
+    domains: [
+      {
+        name: "manufacturing",
+        status: "available",
+        version: "1.0",
+        supported_input_types: ["okh"],
+      },
+      {
+        name: "cooking",
+        status: "available",
+        version: "0.1",
+        supported_input_types: ["recipe"],
+      },
+    ],
+  },
+};
+
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/match/domains": matchDomainsFixture,
   "/v1/api/package/remote": remotePackagesFixture,
   "/v1/api/package/demo/widget/1.0.0/verify-signature": packageSignatureFixture,
   "/v1/api/supply-tree/solution/sol-1/staleness": solutionStalenessFixture,
