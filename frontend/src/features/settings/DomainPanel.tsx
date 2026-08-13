@@ -78,7 +78,18 @@ export function DomainPanel() {
                 <span>
                   <span className="block text-sm font-medium text-foreground">{opt.name}</span>
                   {opt.description && (
-                    <span className="mt-0.5 block text-sm text-muted-foreground">
+                    // muted-foreground is tuned for the default surface; on the
+                    // selected option's indigo background it falls to 4.24:1,
+                    // under the 4.5:1 AA threshold. Darken it when selected.
+                    // (Same fix as DesignPicker/RecipePicker's selected option.)
+                    <span
+                      className={[
+                        "mt-0.5 block text-sm",
+                        selected
+                          ? "text-indigo-900 dark:text-indigo-200"
+                          : "text-muted-foreground",
+                      ].join(" ")}
+                    >
                       {opt.description}
                     </span>
                   )}
