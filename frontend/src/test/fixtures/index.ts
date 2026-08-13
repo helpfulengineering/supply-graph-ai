@@ -607,10 +607,63 @@ export const packageMetadataFixture = {
   },
 };
 
+/**
+ * Cooking-domain browse fixtures.
+ *
+ * Shape is the paginated envelope `fetchAllRecipes`/`fetchAllKitchens` read
+ * (`items` + `pagination` at the top level, not nested under `data`), with
+ * `has_next: false` so the paging loop terminates on the first request.
+ */
+export const recipesFixture = {
+  items: [
+    {
+      id: "recipe-1",
+      name: "Sourdough Loaf",
+      ingredients: ["flour", "water", "salt", "starter"],
+      instructions: ["Mix", "Bulk ferment", "Shape", "Bake"],
+      equipment: ["oven", "dutch oven", "mixing bowl"],
+      domain: "cooking",
+    },
+    {
+      id: "recipe-2",
+      name: "Miso Soup",
+      ingredients: ["dashi", "miso paste", "tofu"],
+      instructions: ["Heat dashi", "Whisk in miso"],
+      equipment: ["saucepan"],
+      domain: "cooking",
+    },
+  ],
+  pagination: { has_next: false, total_items: 2 },
+};
+
+export const kitchensFixture = {
+  items: [
+    {
+      id: "kitchen-1",
+      name: "Community Kitchen",
+      appliances: ["oven", "stovetop"],
+      tools: ["dutch oven", "mixing bowl"],
+      ingredients: ["flour", "water", "salt"],
+      domain: "cooking",
+    },
+    {
+      id: "kitchen-2",
+      name: "Pop-Up Canteen",
+      appliances: ["stovetop"],
+      tools: ["saucepan"],
+      ingredients: ["dashi", "miso paste"],
+      domain: "cooking",
+    },
+  ],
+  pagination: { has_next: false, total_items: 2 },
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,
+  "/v1/api/okh/recipes": recipesFixture,
+  "/v1/api/okw/kitchens": kitchensFixture,
   "/v1/api/utility/metrics": metricsFixture,
   "/v1/api/okh": okhListFixture,
   "/v1/api/okh/okh-0001": okhDetailFixture,

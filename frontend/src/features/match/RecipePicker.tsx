@@ -108,7 +108,19 @@ export function RecipePicker({
                     <span className="text-sm font-medium text-foreground break-words">
                       {r.name}
                     </span>
-                    <span className="mt-0.5 text-xs text-muted-foreground">
+                    {/*
+                      muted-foreground is tuned for the default surface; on the
+                      selected row's indigo background it falls to 3.84:1,
+                      under the 4.5:1 AA threshold. Darken it when active.
+                      (Same fix as DesignPicker's selected option.)
+                    */}
+                    <span
+                      className={
+                        active
+                          ? "mt-0.5 text-xs text-indigo-900 dark:text-indigo-200"
+                          : "mt-0.5 text-xs text-muted-foreground"
+                      }
+                    >
                       {r.ingredients.length} ingredient{r.ingredients.length !== 1 ? "s" : ""}
                     </span>
                   </button>
