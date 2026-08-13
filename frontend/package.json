@@ -16,7 +16,9 @@
     "e2e": "playwright test --project=mocked",
     "e2e:real": "playwright test --project=real-api",
     "gen:api": "node harness/gen-api-types.mjs",
-    "frontend-ready": "node harness/run-gate.mjs"
+    "frontend-ready": "node harness/run-gate.mjs",
+    "contract:proxy": "node harness/proxy-contract.mjs",
+    "baseline:bless": "BLESS_BASELINE=1 vitest run src/test/baselineFreeze.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
