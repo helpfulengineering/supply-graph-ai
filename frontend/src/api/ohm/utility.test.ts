@@ -13,7 +13,9 @@ describe("fetchDomains", () => {
 
   it("throws ApiError on failure", async () => {
     server.use(
-      http.get("*/v1/api/utility/domains", () => HttpResponse.json({}, { status: 500 })),
+      http.get("*/v1/api/utility/domains", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
     );
     await expect(fetchDomains()).rejects.toBeInstanceOf(ApiError);
   });

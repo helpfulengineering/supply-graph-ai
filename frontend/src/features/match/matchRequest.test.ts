@@ -33,14 +33,15 @@ describe("buildMatchRequest", () => {
   });
 
   it("includes okwIds when a facility subset is chosen", () => {
-    expect(buildMatchRequest("okh-1", "standard", undefined, ["a", "b"]).okwIds).toEqual([
-      "a",
-      "b",
-    ]);
+    expect(
+      buildMatchRequest("okh-1", "standard", undefined, ["a", "b"]).okwIds,
+    ).toEqual(["a", "b"]);
   });
 
   it("omits okwIds when the subset is empty (match all facilities)", () => {
-    expect(buildMatchRequest("okh-1", "standard", undefined, [])).not.toHaveProperty("okwIds");
+    expect(
+      buildMatchRequest("okh-1", "standard", undefined, []),
+    ).not.toHaveProperty("okwIds");
     expect(buildMatchRequest("okh-1", "standard")).not.toHaveProperty("okwIds");
   });
 
@@ -69,7 +70,10 @@ describe("buildMatchRequest", () => {
 });
 
 describe("buildInlineMatchRequest", () => {
-  const manifest = { title: "Generated", manufacturing_processes: ["3D Printing"] };
+  const manifest = {
+    title: "Generated",
+    manufacturing_processes: ["3D Printing"],
+  };
 
   it("sends the manifest instead of an id", () => {
     const req = buildInlineMatchRequest(manifest, "standard");
@@ -94,7 +98,44 @@ describe("buildInlineMatchRequest", () => {
   });
 
   it("omits an empty facility subset", () => {
-    expect(buildInlineMatchRequest(manifest, "standard", undefined, []).okwIds).toBeUndefined();
+    expect(
+      buildInlineMatchRequest(manifest, "standard", undefined, []).okwIds,
+    ).toBeUndefined();
+  });
+});
+
+describe("domain", () => {
+  it("omits the field when no domain is chosen", () => {
+    // Absent is what makes the server auto-detect, which is a different
+    // instruction from "no domain" — so an empty selection is dropped rather
+    // than sent as null.
+    const req = buildMatchRequest("okh-1", "standard");
+    expect("domain" in req).toBe(false);
+  });
+
+  it("sends the chosen domain", () => {
+    const req = buildMatchRequest(
+      "okh-1",
+      "standard",
+      undefined,
+      undefined,
+      undefined,
+      "cooking",
+    );
+    expect(req.domain).toBe("cooking");
+  });
+
+  it("carries the domain through the network-filter branch too", () => {
+    const req = buildMatchRequest(
+      "okh-1",
+      "standard",
+      undefined,
+      undefined,
+      { source: "local" },
+      "cooking",
+    );
+    expect(req.domain).toBe("cooking");
+    expect(req.networkFilter).toEqual({ source: "local" });
   });
 });
 

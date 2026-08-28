@@ -89,7 +89,7 @@ async function runCookingMatch(page: import("@playwright/test").Page) {
   });
   await page.goto("/match?recipe_id=recipe-1");
   await page.getByRole("checkbox", { name: "Community Kitchen" }).check();
-  await page.getByRole("button", { name: "⚡ Run Match" }).click();
+  await page.getByRole("button", { name: "Run Match" }).click();
 }
 
 test("manufacturing: results hidden by tolerance keep the slider reachable (#356)", async ({

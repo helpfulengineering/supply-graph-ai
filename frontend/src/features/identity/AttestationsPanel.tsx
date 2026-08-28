@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { FIELD_MONO } from "../../components/ui/field";
 import { useQuery } from "@tanstack/react-query";
 import { listAttestations } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { AttestationList } from "./AttestationList";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 interface Props {
   /** When set, loads attestations for this content / bundle hash. */
@@ -28,11 +31,8 @@ export function AttestationsPanel({ contentHash }: Props) {
   if (!isAdmin) return null;
 
   return (
-    <section
-      aria-labelledby="attestations-heading"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-    >
-      <h2 id="attestations-heading" className="text-lg font-semibold text-foreground">
+    <section aria-labelledby="attestations-heading" className={PANEL}>
+      <h2 id="attestations-heading" className={SECTION_TITLE}>
         Attestations
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
@@ -53,23 +53,27 @@ export function AttestationsPanel({ contentHash }: Props) {
               value={lookup}
               onChange={(e) => setLookup(e.target.value)}
               placeholder="sha256:…"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm dark:border-slate-600 dark:bg-slate-950"
+              className={`${FIELD_MONO} mt-1 w-full`}
             />
           </label>
           <button
             type="submit"
             disabled={!lookup.trim()}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
           >
             Load
           </button>
         </form>
       )}
 
-      {hash && query.isLoading && <LoadingSpinner message="Loading attestations…" />}
+      {hash && query.isLoading && (
+        <LoadingSpinner message="Loading attestations…" />
+      )}
       {hash && query.isError && (
-        <p className="mt-3 text-sm text-red-600" role="alert">
-          {query.error instanceof Error ? query.error.message : "Failed to load"}
+        <p className="mt-3 text-sm text-destructive" role="alert">
+          {query.error instanceof Error
+            ? query.error.message
+            : "Failed to load"}
         </p>
       )}
       {hash && query.data && (

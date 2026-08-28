@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FIELD } from "../../components/ui/field";
 import {
-  fetchFederationStatus,
+  federationStatusQuery,
   seedFromPeerUrl,
 } from "../../api/ohm/federation";
 import { Button } from "../../components/ui/button";
@@ -13,12 +14,7 @@ import { useAuth } from "../../context/AuthContext";
 export function SeedPeerCta() {
   const queryClient = useQueryClient();
   const { hasWrite, reportAuthFailure } = useAuth();
-  const status = useQuery({
-    queryKey: ["federation", "status"],
-    queryFn: fetchFederationStatus,
-    retry: false,
-    staleTime: 60_000,
-  });
+  const status = useQuery(federationStatusQuery);
 
   const seed = useMutation({
     mutationFn: (url: string) => seedFromPeerUrl(url),
@@ -35,35 +31,32 @@ export function SeedPeerCta() {
   if (!seedUrl) return null;
 
   return (
-    <div
-      role="region"
-      aria-label="Seed facilities from peer"
-      className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900"
-    >
-      <p className="font-medium text-foreground">Seed local facilities from a public peer</p>
+    <div role="region" aria-label="Seed facilities from peer" className={FIELD}>
+      <p className="font-medium text-foreground">
+        Seed local facilities from a public peer
+      </p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Follow{" "}
-        <code className="text-xs">{seedUrl}</code> and sync OKW copies you can edit on this
-        node. Edits stay local — peers keep their own copies.
+        Follow <code className="text-xs">{seedUrl}</code> and sync OKW copies
+        you can edit on this node. Edits stay local — peers keep their own
+        copies.
       </p>
       {!hasWrite && (
-        <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
+        <p className="mt-2 text-xs text-warning">
           Syncing requires a write-capable API key.
         </p>
       )}
       {seed.isError && (
-        <p className="mt-2 text-xs text-red-600" role="alert">
-          {seed.error instanceof Error ? seed.error.message : "Seed sync failed."}
+        <p className="mt-2 text-xs text-destructive" role="alert">
+          {seed.error instanceof Error
+            ? seed.error.message
+            : "Seed sync failed."}
         </p>
       )}
       {seed.isSuccess && (
-        <p className="mt-2 text-xs text-green-700 dark:text-green-300" role="status">
+        <p className="mt-2 text-xs text-success" role="status">
           Synced {seed.data.okwPulled} OKW record
           {seed.data.okwPulled === 1 ? "" : "s"}
-          {seed.data.okhPulled
-            ? ` (+ ${seed.data.okhPulled} OKH)`
-            : ""}
-          .
+          {seed.data.okhPulled ? ` (+ ${seed.data.okhPulled} OKH)` : ""}.
         </p>
       )}
       <div className="mt-3">

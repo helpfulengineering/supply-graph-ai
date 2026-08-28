@@ -8,8 +8,13 @@ test("home page renders the app shell", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /open hardware manager/i }),
   ).toBeVisible();
-  // Navigation shell present (brand link).
-  await expect(page.getByRole("link", { name: "OHM" })).toBeVisible();
+  // Chrome present: the header's home link is the mark now, so it is found by
+  // its accessible name rather than by visible wordmark text.
+  await expect(
+    page
+      .getByRole("banner")
+      .getByRole("link", { name: /open hardware manager/i }),
+  ).toBeVisible();
 });
 
 test("home page has no serious accessibility violations", async ({ page }) => {

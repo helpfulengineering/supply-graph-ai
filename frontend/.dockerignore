@@ -1,11 +1,12 @@
 node_modules
 dist
+.next
 .git
 .gitignore
 *.log
 coverage
+artifacts
 playwright-report
 test-results
-.vite
 Dockerfile
 .dockerignore

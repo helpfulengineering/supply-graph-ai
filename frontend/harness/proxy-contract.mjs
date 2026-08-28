@@ -194,7 +194,15 @@ check("a missing /docs page 404s rather than serving the SPA shell", async () =>
   // The regression this exists for: /docs/* once fell through to index.html, so
   // every docs URL returned 200 with the app shell and an undeployed docs site
   // looked healthy to browsers and monitors alike.
-  const res = await fetch(`${baseUrl}/docs/definitely-not-a-page`);
+  //
+  // `redirect: "manual"` is load-bearing. The route handler redirects the
+  // whole /docs tree to the published site when the image ships without one,
+  // and a following fetch chased that redirect out to the public internet and
+  // asserted on ITS 404 — so this check passed against a container serving no
+  // docs at all. It has to read the status the container returned.
+  const res = await fetch(`${baseUrl}/docs/definitely-not-a-page`, {
+    redirect: "manual",
+  });
   assert(res.status === 404, `expected 404, got ${res.status}`);
 });
 

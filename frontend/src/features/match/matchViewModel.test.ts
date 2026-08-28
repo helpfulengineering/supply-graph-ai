@@ -5,9 +5,31 @@ import { toRfqSolutions } from "./rfqHandoff";
 const raw = {
   data: {
     solutions: [
-      { facility_name: "B", facility_id: "b", confidence: 0.7, score: 0.7, rank: 2, explanation_human: "ok", tree: { id: "t-b" } },
-      { facility_name: "A", facility_id: "a", confidence: 0.95, score: 0.95, rank: 1, explanation_human: "great", tree: { id: "t-a" } },
-      { facility_name: "C", facility_id: "c", confidence: 0.95, score: 0.9, rank: 3 },
+      {
+        facility_name: "B",
+        facility_id: "b",
+        confidence: 0.7,
+        score: 0.7,
+        rank: 2,
+        explanation_human: "ok",
+        tree: { id: "t-b" },
+      },
+      {
+        facility_name: "A",
+        facility_id: "a",
+        confidence: 0.95,
+        score: 0.95,
+        rank: 1,
+        explanation_human: "great",
+        tree: { id: "t-a" },
+      },
+      {
+        facility_name: "C",
+        facility_id: "c",
+        confidence: 0.95,
+        score: 0.9,
+        rank: 3,
+      },
     ],
     coverage_gaps: ["CNC Machining"],
     human_summary: { executive: "3 candidate solutions found." },
@@ -53,7 +75,9 @@ describe("solutionSelectionKey", () => {
 describe("toRfqSolutions", () => {
   it("maps ranked solutions into RFQ navigation payloads", () => {
     const view = toMatchView(raw);
-    const rfq = toRfqSolutions([view.solutions[0]], { a: "https://example.org" });
+    const rfq = toRfqSolutions([view.solutions[0]], {
+      a: "https://example.org",
+    });
     expect(rfq).toHaveLength(1);
     expect(rfq[0].facility_id).toBe("a");
     expect(rfq[0].tree.id).toBe("t-a");

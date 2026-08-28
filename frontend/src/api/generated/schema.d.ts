@@ -1090,6 +1090,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okw/{id}/spaceapi": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Publish a facility as a SpaceAPI document
+         * @description Serve one facility as the SpaceAPI document Maps of Making ingests.
+         *
+         *         Register the URL once at https://mapsofmaking.org and MoM re-polls it every
+         *         ten minutes, so enrichment done here reaches the map without re-entry.
+         *
+         *         Only facilities set to `public` visibility are served; anything else answers
+         *         404. The document carries coordinates, not a street address.
+         */
+        get: operations["get_okw_spaceapi_api_okw__id__spaceapi_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okw": {
         parameters: {
             query?: never;
@@ -1566,7 +1592,12 @@ export interface paths {
         };
         /**
          * List Supply Tree Solutions
-         * @description List supply tree solutions with optional filtering and sorting.
+         * @description List the calling account's saved supply tree solutions.
+         *
+         *         Scoped to the caller: a solution is returned only to the account that ran
+         *         the match that saved it. An unauthenticated caller receives an empty list,
+         *         as does anyone asking after a solution saved before solutions carried an
+         *         owner.
          *
          *         Supports filtering by:
          *         - okh_id: Filter by OKH manifest ID
@@ -11980,6 +12011,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_okw_spaceapi_api_okw__id__spaceapi_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Bad Request */

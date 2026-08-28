@@ -1,43 +1,40 @@
-import { Link, useNavigate } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "../../components/ui/Badge";
+import { ProcessChip } from "../../components/ui/ProcessChip";
+import { humanizeProcessId } from "../network/deriveFilterOptions";
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "./categories";
 import { formatOkhDisplayTitle } from "./formatOkhDisplayTitle";
 import { normalizeHardwareLicense } from "./normalizeHardwareLicense";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   okh: OkhManifest;
 }
 
-const PROCESS_COLORS: Record<string, "indigo" | "blue" | "green" | "yellow"> = {
-  "3DP": "indigo",
-  "3D Printing": "indigo",
-  PCB: "blue",
-  CNC: "green",
-  Assembly: "yellow",
-  Laser: "blue",
-  "Laser Cutting": "blue",
-  Welding: "yellow",
-};
-
-function processColor(p: string): "indigo" | "blue" | "green" | "yellow" | "default" {
-  return PROCESS_COLORS[p] ?? "default";
-}
-
 export function OkhCard({ okh }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const title = formatOkhDisplayTitle(okh.title);
   const categories = deriveCategories(okh).filter((c) => c !== UNCATEGORIZED);
   const author = okh.licensor?.name?.trim() || null;
   const license = normalizeHardwareLicense(okh.license?.hardware);
 
   return (
-    <div className="group flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+    <div className="group flex flex-col rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
       <Link
-        to={`/okh/${okh.id}`}
+        href={`/okh/${okh.id}`}
         className="flex flex-1 flex-col gap-3 p-5 no-underline"
       >
-        <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors dark:text-slate-100 dark:group-hover:text-indigo-400 break-words">
+        <h3
+          className={cn(
+            CARD_TITLE,
+            "break-words transition-colors group-hover:text-primary-ink",
+          )}
+        >
           {title}
         </h3>
 
@@ -49,32 +46,36 @@ export function OkhCard({ okh }: Props) {
               </Badge>
             ))}
             {okh.manufacturing_processes.slice(0, 4).map((p) => (
-              <Badge key={`proc-${p}`} variant={processColor(p)}>
-                {p}
-              </Badge>
+              <ProcessChip
+                key={`proc-${p}`}
+                process={p}
+                label={humanizeProcessId(p)}
+              />
             ))}
             {okh.manufacturing_processes.length > 4 && (
-              <Badge variant="default">+{okh.manufacturing_processes.length - 4}</Badge>
+              <Badge variant="default">
+                +{okh.manufacturing_processes.length - 4}
+              </Badge>
             )}
           </div>
         )}
 
-        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-500">
+        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {author && <span className="truncate max-w-[180px]">{author}</span>}
           {okh.version && <span>v{okh.version}</span>}
           {license && <span className="truncate max-w-[140px]">{license}</span>}
         </div>
       </Link>
 
-      <div className="flex items-center justify-end border-t border-slate-100 px-5 py-3 dark:border-slate-800">
+      <div className="flex items-center justify-end border-t border-border px-5 py-3">
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/match?okh_id=${okh.id}`);
+            router.push(`/match?okh_id=${okh.id}`);
           }}
-          className="rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900"
+          className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-primary-ink hover:bg-accent transition-colors"
         >
-          Run Match ⚡
+          Run Match
         </button>
       </div>
     </div>

@@ -65,6 +65,44 @@ async def _catalog_attestations(content_hash: str) -> list[Any]:
     return await auth.list_attestations_for_catalog(content_hash) or []
 
 
+async def _shareable_leaves(
+    okh_service: OKHService,
+    page_size: int,
+) -> list[tuple[Any, dict, str]]:
+    """Select the manifests that may leave this node, with their content hashes.
+
+    Membership, order and hashing all live here so the full index and the cheap
+    summary cannot drift: a merkle root computed by one has to equal the other's,
+    or a peer's digest comparison silently disagrees with our own catalog.
+    """
+    manifests, _total = await okh_service.list(page=1, page_size=page_size)
+    leaves: list[tuple[Any, dict, str]] = []
+    for manifest in manifests:
+        visibility = await okh_service.get_visibility(manifest.id)
+        if not is_shareable(visibility):
+            continue
+        manifest_dict = manifest.to_dict()
+        leaves.append((manifest, manifest_dict, manifest_content_hash(manifest_dict)))
+    return leaves
+
+
+async def build_catalog_summary(
+    okh_service: OKHService,
+    *,
+    page_size: int = 10_000,
+) -> tuple[int, str]:
+    """Return ``(record_count, merkle_root)`` without signing anything.
+
+    /status reports these two numbers and discards the rest of the index, but
+    building the full index costs two blob reads, an attestation lookup, a
+    package-pointer resolve and two Ed25519 signatures PER MANIFEST. That is the
+    most expensive call in the router on the one endpoint the dashboard polls,
+    so it gets the cheap path instead of a cache — no staleness to reason about.
+    """
+    leaves = await _shareable_leaves(okh_service, page_size)
+    return len(leaves), merkle_root([content_hash for _m, _d, content_hash in leaves])
+
+
 async def build_catalog_index(
     okh_service: OKHService,
     identity: NodeIdentity,
@@ -76,17 +114,12 @@ async def build_catalog_index(
     Only records with shareable visibility (``followers`` / ``public``) are
     included — ``private`` (the create default) never leaves the node.
     """
-    manifests, _total = await okh_service.list(page=1, page_size=page_size)
     records: list[CatalogRecord] = []
     signed_by_hash: dict[str, SignedManifestRecord] = {}
 
-    for manifest in manifests:
-        visibility = await okh_service.get_visibility(manifest.id)
-        if not is_shareable(visibility):
-            continue
-
-        manifest_dict = manifest.to_dict()
-        content_hash = manifest_content_hash(manifest_dict)
+    for manifest, manifest_dict, content_hash in await _shareable_leaves(
+        okh_service, page_size
+    ):
         # Provenance rides the catalog record (its own plane), so it is signed by
         # the node in transit but stays out of the design content hash.
         provenance = await okh_service.get_provenance(manifest.id)

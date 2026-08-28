@@ -1,6 +1,13 @@
+"use client";
+
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { SearchX } from "lucide-react";
+import { PageHero } from "../../components/layout/PageHero";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import { PANEL_MUTED, PANEL_WARNING } from "../../components/ui/surface";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { withNavState } from "../../lib/navState";
 import { fetchAllRecipes } from "../../api/ohm/recipes";
 import { fetchAllKitchens } from "../../api/ohm/kitchens";
 import { runMatch } from "../../api/ohm/match";
@@ -27,7 +34,7 @@ interface Props {
  * solutions out.
  */
 export function CookingMatchView({ initialRecipeId }: Props = {}) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const recipes = useQuery({ queryKey: ["recipes"], queryFn: fetchAllRecipes });
   const kitchens = useQuery({ queryKey: ["kitchens"], queryFn: fetchAllKitchens });
 
@@ -74,12 +81,14 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Match a Recipe</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Choose a recipe and the kitchens to compare, then run a match.
-        </p>
-      </div>
+      <PageHero
+        title="Match a Recipe"
+        description="Choose a recipe and the kitchens to compare, then run a match."
+        crumb={[
+          { label: "recipes", href: "/okh" },
+          { label: "kitchens", href: "/facilities" },
+        ]}
+      />
 
       <div className="space-y-4">
         <RecipePicker
@@ -93,29 +102,15 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1">
             <span className="mb-1 block text-sm text-muted-foreground">System mode</span>
-            <div
-              role="radiogroup"
-              aria-label="System mode"
-              className="inline-flex overflow-hidden rounded-md border border-input"
-            >
-              {SYSTEM_MODES.map((s) => (
-                <button
-                  key={s.mode}
-                  type="button"
-                  role="radio"
-                  aria-checked={mode === s.mode}
-                  onClick={() => setMode(s.mode)}
-                  className={cn(
-                    "px-3 py-1.5 text-sm transition-colors",
-                    mode === s.mode
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background text-foreground hover:bg-accent",
-                  )}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              label="System mode"
+              value={mode}
+              options={SYSTEM_MODES.map((s) => ({
+                value: s.mode,
+                label: s.label,
+              }))}
+              onChange={setMode}
+            />
             {modeInfo && (
               <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">
                 {modeInfo.description}
@@ -126,16 +121,16 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
             disabled={!canRun}
             onClick={() => mutation.mutate({ id: selected, m: mode, ids: kitchenIds })}
           >
-            {mutation.isPending ? "Matching…" : "⚡ Run Match"}
+            {mutation.isPending ? "Matching…" : "Run Match"}
           </Button>
         </div>
         {selected && kitchenIds.length === 0 && (
-          <p className="text-xs text-amber-700 dark:text-amber-400">
+          <p className="text-xs text-warning">
             Select at least one kitchen below before running a match.
           </p>
         )}
         {!selected && (
-          <p className="text-xs text-amber-700 dark:text-amber-400">
+          <p className="text-xs text-warning">
             Search and select a recipe above before running a match.
           </p>
         )}
@@ -173,7 +168,13 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
         !mutation.isPending &&
         (rawView.solutions.length === 0 ? (
           <EmptyState
-            icon="🔍"
+            icon={
+                  <SearchX
+                    aria-hidden="true"
+                    className="h-8 w-8"
+                    strokeWidth={1.5}
+                  />
+                }
             title="No matches found"
             description="No kitchens can currently make this recipe."
           />
@@ -185,17 +186,15 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
               </p>
             )}
             {view.coverageGaps.length > 0 && (
-              <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-sm dark:border-yellow-800 dark:bg-yellow-950/30">
-                <p className="font-medium text-yellow-800 dark:text-yellow-300">
-                  Coverage gaps
-                </p>
-                <p className="mt-1 text-yellow-700 dark:text-yellow-400">
+              <div className={cn(PANEL_WARNING, "text-sm")}>
+                <p className="font-medium text-warning">Coverage gaps</p>
+                <p className="mt-1 text-warning">
                   Unmatched: {view.coverageGaps.join(", ")}
                 </p>
               </div>
             )}
             {ceiling > 0 && (
-              <div className="rounded-lg border border-input bg-muted/30 p-4">
+              <div className={PANEL_MUTED}>
                 <label
                   htmlFor="near-miss-tolerance"
                   className="block text-sm font-medium text-foreground"
@@ -226,7 +225,13 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
 
             {view.solutions.length === 0 ? (
               <EmptyState
-                icon="🔍"
+                icon={
+                  <SearchX
+                    aria-hidden="true"
+                    className="h-8 w-8"
+                    strokeWidth={1.5}
+                  />
+                }
                 title="No matches within tolerance"
                 description="Every kitchen is missing more than the tolerance above allows. Increase it to see them."
               />
@@ -274,7 +279,7 @@ export function CookingMatchView({ initialRecipeId }: Props = {}) {
                           recipe: selectedRecipe,
                           solutions: toRfqSolutions(selectedSolutions),
                         };
-                        navigate("/rfq", { state });
+                        router.push(withNavState("/rfq", state));
                       }}
                     >
                       Contact selected kitchens →

@@ -1,6 +1,13 @@
 import { useState, type FormEvent } from "react";
+import { FIELD_MONO, FIELD_SM, LABEL } from "../../components/ui/field";
 import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
+import {
+  SECTION_LABEL_SM,
+  SECTION_TITLE,
+} from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 export function SessionPanel() {
   const { token, user, isLoading, authError, setToken, clear } = useAuth();
@@ -21,19 +28,17 @@ export function SessionPanel() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="session-key-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-      >
-        <h2 id="session-key-heading" className="text-lg font-semibold text-foreground">
+      <section aria-labelledby="session-key-heading" className={PANEL}>
+        <h2 id="session-key-heading" className={SECTION_TITLE}>
           API key
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste a Bearer token for this browser tab (stored in sessionStorage only).
+          Paste a Bearer token for this browser tab (stored in sessionStorage
+          only).
         </p>
 
         <form onSubmit={onSave} className="mt-4 space-y-3">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+          <label className={LABEL}>
             Token
             <input
               type="password"
@@ -41,14 +46,14 @@ export function SessionPanel() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={token ? "•••••••• (replace current)" : "ohm_…"}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-sm dark:border-slate-600 dark:bg-slate-950"
+              className={`${FIELD_MONO} mt-1 w-full`}
             />
           </label>
           <div className="flex flex-wrap gap-2">
             <button
               type="submit"
               disabled={saving || !draft.trim()}
-              className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent hover:bg-primary disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save"}
             </button>
@@ -56,7 +61,7 @@ export function SessionPanel() {
               type="button"
               onClick={() => clear()}
               disabled={!token}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              className={`${FIELD_SM} font-medium hover:bg-background dark:hover:bg-muted`}
             >
               Clear session
             </button>
@@ -64,46 +69,45 @@ export function SessionPanel() {
         </form>
       </section>
 
-      <section
-        aria-labelledby="session-identity-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-      >
-        <h2 id="session-identity-heading" className="text-lg font-semibold text-foreground">
+      <section aria-labelledby="session-identity-heading" className={PANEL}>
+        <h2 id="session-identity-heading" className={SECTION_TITLE}>
           Current identity
         </h2>
         {!token && (
-          <p className="mt-2 text-sm text-muted-foreground">No API key in this session.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            No API key in this session.
+          </p>
         )}
         {token && isLoading && (
           <p className="mt-2 text-sm text-muted-foreground">Loading whoami…</p>
         )}
         {token && authError && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+          <p className="mt-2 text-sm text-destructive" role="alert">
             {authError.message}
           </p>
         )}
         {user && (
           <dl className="mt-3 space-y-2 text-sm">
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Name</dt>
+              <dt className={SECTION_LABEL_SM}>Name</dt>
               <dd className="text-foreground">{user.name}</dd>
             </div>
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Account
-              </dt>
-              <dd className="font-mono text-xs text-foreground">{user.account_id}</dd>
+              <dt className={SECTION_LABEL_SM}>Account</dt>
+              <dd className="font-mono text-xs text-foreground">
+                {user.account_id}
+              </dd>
             </div>
             {user.subject_did && (
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">DID</dt>
-                <dd className="break-all font-mono text-xs text-foreground">{user.subject_did}</dd>
+                <dt className={SECTION_LABEL_SM}>DID</dt>
+                <dd className="break-all font-mono text-xs text-foreground">
+                  {user.subject_did}
+                </dd>
               </div>
             )}
             <div>
-              <dt className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Permissions
-              </dt>
+              <dt className={cn(SECTION_LABEL_SM, "mb-1.5")}>Permissions</dt>
               <dd className="flex flex-wrap gap-1.5">
                 {user.permissions.map((p) => (
                   <Badge key={p} variant={p === "admin" ? "indigo" : "blue"}>

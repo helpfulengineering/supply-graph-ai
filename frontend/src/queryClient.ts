@@ -40,9 +40,15 @@ export const queryClient = new QueryClient({
  */
 const CACHE_BUSTER = "ohm-cache-v1";
 
+/**
+ * Where the dehydrated cache lives, exported so the demo-mode switch can drop
+ * it — see `setDemoMode`. Spelling it twice is how the two came apart.
+ */
+export const QUERY_CACHE_KEY = "ohm-query-cache";
+
 const persister = createSyncStoragePersister({
   storage: typeof window !== "undefined" ? window.localStorage : undefined,
-  key: "ohm-query-cache",
+  key: QUERY_CACHE_KEY,
   throttleTime: 1000,
   // The unfiltered facilities payload is large; if localStorage is full, drop
   // the oldest query and retry rather than failing to persist entirely.

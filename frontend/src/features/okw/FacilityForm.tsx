@@ -1,5 +1,10 @@
+"use client";
+
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
+import Link from "next/link";
+import { PageHero } from "../../components/layout/PageHero";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
@@ -7,6 +12,9 @@ import { createOkw, updateOkw, validateOkw } from "../../api/ohm/okw";
 import { fetchProcessTaxonomy } from "../../api/ohm/taxonomy";
 import { Button } from "../../components/ui/button";
 import { ProcessTaxonomyPicker } from "./ProcessTaxonomyPicker";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
+import { SECTION_LABEL } from "../../components/ui/typography";
 import {
   ACCESS_TYPES,
   FACILITY_STATUSES,
@@ -21,9 +29,9 @@ import {
 } from "./facilityFormModel";
 
 const fieldClass =
-  "mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950";
+  "mt-1 w-full rounded-md border border-border px-3 py-2 text-sm bg-background";
 const compactClass =
-  "rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-950";
+  "rounded-md border border-border px-2 py-1.5 text-sm bg-background";
 
 type Mode = "create" | "edit";
 
@@ -34,7 +42,7 @@ interface Props {
 }
 
 export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { hasWrite, reportAuthFailure } = useAuth();
   const taxonomyQuery = useQuery({
     queryKey: ["taxonomy", "processes"],
@@ -72,7 +80,12 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       ...state.equipment.map((e) => e.processId),
     ]);
     return taxonomy.filter((p) => ids.has(p.canonical_id) || !p.parent);
-  }, [taxonomy, state.selectedParents, state.selectedSubtypes, state.equipment]);
+  }, [
+    taxonomy,
+    state.selectedParents,
+    state.selectedSubtypes,
+    state.equipment,
+  ]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -117,7 +130,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           author: state.author.trim() || undefined,
           onBehalfOf: state.onBehalfOf.trim() || undefined,
         });
-        navigate(`/facilities/${id}?created=1`);
+        router.push(`/facilities/${id}?created=1`);
         return;
       }
 
@@ -126,7 +139,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         facilityId,
         formToUpdateBody(state, taxonomy) as Parameters<typeof updateOkw>[1],
       );
-      navigate(`/facilities/${facilityId}`);
+      router.push(`/facilities/${facilityId}`);
     } catch (err) {
       reportAuthFailure(err);
       setError(err instanceof Error ? err.message : "Save failed.");
@@ -150,45 +163,38 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/facilities" className="hover:text-indigo-600">
-          Facilities
-        </Link>
-        <span aria-hidden="true">›</span>
-        <span className="text-slate-700 dark:text-slate-200">{title}</span>
-      </nav>
-
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Useful details up front; hours, equipment, and JSON import are optional. Visibility
-          defaults to private until you share.
-        </p>
-      </div>
+      <PageHero
+        title={title}
+        breadcrumb={[
+          { label: "Facilities", href: "/facilities" },
+          { label: title },
+        ]}
+        description="Useful details up front; hours, equipment, and JSON import are optional. Visibility defaults to private until you share."
+      />
 
       {!hasWrite && (
         <div
-          className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
+          className={`${FIELD} border-warning/30 bg-warning/10 px-4 py-3 text-warning`}
           role="status"
         >
           <p className="font-medium">Connect a write-capable API key to save</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
             <li>
               Open{" "}
-              <Link to="/settings/session" className="underline font-medium">
+              <Link href="/settings/session" className="underline font-medium">
                 Settings → Session
               </Link>{" "}
               and paste a key with <code className="text-xs">write</code> (or{" "}
               <code className="text-xs">admin</code>).
             </li>
             <li>
-              On a new node, start from the env <code className="text-xs">API_KEYS</code>{" "}
-              bootstrap token, then create a named key under Keys &amp; accounts if you are an
-              admin.
+              On a new node, start from the env{" "}
+              <code className="text-xs">API_KEYS</code> bootstrap token, then
+              create a named key under Keys &amp; accounts if you are an admin.
             </li>
             <li>Return here and save the facility.</li>
           </ol>
-          <p className="mt-2 text-xs opacity-90">
+          <p className="mt-2 text-xs">
             Details:{" "}
             <a
               href="https://docs.openhardwaremanager.org/auth/get-a-write-key/"
@@ -198,17 +204,16 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             >
               Get a write key
             </a>{" "}
-            (local: <code className="text-xs">docs/auth/get-a-write-key.md</code>).
+            (local:{" "}
+            <code className="text-xs">docs/auth/get-a-write-key.md</code>).
           </p>
         </div>
       )}
 
       <form onSubmit={(e) => void onSubmit(e)} className="space-y-6">
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Basics
-          </h2>
-          <label className="block text-sm font-medium">
+        <section className={cn(PANEL, "space-y-3")}>
+          <h2 className={SECTION_LABEL}>Basics</h2>
+          <label className={LABEL}>
             Name *
             <input
               value={state.name}
@@ -218,12 +223,15 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Status
               <select
                 value={state.facilityStatus}
                 onChange={(e) =>
-                  patch({ facilityStatus: e.target.value as FacilityFormState["facilityStatus"] })
+                  patch({
+                    facilityStatus: e.target
+                      .value as FacilityFormState["facilityStatus"],
+                  })
                 }
                 className={fieldClass}
               >
@@ -234,12 +242,15 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 ))}
               </select>
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Access
               <select
                 value={state.accessType}
                 onChange={(e) =>
-                  patch({ accessType: e.target.value as FacilityFormState["accessType"] })
+                  patch({
+                    accessType: e.target
+                      .value as FacilityFormState["accessType"],
+                  })
                 }
                 className={fieldClass}
               >
@@ -252,7 +263,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             </label>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               City *
               <input
                 value={state.city}
@@ -261,7 +272,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 required
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Region
               <input
                 value={state.region}
@@ -269,7 +280,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 className={fieldClass}
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Country *
               <input
                 value={state.country}
@@ -279,7 +290,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               />
             </label>
           </div>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Street (optional)
             <input
               value={state.street}
@@ -287,7 +298,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               className={fieldClass}
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Description
             <textarea
               value={state.description}
@@ -298,18 +309,17 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           </label>
         </section>
 
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Processes
-          </h2>
+        <section className={cn(PANEL, "space-y-3")}>
+          <h2 className={SECTION_LABEL}>Processes</h2>
           <p className="text-xs text-muted-foreground">
-            Select parent types; expand a parent to pick more specific subtypes when you want.
+            Select parent types; expand a parent to pick more specific subtypes
+            when you want.
           </p>
           {taxonomyQuery.isLoading && (
             <p className="text-sm text-muted-foreground">Loading taxonomy…</p>
           )}
           {taxonomyQuery.isError && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-destructive">
               {taxonomyQuery.error instanceof Error
                 ? taxonomyQuery.error.message
                 : "Failed to load taxonomy."}
@@ -329,12 +339,10 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         </section>
 
         {mode === "create" && (
-          <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Attribution (optional)
-            </h2>
+          <section className={cn(PANEL, "space-y-3")}>
+            <h2 className={SECTION_LABEL}>Attribution (optional)</h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium">
+              <label className={LABEL}>
                 Author
                 <input
                   value={state.author}
@@ -343,7 +351,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                   className={fieldClass}
                 />
               </label>
-              <label className="block text-sm font-medium">
+              <label className={LABEL}>
                 On behalf of (space)
                 <input
                   value={state.onBehalfOf}
@@ -359,21 +367,20 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         <div>
           <button
             type="button"
-            className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+            className="text-sm font-medium text-primary-ink hover:underline"
             onClick={() => setAdvancedOpen((o) => !o)}
             aria-expanded={advancedOpen}
           >
-            {advancedOpen ? "Hide advanced" : "Show advanced"} — hours, contact, equipment, import
+            {advancedOpen ? "Hide advanced" : "Show advanced"} — hours, contact,
+            equipment, import
           </button>
         </div>
 
         {advancedOpen && (
           <div className="space-y-4">
-            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Hours &amp; contact
-              </h2>
-              <label className="block text-sm font-medium">
+            <section className={cn(PANEL, "space-y-3")}>
+              <h2 className={SECTION_LABEL}>Hours &amp; contact</h2>
+              <label className={LABEL}>
                 Opening hours
                 <input
                   value={state.openingHours}
@@ -382,7 +389,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                 />
               </label>
               <div className="grid gap-3 sm:grid-cols-3">
-                <label className="block text-sm font-medium">
+                <label className={LABEL}>
                   Email
                   <input
                     value={state.contactEmail}
@@ -390,7 +397,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                     className={fieldClass}
                   />
                 </label>
-                <label className="block text-sm font-medium">
+                <label className={LABEL}>
                   Phone
                   <input
                     value={state.contactPhone}
@@ -398,7 +405,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                     className={fieldClass}
                   />
                 </label>
-                <label className="block text-sm font-medium">
+                <label className={LABEL}>
                   URL
                   <input
                     value={state.contactUrl}
@@ -409,10 +416,8 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </div>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Equipment details
-              </h2>
+            <section className={cn(PANEL, "space-y-3")}>
+              <h2 className={SECTION_LABEL}>Equipment details</h2>
               <p className="text-xs text-muted-foreground">
                 Rows with make or model are saved; empty rows are ignored.
               </p>
@@ -458,7 +463,9 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                     type="button"
                     variant="outline"
                     onClick={() =>
-                      patch({ equipment: state.equipment.filter((_, j) => j !== i) })
+                      patch({
+                        equipment: state.equipment.filter((_, j) => j !== i),
+                      })
                     }
                   >
                     Remove
@@ -473,7 +480,10 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                     equipment: [
                       ...state.equipment,
                       {
-                        processId: state.selectedSubtypes[0] || state.selectedParents[0] || "",
+                        processId:
+                          state.selectedSubtypes[0] ||
+                          state.selectedParents[0] ||
+                          "",
                         make: "",
                         model: "",
                       },
@@ -485,19 +495,18 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
               </Button>
             </section>
 
-            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Import JSON
-              </h2>
+            <section className={cn(PANEL, "space-y-3")}>
+              <h2 className={SECTION_LABEL}>Import JSON</h2>
               <p className="text-xs text-muted-foreground">
-                Paste OKW JSON to fill the form. For YAML, convert first or use the CLI.
+                Paste OKW JSON to fill the form. For YAML, convert first or use
+                the CLI.
               </p>
               <textarea
                 value={importText}
                 onChange={(e) => setImportText(e.target.value)}
                 rows={6}
                 spellCheck={false}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-xs dark:border-slate-600 dark:bg-slate-950"
+                className={`${FIELD_SM} w-full`}
                 placeholder="{ … }"
               />
               <Button type="button" variant="outline" onClick={applyImport}>
@@ -508,20 +517,23 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
         )}
 
         {error && (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          <p className="text-sm text-destructive" role="alert">
             {error}
           </p>
         )}
 
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={!hasWrite || busy || taxonomyQuery.isLoading}>
+          <Button
+            type="submit"
+            disabled={!hasWrite || busy || taxonomyQuery.isLoading}
+          >
             {busy
               ? "Saving…"
               : mode === "create"
                 ? "Create facility"
                 : "Save changes"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>
         </div>

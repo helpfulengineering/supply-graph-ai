@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { MatchResultCard } from "./MatchResultCard";
 import type { RankedSolution } from "./matchViewModel";
@@ -16,19 +15,19 @@ const solution: RankedSolution = {
   coverage: null,
 };
 
-function renderCard(props: Partial<Parameters<typeof MatchResultCard>[0]> = {}) {
+function renderCard(
+  props: Partial<Parameters<typeof MatchResultCard>[0]> = {},
+) {
   const onToggle = vi.fn();
   render(
-    <MemoryRouter>
-      <MatchResultCard
-        solution={solution}
-        selected={false}
-        onToggle={onToggle}
-        selectionKey="okw-1"
-        solutionId="sol-1"
-        {...props}
-      />
-    </MemoryRouter>,
+    <MatchResultCard
+      solution={solution}
+      selected={false}
+      onToggle={onToggle}
+      selectionKey="okw-1"
+      solutionId="sol-1"
+      {...props}
+    />,
   );
   return { onToggle };
 }
@@ -36,8 +35,12 @@ function renderCard(props: Partial<Parameters<typeof MatchResultCard>[0]> = {}) 
 describe("MatchResultCard", () => {
   it("is selectable", async () => {
     const { onToggle } = renderCard();
-    expect(screen.getByRole("heading", { name: "FabLab Drome" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("checkbox", { name: /select fablab drome/i }));
+    expect(
+      screen.getByRole("heading", { name: "FabLab Drome" }),
+    ).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /select fablab drome/i }),
+    );
     expect(onToggle).toHaveBeenCalled();
   });
 
@@ -47,15 +50,16 @@ describe("MatchResultCard", () => {
   // id returns 404 where the solution id returns 200.
   it("links by solution id, not tree id", () => {
     renderCard();
-    expect(screen.getByRole("link", { name: /view supply tree/i })).toHaveAttribute(
-      "href",
-      "/visualization/sol-1",
-    );
+    expect(
+      screen.getByRole("link", { name: /view supply tree/i }),
+    ).toHaveAttribute("href", "/visualization/sol-1");
   });
 
   it("offers no link when the match was not persisted", () => {
     // Inline manifests are deliberately unsaved, so there is nothing to load.
     renderCard({ solutionId: null });
-    expect(screen.queryByRole("link", { name: /view supply tree/i })).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: /view supply tree/i }),
+    ).toBeNull();
   });
 });

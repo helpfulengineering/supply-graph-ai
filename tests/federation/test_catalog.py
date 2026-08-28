@@ -214,3 +214,62 @@ async def test_build_catalog_index_empty() -> None:
     index = await build_catalog_index(okh_service, identity)
     assert index.record_count == 0
     assert index.records == []
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_catalog_summary_agrees_with_full_index() -> None:
+    """The cheap /status path must not drift from the signed catalog.
+
+    build_catalog_summary skips provenance, attestations, package pointers and
+    signing, so it is a second implementation of membership and ordering. If the
+    two ever disagree on the merkle root, a peer's digest comparison silently
+    disagrees with the catalog we actually serve.
+    """
+    from src.core.federation.catalog import build_catalog_summary
+
+    identity = generate_identity("Summary Peer")
+    private = MagicMock()
+    private.id = UUID("340b030e-e3c6-4869-b947-4a24c52daaf1")
+    private.title = "Secret"
+    private.version = "1.0.0"
+    private.version_date = None
+    private.to_dict.return_value = dict(MINIMAL_MANIFEST)
+
+    shared = []
+    for n, uid in enumerate(
+        ("aaaaaaaa-e3c6-4869-b947-4a24c52daaf1", "bbbbbbbb-e3c6-4869-b947-4a24c52daaf1")
+    ):
+        m = MagicMock()
+        m.id = UUID(uid)
+        m.title = f"Shared {n}"
+        m.version = "1.0.0"
+        m.version_date = None
+        d = dict(MINIMAL_MANIFEST)
+        d["id"] = uid
+        d["title"] = m.title
+        m.to_dict.return_value = d
+        shared.append(m)
+
+    okh_service = AsyncMock()
+    okh_service.list.return_value = ([private, *shared], 3)
+    okh_service.get_provenance.return_value = None
+
+    async def _visibility(mid):
+        return VisibilityLevel.PRIVATE if mid == private.id else VisibilityLevel.PUBLIC
+
+    okh_service.get_visibility.side_effect = _visibility
+
+    with _patch_auth_attestations():
+        index = await build_catalog_index(okh_service, identity)
+        count, root = await build_catalog_summary(okh_service)
+
+    assert count == index.record_count == 2
+    assert root == index.merkle_root
+
+    # And the summary genuinely skips the expensive per-manifest work.
+    okh_service.get_provenance.reset_mock()
+    with _patch_auth_attestations() as attestations:
+        await build_catalog_summary(okh_service)
+    okh_service.get_provenance.assert_not_awaited()
+    attestations.assert_not_awaited()

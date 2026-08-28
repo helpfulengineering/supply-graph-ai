@@ -1,5 +1,10 @@
+"use client";
+
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
+import Link from "next/link";
+import { PageHero } from "../../components/layout/PageHero";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
 import { Button } from "../../components/ui/button";
@@ -11,7 +16,9 @@ type CreateFn = (
   opts: { author?: string; onBehalfOf?: string },
 ) => Promise<{ id: string }>;
 
-type ValidateFn = (content: Record<string, unknown>) => Promise<ValidationResult>;
+type ValidateFn = (
+  content: Record<string, unknown>,
+) => Promise<ValidationResult>;
 
 interface Props {
   title: string;
@@ -20,6 +27,13 @@ interface Props {
   detailHref: (id: string) => string;
   validate: ValidateFn;
   create: CreateFn;
+  /**
+   * Text the editor opens with, for a record that came from somewhere else —
+   * a converted OKH-LOSH file, a datasheet. Read once, at mount: this is a
+   * starting point, not a controlled value, and re-seeding it under a typing
+   * cursor would discard the edits it is there to invite.
+   */
+  initialJson?: string;
 }
 
 export function CreateJsonRecordPage({
@@ -29,10 +43,11 @@ export function CreateJsonRecordPage({
   detailHref,
   validate,
   create,
+  initialJson = "",
 }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { hasWrite, reportAuthFailure } = useAuth();
-  const [jsonText, setJsonText] = useState("");
+  const [jsonText, setJsonText] = useState(initialJson);
   const [author, setAuthor] = useState("");
   const [onBehalfOf, setOnBehalfOf] = useState("");
   const [validation, setValidation] = useState<ValidationResult | null>(null);
@@ -71,7 +86,9 @@ export function CreateJsonRecordPage({
   async function onCreate(e: FormEvent) {
     e.preventDefault();
     if (!hasWrite) {
-      setError("Creating requires a write-capable API key. Connect one in Settings.");
+      setError(
+        "Creating requires a write-capable API key. Connect one in Settings.",
+      );
       reportAuthFailure(new ApiError(401, "Authentication required"));
       return;
     }
@@ -84,7 +101,7 @@ export function CreateJsonRecordPage({
         author: author.trim() || undefined,
         onBehalfOf: onBehalfOf.trim() || undefined,
       });
-      navigate(detailHref(id));
+      router.push(detailHref(id));
     } catch (err) {
       reportAuthFailure(err);
       setError(err instanceof Error ? err.message : "Create failed.");
@@ -104,44 +121,41 @@ export function CreateJsonRecordPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link to={listHref} className="hover:text-indigo-600">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href={listHref} className="hover:text-primary-ink">
           {listLabel}
         </Link>
         <span aria-hidden="true">›</span>
-        <span className="text-slate-700 dark:text-slate-200">New</span>
+        <span className="text-foreground">New</span>
       </nav>
 
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Paste or upload JSON, optionally validate, then create. Visibility defaults to
-          private on the server.
-        </p>
-      </div>
+      <PageHero
+        title={title}
+        description="Paste or upload JSON, optionally validate, then create. Visibility defaults to private on the server."
+      />
 
       {!hasWrite && (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-          You need a write-capable API key to create. Browse still works; connect a key in
-          Settings if you are an admin.
+        <p className={`${FIELD} border-warning/30 bg-warning/10 text-warning`}>
+          You need a write-capable API key to create. Browse still works;
+          connect a key in Settings if you are an admin.
         </p>
       )}
 
       <form onSubmit={onCreate} className="space-y-4">
-        <label className="block text-sm font-medium">
+        <label className={LABEL}>
           JSON
           <textarea
             value={jsonText}
             onChange={(e) => setJsonText(e.target.value)}
             rows={16}
             spellCheck={false}
-            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-xs dark:border-slate-600 dark:bg-slate-950"
+            className={`${FIELD_SM} mt-1 w-full`}
             placeholder="{ … }"
             required
           />
         </label>
 
-        <label className="block text-sm font-medium">
+        <label className={LABEL}>
           Or upload a file
           <input
             type="file"
@@ -152,28 +166,28 @@ export function CreateJsonRecordPage({
         </label>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Author (optional)
             <input
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               placeholder="did:key:… or external id"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className={`${FIELD} mt-1 w-full`}
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             On behalf of (optional)
             <input
               value={onBehalfOf}
               onChange={(e) => setOnBehalfOf(e.target.value)}
               placeholder="space DID"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className={`${FIELD} mt-1 w-full`}
             />
           </label>
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          <p className="text-sm text-destructive" role="alert">
             {error}
           </p>
         )}

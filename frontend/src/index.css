@@ -1,26 +1,195 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+/* Geist Variable is imported in app/layout.tsx so Next bundles the font files. */
+
+/* Ten worlds x light/dark, and the shadcn bridge that lets them re-theme every
+   primitive without editing one. The only place a colour may exist. */
+@import "./styles/tokens.css";
 
 /* Enable class-based dark mode: apply dark: variants when .dark is on any ancestor */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Sensible link reset so NavLink/Link styling is predictable */
-a {
-  text-decoration: none;
+/* The theme switch, as one crossfade.
+   The world changes inside a view transition (see applyThemeChange in
+   hooks/useDarkMode), so the browser holds the old frame until the new one is
+   complete — chrome, charts, map and all — and animates between them on the
+   compositor. 180ms, because this is a change of clothes and not an event.
+   `prefers-reduced-motion` gets no transition at all: applyThemeChange takes
+   the instant path, so there is nothing here to disable. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: ease;
 }
 
-/* Smooth background/color transitions on theme switch */
-*, *::before, *::after {
-  transition-property: background-color, border-color, color;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
+/* The old way, kept only where the new one does not exist.
+   A transition on `*` animates every element on the page independently, each
+   starting when its own style is recalculated and every frame of it repainting
+   on the main thread — which is what made the switch arrive in waves. Where
+   view transitions are supported it is strictly worse than the crossfade
+   above; where they are not, a wave still beats a cut. */
+@supports not (view-transition-name: none) {
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
+  }
+}
+
+/* The rule above is what made the theme picker expensive.
+   hooks/useThemeSwatches resolves each world by applying it to <html> and
+   reading the values back, so ten worlds are ten attribute flips — and against
+   a transition declared on `*`, each flip starts a colour transition on every
+   element in the document. Measured on the production home page: 1150ms of
+   blocked main thread, landing on the frame the menu opens, which is the whole
+   of "the button sticks and the drawer doesn't ease". With transitions off for
+   the length of the loop the same work is ~150ms.
+   Transitions only, not animations: the drawer's own entrance may be running
+   while this resolves, and it must not be cancelled. */
+:root[data-ttm-probing] *,
+:root[data-ttm-probing] *::before,
+:root[data-ttm-probing] *::after {
+  transition: none !important;
 }
 
 @theme inline {
+  /* The type scale, as utilities.
+     tokens.css has carried --ttm-fs-* since Phase 2 and nothing read them:
+     every heading in the app picked a Tailwind step by hand, so one page title
+     was text-xl and another text-2xl, and one "section label" role was spelled
+     at two sizes across 23 files. Size is a design decision like colour, and it
+     belongs in the same place — bridged here so `text-h4` resolves through the
+     token rather than a component naming a rem value. Roles read these via
+     components/ui/typography.ts; components should not reach past it. */
+  --text-display: var(--ttm-fs-display);
+  --text-h1: var(--ttm-fs-h1);
+  --text-h2: var(--ttm-fs-h2);
+  --text-h3: var(--ttm-fs-h3);
+  --text-h4: var(--ttm-fs-h4);
+  --text-h5: var(--ttm-fs-h5);
+  --text-body: var(--ttm-fs-body);
+  --text-small: var(--ttm-fs-small);
+  --text-caption: var(--ttm-fs-caption);
+
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-sans: "Geist Variable", sans-serif;
+  --font-mono: var(--ttm-font-mono);
+  /* The brand's decorative and typewriter faces, as utilities. Worlds retune
+     them: Terminal and Mono point every stack at the monospace face, so a
+     `font-display` heading becomes console text there rather than an
+     exception the theme cannot reach. */
+  --font-display: var(--ttm-font-serif);
+  --font-voice: var(--ttm-font-voice);
+
+  /* Status colours as utilities. shadcn ships only --destructive, but the app
+     states success, warning, and info too (validation results, sync banners,
+     rate limits) and was spelling them as literal green/amber/blue shades that
+     no theme could reach. */
+  --color-success: var(--ttm-success);
+  --color-warning: var(--ttm-warning);
+  --color-info: var(--ttm-info);
+  --color-on-accent: var(--ttm-on-accent);
+
+  /* Ink variants for status text sitting on its own tinted fill (badges,
+     banners). A mid-lightness hue on a 10% wash of itself lands around 3.7:1 —
+     under AA — so the ink is blended toward the body text colour, which is dark
+     in light mode and light in dark mode. That makes the correction
+     self-adjusting per world and per polarity instead of twenty hand-picked
+     values. Proven by the theme matrix in e2e/themes.spec.ts. */
+  --color-success-ink: color-mix(
+    in srgb,
+    var(--ttm-success) 62%,
+    var(--ttm-text)
+  );
+  --color-warning-ink: color-mix(
+    in srgb,
+    var(--ttm-warning) 62%,
+    var(--ttm-text)
+  );
+  --color-info-ink: color-mix(in srgb, var(--ttm-info) 62%, var(--ttm-text));
+
+  /* The accent used AS TEXT (links, wordmark, badge ink). Several worlds'
+     accents sit between 3.8:1 and 4.5:1 against tinted surfaces — fine as a
+     fill behind --primary-foreground, failing as ink. 80% keeps the hue
+     unmistakable and clears AA in the worst measured case (Terminal light,
+     4.65:1). Fills keep reading --primary; only ink reads this. */
+  --color-primary-ink: color-mix(
+    in srgb,
+    var(--ttm-accent-cta) 80%,
+    var(--ttm-text)
+  );
+  --color-destructive-ink: color-mix(
+    in srgb,
+    var(--ttm-danger) 62%,
+    var(--ttm-text)
+  );
+
+  /* Process family swatches as utilities (`bg-process-additive`), so a chip
+     names the family it belongs to rather than a colour. The values, and why
+     they ride the chart ramp, live in tokens.css. */
+  --color-process-additive: var(--process-additive);
+  --color-process-subtractive: var(--process-subtractive);
+  --color-process-forming: var(--process-forming);
+  --color-process-joining: var(--process-joining);
+  --color-process-finishing: var(--process-finishing);
+  --color-process-other: var(--process-other);
+
+  /* Panel edge. The neutral --border is correct for a control, and flat as the
+     outline of every card on the page: ten worlds drew the same grey box. A
+     12% wash of the world's accent is enough to tell them apart and far too
+     little to read as a coloured border. Borders carry no contrast
+     requirement, so the tint costs nothing an eye has to resolve. */
+  --color-panel-border: color-mix(
+    in srgb,
+    var(--ttm-accent-cta) 12%,
+    var(--ttm-border)
+  );
+
+  /* Heading ink. Every heading in the app read --foreground, which is near-
+     black in light and near-white in dark — so ten worlds produced two
+     headings, and the one piece of text a reader looks at first was the one
+     piece carrying no world at all.
+
+     A tint, not the accent: at 20% the hue is present and the colour is still
+     unmistakably ink, so the heading reads as text in a world rather than as a
+     link. Small enough that it barely moves the contrast ratio off --ttm-text,
+     which is the value each world already tunes to clear AA — and the twenty-
+     variant axe matrix in e2e/themes.spec.ts is what holds that claim. */
+  --color-heading: color-mix(
+    in srgb,
+    var(--ttm-accent-cta) 20%,
+    var(--ttm-text)
+  );
+
+  /* Surface steps between --background and --card, for the layered panels the
+     app already had (page > section > inset). */
+  --color-surface: var(--ttm-surface);
+  --color-surface-alt: var(--ttm-surface-alt);
+  --color-wash: var(--ttm-wash);
+  --color-text-secondary: var(--ttm-text-secondary);
+  --color-text-faint: var(--ttm-text-faint);
+
+  /* Accent glow. A tinted halo derived from the world's own accent, so it
+     retunes per world instead of being a fixed shadow — and it stays a
+     shadow, never a colour a component picks. */
+  --shadow-glow:
+    0 0 0 1px color-mix(in srgb, var(--ttm-accent-cta) 28%, transparent),
+    0 4px 20px color-mix(in srgb, var(--ttm-accent-cta) 18%, transparent);
+  --shadow-glow-sm: 0 0 12px
+    color-mix(in srgb, var(--ttm-accent-cta) 14%, transparent);
+
+  /* The loading mark's two motions, named here rather than spelled inline on
+     the component so the cycle is one decision. Both run at 1.8s: the trace
+     and the nodes are halves of a single gesture, and a loader whose parts
+     drift out of phase reads as two animations that happen to share a shape.
+     Slow on purpose — a fast loop reads as alarm, and this one is shown while
+     the app is doing something ordinary. */
+  --animate-mark-trace: mark-trace 1.8s linear infinite;
+  --animate-mark-node: mark-node 1.8s ease-in-out infinite;
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -52,92 +221,122 @@ a {
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  /* Additive steps, not multipliers: with a multiplicative scale every bump
+     in the base radius balloons the large surfaces (cards at rounded-xl went
+     past 15px). The reference's additive scheme keeps big panels crisp. */
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius) - 1px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --radius-xl: calc(var(--radius) + 2px);
+  --radius-2xl: calc(var(--radius) + 4px);
+  --radius-3xl: calc(var(--radius) + 6px);
+  --radius-4xl: calc(var(--radius) + 8px);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* A blueprint grid under every world.
+
+     Drawn from --ttm-text, not --ttm-border. Border was the intuitive choice
+     and the unreliable one: several worlds set a border that sits very close
+     to their own background — which is correct for a border, whose job is to
+     separate two surfaces that are already distinct — so the grid ranged from
+     drafting paper in Blueprint to invisible in Mono and Terminal. Nobody
+     chose that; it fell out of a token doing a different job.
+
+     --ttm-text is the one value each world guarantees to contrast against
+     --ttm-bg, since that guarantee is what makes body copy legible. Taking a
+     few percent of it gives a line that is always a visible deviation from
+     the ground and never more than a whisper, in all twenty variants, with no
+     per-world value to maintain and nothing for a new world to remember.
+
+     The share differs by polarity, and it has to. Luminance is compressed at
+     the dark end of the scale: the same 7% of ink that gives a light world a
+     legible ruling leaves every dark world under a 1.03 contrast ratio —
+     measured across all twenty variants, and visible in none of the ten dark
+     ones. A light ground gets a whisper; a dark ground needs roughly twice as
+     much to read as the same whisper.
+
+     Fixed to the viewport so it reads as paper the page sits on instead of
+     scrolling with content, and marked as a background layer so nothing needs
+     a z-index to sit above it. */
   body {
     @apply bg-background text-foreground;
+    --ohm-grid-ink: color-mix(in srgb, var(--ttm-text) 7%, transparent);
+    background-image:
+      linear-gradient(to right, var(--ohm-grid-ink) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--ohm-grid-ink) 1px, transparent 1px);
+    /* 20px, not 32. At 32 the ruling was wide enough to read as four big
+       panes behind a card rather than as paper; the smaller square reads as
+       texture, which is what a ground should do. */
+    background-size: 20px 20px;
+    background-attachment: fixed;
+  }
+  /* See the note above: the dark end of the scale needs the larger share to
+     land at the same apparent weight. */
+  :root.dark body {
+    --ohm-grid-ink: color-mix(in srgb, var(--ttm-text) 16%, transparent);
   }
   html {
-    @apply font-sans;
+    /* The world's sans, not a fixed one: Terminal and Mono repoint this at the
+       monospace face, which is what makes those worlds feel like consoles. */
+    font-family: var(--ttm-font-sans);
+  }
+
+  /* Sensible link reset so NavLink/Link styling is predictable.
+
+     In `base` and not at the top level, because that difference decides whether
+     any link in the app can opt back in. Tailwind v4 emits its utilities inside
+     a cascade layer, and unlayered CSS beats layered CSS whatever the
+     specificity — so as a bare top-level rule this reset silently won against
+     `underline`, `hover:underline` and `decoration-*` on every anchor that
+     asked for them, and against `no-underline` too, which made those classes
+     look like they were doing the work. In the base layer it is what it reads
+     as: the default a utility overrides. */
+  a {
+    text-decoration: none;
+  }
+}
+
+/*
+ * The mark, loading.
+ *
+ * A highlight travels the open nut while the three interior nodes surface in
+ * the order the edges reach them — the design, then the two makers it resolves
+ * to. That is the motion the mark already means, so waiting looks like the
+ * thing the app does rather than like a spinner borrowed from a library.
+ *
+ * Outside @theme because keyframes are not theme values; the `--animate-*`
+ * variables above name the cycles that reference them. Nothing here may carry
+ * a colour: the loader paints from the live token ramp like every other mark.
+ *
+ * `stroke-dashoffset` counts down over a path declared `pathLength="100"`, so
+ * the numbers are percentages of the outline and stay correct if the geometry
+ * in mark.ts is ever redrawn.
+ */
+@keyframes mark-trace {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The node never leaves — it dims and shrinks. A node that faded to zero would
+   break the graph apart, and the mark reads as a network only while all three
+   are on the page. */
+@keyframes mark-node {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.84);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
   }
 }

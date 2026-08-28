@@ -1,13 +1,24 @@
 import ReactECharts from "echarts-for-react";
-import { useTheme } from "../../context/ThemeContext";
+import { useChartTokens } from "../../lib/chartTokens";
+import { NARROW, useMediaQuery } from "../../hooks/useMediaQuery";
 import type { VisualizationData } from "../../types/supply-tree";
+import { CAPTION, CARD_TITLE } from "../../components/ui/typography";
+import {
+  PANEL_BODY,
+  PANEL_FLUSH,
+  PANEL_HEADER,
+} from "../../components/ui/surface";
 
 interface Props {
   data: VisualizationData;
 }
 
 export function FacilityChart({ data }: Props) {
-  const { isDark } = useTheme();
+  // echarts paints to canvas and cannot evaluate var(), so the tokens are
+  // resolved to concrete values — the same ones the DOM around it renders
+  // with, for whichever of the twenty variants is active.
+  const t = useChartTokens();
+  const narrow = useMediaQuery(NARROW);
   const distribution = data.network.facility_distribution;
 
   if (distribution.length === 0) {
@@ -20,30 +31,37 @@ export function FacilityChart({ data }: Props) {
 
   const option = {
     backgroundColor: "transparent",
-    textStyle: { color: isDark ? "#94a3b8" : "#475569" },
+    textStyle: { color: t.textMuted },
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" },
-      backgroundColor: isDark ? "#1e293b" : "#ffffff",
-      borderColor: isDark ? "#334155" : "#e2e8f0",
-      textStyle: { color: isDark ? "#e2e8f0" : "#1e293b" },
+      backgroundColor: t.card,
+      borderColor: t.border,
+      textStyle: { color: t.text },
     },
     grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
+    // No gridlines at any width — they cross the bars and the value labels
+    // without adding precision, since every bar ends in its own count. The
+    // axis itself is hidden on a phone, where its ticks collide.
     xAxis: {
       type: "value",
       max: maxCount + 0.5,
-      splitLine: { lineStyle: { color: isDark ? "#1e293b" : "#f1f5f9" } },
-      axisLabel: { color: isDark ? "#64748b" : "#94a3b8", formatter: (v: number) => (Number.isInteger(v) ? String(v) : "") },
+      show: !narrow,
+      splitLine: { show: false },
+      axisLabel: {
+        color: t.textFaint,
+        formatter: (v: number) => (Number.isInteger(v) ? String(v) : ""),
+      },
     },
     yAxis: {
       type: "category",
       data: facilities,
       axisLabel: {
-        color: isDark ? "#94a3b8" : "#475569",
-        width: 180,
+        color: t.textMuted,
+        width: narrow ? 110 : 180,
         overflow: "truncate",
       },
-      axisLine: { lineStyle: { color: isDark ? "#334155" : "#e2e8f0" } },
+      axisLine: { lineStyle: { color: t.border } },
     },
     series: [
       {
@@ -54,10 +72,13 @@ export function FacilityChart({ data }: Props) {
         itemStyle: {
           color: {
             type: "linear",
-            x: 0, y: 0, x2: 1, y2: 0,
+            x: 0,
+            y: 0,
+            x2: 1,
+            y2: 0,
             colorStops: [
-              { offset: 0, color: "#6366f1" },
-              { offset: 1, color: "#0ea5e9" },
+              { offset: 0, color: t.series[0] },
+              { offset: 1, color: t.series[1] },
             ],
           },
           borderRadius: [0, 4, 4, 0],
@@ -65,8 +86,8 @@ export function FacilityChart({ data }: Props) {
         label: {
           show: true,
           position: "right",
-          color: isDark ? "#94a3b8" : "#475569",
-          fontSize: 11,
+          color: t.textMuted,
+          fontSize: t.fontSizeCaption,
         },
       },
     ],
@@ -75,16 +96,12 @@ export function FacilityChart({ data }: Props) {
   const chartHeight = Math.max(160, distribution.length * 48 + 40);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-      <div className="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-          Facility Distribution
-        </h3>
-        <p className="text-xs text-slate-600 dark:text-slate-600">
-          Trees assigned per facility
-        </p>
+    <div className={PANEL_FLUSH}>
+      <div className={PANEL_HEADER}>
+        <h3 className={CARD_TITLE}>Facility Distribution</h3>
+        <p className={CAPTION}>Trees assigned per facility</p>
       </div>
-      <div className="p-4">
+      <div className={PANEL_BODY}>
         <ReactECharts
           option={option}
           style={{ height: `${chartHeight}px`, width: "100%" }}

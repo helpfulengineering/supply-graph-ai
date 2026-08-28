@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { BuildPackageButton, okhFromUnknown } from "../package/BuildPackageButton";
+import { FIELD_SM } from "../../components/ui/field";
+import {
+  BuildPackageButton,
+  okhFromUnknown,
+} from "../package/BuildPackageButton";
 import type { RFQDocument } from "../../types/rfq";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   doc: RFQDocument;
@@ -10,12 +16,14 @@ function ConfidencePill({ score }: { score: number }) {
   const pct = Math.round(score * 100);
   const colorClass =
     pct >= 80
-      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+      ? "bg-success/10 text-success bg-success/10"
       : pct >= 50
-      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300"
-      : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
+        ? "bg-warning text-warning"
+        : "bg-destructive/10 text-destructive bg-destructive/10";
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${colorClass}`}>
+    <span
+      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${colorClass}`}
+    >
       {pct}% match
     </span>
   );
@@ -67,20 +75,20 @@ export function RfqDocumentCard({ doc }: Props) {
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       {/* Card header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-800/50">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background px-5 py-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-7 items-center justify-center rounded bg-slate-200 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+            <span className="flex h-6 w-7 items-center justify-center rounded bg-muted text-xs font-bold text-muted-foreground">
               #{doc.rank}
             </span>
-            <h3 className="truncate font-semibold text-slate-800 dark:text-slate-100">
+            <h3 className={cn(CARD_TITLE, "truncate")}>
               {doc.facility_name}
             </h3>
             <ConfidencePill score={doc.confidence} />
           </div>
-          <p className="mt-0.5 font-mono text-xs text-slate-400 dark:text-slate-500">
+          <p className="mt-0.5 font-mono text-xs text-muted-foreground">
             {doc.rfq_number} · qty {doc.quantity}
           </p>
         </div>
@@ -89,19 +97,19 @@ export function RfqDocumentCard({ doc }: Props) {
         <div className="flex shrink-0 gap-2">
           <button
             onClick={handleCopy}
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className={`${FIELD_SM} font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted`}
           >
-            {copied ? "✓ Copied!" : "Copy text"}
+            {copied ? "Copied" : "Copy text"}
           </button>
           <button
             onClick={handleDownloadText}
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className={`${FIELD_SM} font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted`}
           >
             ↓ .txt
           </button>
           <button
             onClick={handleDownloadJson}
-            className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
+            className={`${FIELD_SM} border-primary/30 bg-accent font-medium text-primary-ink hover:bg-accent dark:hover:bg-accent/40`}
           >
             ↓ .json
           </button>
@@ -110,7 +118,7 @@ export function RfqDocumentCard({ doc }: Props) {
       </div>
 
       {/* Document preview */}
-      <pre className="overflow-x-auto whitespace-pre-wrap break-words px-5 py-4 font-mono text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+      <pre className="overflow-x-auto whitespace-pre-wrap break-words px-5 py-4 font-mono text-xs leading-relaxed text-foreground">
         {doc.text}
       </pre>
     </div>

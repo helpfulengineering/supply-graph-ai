@@ -15,7 +15,8 @@ export async function fetchDomains(): Promise<Domain[]> {
       errorMessage(error, `Failed to load domains (HTTP ${response.status})`),
     );
   }
-  return ((data as { data?: { domains?: Domain[] } })?.data?.domains ?? []) as Domain[];
+  return ((data as { data?: { domains?: Domain[] } })?.data?.domains ??
+    []) as Domain[];
 }
 
 /**
@@ -53,14 +54,17 @@ export async function fetchMetrics(): Promise<SystemMetrics> {
       errorMessage(error, `Failed to load metrics (HTTP ${response.status})`),
     );
   }
-  const d = (data as {
-    data?: {
-      total_requests?: number;
-      recent_requests_1h?: number;
-      active_requests?: number;
-      error_summary?: { total_errors?: number };
-    };
-  })?.data ?? {};
+  const d =
+    (
+      data as {
+        data?: {
+          total_requests?: number;
+          recent_requests_1h?: number;
+          active_requests?: number;
+          error_summary?: { total_errors?: number };
+        };
+      }
+    )?.data ?? {};
   return {
     total_requests: d.total_requests ?? 0,
     recent_requests_1h: d.recent_requests_1h ?? 0,

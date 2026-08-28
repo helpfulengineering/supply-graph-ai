@@ -1,11 +1,10 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { OkhManifest } from "../../types/okh";
-import {
-  buildPackageFromManifest,
-  packageDetailPath,
-} from "../../api/package";
+import { buildPackageFromManifest, packageDetailPath } from "../../api/package";
 import {
   buildLocalOkhPackage,
   type LocalPackageInput,
@@ -24,7 +23,9 @@ export function BuildPackageButton({ okh, className }: Props) {
   const { reportAuthFailure } = useAuth();
   const queryClient = useQueryClient();
   const [localStatus, setLocalStatus] = useState<LocalPackageStatus>("idle");
-  const [localResult, setLocalResult] = useState<LocalPackageResult | null>(null);
+  const [localResult, setLocalResult] = useState<LocalPackageResult | null>(
+    null,
+  );
   const [serverLink, setServerLink] = useState<string | null>(null);
 
   const serverBuild = useMutation({
@@ -71,7 +72,7 @@ export function BuildPackageButton({ okh, className }: Props) {
             serverBuild.mutate();
           }}
         >
-          {serverBuild.isPending ? "Building on server…" : "📦 Build on server"}
+          {serverBuild.isPending ? "Building on server…" : "Build on server"}
         </Button>
         <Button
           type="button"
@@ -85,17 +86,17 @@ export function BuildPackageButton({ okh, className }: Props) {
       </div>
 
       {serverBuild.isSuccess && (
-        <p className="mt-1.5 max-w-sm text-xs text-emerald-700 dark:text-emerald-400" role="status">
+        <p className="mt-1.5 max-w-sm text-xs text-success" role="status">
           Built {serverBuild.data.package_name}@{serverBuild.data.version}.{" "}
           {serverLink && (
-            <Link to={serverLink} className="font-semibold underline">
+            <Link href={serverLink} className="font-semibold underline">
               Open package
             </Link>
           )}
         </p>
       )}
       {serverBuild.isError && (
-        <p className="mt-1.5 max-w-sm text-xs text-red-600" role="alert">
+        <p className="mt-1.5 max-w-sm text-xs text-destructive" role="alert">
           {serverBuild.error instanceof Error
             ? serverBuild.error.message
             : "Server build failed."}
@@ -106,10 +107,10 @@ export function BuildPackageButton({ okh, className }: Props) {
         <p
           className={`mt-1.5 max-w-sm text-xs ${
             localStatus === "error"
-              ? "text-red-600"
+              ? "text-destructive"
               : localStatus === "partial"
-                ? "text-amber-700"
-                : "text-emerald-700"
+                ? "text-warning"
+                : "text-success"
           }`}
           role="status"
         >
@@ -132,10 +133,13 @@ export function okhFromUnknown(
     repo: typeof raw.repo === "string" ? raw.repo : null,
     function: typeof raw.function === "string" ? raw.function : null,
     description: typeof raw.description === "string" ? raw.description : null,
-    intended_use: typeof raw.intended_use === "string" ? raw.intended_use : null,
+    intended_use:
+      typeof raw.intended_use === "string" ? raw.intended_use : null,
     keywords: Array.isArray(raw.keywords) ? (raw.keywords as string[]) : [],
     documentation_language:
-      typeof raw.documentation_language === "string" ? raw.documentation_language : null,
+      typeof raw.documentation_language === "string"
+        ? raw.documentation_language
+        : null,
     license: (raw.license as OkhManifest["license"]) ?? null,
     licensor: (raw.licensor as OkhManifest["licensor"]) ?? null,
     contributors: Array.isArray(raw.contributors)
@@ -144,7 +148,9 @@ export function okhFromUnknown(
     manufacturing_processes: Array.isArray(raw.manufacturing_processes)
       ? (raw.manufacturing_processes as string[])
       : [],
-    materials: Array.isArray(raw.materials) ? (raw.materials as OkhManifest["materials"]) : [],
+    materials: Array.isArray(raw.materials)
+      ? (raw.materials as OkhManifest["materials"])
+      : [],
     design_files: Array.isArray(raw.design_files)
       ? (raw.design_files as OkhManifest["design_files"])
       : [],
@@ -157,6 +163,7 @@ export function okhFromUnknown(
     parts: Array.isArray(raw.parts) ? (raw.parts as OkhManifest["parts"]) : [],
     tool_list: Array.isArray(raw.tool_list) ? (raw.tool_list as string[]) : [],
     image: typeof raw.image === "string" ? raw.image : null,
-    project_link: typeof raw.project_link === "string" ? raw.project_link : null,
+    project_link:
+      typeof raw.project_link === "string" ? raw.project_link : null,
   };
 }

@@ -29,20 +29,28 @@ OHM implements both. See [OKH and OKW](okh-and-okw.md).
 
 ## Directories of workshops
 
-**Maps of Making** — a map of makerspaces and workshops, and currently the source
-of most facilities visible in OHM.
+[**Maps of Making**](https://mapsofmaking.org) — a map of makerspaces and
+workshops, and currently the source of most facilities visible in OHM.
 
 Its design is worth understanding, because it's unusually good: each space
 publishes **its own data at its own endpoint**, which the map reads. The data
 belongs to the space and is hosted by the space; Maps of Making reads it, and so
 does OHM.
 
-It's also worth being straight about the limitation, since it shapes what OHM can
-currently do. That vocabulary describes what a space is *about* — digital
-fabrication, electronics, 3D printing — rather than the specific processes it can
-perform. Useful for finding spaces; only partly sufficient for working out who can
-build a given design. Improving this is a conversation with the people who
-maintain it, not something OHM should paper over on its own.
+It builds that on standards rather than inventing them. Spaces publish
+[SpaceAPI](https://spaceapi.io/), the format a few hundred hackerspaces already
+serve, and the map stores what it reads as linked data queryable over SPARQL.
+That is why the arrangement extends: anything able to serve a file at a URL can
+be a source, which is how an OHM facility can appear on the map — see [publish
+to Maps of Making](../guides/publish-to-maps-of-making.md).
+
+Alongside those spaces it keeps its own vocabulary of maker activities, and it's
+worth being straight about its limitation, since it shapes what OHM can currently
+do. That vocabulary describes what a space is *about* — digital fabrication,
+electronics, 3D printing — rather than the specific processes it can perform.
+Useful for finding spaces; only partly sufficient for working out who can build a
+given design. Improving this is a conversation with the people who maintain it,
+not something OHM should paper over on its own.
 
 Other directories exist and we intend to read them too. The aim is a union of
 what's out there, filterable by source — not a replacement for any of it.

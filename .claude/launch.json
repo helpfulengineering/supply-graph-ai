@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ohm-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["exec", "next", "dev"],
+      "cwd": "frontend",
+      "port": 5173,
+      "autoPort": true
+    }
+  ]
+}

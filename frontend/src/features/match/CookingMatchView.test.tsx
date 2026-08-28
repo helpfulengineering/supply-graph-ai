@@ -2,12 +2,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import type { Recipe } from "../../types/recipe";
 import type { Kitchen } from "../../types/kitchen";
 import type { CookingRfqNavigationState } from "../../types/rfq";
 import { server } from "../../test/msw/server";
+import { mockRouter } from "../../test/nextNavigation";
+import { readNavState } from "../../lib/navState";
 import { CookingMatchView } from "./CookingMatchView";
 
 const recipes: Recipe[] = [
@@ -32,10 +33,20 @@ const kitchens: Kitchen[] = [
   },
 ];
 
-/** Renders the RFQ navigation state so a test can assert on it. */
-function RfqProbe() {
-  const state = useLocation().state as CookingRfqNavigationState | null;
-  return <div data-testid="rfq-state">{JSON.stringify(state)}</div>;
+/**
+ * The RFQ hand-off payload the view just pushed.
+ *
+ * Under react-router this was a probe component reading `location.state`.
+ * Next has no such channel, so the payload is stashed in sessionStorage and
+ * the URL carries only its nonce (see lib/navState) — the assertion follows
+ * the same path the RFQ page does.
+ */
+function pushedRfqState(): CookingRfqNavigationState | null {
+  const url = mockRouter.push.mock.calls.at(-1)?.[0] as string | undefined;
+  if (!url) return null;
+  return readNavState<CookingRfqNavigationState>(
+    new URL(url, "http://localhost").searchParams.get("h"),
+  );
 }
 
 function renderView(initialRecipeId?: string) {
@@ -46,15 +57,7 @@ function renderView(initialRecipeId?: string) {
   client.setQueryData(["kitchens"], kitchens);
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/match"]}>
-        <Routes>
-          <Route
-            path="/match"
-            element={<CookingMatchView initialRecipeId={initialRecipeId} />}
-          />
-          <Route path="/rfq" element={<RfqProbe />} />
-        </Routes>
-      </MemoryRouter>
+      <CookingMatchView initialRecipeId={initialRecipeId} />
     </QueryClientProvider>,
   );
 }
@@ -98,13 +101,14 @@ describe("CookingMatchView", () => {
     renderView("recipe-1");
 
     await user.click(screen.getByLabelText("Test Kitchen"));
-    await user.click(screen.getByRole("button", { name: "⚡ Run Match" }));
+    await user.click(screen.getByRole("button", { name: "Run Match" }));
     await user.click(await screen.findByLabelText("Select Test Kitchen"));
     await user.click(screen.getByRole("button", { name: "Contact selected kitchens →" }));
 
-    const state = JSON.parse(
-      (await screen.findByTestId("rfq-state")).textContent ?? "null",
-    ) as CookingRfqNavigationState;
+    const state = pushedRfqState()!;
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/rfq\?h=/),
+    );
     expect(state.domain).toBe("cooking");
     expect(state.recipeId).toBe("recipe-1");
     expect(state.recipeTitle).toBe("Sourdough Bread");
@@ -150,7 +154,7 @@ describe("CookingMatchView", () => {
     renderView("recipe-1");
 
     await user.click(screen.getByLabelText("Test Kitchen"));
-    await user.click(screen.getByRole("button", { name: "⚡ Run Match" }));
+    await user.click(screen.getByRole("button", { name: "Run Match" }));
 
     expect(await screen.findByLabelText(/Allow kitchens missing up to/)).toBeInTheDocument();
     expect(screen.getByText(/1 kitchen is hidden at this setting/)).toBeInTheDocument();

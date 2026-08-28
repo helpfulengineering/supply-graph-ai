@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from src.core.federation.catalog import CatalogIndex, manifest_content_hash
 from src.core.federation.identity import generate_identity
 from src.core.federation.merkle import merkle_root
+from src.core.federation.metrics import FederationSyncMetrics
 from src.core.federation.models import (
     CatalogRecord,
     SignedManifestRecord,
@@ -123,6 +124,9 @@ async def test_federation_identify_and_catalog_when_enabled(monkeypatch) -> None
 
     mock_service.ensure_federation_ready = _ready
     mock_service.build_catalog_index = AsyncMock(return_value=index)
+    mock_service.catalog_summary = AsyncMock(
+        return_value=(index.record_count, index.merkle_root)
+    )
 
     async def _get_instance():
         return mock_service
@@ -202,6 +206,9 @@ async def test_get_record_404_for_unknown_hash(monkeypatch) -> None:
     mock_service.capabilities.expose_federation_api = True
     mock_service.ensure_federation_ready = AsyncMock(return_value=None)
     mock_service.build_catalog_index = AsyncMock(return_value=index)
+    mock_service.catalog_summary = AsyncMock(
+        return_value=(index.record_count, index.merkle_root)
+    )
 
     with patch(
         "src.core.api.routes.federation.FederationService.get_instance",
@@ -215,3 +222,132 @@ async def test_get_record_404_for_unknown_hash(monkeypatch) -> None:
                 "/v1/api/federation/records/sha256:0000000000000000000000000000000000000000000000000000000000000000"
             )
             assert resp.status_code == 404
+
+
+def _enabled_service():
+    """A federation service that is on, exposed and ready."""
+    from src.core.federation.node_role import NodeRole
+
+    identity = generate_identity("Auth Peer")
+    index = _sample_index()
+
+    service = MagicMock()
+    service.enabled = True
+    service.identity = identity
+    service.role = NodeRole.PEER
+    service.capabilities.expose_federation_api = True
+    service.capabilities.can_accept_inbound_sync = True
+    service.ensure_federation_ready = AsyncMock(return_value=None)
+    service.build_catalog_index = AsyncMock(return_value=index)
+    service.catalog_summary = AsyncMock(
+        return_value=(index.record_count, index.merkle_root)
+    )
+    service.get_status = AsyncMock(
+        return_value={
+            "did": identity.did,
+            "display_name": identity.display_name,
+            "role": "peer",
+            "catalog_record_count": index.record_count,
+            "merkle_root": index.merkle_root,
+            "peer_count": 0,
+            "followed_peer_count": 0,
+            "sync_interval_sec": 60,
+            "rate_limit_per_min": 60,
+            "mdns_enabled": False,
+            "background_sync_running": False,
+            "manual_peers": [],
+            "seed_peer_url": None,
+            "metrics": FederationSyncMetrics(),
+        }
+    )
+    service.list_peers = MagicMock(return_value=[])
+    service.refresh_peers = AsyncMock(return_value=[])
+    service.sync_with_url = AsyncMock()
+    service.sync_all_followed = AsyncMock(return_value=[])
+    service.sync_okw_all_followed = AsyncMock(return_value=[])
+    service.follow_peer = MagicMock()
+    service.unfollow_peer = MagicMock()
+    return service
+
+
+# (method, path) for every route that mutates local trust or storage, or makes
+# this node fetch a URL a caller chose.
+MUTATING_ROUTES = [
+    ("POST", "/v1/api/federation/peers/discover"),
+    ("POST", "/v1/api/federation/sync/run?peer_url=https://evil.example"),
+    ("POST", "/v1/api/federation/peers/did:key:zAttacker/follow"),
+    ("DELETE", "/v1/api/federation/peers/did:key:zAttacker/follow"),
+    ("POST", "/v1/api/federation/okw/sync/run"),
+]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_mutating_federation_routes_reject_anonymous_when_enforced(
+    monkeypatch,
+) -> None:
+    """Enabling federation must not open an anonymous write path.
+
+    `POST /sync/run?peer_url=` makes this node fetch an arbitrary URL, auto-follow
+    whatever DID it claims and ingest its manifests, so unauthenticated access
+    would bypass the write gate that production security mode exists to apply.
+    """
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_ENABLED", True)
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
+
+    service = _enabled_service()
+    with patch(
+        "src.core.api.routes.federation.FederationService.get_instance",
+        AsyncMock(return_value=service),
+    ):
+        transport = httpx.ASGITransport(app=_federation_app())
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            for method, path in MUTATING_ROUTES:
+                resp = await client.request(method, path)
+                assert resp.status_code in (
+                    401,
+                    403,
+                ), f"{method} {path} -> {resp.status_code}"
+
+    service.sync_with_url.assert_not_awaited()
+    service.follow_peer.assert_not_called()
+    service.refresh_peers.assert_not_awaited()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_peer_protocol_stays_anonymous_when_enforced(monkeypatch) -> None:
+    """A peer authenticates with a DID it signs for, not one of our API keys.
+
+    So the read side of the protocol — and the digest exchange, which is bounded
+    by the per-DID rate limiter instead — must keep working unauthenticated even
+    under production write enforcement.
+    """
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_ENABLED", True)
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
+
+    service = _enabled_service()
+    with patch(
+        "src.core.api.routes.federation.FederationService.get_instance",
+        AsyncMock(return_value=service),
+    ):
+        transport = httpx.ASGITransport(app=_federation_app())
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            for path in (
+                "/v1/api/federation/identify",
+                "/v1/api/federation/status",
+                "/v1/api/federation/catalog",
+                "/v1/api/federation/health",
+                "/v1/api/federation/peers",
+            ):
+                resp = await client.get(path)
+                assert resp.status_code != 401, f"{path} -> 401"
+                assert resp.status_code != 403, f"{path} -> 403"

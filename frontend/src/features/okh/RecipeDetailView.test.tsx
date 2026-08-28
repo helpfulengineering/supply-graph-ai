@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes, useSearchParams } from "react-router-dom";
 import { describe, expect, it } from "vitest";
+import { mockRouter } from "../../test/nextNavigation";
 import type { Recipe } from "../../types/recipe";
 import { RecipeDetailView } from "./RecipeDetailView";
 
@@ -15,11 +15,6 @@ const recipe: Recipe = {
   domain: "cooking",
 };
 
-function MatchPlaceholder() {
-  const [params] = useSearchParams();
-  return <div>match:{params.get("recipe_id")}</div>;
-}
-
 function renderDetail(seed: Recipe[] = [recipe]) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -27,13 +22,7 @@ function renderDetail(seed: Recipe[] = [recipe]) {
   client.setQueryData(["recipes"], seed);
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/okh/recipe-1"]}>
-        <Routes>
-          <Route path="/okh" element={<div>recipe list</div>} />
-          <Route path="/okh/:id" element={<RecipeDetailView id="recipe-1" />} />
-          <Route path="/match" element={<MatchPlaceholder />} />
-        </Routes>
-      </MemoryRouter>
+      <RecipeDetailView id="recipe-1" />
     </QueryClientProvider>,
   );
 }
@@ -61,7 +50,7 @@ describe("RecipeDetailView", () => {
     const user = userEvent.setup();
     renderDetail();
     await user.click(screen.getByRole("button", { name: /Run Match/i }));
-    expect(await screen.findByText("match:recipe-1")).toBeInTheDocument();
+    expect(mockRouter.push).toHaveBeenCalledWith("/match?recipe_id=recipe-1");
   });
 
   it("shows a not-found error when the id has no matching recipe", () => {

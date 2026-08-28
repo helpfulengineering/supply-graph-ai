@@ -1,4 +1,12 @@
 import { useState } from "react";
+import {
+  CHECKBOX,
+  CHOICE_ROW,
+  FIELD,
+  FIELD_SM,
+  LABEL,
+} from "../../components/ui/field";
+import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAccount,
@@ -11,12 +19,21 @@ import {
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL, PANEL_WARNING } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
+import { useToast } from "../../components/ui/Toast";
 
 const PERMISSION_OPTIONS = ["read", "write", "admin"] as const;
+
+/** Said on the toast rather than only in the panel, which the copy may scroll away from. */
+const TOKEN_HINT = "Store it now — this instance will not show it again.";
+const TOKEN_HINT_FAILED =
+  "The token is still on screen. Select it and copy it by hand before leaving this page.";
 
 export function KeysAccountsPanel() {
   const queryClient = useQueryClient();
   const { reportAuthFailure } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [keyName, setKeyName] = useState("");
   const [permissions, setPermissions] = useState<string[]>(["read"]);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
@@ -44,7 +61,8 @@ export function KeysAccountsPanel() {
 
   const revoke = useMutation({
     mutationFn: (keyId: string) => revokeApiKey(keyId),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["identity", "keys"] }),
+    onSuccess: () =>
+      void queryClient.invalidateQueries({ queryKey: ["identity", "keys"] }),
     onError: reportAuthFailure,
   });
 
@@ -53,14 +71,19 @@ export function KeysAccountsPanel() {
       createAccount({ display_name: accountName.trim(), kind: accountKind }),
     onSuccess: () => {
       setAccountName("");
-      void queryClient.invalidateQueries({ queryKey: ["identity", "accounts"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["identity", "accounts"],
+      });
     },
     onError: reportAuthFailure,
   });
 
   const disableAcc = useMutation({
     mutationFn: (id: string) => disableAccount(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["identity", "accounts"] }),
+    onSuccess: () =>
+      void queryClient.invalidateQueries({
+        queryKey: ["identity", "accounts"],
+      }),
     onError: reportAuthFailure,
   });
 
@@ -71,37 +94,52 @@ export function KeysAccountsPanel() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        To rotate a key: create a replacement, switch Session to it, then revoke the old key.
+        To rotate a key: create a replacement, switch Session to it, then revoke
+        the old key.
       </p>
 
       {createdToken && (
         <div
           role="dialog"
           aria-labelledby="token-once-heading"
-          className="rounded-xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950"
+          className={PANEL_WARNING}
         >
-          <h2 id="token-once-heading" className="text-lg font-semibold text-amber-950 dark:text-amber-100">
+          <h2
+            id="token-once-heading"
+            className={cn(SECTION_TITLE, "text-warning")}
+          >
             Copy this token now
           </h2>
-          <p className="mt-1 text-sm text-amber-900 dark:text-amber-200">
+          <p className="mt-1 text-sm text-warning">
             It will not be shown again.
           </p>
-          <pre className="mt-3 overflow-x-auto rounded-md bg-white p-3 font-mono text-xs dark:bg-slate-900">
+          <pre className="mt-3 overflow-x-auto rounded-md bg-card p-3 font-mono text-xs">
             {createdToken}
           </pre>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
-              className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white"
-              onClick={() => void navigator.clipboard.writeText(createdToken)}
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent"
+              // The token is shown once and never again, so a silent copy is
+              // the worst case in the app: a visitor presses Copy, sees
+              // nothing, presses Done, and has lost the credential. Confirmed,
+              // and — more to the point — a denied clipboard now says so.
+              onClick={() =>
+                navigator.clipboard.writeText(createdToken).then(
+                  () =>
+                    showSuccess("Token copied", { description: TOKEN_HINT }),
+                  (err: unknown) =>
+                    showError(err, { description: TOKEN_HINT_FAILED }),
+                )
+              }
             >
               Copy
             </button>
             <button
               type="button"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
+              className={FIELD_SM}
               onClick={() => setCreatedToken(null)}
             >
               Done
@@ -110,37 +148,35 @@ export function KeysAccountsPanel() {
         </div>
       )}
 
-      <section
-        aria-labelledby="keys-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-      >
-        <h2 id="keys-heading" className="text-lg font-semibold text-foreground">
+      <section aria-labelledby="keys-heading" className={PANEL}>
+        <h2 id="keys-heading" className={SECTION_TITLE}>
           API keys
         </h2>
 
         <form
-          className="mt-4 space-y-3 border-b border-slate-100 pb-4 dark:border-slate-800"
+          className="mt-4 space-y-3 border-b border-border pb-4"
           onSubmit={(e) => {
             e.preventDefault();
             if (keyName.trim() && permissions.length) createKey.mutate();
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Name
             <input
               value={keyName}
               onChange={(e) => setKeyName(e.target.value)}
-              className="mt-1 w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className={`${FIELD} mt-1 w-full max-w-md`}
               required
             />
           </label>
-          <fieldset>
+          <fieldset className="min-w-0">
             <legend className="text-sm font-medium">Permissions</legend>
             <div className="mt-2 flex flex-wrap gap-3">
               {PERMISSION_OPTIONS.map((p) => (
-                <label key={p} className="flex items-center gap-1.5 text-sm">
+                <label key={p} className={cn(CHOICE_ROW, "w-auto")}>
                   <input
                     type="checkbox"
+                    className={CHECKBOX}
                     checked={permissions.includes(p)}
                     onChange={() => togglePermission(p)}
                   />
@@ -152,12 +188,12 @@ export function KeysAccountsPanel() {
           <button
             type="submit"
             disabled={createKey.isPending || !keyName.trim()}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
           >
             Create key
           </button>
           {createKey.isError && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-destructive" role="alert">
               {createKey.error instanceof Error
                 ? createKey.error.message
                 : "Failed to create key"}
@@ -167,17 +203,22 @@ export function KeysAccountsPanel() {
 
         {keys.isLoading && <LoadingSpinner message="Loading keys…" />}
         {keys.isError && (
-          <p className="mt-3 text-sm text-red-600" role="alert">
+          <p className="mt-3 text-sm text-destructive" role="alert">
             {keys.error.message}
           </p>
         )}
         {keys.data && (
-          <ul className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="mt-4 divide-y divide-border">
             {keys.data.map((k) => (
-              <li key={k.key_id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+              <li
+                key={k.key_id}
+                className="flex flex-wrap items-center justify-between gap-2 py-3"
+              >
                 <div>
                   <p className="font-medium text-foreground">{k.name}</p>
-                  <p className="font-mono text-xs text-slate-500">{k.key_id}</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {k.key_id}
+                  </p>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {k.permissions.map((p) => (
                       <Badge key={p} variant="blue">
@@ -190,7 +231,7 @@ export function KeysAccountsPanel() {
                 {!k.revoked && (
                   <button
                     type="button"
-                    className="rounded-md border border-red-300 px-2 py-1 text-sm text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300"
+                    className={`${FIELD} border-destructive text-destructive hover:bg-destructive/10`}
                     onClick={() => {
                       if (window.confirm(`Revoke key “${k.name}”?`)) {
                         revoke.mutate(k.key_id);
@@ -203,42 +244,43 @@ export function KeysAccountsPanel() {
               </li>
             ))}
             {keys.data.length === 0 && (
-              <li className="py-3 text-sm text-muted-foreground">No keys yet.</li>
+              <li className="py-3 text-sm text-muted-foreground">
+                No keys yet.
+              </li>
             )}
           </ul>
         )}
       </section>
 
-      <section
-        aria-labelledby="accounts-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-      >
-        <h2 id="accounts-heading" className="text-lg font-semibold text-foreground">
+      <section aria-labelledby="accounts-heading" className={PANEL}>
+        <h2 id="accounts-heading" className={SECTION_TITLE}>
           Accounts
         </h2>
 
         <form
-          className="mt-4 space-y-3 border-b border-slate-100 pb-4 dark:border-slate-800"
+          className="mt-4 space-y-3 border-b border-border pb-4"
           onSubmit={(e) => {
             e.preventDefault();
             if (accountName.trim()) createAcc.mutate();
           }}
         >
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Display name
             <input
               value={accountName}
               onChange={(e) => setAccountName(e.target.value)}
-              className="mt-1 w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              className={`${FIELD} mt-1 w-full max-w-md`}
               required
             />
           </label>
-          <label className="block text-sm font-medium">
+          <label className={LABEL}>
             Kind
             <select
               value={accountKind}
-              onChange={(e) => setAccountKind(e.target.value as "person" | "space")}
-              className="mt-1 block rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+              onChange={(e) =>
+                setAccountKind(e.target.value as "person" | "space")
+              }
+              className={`${FIELD} mt-1 block`}
             >
               <option value="person">person</option>
               <option value="space">space</option>
@@ -247,7 +289,7 @@ export function KeysAccountsPanel() {
           <button
             type="submit"
             disabled={createAcc.isPending || !accountName.trim()}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
           >
             Create account
           </button>
@@ -255,15 +297,17 @@ export function KeysAccountsPanel() {
 
         {accounts.isLoading && <LoadingSpinner message="Loading accounts…" />}
         {accounts.data && (
-          <ul className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="mt-4 divide-y divide-border">
             {accounts.data.map((a) => (
               <li
                 key={a.id ?? a.display_name}
                 className="flex flex-wrap items-center justify-between gap-2 py-3"
               >
                 <div>
-                  <p className="font-medium text-foreground">{a.display_name}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="font-medium text-foreground">
+                    {a.display_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
                     {a.kind}
                     {a.id ? ` · ${a.id}` : ""}
                   </p>
@@ -272,9 +316,11 @@ export function KeysAccountsPanel() {
                 {a.id && !a.disabled && (
                   <button
                     type="button"
-                    className="rounded-md border border-slate-300 px-2 py-1 text-sm dark:border-slate-600"
+                    className={FIELD}
                     onClick={() => {
-                      if (window.confirm(`Disable account “${a.display_name}”?`)) {
+                      if (
+                        window.confirm(`Disable account “${a.display_name}”?`)
+                      ) {
                         disableAcc.mutate(a.id!);
                       }
                     }}

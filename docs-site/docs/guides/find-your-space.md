@@ -23,7 +23,8 @@ Narrow it down with:
 
 - **Country**, **city**, and **region**
 - **Process** — 3D printing, laser cutting, CNC machining, and so on
-- **Source** — whether a record came from OHM directly or from Maps of Making
+- **Source** — **OHM facilities** for records held here, **Maps of Making** for
+  those read from [that map](https://mapsofmaking.org)
 - **Access type** — how the space can be used
 
 Filtering by country and then city is usually the fastest way to find a
@@ -56,6 +57,10 @@ Worth knowing first: if your space publishes its details through Maps of Making,
 that information lives **at your own endpoint** and is read from there. Adding a
 record in OHM is a separate thing from that, not a replacement for it, and it
 doesn't move anything away from you.
+
+It can also feed it. A record here can be served as a document the map reads, so
+the two stay in step without being maintained twice — see [publish to Maps of
+Making](publish-to-maps-of-making.md).
 
 ## What you can't do
 

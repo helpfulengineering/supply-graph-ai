@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { certifyRelease } from "../../api/ohm/identity";
 import type { PinRecord } from "../../api/package";
 import { useAuth } from "../../context/AuthContext";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 
 interface Props {
   version: string;
@@ -31,7 +34,9 @@ export function CertifyPackagePanel({ version, pin }: Props) {
           pin?.pin_record.manifest_content_hash || advManifest.trim() || null,
       }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["identity", "attestations"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["identity", "attestations"],
+      });
     },
     onError: reportAuthFailure,
   });
@@ -41,24 +46,21 @@ export function CertifyPackagePanel({ version, pin }: Props) {
   const canSubmit = Boolean(subjectDid.trim() && bundle_hash);
 
   return (
-    <section
-      aria-labelledby="certify-heading"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-    >
-      <h2 id="certify-heading" className="text-lg font-semibold text-foreground">
+    <section aria-labelledby="certify-heading" className={PANEL}>
+      <h2 id="certify-heading" className={SECTION_TITLE}>
         Certify release
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Issue a <code className="text-xs">certified</code> attestation binding a firm DID to
-        this package&apos;s bundle hash.
+        Issue a <code className="text-xs">certified</code> attestation binding a
+        firm DID to this package&apos;s bundle hash.
       </p>
 
       {pin ? (
-        <p className="mt-3 break-all font-mono text-xs text-slate-600 dark:text-slate-300">
+        <p className="mt-3 break-all font-mono text-xs text-muted-foreground">
           bundle {pin.bundle_hash}
         </p>
       ) : (
-        <p className="mt-3 text-sm text-amber-800 dark:text-amber-200">
+        <p className="mt-3 text-sm text-warning">
           Pin the package first, or enter hash fields below.
         </p>
       )}
@@ -70,41 +72,41 @@ export function CertifyPackagePanel({ version, pin }: Props) {
           if (canSubmit) certify.mutate();
         }}
       >
-        <label className="block text-sm font-medium">
+        <label className={LABEL}>
           Subject DID (firm / space)
           <input
             value={subjectDid}
             onChange={(e) => setSubjectDid(e.target.value)}
-            className="mt-1 w-full max-w-xl rounded-md border border-slate-300 px-3 py-2 font-mono text-sm dark:border-slate-600 dark:bg-slate-950"
+            className={`${FIELD_MONO} mt-1 w-full max-w-xl`}
             required
           />
         </label>
 
         {!pin && (
           <div className="space-y-3">
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Bundle hash
               <input
                 value={advBundle}
                 onChange={(e) => setAdvBundle(e.target.value)}
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm dark:border-slate-600 dark:bg-slate-950"
+                className={`${FIELD_MONO} mt-1 w-full`}
                 required
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Version
               <input
                 value={advVersion}
                 onChange={(e) => setAdvVersion(e.target.value)}
-                className="mt-1 w-40 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950"
+                className={`${FIELD} mt-1 w-40`}
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label className={LABEL}>
               Manifest content hash (optional)
               <input
                 value={advManifest}
                 onChange={(e) => setAdvManifest(e.target.value)}
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm dark:border-slate-600 dark:bg-slate-950"
+                className={`${FIELD_MONO} mt-1 w-full`}
               />
             </label>
           </div>
@@ -113,17 +115,19 @@ export function CertifyPackagePanel({ version, pin }: Props) {
         <button
           type="submit"
           disabled={certify.isPending || !canSubmit}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
         >
           {certify.isPending ? "Certifying…" : "Certify"}
         </button>
         {certify.isError && (
-          <p className="text-sm text-red-600" role="alert">
-            {certify.error instanceof Error ? certify.error.message : "Certify failed"}
+          <p className="text-sm text-destructive" role="alert">
+            {certify.error instanceof Error
+              ? certify.error.message
+              : "Certify failed"}
           </p>
         )}
         {certify.isSuccess && (
-          <p className="text-sm text-green-700 dark:text-green-300" role="status">
+          <p className="text-sm text-success" role="status">
             Certified as {certify.data.type} ({certify.data.attestation_id})
           </p>
         )}

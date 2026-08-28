@@ -95,6 +95,20 @@ class StorageOrganizer:
                 if not directory.endswith("/"):
                     directory = directory + "/"
 
+                placeholder_key = f"{directory}{placeholder_file}"
+
+                # Seeding is meant to establish the directory, not to restamp
+                # it. Rewriting a placeholder that already exists gives it a new
+                # created_at and etag for no gain — and under local storage
+                # those placeholders are tracked files, so every re-seed showed
+                # up as a dirty working tree.
+                try:
+                    await self.storage_manager.get_object(placeholder_key)
+                    logger.debug(f"Directory already established: {directory}")
+                    continue
+                except FileNotFoundError:
+                    pass
+
                 # Create a placeholder file to establish the directory
                 placeholder_content = {
                     "type": "directory_placeholder",
@@ -103,7 +117,6 @@ class StorageOrganizer:
                     "purpose": "Establishes directory structure in blob storage",
                 }
 
-                placeholder_key = f"{directory}{placeholder_file}"
                 data = json.dumps(placeholder_content).encode("utf-8")
 
                 await self.storage_manager.put_object(

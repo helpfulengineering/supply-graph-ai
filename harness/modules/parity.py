@@ -94,13 +94,21 @@ class ParityLoop(BaseLoopModule):
 
     def observe(self) -> Observations:
         root = repo_root()
+        app_dir = root / self.config.frontend_dir / "app"
         app_tsx = root / self.config.frontend_dir / "src" / "App.tsx"
         fe_src = root / self.config.frontend_dir / "src"
 
         service_diff = layer_diff(expected_services(), actual_services())
         api_diff = layer_diff(expected_api_tags(), actual_api_tags())
         cli_diff = layer_diff(expected_cli_groups(), actual_cli_groups())
-        fe_route_diff = layer_diff(expected_fe_routes(), actual_fe_routes(app_tsx))
+        fe_route_diff = layer_diff(
+            expected_fe_routes(),
+            (
+                actual_fe_routes(app_dir=app_dir)
+                if app_dir.is_dir()
+                else actual_fe_routes(app_tsx)
+            ),
+        )
         fe_api_diff = layer_diff(
             expected_fe_api_prefixes(), actual_fe_api_prefixes(fe_src)
         )

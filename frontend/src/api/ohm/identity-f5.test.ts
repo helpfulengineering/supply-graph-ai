@@ -16,11 +16,17 @@ import {
 
 describe("identity F5 wrappers", () => {
   it("starts and verifies a domain binding", async () => {
-    const started = await startDomainBinding(identityFixture.did, "example.org");
+    const started = await startDomainBinding(
+      identityFixture.did,
+      "example.org",
+    );
     expect(started.well_known_url).toBe(domainBindStartFixture.well_known_url);
     expect(started.well_known_document.challenge).toBe("test-challenge-token");
 
-    const verified = await verifyDomainBinding(identityFixture.did, "example.org");
+    const verified = await verifyDomainBinding(
+      identityFixture.did,
+      "example.org",
+    );
     expect(verified.verified).toBe(true);
   });
 

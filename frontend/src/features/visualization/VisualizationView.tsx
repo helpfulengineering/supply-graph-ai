@@ -1,5 +1,8 @@
+"use client";
+
+import { NetworkIllustration } from "../../components/ui/illustrations";
+import { PageHero } from "../../components/layout/PageHero";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { fetchVisualization } from "../../api/ohm/supply-tree";
 import {
   deriveKpis,
@@ -8,15 +11,32 @@ import {
   toProductionSequence,
 } from "./supplyTreeAdapter";
 import { KpiCards } from "./KpiCards";
-import { SupplyTreeGraph } from "./SupplyTreeGraph";
-import { FacilityChart } from "./FacilityChart";
+import { StalenessBanner } from "./StalenessBanner";
+import dynamic from "next/dynamic";
+
+// Cytoscape and ECharts are browser-only at module scope; load them client-side.
+const SupplyTreeGraph = dynamic(
+  () =>
+    import("./SupplyTreeGraph").then((m) => ({ default: m.SupplyTreeGraph })),
+  { ssr: false },
+);
+const FacilityChart = dynamic(
+  () => import("./FacilityChart").then((m) => ({ default: m.FacilityChart })),
+  { ssr: false },
+);
 import { ArtifactLinks } from "./ArtifactLinks";
+import { ComponentsPanel } from "./ComponentsPanel";
 import { downloadSolutionJson } from "./downloadSolution";
-import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
+import {
+  LoadingState,
+  EmptyState,
+  ErrorState,
+} from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
+import { SectionHeading } from "../../components/ui/SectionHeading";
+import { PANEL } from "../../components/ui/surface";
 
 export function VisualizationView({ solutionId }: { solutionId: string }) {
-  const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["visualization", solutionId],
     queryFn: () => fetchVisualization(solutionId),
@@ -26,7 +46,9 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
   if (isError || !data) {
     return (
       <ErrorState
-        description={error instanceof Error ? error.message : "Solution not found."}
+        description={
+          error instanceof Error ? error.message : "Solution not found."
+        }
         onRetry={() => refetch()}
       />
     );
@@ -34,7 +56,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
   if (isSolutionEmpty(data)) {
     return (
       <EmptyState
-        icon="🌳"
+        icon={<NetworkIllustration className="h-10 w-10" />}
         title="No supply tree"
         description="This solution has no supply tree to visualize."
       />
@@ -43,25 +65,36 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-2 text-sm text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
-        >
-          ← Back
-        </button>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Supply Tree</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Manufacturing plan for the matched solution.
-            </p>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => downloadSolutionJson(solutionId, data)}>
+      <PageHero
+        title="Supply Tree"
+        // "plan" and "dependencies" are the two panels below, which had been
+        // named here and reachable only by scrolling past a graph and a chart
+        // to find them.
+        crumb={[
+          { label: "plan", href: "#st-plan" },
+          { label: "facilities", href: "/facilities" },
+          { label: "dependencies", href: "#st-dependencies" },
+        ]}
+        // A trail, not `router.back()`. A supply tree opens from the match that
+        // produced it, so Match is where it came from — and unlike history,
+        // that is still true when the page is reached from a shared link,
+        // where Back led out of the app entirely.
+        breadcrumb={[
+          { label: "Match", href: "/match" },
+          { label: "Supply Tree" },
+        ]}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => downloadSolutionJson(solutionId, data)}
+          >
             ⬇ Download JSON
           </Button>
-        </div>
-      </div>
+        }
+      />
+
+      <StalenessBanner solutionId={solutionId} />
 
       <KpiCards kpis={deriveKpis(data)} />
 
@@ -75,22 +108,22 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         const deps = toDependencies(data);
         return (
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+            <section className={PANEL} aria-labelledby="st-plan">
+              <SectionHeading id="st-plan" role="label" className="mb-4">
                 Production Sequence
-              </h2>
+              </SectionHeading>
               {sequence.length === 0 ? (
-                <p className="text-sm text-slate-600 dark:text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   No production stages.
                 </p>
               ) : (
                 <ol className="space-y-2">
                   {sequence.map((stage) => (
                     <li key={stage.index} className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-primary-ink">
                         {stage.index}
                       </span>
-                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                      <span className="text-sm text-foreground">
                         {stage.items.join(", ")}
                       </span>
                     </li>
@@ -99,16 +132,20 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
               )}
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+            <section className={PANEL} aria-labelledby="st-dependencies">
+              <SectionHeading
+                id="st-dependencies"
+                role="label"
+                className="mb-4"
+              >
                 Dependencies
-              </h2>
+              </SectionHeading>
               {deps.length === 0 ? (
-                <p className="text-sm text-slate-600 dark:text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   No inter-component dependencies.
                 </p>
               ) : (
-                <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                <ul className="space-y-2 text-sm text-foreground">
                   {deps.map((d) => (
                     <li key={d.node}>
                       <span className="font-medium">{d.node}</span> depends on{" "}
@@ -121,6 +158,8 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
           </div>
         );
       })()}
+
+      <ComponentsPanel solutionId={solutionId} />
 
       <ArtifactLinks data={data} solutionId={solutionId} />
     </div>

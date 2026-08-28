@@ -4,14 +4,20 @@ export const ROOT_DIRECTORY_LABEL = "(root)";
 
 type RenderTier = NonNullable<OkhFileRef["render_tier"]>;
 
+/** The tiers this build can actually render. */
+const RENDER_TIERS: readonly RenderTier[] = [
+  "native_inline",
+  "text_viewer",
+  "wasm_3d",
+  "download_only",
+];
+
 const GITHUB_HOSTED =
   /^https?:\/\/(?:www\.)?github\.com\/[^/]+\/[^/]+\/(?:raw|blob)\/[^/]+\/(.+)$/i;
 const GITHUB_RAW =
   /^https?:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.+)$/i;
-const GITLAB_RAW =
-  /^https?:\/\/[^/]+\/[^/]+\/[^/]+\/-\/raw\/[^/]+\/(.+)$/i;
-const GITLAB_BLOB =
-  /^https?:\/\/[^/]+\/[^/]+\/[^/]+\/-\/blob\/[^/]+\/(.+)$/i;
+const GITLAB_RAW = /^https?:\/\/[^/]+\/[^/]+\/[^/]+\/-\/raw\/[^/]+\/(.+)$/i;
+const GITLAB_BLOB = /^https?:\/\/[^/]+\/[^/]+\/[^/]+\/-\/blob\/[^/]+\/(.+)$/i;
 
 function rejectTraversal(path: string): string {
   if (path.split("/").includes("..")) {
@@ -33,7 +39,9 @@ export function normalizeDisplayPath(path: string): string {
 
   if (raw.startsWith("http://") || raw.startsWith("https://")) {
     const withoutQuery = raw.split("?")[0] ?? raw;
-    return rejectTraversal(withoutQuery.replace(/\/$/, "").split("/").pop() ?? "");
+    return rejectTraversal(
+      withoutQuery.replace(/\/$/, "").split("/").pop() ?? "",
+    );
   }
 
   return rejectTraversal(raw.replace(/^\//, ""));
@@ -52,15 +60,49 @@ export function fileDirectory(displayPath: string): string {
   return parts.slice(0, -1).join("/");
 }
 
-/** Client fallback when API has not enriched render_tier. */
+/**
+ * Client fallback when the API has not enriched render_tier.
+ *
+ * A duplicate of the server's file-type taxonomy, and the reason it is worth
+ * naming as one: a type the taxonomy knows and these three regexes do not
+ * falls to `download_only`, so the app declines to render a file the server
+ * could describe. `renderTierFrom` prefers the real taxonomy when the caller
+ * has fetched it; this stays for the case where that fetch failed, which is
+ * the behaviour every caller had before it existed.
+ */
 export function inferRenderTier(displayPath: string): RenderTier {
   const ref = displayPath.toLowerCase();
   if (/\.(png|jpe?g|gif|webp|bmp|svg|pdf)$/.test(ref)) return "native_inline";
-  if (/\.(md|markdown|mdown|txt|log|csv|json|ya?ml|xml|toml|gcode|nc|scad)$/.test(ref)) {
+  if (
+    /\.(md|markdown|mdown|txt|log|csv|json|ya?ml|xml|toml|gcode|nc|scad)$/.test(
+      ref,
+    )
+  ) {
     return "text_viewer";
   }
   if (/\.(stl|obj|ply)$/.test(ref)) return "wasm_3d";
   return "download_only";
+}
+
+/**
+ * The render tier for a path, from the taxonomy where one is loaded.
+ *
+ * `taxonomy` is a lookup keyed by extension — see api/ohm/file-types. Passed in
+ * rather than fetched here so this module stays pure and testable, and so one
+ * fetch serves a whole file list.
+ */
+export function renderTierFrom(
+  displayPath: string,
+  taxonomy?: Map<string, { render_tier: string | null }>,
+): RenderTier {
+  const extension = fileBasename(displayPath).split(".").pop()?.toLowerCase();
+  const tier = extension ? taxonomy?.get(extension)?.render_tier : undefined;
+  // Only a tier this build knows how to render is honoured: a server that
+  // grows a new tier should degrade to the fallback here, not hand the viewer
+  // a mode it has no branch for.
+  if (tier && RENDER_TIERS.includes(tier as RenderTier))
+    return tier as RenderTier;
+  return inferRenderTier(displayPath);
 }
 
 export function enrichFileRef(file: OkhFileRef): OkhFileRef {
@@ -102,7 +144,9 @@ export function buildDirectoryTree(files: OkhFileRef[]): DirectoryTreeNode {
     files: [],
     children: [],
   };
-  const byPath = new Map<string, DirectoryTreeNode>([[ROOT_DIRECTORY_LABEL, root]]);
+  const byPath = new Map<string, DirectoryTreeNode>([
+    [ROOT_DIRECTORY_LABEL, root],
+  ]);
 
   function ensureDir(dirPath: string): DirectoryTreeNode {
     const existing = byPath.get(dirPath);
@@ -133,7 +177,8 @@ export function buildDirectoryTree(files: OkhFileRef[]): DirectoryTreeNode {
 }
 
 export function filePrimaryLabel(file: OkhFileRef): string {
-  const basename = file.basename ?? fileBasename(file.display_path ?? file.path);
+  const basename =
+    file.basename ?? fileBasename(file.display_path ?? file.path);
   const title = (file.title || "").trim();
   if (title && title.toLowerCase() !== basename.toLowerCase()) {
     return title;
@@ -142,14 +187,17 @@ export function filePrimaryLabel(file: OkhFileRef): string {
 }
 
 export function canPreviewFile(file: OkhFileRef): boolean {
-  const tier = file.render_tier ?? inferRenderTier(file.display_path ?? file.path);
+  const tier =
+    file.render_tier ?? inferRenderTier(file.display_path ?? file.path);
   return tier === "native_inline" || tier === "text_viewer";
 }
 
 export function isImageFile(file: OkhFileRef): boolean {
   const mime = file.mime_type ?? "";
   if (mime.startsWith("image/")) return true;
-  return /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(file.display_path ?? file.path);
+  return /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(
+    file.display_path ?? file.path,
+  );
 }
 
 export function isPdfFile(file: OkhFileRef): boolean {

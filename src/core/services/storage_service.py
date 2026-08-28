@@ -382,6 +382,7 @@ class StorageService:
         solution_id: Optional[UUID] = None,
         ttl_days: Optional[int] = None,
         tags: Optional[List[str]] = None,
+        created_by: Optional[str] = None,
     ) -> UUID:
         """Write solution JSON plus sidecar metadata (TTL, scores, tags) for listing APIs.
 
@@ -390,6 +391,10 @@ class StorageService:
             solution_id: Optional stable id; a new UUID is minted when omitted.
             ttl_days: Override for metadata expiry; defaults to ``DEFAULT_SOLUTION_TTL_DAYS``.
             tags: Optional string tags stored in metadata for filtering.
+            created_by: Owning account id. Solutions live under one shared prefix,
+                so this is the only thing that makes a listing user-scoped.
+                ``None`` for an anonymous match — such a solution is still saved
+                (the explorer loads it by id) but is listed for nobody.
 
         Returns:
             The solution id (provided or generated).
@@ -458,6 +463,7 @@ class StorageService:
             "expires_at": expires_at.isoformat(),
             "ttl_days": ttl,
             "tags": tags or [],
+            "created_by": created_by,
         }
 
         metadata_key = build_solution_metadata_key(solution_id)
@@ -502,6 +508,7 @@ class StorageService:
         max_age_days: Optional[int] = None,
         include_stale: bool = True,
         only_stale: bool = False,
+        created_by: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         List supply tree solutions with optional filtering and sorting.
@@ -517,6 +524,8 @@ class StorageService:
             max_age_days: Filter by maximum age in days
             include_stale: Include stale solutions (default: True)
             only_stale: Only return stale solutions (default: False)
+            created_by: Owning account id to scope the listing to. ``None``
+                matches nothing — see the ownership filter below.
 
         Returns:
             List of solution metadata dictionaries
@@ -539,6 +548,23 @@ class StorageService:
                 try:
                     data = await self.manager.get_object(obj["key"])
                     metadata_dict = json.loads(data.decode("utf-8"))
+
+                    # Ownership, before any other filter and before pagination.
+                    #
+                    # Solutions share one storage prefix, so this is the whole
+                    # of the access control on a listing: a row is yours or it
+                    # is not returned. Both halves fail closed on purpose —
+                    # an anonymous caller (created_by=None) matches nothing,
+                    # and a row written before solutions were owned has no
+                    # created_by and so belongs to nobody. Treating either as a
+                    # wildcard is the defect that removed the Solutions browse
+                    # in df639dd, and it would reappear for exactly the rows
+                    # that caused it.
+                    if (
+                        created_by is None
+                        or metadata_dict.get("created_by") != created_by
+                    ):
+                        continue
 
                     # Apply basic filters
                     if okh_id and metadata_dict.get("okh_id") != str(okh_id):

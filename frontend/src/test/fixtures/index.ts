@@ -16,10 +16,17 @@ export const healthFixture = {
 export const domainsFixture = {
   data: {
     domains: [
-      { id: "manufacturing", name: "Manufacturing", description: "Hardware manufacturing" },
-      { id: "cooking", name: "Cooking & Food Prep", description: "Recipe matching" },
+      {
+        id: "manufacturing",
+        name: "Manufacturing",
+        description: "Hardware manufacturing",
+      },
+      {
+        id: "cooking",
+        name: "Cooking & Food Prep",
+        description: "Recipe matching",
+      },
     ],
-    default_domain: "manufacturing",
   },
 };
 
@@ -53,7 +60,15 @@ function okhItem(
     licensor: { name: "OHM Test", email: null, affiliation: null, social: [] },
     contributors: [],
     manufacturing_processes: processes,
-    materials: [{ material_id: material, name: material, quantity: 1, unit: "kg", notes: null }],
+    materials: [
+      {
+        material_id: material,
+        name: material,
+        quantity: 1,
+        unit: "kg",
+        notes: null,
+      },
+    ],
     design_files: [],
     manufacturing_files: [],
     making_instructions: [],
@@ -79,9 +94,30 @@ export const okhListFixture = {
     has_previous: false,
   },
   items: [
-    okhItem("okh-0001", "Open Ventilator", "Emergency ventilator", ["3D Printing", "Assembly"], "MIT", "PLA"),
-    okhItem("okh-0002", "Face Shield", "Protective face shield", ["3D Printing", "Laser Cutting"], "GPL-2.0", "Acrylic"),
-    okhItem("okh-0003", "Test Rig", "Calibration test rig", ["Laser Cutting"], "MIT", "Steel"),
+    okhItem(
+      "okh-0001",
+      "Open Ventilator",
+      "Emergency ventilator",
+      ["3D Printing", "Assembly"],
+      "MIT",
+      "PLA",
+    ),
+    okhItem(
+      "okh-0002",
+      "Face Shield",
+      "Protective face shield",
+      ["3D Printing", "Laser Cutting"],
+      "GPL-2.0",
+      "Acrylic",
+    ),
+    okhItem(
+      "okh-0003",
+      "Test Rig",
+      "Calibration test rig",
+      ["Laser Cutting"],
+      "MIT",
+      "Steel",
+    ),
   ],
 };
 
@@ -115,7 +151,11 @@ function okwFacility(
   return {
     id,
     name,
-    location: { address: { city, region: "TX", country: "US" }, city, country: "US" },
+    location: {
+      address: { city, region: "TX", country: "US" },
+      city,
+      country: "US",
+    },
     manufacturing_processes: processes,
     access_type,
     facility_status,
@@ -126,24 +166,58 @@ function okwFacility(
 /** OKW search envelope ({results,total,page,page_size}) with varied facets. */
 export const okwSearchFixture = {
   results: [
-    okwFacility("okw-1", "Laser Fab Lab", "Austin", ["https://en.wikipedia.org/wiki/Laser_cutter"], "Membership", "Active"),
-    okwFacility("okw-2", "Community Makerspace", "Austin", ["Assembly"], "Public", "Active"),
-    okwFacility("okw-3", "Precision CNC Shop", "Denver", ["https://en.wikipedia.org/wiki/CNC_mill"], "Restricted", "Planned"),
+    okwFacility(
+      "okw-1",
+      "Laser Fab Lab",
+      "Austin",
+      ["https://en.wikipedia.org/wiki/Laser_cutter"],
+      "Membership",
+      "Active",
+    ),
+    okwFacility(
+      "okw-2",
+      "Community Makerspace",
+      "Austin",
+      ["Assembly"],
+      "Public",
+      "Active",
+    ),
+    okwFacility(
+      "okw-3",
+      "Precision CNC Shop",
+      "Denver",
+      ["https://en.wikipedia.org/wiki/CNC_mill"],
+      "Restricted",
+      "Planned",
+    ),
   ],
   total: 3,
   page: 1,
   page_size: 100,
 };
 
-export const okwSearchEmptyFixture = { results: [], total: 0, page: 1, page_size: 100 };
+export const okwSearchEmptyFixture = {
+  results: [],
+  total: 0,
+  page: 1,
+  page_size: 100,
+};
 
 /** A single OKW facility (detail payload) with equipment + certifications. */
 export const okwDetailFixture = {
   ...okwSearchFixture.results[0],
   description: "A membership laser-cutting lab in Austin.",
   equipment: [
-    { make: "Trotec", model: "LS-1630", equipment_type: "https://en.wikipedia.org/wiki/Laser_cutter" },
-    { make: "Epilog", model: "Fusion Pro", equipment_type: "https://en.wikipedia.org/wiki/Laser_engraving" },
+    {
+      make: "Trotec",
+      model: "LS-1630",
+      equipment_type: "https://en.wikipedia.org/wiki/Laser_cutter",
+    },
+    {
+      make: "Epilog",
+      model: "Fusion Pro",
+      equipment_type: "https://en.wikipedia.org/wiki/Laser_engraving",
+    },
   ],
   certifications: ["ISO 9001:2015", "OHSAS 18001"],
 };
@@ -185,9 +259,51 @@ export const taxonomyFixture = {
 export const networkSpacesFixture = {
   success: true,
   spaces: [
-    { id: "okw-1", name: "Laser Fab Lab", lat: 30.2711, lon: -97.7437, source: "local", city: "Austin", region: "TX", country: "US", status: "active", processes: ["laser_cutting"], access_type: "Membership", url: null, ambiguous: false },
-    { id: "okw-2", name: "Community Makerspace", lat: 30.25, lon: -97.75, source: "local", city: "Austin", region: "TX", country: "US", status: "active", processes: ["assembly"], access_type: "Public", url: null, ambiguous: false },
-    { id: "urn:mak:space/lazio", name: "FabLab Lazio Roma", lat: 41.8902, lon: 12.5179, source: "mom", city: "Rome", region: null, country: "IT", status: "active", processes: ["cnc_machining"], access_type: null, url: "https://lazio", ambiguous: false },
+    {
+      id: "okw-1",
+      name: "Laser Fab Lab",
+      lat: 30.2711,
+      lon: -97.7437,
+      source: "local",
+      city: "Austin",
+      region: "TX",
+      country: "US",
+      status: "active",
+      processes: ["laser_cutting"],
+      access_type: "Membership",
+      url: null,
+      ambiguous: false,
+    },
+    {
+      id: "okw-2",
+      name: "Community Makerspace",
+      lat: 30.25,
+      lon: -97.75,
+      source: "local",
+      city: "Austin",
+      region: "TX",
+      country: "US",
+      status: "active",
+      processes: ["assembly"],
+      access_type: "Public",
+      url: null,
+      ambiguous: false,
+    },
+    {
+      id: "urn:mak:space/lazio",
+      name: "FabLab Lazio Roma",
+      lat: 41.8902,
+      lon: 12.5179,
+      source: "mom",
+      city: "Rome",
+      region: null,
+      country: "IT",
+      status: "active",
+      processes: ["cnc_machining"],
+      access_type: null,
+      url: "https://lazio",
+      ambiguous: false,
+    },
   ],
   total: 3,
   local_count: 2,
@@ -202,8 +318,18 @@ export const facilityDesignsFixture = {
     okw_id: "okw-1",
     facility_name: "Laser Fab Lab",
     designs: [
-      { okh_id: "okh-0001", okh_title: "Open Ventilator", confidence: 0.95, rank: 1 },
-      { okh_id: "okh-0002", okh_title: "Face Shield", confidence: 0.62, rank: 2 },
+      {
+        okh_id: "okh-0001",
+        okh_title: "Open Ventilator",
+        confidence: 0.95,
+        rank: 1,
+      },
+      {
+        okh_id: "okh-0002",
+        okh_title: "Face Shield",
+        confidence: 0.62,
+        rank: 2,
+      },
     ],
     total_designs: 2,
     designs_considered: 3,
@@ -211,7 +337,13 @@ export const facilityDesignsFixture = {
 };
 
 export const facilityDesignsEmptyFixture = {
-  data: { okw_id: "okw-1", facility_name: "Laser Fab Lab", designs: [], total_designs: 0, designs_considered: 3 },
+  data: {
+    okw_id: "okw-1",
+    facility_name: "Laser Fab Lab",
+    designs: [],
+    total_designs: 0,
+    designs_considered: 3,
+  },
 };
 
 /** Match response envelope: solutions + summary + coverage gaps under `data`. */
@@ -224,7 +356,8 @@ export const matchResponseFixture = {
         confidence: 0.95,
         score: 0.95,
         rank: 1,
-        explanation_human: "✓ FabLab Drome MATCHED (confidence: 95%)\nAll requirements satisfied.",
+        explanation_human:
+          "✓ FabLab Drome MATCHED (confidence: 95%)\nAll requirements satisfied.",
         tree: { id: "tree-1" },
       },
       {
@@ -250,7 +383,9 @@ export const vizBundleFixture = {
     schema_version: "3.2.0",
     source_type: "solution",
     generated_at: "2026-01-01T00:00:00Z",
-    matching: { overview: { matching_mode: "single-level", score: 0.95, tree_count: 1 } },
+    matching: {
+      overview: { matching_mode: "single-level", score: 0.95, tree_count: 1 },
+    },
     supply_tree: {
       solution_id: "sol-1",
       nodes: [
@@ -286,7 +421,14 @@ export const vizBundleFixture = {
       facility_distribution: [{ facility_name: "FabLab Drome", tree_count: 1 }],
       route_hints: { status: "not_provided", note: "" },
     },
-    dashboard: { kpis: { tree_count: 1, edge_count: 1, stage_count: 2, solution_score: 0.95 } },
+    dashboard: {
+      kpis: {
+        tree_count: 1,
+        edge_count: 1,
+        stage_count: 2,
+        solution_score: 0.95,
+      },
+    },
     artifacts: {},
   },
 };
@@ -608,6 +750,66 @@ export const packageMetadataFixture = {
 };
 
 /**
+ * The identities this instance holds — one person, one space.
+ *
+ * The Identities panel reads this list, and it was the one settings subtab with
+ * no fixture at all: the mocked lane never opened it, so it fell through to a
+ * network the lane does not have.
+ */
+export const identitiesFixture = [identityFixture, spaceIdentityFixture];
+
+/**
+ * LLM credentials, one configured and one not.
+ *
+ * Both states matter to the panel — a configured provider shows a masked key
+ * and a Test button, an unconfigured one shows the form — and a fixture with
+ * only one of them exercises half the component.
+ *
+ * The masked key is masked here too. A fixture is a file in a public
+ * repository, and "it is only test data" is how a shape that looks like a
+ * credential ends up in a search index.
+ */
+export const llmCredentialsFixture = {
+  credentials: [
+    {
+      provider: "anthropic",
+      model: "claude-sonnet-5",
+      masked_key: "sk-ant-…demo",
+      configured: true,
+    },
+    { provider: "openai", model: null, masked_key: "", configured: false },
+  ],
+};
+
+/**
+ * The saved-solutions browse: one row, pointing at the one solution the
+ * visualization fixture answers for, so the list and the page it opens agree.
+ *
+ * Envelope is `data.result` because that is what the paginated list decorator
+ * emits and what listSolutions reads. Two rows would be more convincing and
+ * less useful — the second id has no visualization bundle behind it, so the
+ * card would lead to an error the demo cannot explain.
+ */
+export const solutionsListFixture = {
+  data: {
+    result: [
+      {
+        id: "sol-1",
+        okh_id: "okh-0001",
+        okh_title: "Foldable Solar Dryer",
+        facility_name: "FabLab Drome",
+        matching_mode: "single-level",
+        tree_count: 1,
+        facility_count: 1,
+        score: 0.95,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+  },
+};
+
+/** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
+/**
  * Cooking-domain browse fixtures.
  *
  * Shape is the paginated envelope `fetchAllRecipes`/`fetchAllKitchens` read
@@ -658,12 +860,500 @@ export const kitchensFixture = {
   pagination: { has_next: false, total_items: 2 },
 };
 
-/** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
+
+/**
+ * Assets.
+ *
+ * Ids are real UUIDs, not "asset-1". The API declares them as `UUID` path
+ * params, unlike OKH/OKW's string ids, so a readable placeholder makes the
+ * real backend answer 422 — and the mocked lanes would then be measuring an
+ * error panel while reporting the page as fine.
+ */
+export const ASSET_ID = "11111111-1111-4111-8111-111111111111";
+export const ASSET_ID_B = "22222222-2222-4222-8222-222222222222";
+
+const pumpState = {
+  component_name: "Pump assembly",
+  condition: "damaged",
+  repair_feasible: false,
+  harvest_viable: true,
+  source_required: null,
+  notes: "Impeller cracked",
+  observed_at: "2026-08-09T10:00:00Z",
+  assessed_by: "ana",
+  claimed_by: null,
+  claimed_at: null,
+};
+
+export const assetDetailFixture = {
+  id: ASSET_ID,
+  manifest_id: "okh-0001",
+  asset_tag: "OHM-0042",
+  location: "Bay 3",
+  status: "under_triage",
+  component_states: [pumpState],
+  last_triaged_at: "2026-08-09T10:00:00Z",
+  triage_notes: "Back panel removed for access.",
+  message: "Asset record retrieved",
+};
+
+export const assetListFixture = {
+  assets: [
+    assetDetailFixture,
+    {
+      id: ASSET_ID_B,
+      manifest_id: "okh-0001",
+      asset_tag: "OHM-0043",
+      location: null,
+      status: "active",
+      component_states: [],
+      last_triaged_at: null,
+      triage_notes: null,
+      message: "",
+    },
+  ],
+  total: 2,
+  message: "2 asset(s)",
+};
+
+export const triageChecklistFixture = {
+  asset_id: ASSET_ID,
+  manifest_id: "okh-0001",
+  asset_tag: "OHM-0042",
+  status: "under_triage",
+  last_triaged_at: "2026-08-09T10:00:00Z",
+  items: [
+    {
+      component_name: "Pump assembly",
+      assessed: true,
+      replaceable: true,
+      salvageable: true,
+      consumable: false,
+      part_number: "P-1042",
+      current_condition: "damaged",
+      current_state: pumpState,
+    },
+    {
+      component_name: "Control board",
+      assessed: false,
+      replaceable: true,
+      salvageable: false,
+      consumable: false,
+      part_number: "CB-7",
+      current_condition: null,
+      current_state: null,
+    },
+  ],
+  total_components: 2,
+  assessed_count: 1,
+  pending_count: 1,
+  message: "1/2 components assessed",
+};
+
+export const triageReportFixture = {
+  asset_id: ASSET_ID,
+  manifest_id: "okh-0001",
+  asset_tag: "OHM-0042",
+  last_triaged_at: "2026-08-09T10:00:00Z",
+  triage_notes: "Back panel removed for access.",
+  items: [
+    {
+      component_name: "Pump assembly",
+      recommended_action: "harvest",
+      condition: "damaged",
+      repair_feasible: false,
+      harvest_viable: true,
+      source_required: null,
+      notes: "Impeller cracked",
+      replaceable: true,
+      salvageable: true,
+      consumable: false,
+      part_number: "P-1042",
+    },
+    {
+      component_name: "Control board",
+      recommended_action: "assess",
+      condition: "unknown",
+      repair_feasible: null,
+      harvest_viable: null,
+      source_required: null,
+      notes: null,
+      replaceable: true,
+      salvageable: false,
+      consumable: false,
+      part_number: "CB-7",
+    },
+  ],
+  summary: {
+    total_components: 2,
+    needs_assessment: 1,
+    repair_in_place: 0,
+    harvest: 1,
+    source_new: 0,
+    no_action: 0,
+    decommission: 0,
+  },
+  message: "Triage report generated",
+};
+
+export const salvageMatchItemFixture = {
+  asset_id: ASSET_ID_B,
+  asset_tag: "OHM-0043",
+  manifest_id: "okh-0001",
+  location: "Store room",
+  component_name: "Pump assembly",
+  condition: "intact",
+  notes: null,
+  assessed_by: "ana",
+  observed_at: "2026-08-01T09:00:00Z",
+  part_number: "P-1042",
+  salvageable: true,
+  replaceable: true,
+  claimed_by: null,
+  claimed_at: null,
+};
+
+export const salvageMatchFixture = {
+  matches: [salvageMatchItemFixture],
+  total: 1,
+  query: {
+    component_name: "Pump assembly",
+    part_number: null,
+    manifest_id: null,
+  },
+  message: "1 harvestable match(es) found",
+};
+
+export const sourcingResolutionFixture = {
+  asset_id: ASSET_ID,
+  asset_tag: "OHM-0042",
+  manifest_id: "okh-0001",
+  items: [
+    {
+      component_name: "Control board",
+      verdict: "fleet_available",
+      part_number: "CB-7",
+      matches: [
+        { ...salvageMatchItemFixture, component_name: "Control board" },
+      ],
+      match_count: 1,
+    },
+    {
+      component_name: "Pump assembly",
+      verdict: "procure_new",
+      part_number: "P-1042",
+      matches: [],
+      match_count: 0,
+    },
+  ],
+  total_components: 2,
+  fleet_available_count: 1,
+  procure_new_count: 1,
+  message: "Sourcing resolved",
+};
+
+export const claimComponentFixture = {
+  success: true,
+  asset_id: ASSET_ID_B,
+  component_name: "Pump assembly",
+  claimed_by: "ana",
+  claimed_at: "2026-08-12T09:00:00Z",
+  message: "Component claimed",
+};
+
+export const llmHealthFixture = {
+  status: "success",
+  message: "LLM service healthy",
+  health_status: "healthy",
+  providers: {
+    anthropic: {
+      name: "anthropic",
+      type: "anthropic",
+      status: "healthy",
+      model: "claude-sonnet-4-5-20250929",
+      is_connected: true,
+      available_models: ["claude-sonnet-4-5-20250929"],
+      error: null,
+    },
+  },
+  metrics: {},
+};
+
+export const llmProvidersFixture = {
+  status: "success",
+  message: "1 provider available",
+  providers: [
+    {
+      name: "anthropic",
+      type: "anthropic",
+      status: "healthy",
+      model: "claude-sonnet-4-5-20250929",
+      is_connected: true,
+      available_models: ["claude-sonnet-4-5-20250929"],
+      error: null,
+    },
+  ],
+  default_provider: "anthropic",
+  available_providers: ["anthropic"],
+};
+
+export const fileTypesFixture = {
+  status: "success",
+  message: "File type taxonomy retrieved successfully",
+  data: {
+    total: 3,
+    source: "config/file_types.yaml",
+    file_types: [
+      {
+        canonical_id: "image.raster",
+        display_name: "Raster image",
+        parent: "image",
+        extensions: ["png", "jpg"],
+        mime_types: ["image/png"],
+        okh_role: "documentation",
+        render_tier: "native_inline",
+      },
+      {
+        canonical_id: "cad.step",
+        display_name: "STEP model",
+        parent: "cad",
+        // The point of the fixture: the client regex has never heard of .step,
+        // so without the taxonomy this file falls to download_only.
+        extensions: ["step", "stp"],
+        mime_types: ["model/step"],
+        okh_role: "design",
+        render_tier: "wasm_3d",
+      },
+      {
+        canonical_id: "doc.markdown",
+        display_name: "Markdown",
+        parent: "doc",
+        extensions: ["md"],
+        mime_types: ["text/markdown"],
+        okh_role: "documentation",
+        render_tier: "text_viewer",
+      },
+    ],
+  },
+};
+
+const capabilityRule = {
+  id: "cnc-milling-satisfies-machining",
+  type: "capability",
+  capability: "cnc_milling",
+  satisfies_requirements: ["machining", "milling"],
+  direction: "bidirectional",
+  confidence: 0.9,
+  domain: "manufacturing",
+  description: "A 3-axis mill satisfies general machining requirements",
+  source: "config/capability_rules.yaml",
+  tags: ["subtractive"],
+};
+
+export const rulesListFixture = {
+  status: "success",
+  message: "Rules retrieved successfully",
+  data: {
+    rules: [capabilityRule],
+    total: 1,
+    domains: ["manufacturing"],
+  },
+};
+
+export const rulesValidateFixture = {
+  status: "success",
+  message: "Validation completed",
+  data: { valid: true, errors: [], warnings: [] },
+};
+
+export const rulesCompareFixture = {
+  status: "success",
+  message: "Comparison completed",
+  data: {
+    domains: {
+      manufacturing: {
+        changes: {
+          added: ["laser-cutting"],
+          updated: ["cnc-milling"],
+          deleted: [],
+        },
+      },
+    },
+  },
+};
+
+export const rulesImportFixture = {
+  status: "success",
+  message: "Import completed",
+  data: { imported: 2, domains: ["manufacturing"] },
+};
+
+export const rulesExportFixture = {
+  status: "success",
+  message: "Export completed",
+  data: { file_content: "domain: manufacturing\nrules: []\n" },
+};
+
+export const taxonomyValidateFixture = {
+  status: "success",
+  message: "Taxonomy validation completed",
+  data: {
+    valid: true,
+    total_processes: 51,
+    errors: [],
+    source: "config/processes.yaml",
+  },
+};
+
+export const fileTypesValidationFixture = {
+  status: "success",
+  message: "File type taxonomy validation completed",
+  data: {
+    valid: true,
+    total_file_types: 3,
+    errors: [],
+    source: "config/file_types.yaml",
+  },
+};
+
+export const okhRequirementsFixture = {
+  requirements: [
+    { process_name: "3d_printing", quantity: 1 },
+    { process_name: "assembly", quantity: 1 },
+  ],
+};
+
+export const okwCapabilitiesFixture = {
+  capabilities: [
+    { process_name: "3d_printing" },
+    { process_name: "cnc_machining" },
+  ],
+};
+
+export const okhTemplateFixture = {
+  title: "",
+  version: "",
+  function: "",
+  license: { hardware: "", documentation: "", software: "" },
+  licensor: { name: "" },
+  documentation_language: "en",
+};
+
+export const okwTemplateFixture = {
+  name: "",
+  location: { address: {} },
+  access_type: "",
+  facility_status: "",
+};
+
+export const solutionStalenessFixture = {
+  status: "success",
+  message: "Staleness check completed",
+  data: {
+    solution_id: "sol-1",
+    // Fresh by default: the banner is the exception, and a fixture that made
+    // every mocked page shout would train readers to ignore it.
+    is_stale: false,
+    staleness_reason: null,
+    age_days: 2,
+  },
+};
+
+export const solutionHierarchyFixture = {
+  status: "success",
+  message: "Hierarchy retrieved",
+  data: {
+    hierarchy: {},
+    root_components: ["frame"],
+    component_details: { frame: { name: "Frame" } },
+    summary: {
+      total_components: 1,
+      root_components: 1,
+      total_trees: 1,
+      max_depth: 1,
+    },
+  },
+};
+
+export const remotePackagesFixture = {
+  status: "success",
+  message: "Remote packages listed",
+  data: {
+    packages: [{ name: "demo/widget", version: "1.1.0" }],
+    total: 1,
+  },
+};
+
+export const packageSignatureFixture = {
+  valid: true,
+  signed_by: "did:key:z6MkDemo",
+};
+
+export const matchDomainsFixture = {
+  status: "success",
+  message: "Domains listed",
+  data: {
+    domains: [
+      {
+        name: "manufacturing",
+        status: "available",
+        version: "1.0",
+        supported_input_types: ["okh"],
+      },
+      {
+        name: "cooking",
+        status: "available",
+        version: "0.1",
+        supported_input_types: ["recipe"],
+      },
+    ],
+  },
+};
+
 export const fixturesByPath: Record<string, unknown> = {
-  "/health": healthFixture,
-  "/v1/api/utility/domains": domainsFixture,
+  "/v1/api/match/domains": matchDomainsFixture,
+  "/v1/api/package/remote": remotePackagesFixture,
+  "/v1/api/package/demo/widget/1.0.0/verify-signature": packageSignatureFixture,
+  "/v1/api/supply-tree/solution/sol-1/staleness": solutionStalenessFixture,
+  "/v1/api/supply-tree/solution/sol-1/hierarchy": solutionHierarchyFixture,
+  "/v1/api/supply-tree/solution/sol-1/extend": {
+    status: "success",
+    message: "TTL extended successfully",
+  },
   "/v1/api/okh/recipes": recipesFixture,
   "/v1/api/okw/kitchens": kitchensFixture,
+  "/v1/api/okh/extract": okhRequirementsFixture,
+  "/v1/api/okh/template": okhTemplateFixture,
+  "/v1/api/okw/extract": okwCapabilitiesFixture,
+  "/v1/api/okw/template": okwTemplateFixture,
+  "/v1/api/match/rules": rulesListFixture,
+  "/v1/api/match/rules/": rulesListFixture,
+  "/v1/api/match/rules/validate": rulesValidateFixture,
+  "/v1/api/match/rules/compare": rulesCompareFixture,
+  "/v1/api/match/rules/import": rulesImportFixture,
+  "/v1/api/match/rules/export": rulesExportFixture,
+  "/v1/api/match/rules/reset": { status: "success", message: "Rules reset" },
+  "/v1/api/taxonomy/validate": taxonomyValidateFixture,
+  "/v1/api/taxonomy/reload": {
+    status: "success",
+    message: "Taxonomy reloaded",
+    data: { total_processes: 51 },
+  },
+  "/v1/api/file-types/validate": fileTypesValidationFixture,
+  "/v1/api/file-types": fileTypesFixture,
+  "/v1/api/asset": assetListFixture,
+  "/v1/api/asset/": assetListFixture,
+  [`/v1/api/asset/${ASSET_ID}`]: assetDetailFixture,
+  [`/v1/api/asset/${ASSET_ID}/triage`]: assetDetailFixture,
+  [`/v1/api/asset/${ASSET_ID}/triage-checklist`]: triageChecklistFixture,
+  [`/v1/api/asset/${ASSET_ID}/triage-report`]: triageReportFixture,
+  [`/v1/api/asset/${ASSET_ID}/resolve-sourcing`]: sourcingResolutionFixture,
+  [`/v1/api/asset/${ASSET_ID_B}`]: assetListFixture.assets[1],
+  [`/v1/api/asset/${ASSET_ID_B}/claim-component`]: claimComponentFixture,
+  "/v1/api/asset/salvage-match": salvageMatchFixture,
+  "/v1/api/supply-tree/solutions": solutionsListFixture,
+  "/health": healthFixture,
+  "/v1/api/utility/domains": domainsFixture,
   "/v1/api/utility/metrics": metricsFixture,
   "/v1/api/okh": okhListFixture,
   "/v1/api/okh/okh-0001": okhDetailFixture,
@@ -691,6 +1381,10 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/identity/attestations": attestationsFixture,
   "/v1/api/identity/bindings": bindingsFixture,
   "/v1/api/identity/directory": directoryFixture,
+  "/v1/api/identity/identities": identitiesFixture,
+  "/v1/api/llm/credentials": llmCredentialsFixture,
+  "/v1/api/llm/health": llmHealthFixture,
+  "/v1/api/llm/providers": llmProvidersFixture,
   "/v1/api/federation/status": federationStatusFixture,
   "/v1/api/federation/peers": federationPeersFixture,
   "/v1/api/package/list": packageListFixture,

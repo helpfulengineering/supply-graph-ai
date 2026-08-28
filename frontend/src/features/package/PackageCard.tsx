@@ -1,8 +1,14 @@
-import { useNavigate } from "react-router-dom";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { downloadPackageFile, packageDetailPath } from "../../api/package";
 import type { PackageListItem } from "../../types/package";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
+import { CHECKBOX, CHECKBOX_HIT } from "../../components/ui/field";
+import { PANEL } from "../../components/ui/surface";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   pkg: PackageListItem;
@@ -33,37 +39,52 @@ function formatDate(iso: string): string {
 }
 
 export function PackageCard({ pkg, selected = false, onToggle }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { reportAuthFailure } = useAuth();
   const detail = packageDetailPath(pkg.package_name, pkg.version);
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-start sm:justify-between">
+    <div
+      className={cn(
+        PANEL,
+        "flex flex-col gap-4 shadow-sm sm:flex-row sm:items-start sm:justify-between",
+      )}
+    >
       <div className="flex min-w-0 gap-3">
         {onToggle && (
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={selected}
-            onChange={onToggle}
-            aria-label={`Select ${pkg.package_name} ${pkg.version}`}
-          />
+          <label className={cn(CHECKBOX_HIT, "mt-1")}>
+            <input
+              type="checkbox"
+              className={CHECKBOX}
+              checked={selected}
+              onChange={onToggle}
+              aria-label={`Select ${pkg.package_name} ${pkg.version}`}
+            />
+          </label>
         )}
         <div className="min-w-0 space-y-2">
-          <button type="button" className="text-left" onClick={() => navigate(detail)}>
-            <h3 className="font-semibold text-slate-800 break-all hover:text-indigo-600 dark:text-slate-100">
+          <button
+            type="button"
+            className="text-left"
+            onClick={() => router.push(detail)}
+          >
+            <h3 className={cn(CARD_TITLE, "break-all hover:text-primary-ink")}>
               {pkg.package_name}
             </h3>
-            <p className="font-mono text-xs text-slate-600 dark:text-slate-400">v{pkg.version}</p>
+            <p className="font-mono text-xs text-muted-foreground">
+              v{pkg.version}
+            </p>
           </button>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span>
               {pkg.total_files} file{pkg.total_files !== 1 ? "s" : ""}
             </span>
             <span>{formatBytes(pkg.total_size_bytes)}</span>
             <span>Built {formatDate(pkg.build_timestamp)}</span>
             {pkg.okh_manifest_id && (
-              <span className="font-mono">manifest: {pkg.okh_manifest_id.slice(0, 8)}…</span>
+              <span className="font-mono">
+                manifest: {pkg.okh_manifest_id.slice(0, 8)}…
+              </span>
             )}
           </div>
         </div>
@@ -73,7 +94,9 @@ export function PackageCard({ pkg, selected = false, onToggle }: Props) {
         type="button"
         className="shrink-0"
         onClick={() =>
-          void downloadPackageFile(pkg.package_name, pkg.version).catch(reportAuthFailure)
+          void downloadPackageFile(pkg.package_name, pkg.version).catch(
+            reportAuthFailure,
+          )
         }
       >
         ↓ Download .tar.gz

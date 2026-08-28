@@ -12,7 +12,8 @@ for (const route of harness.routesToScreenshot) {
   test(`screenshot ${route}`, async ({ page }) => {
     await page.goto(route);
     await page.waitForLoadState("networkidle");
-    const slug = route === "/" ? "home" : route.replace(/^\//, "").replace(/\//g, "-");
+    const slug =
+      route === "/" ? "home" : route.replace(/^\//, "").replace(/\//g, "-");
     await page.screenshot({
       path: `artifacts/screenshots/${slug}.png`,
       fullPage: true,

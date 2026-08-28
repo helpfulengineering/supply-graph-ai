@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
-import { Loader2 } from "lucide-react";
 import { Button } from "./button";
+import { LogoLoader } from "./LogoLoader";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,12 +19,18 @@ export function LoadingState({
     <div
       role="status"
       aria-live="polite"
+      // The hook e2e waits on. `role="status"` cannot serve: the app uses it
+      // for ~25 settled messages ("Saved", validation results), so a wait for
+      // it to clear would either never start or never finish. This attribute
+      // means one thing — data is still on its way — on the one component
+      // every loading surface in the app renders.
+      data-loading=""
       className={cn(
         "flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground",
         className,
       )}
     >
-      <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+      <LogoLoader />
       <span className="text-sm">{message}</span>
     </div>
   );

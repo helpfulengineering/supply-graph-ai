@@ -45,17 +45,21 @@ used_by = ["make ready (env-template-check)", "ci: quality"]
 
 [scripts.generate_repo_map]
 category = "generate"
-summary = "Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation."
-run = "uv run python scripts/generate_repo_map.py"
+summary = "Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation; --check gates staleness."
+run = "uv run python scripts/generate_repo_map.py [--check]"
 mutates = true
-used_by = ["make format", "ci: quality"]
+used_by = ["make format", "make ready (repo-map-check)", "ci: quality"]
 
 [scripts.dump_api_routes]
 category = "generate"
-summary = "Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count."
-run = "uv run python scripts/dump_api_routes.py [--count-only]"
+summary = "Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count; --openapi for the spec itself."
+run = "uv run python scripts/dump_api_routes.py [--count-only|--openapi]"
 mutates = false
-used_by = ["make ready (scripts)", "OpenAPI /v1/docs is the route catalog"]
+used_by = [
+  "make ready (scripts)",
+  "OpenAPI /v1/docs is the route catalog",
+  "npm run gen:api (--openapi, offline schema regeneration)",
+]
 
 [scripts.build_docs_site]
 category = "generate"
@@ -117,6 +121,20 @@ category = "data"
 summary = "Seed a local OHM storage directory with a realistic repair-workflow scenario (asset + manifests)."
 run = "uv run python scripts/seed_repair_scenario.py [options]"
 mutates = true
+
+[scripts.generate_demo_world]
+category = "generate"
+summary = "Emit frontend/src/lib/demo/world.ts from the seed dataset so the client Demo data toggle shows the same world make seed-demo produces; --check gates drift."
+run = "uv run python scripts/generate_demo_world.py [--check]"
+mutates = true
+used_by = ["make ready (demo-world-check)", "frontend demo mode"]
+
+[scripts.seed_demo_data]
+category = "data"
+summary = "Seed a deterministic demo world (10 designs, 7 facilities, every design buildable) so browse -> match -> supply tree completes with real data; --summary reports match coverage without writing."
+run = "uv run python scripts/seed_demo_data.py [--clear] [--summary] [--storage-dir DIR]"
+mutates = true
+used_by = ["make seed-demo", "frontend e2e: real-api lane", "local dev preview"]
 
 [scripts.import_okh_losh_batch]
 category = "data"

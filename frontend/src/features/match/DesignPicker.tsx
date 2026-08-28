@@ -1,4 +1,12 @@
 import { useMemo, useState } from "react";
+import { FIELD, FIELD_SM, LABEL, LINK_BUTTON } from "../../components/ui/field";
+import { Fieldset } from "../../components/ui/Fieldset";
+import {
+  PANEL_ACCENT,
+  PANEL_INSET,
+  SCROLL_LIST,
+} from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "../okh/categories";
 import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
@@ -91,23 +99,32 @@ export function DesignPicker({
     setQ("");
   }
 
-  const hasFilters = !!q.trim() || Object.values(selections).some((v) => (v?.length ?? 0) > 0);
+  const hasFilters =
+    !!q.trim() || Object.values(selections).some((v) => (v?.length ?? 0) > 0);
 
   return (
-    <fieldset className="rounded-lg border border-input p-4">
-      <legend className="px-1 text-sm font-medium text-foreground">Design</legend>
-
+    <Fieldset legend="Design">
       {selected ? (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-indigo-200 bg-indigo-50/70 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/30">
+        // PANEL_ACCENT, not FIELD. This read `${FIELD} ... bg-accent/70`,
+        // borrowing a form-control class for a banner — so the panel inherited
+        // a focus ring it can never show and a text colour it always
+        // overrides, and any change to how inputs look would have silently
+        // restyled it.
+        <div
+          className={cn(
+            PANEL_ACCENT,
+            "mb-3 flex flex-wrap items-center justify-between gap-2 p-3",
+          )}
+        >
           <div className="min-w-0">
-            <p className="text-xs text-indigo-700 dark:text-indigo-400">Selected design</p>
-            <p className="truncate font-medium text-indigo-950 dark:text-indigo-100">
+            <p className="text-xs text-primary-ink">Selected design</p>
+            <p className="truncate font-medium text-primary-ink">
               {formatOkhDisplayTitle(selected.title)}
             </p>
           </div>
           <button
             type="button"
-            className="shrink-0 text-xs text-indigo-700 hover:underline dark:text-indigo-300"
+            className={cn(LINK_BUTTON, "shrink-0")}
             onClick={() => onSelect("")}
           >
             Clear
@@ -123,7 +140,7 @@ export function DesignPicker({
         <p className="text-sm text-muted-foreground">Loading designs…</p>
       )}
       {isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
+        <p className="text-sm text-destructive">
           Couldn’t load designs. Try refreshing the page.
         </p>
       )}
@@ -136,16 +153,18 @@ export function DesignPicker({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search designs…"
             aria-label="Search designs"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className={FIELD}
           />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {facetGroups.map((group) => (
-              <label key={group.key} className="block text-sm">
-                <span className="mb-1 block text-muted-foreground">{group.label}</span>
+              <label key={group.key} className={LABEL}>
+                <span className="mb-1 block text-muted-foreground">
+                  {group.label}
+                </span>
                 <select
                   aria-label={group.label}
-                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className={`${FIELD_SM} w-full`}
                   value={(selections[group.key] ?? [])[0] ?? ""}
                   onChange={(e) => {
                     const v = e.target.value;
@@ -171,7 +190,7 @@ export function DesignPicker({
           {hasFilters && (
             <button
               type="button"
-              className="text-xs text-indigo-600 hover:underline dark:text-indigo-400"
+              className={LINK_BUTTON}
               onClick={clearFilters}
             >
               Clear design filters
@@ -179,14 +198,14 @@ export function DesignPicker({
           )}
 
           {shown.length === 0 ? (
-            <p className="rounded-md border border-input px-3 py-2 text-sm text-muted-foreground">
+            <p className={cn(PANEL_INSET, "text-sm text-muted-foreground")}>
               No designs match the current search/filters.
             </p>
           ) : (
             <div
               role="listbox"
               aria-label="Design search results"
-              className="max-h-56 space-y-1 overflow-y-auto rounded-md border border-input p-1"
+              className={SCROLL_LIST}
             >
               {shown.map((d) => {
                 const active = d.id === selectedId;
@@ -200,11 +219,10 @@ export function DesignPicker({
                     role="option"
                     aria-selected={active}
                     onClick={() => onSelect(d.id)}
-                    className={
-                      active
-                        ? "flex w-full flex-col items-start rounded-md bg-indigo-100 px-3 py-2 text-left dark:bg-indigo-950/50"
-                        : "flex w-full flex-col items-start rounded-md px-3 py-2 text-left hover:bg-accent"
-                    }
+                    className={cn(
+                      "flex w-full min-w-0 flex-col items-start rounded-md px-3 py-2 text-left transition-colors",
+                      active ? "bg-accent" : "hover:bg-accent",
+                    )}
                   >
                     <span className="text-sm font-medium text-foreground break-words">
                       {formatOkhDisplayTitle(d.title)}
@@ -217,13 +235,15 @@ export function DesignPicker({
                     <span
                       className={
                         active
-                          ? "mt-0.5 text-xs text-indigo-900 dark:text-indigo-200"
+                          ? "mt-0.5 text-xs text-primary-ink"
                           : "mt-0.5 text-xs text-muted-foreground"
                       }
                     >
                       {[
                         category,
-                        (d.manufacturing_processes ?? []).slice(0, 2).join(", ") || null,
+                        (d.manufacturing_processes ?? [])
+                          .slice(0, 2)
+                          .join(", ") || null,
                         license,
                       ]
                         .filter(Boolean)
@@ -236,12 +256,13 @@ export function DesignPicker({
           )}
           <p className="text-xs text-muted-foreground">
             Showing {shown.length}
-            {matched.length > RESULT_LIMIT ? ` of ${matched.length}` : ""} design
+            {matched.length > RESULT_LIMIT ? ` of ${matched.length}` : ""}{" "}
+            design
             {matched.length !== 1 ? "s" : ""}
             {hasFilters ? " (filtered)" : ""}
           </p>
         </div>
       )}
-    </fieldset>
+    </Fieldset>
   );
 }
