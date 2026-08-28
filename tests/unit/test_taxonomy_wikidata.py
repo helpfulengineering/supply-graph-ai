@@ -20,9 +20,13 @@ class TestLiveTaxonomyWikidataIris:
     """Exercises the real module-level singleton loaded from processes.yaml."""
 
     def test_known_process_returns_wikidata_iri(self):
+        # Q593053 is laser cutting. This asserted Q3062349 — a list of mayors of
+        # Hof van Twente — which is the failure mode a QID has: the SPARQL join
+        # still runs, it just means nothing. Verified by
+        # tests/matching/test_wikidata_qids_live.py.
         assert (
             taxonomy.get_wikidata_iri("laser_cutting")
-            == "https://www.wikidata.org/entity/Q3062349"
+            == "https://www.wikidata.org/entity/Q593053"
         )
 
     def test_process_without_qid_returns_none(self):

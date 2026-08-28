@@ -34,8 +34,31 @@ describe("country names cover the whole ISO range, not a curated table", () => {
   // — 96 of them codes. The old hand-maintained table covered ~46, so the rest
   // rendered raw and dropdowns showed a mix of "France" and "BJ".
   const LIVE_CODES = [
-    "AF", "AL", "AM", "AO", "AW", "BA", "BD", "BF", "BG", "BH", "BJ", "BO",
-    "BT", "BY", "CD", "CG", "CI", "CM", "CR", "CY", "DJ", "DZ", "EC", "EG", "ET",
+    "AF",
+    "AL",
+    "AM",
+    "AO",
+    "AW",
+    "BA",
+    "BD",
+    "BF",
+    "BG",
+    "BH",
+    "BJ",
+    "BO",
+    "BT",
+    "BY",
+    "CD",
+    "CG",
+    "CI",
+    "CM",
+    "CR",
+    "CY",
+    "DJ",
+    "DZ",
+    "EC",
+    "EG",
+    "ET",
   ];
 
   it("resolves every code to a full name", () => {

@@ -57,7 +57,10 @@ nav:
     - File type taxonomy ADR: architecture/file-type-taxonomy-adr.md
     - Identity Model: architecture/identity-model.md
     - Security Modes: architecture/security-modes.md
+    - Optional Site Layer: architecture/site-layer.md
     - Source Platforms: architecture/source-platforms.md
+  - Design:
+    - UX Overhaul Playbook: design/ux-overhaul-playbook.md
   - Ops:
     - Async Generation: ops/async-generation.md
     - Federation Infra: ops/federation-infra.md

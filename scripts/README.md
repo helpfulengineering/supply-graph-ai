@@ -20,10 +20,11 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | Script | What it does | Run |
 | --- | --- | --- |
 | `build_docs_site` ✎ | Stage docs-site/docs into docs-site/.build with status badges injected, for any static site generator to build. | `uv run python scripts/build_docs_site.py` |
-| `dump_api_routes` | Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count. | `uv run python scripts/dump_api_routes.py [--count-only]` |
+| `dump_api_routes` | Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count; --openapi for the spec itself. | `uv run python scripts/dump_api_routes.py [--count-only\|--openapi]` |
+| `generate_demo_world` ✎ | Emit frontend/src/lib/demo/world.ts from the seed dataset so the client Demo data toggle shows the same world make seed-demo produces; --check gates drift. | `uv run python scripts/generate_demo_world.py [--check]` |
 | `generate_env_template` ✎ | Regenerate the schema-owned block of .env.example from the config schema; --check gates staleness. | `uv run python scripts/generate_env_template.py [--check]` |
 | `generate_process_definitions` ✎ | Generate the PROCESS_DEFINITIONS fallback literal from processes.yaml; --check gates drift between the two. | `uv run python scripts/generate_process_definitions.py [--check]` |
-| `generate_repo_map` ✎ | Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation. | `uv run python scripts/generate_repo_map.py` |
+| `generate_repo_map` ✎ | Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation; --check gates staleness. | `uv run python scripts/generate_repo_map.py [--check]` |
 | `generate_scripts_index` ✎ | Generate scripts/README.md from this registry; --check gates staleness and registry completeness. | `uv run python scripts/generate_scripts_index.py [--check]` |
 
 ## Verification & validation gates
@@ -42,6 +43,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | `generate_synthetic_data` ✎ | Synthetic-data generator for OKH, OKW, and AssetRecord models — the primary fixture/demo dataset source. | `uv run python scripts/generate_synthetic_data.py [options]` |
 | `import_okh_losh_batch` ✎ | Bulk-convert+validate+import a directory of OKH-LOSH v2.4 TOML manifests through OKHService.create(). | `uv run python scripts/import_okh_losh_batch.py --data-dir <DIR> [--dry-run] [--report FILE]` |
 | `populate_ohm_storage_from_synthetic_data` ✎ | Upload OKH/OKW from synthetic_data/ into an Azure Blob container (seed a deployment). | `uv run python scripts/populate_ohm_storage_from_synthetic_data.py [options]` |
+| `seed_demo_data` ✎ | Seed a deterministic demo world (10 designs, 7 facilities, every design buildable) so browse -> match -> supply tree completes with real data; --summary reports match coverage without writing. | `uv run python scripts/seed_demo_data.py [--clear] [--summary] [--storage-dir DIR]` |
 | `seed_repair_scenario` ✎ | Seed a local OHM storage directory with a realistic repair-workflow scenario (asset + manifests). | `uv run python scripts/seed_repair_scenario.py [options]` |
 
 ## Storage operations

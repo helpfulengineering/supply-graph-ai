@@ -3,7 +3,13 @@
  * Prefer typed openapi-fetch where the path exists in schema.d.ts;
  * security-policy, spaces, and bootstrap-edge use raw fetch until regenerated.
  */
-import { apiClient, ApiError, apiBaseUrl, errorMessage, requestIdFromError } from "./client";
+import {
+  apiClient,
+  ApiError,
+  apiBaseUrl,
+  errorMessage,
+  requestIdFromError,
+} from "./client";
 import { authHeader } from "../../features/auth/tokenStorage";
 import type { components } from "../generated/schema";
 
@@ -93,7 +99,9 @@ export async function listApiKeys(): Promise<APIKeyResponse[]> {
   return data;
 }
 
-export async function createApiKey(body: APIKeyCreate): Promise<APIKeyResponse> {
+export async function createApiKey(
+  body: APIKeyCreate,
+): Promise<APIKeyResponse> {
   const { data, error, response } = await apiClient.POST("/api/identity/keys", {
     body,
   });
@@ -108,9 +116,12 @@ export async function createApiKey(body: APIKeyCreate): Promise<APIKeyResponse> 
 }
 
 export async function revokeApiKey(keyId: string): Promise<void> {
-  const { error, response } = await apiClient.DELETE("/api/identity/keys/{key_id}", {
-    params: { path: { key_id: keyId } },
-  });
+  const { error, response } = await apiClient.DELETE(
+    "/api/identity/keys/{key_id}",
+    {
+      params: { path: { key_id: keyId } },
+    },
+  );
   if (error || !response.ok) {
     throw new ApiError(
       response.status,
@@ -121,7 +132,9 @@ export async function revokeApiKey(keyId: string): Promise<void> {
 }
 
 export async function listAccounts(): Promise<Account[]> {
-  const { data, error, response } = await apiClient.GET("/api/identity/accounts");
+  const { data, error, response } = await apiClient.GET(
+    "/api/identity/accounts",
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -133,9 +146,12 @@ export async function listAccounts(): Promise<Account[]> {
 }
 
 export async function createAccount(body: AccountCreate): Promise<Account> {
-  const { data, error, response } = await apiClient.POST("/api/identity/accounts", {
-    body,
-  });
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/accounts",
+    {
+      body,
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -161,9 +177,12 @@ export async function disableAccount(accountId: string): Promise<void> {
 }
 
 export async function mintIdentity(body: IdentityMint): Promise<Identity> {
-  const { data, error, response } = await apiClient.POST("/api/identity/identities", {
-    body,
-  });
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/identities",
+    {
+      body,
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -175,9 +194,12 @@ export async function mintIdentity(body: IdentityMint): Promise<Identity> {
 }
 
 export async function getIdentity(did: string): Promise<Identity> {
-  const { data, error, response } = await apiClient.GET("/api/identity/identities/{did}", {
-    params: { path: { did } },
-  });
+  const { data, error, response } = await apiClient.GET(
+    "/api/identity/identities/{did}",
+    {
+      params: { path: { did } },
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -203,10 +225,15 @@ export async function rotateIdentity(did: string): Promise<Identity> {
   return data;
 }
 
-export async function listGrants(subjectDid: string): Promise<CapabilityGrant[]> {
-  const { data, error, response } = await apiClient.GET("/api/identity/grants", {
-    params: { query: { subject_did: subjectDid } },
-  });
+export async function listGrants(
+  subjectDid: string,
+): Promise<CapabilityGrant[]> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/identity/grants",
+    {
+      params: { query: { subject_did: subjectDid } },
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -218,9 +245,12 @@ export async function listGrants(subjectDid: string): Promise<CapabilityGrant[]>
 }
 
 export async function issueGrant(body: GrantIssue): Promise<CapabilityGrant> {
-  const { data, error, response } = await apiClient.POST("/api/identity/grants", {
-    body,
-  });
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/grants",
+    {
+      body,
+    },
+  );
   if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
@@ -232,9 +262,12 @@ export async function issueGrant(body: GrantIssue): Promise<CapabilityGrant> {
 }
 
 export async function revokeGrant(grantId: string): Promise<void> {
-  const { error, response } = await apiClient.DELETE("/api/identity/grants/{grant_id}", {
-    params: { path: { grant_id: grantId } },
-  });
+  const { error, response } = await apiClient.DELETE(
+    "/api/identity/grants/{grant_id}",
+    {
+      params: { path: { grant_id: grantId } },
+    },
+  );
   if (error || !response.ok) {
     throw new ApiError(
       response.status,
@@ -244,18 +277,26 @@ export async function revokeGrant(grantId: string): Promise<void> {
   }
 }
 
-export async function bootstrapEdgeGrant(subjectDid: string): Promise<CapabilityGrant> {
+export async function bootstrapEdgeGrant(
+  subjectDid: string,
+): Promise<CapabilityGrant> {
   const q = new URLSearchParams({ subject_did: subjectDid });
-  return identityFetch<CapabilityGrant>(`/api/identity/grants/bootstrap-edge?${q}`, {
-    method: "POST",
-  });
+  return identityFetch<CapabilityGrant>(
+    `/api/identity/grants/bootstrap-edge?${q}`,
+    {
+      method: "POST",
+    },
+  );
 }
 
 export async function listSpaceClaims(): Promise<SpaceClaim[]> {
   return identityFetch<SpaceClaim[]>("/api/identity/spaces");
 }
 
-export async function claimSpace(spaceDid: string, adminDid: string): Promise<SpaceClaim> {
+export async function claimSpace(
+  spaceDid: string,
+  adminDid: string,
+): Promise<SpaceClaim> {
   return identityFetch<SpaceClaim>("/api/identity/spaces/claim", {
     method: "POST",
     body: JSON.stringify({ space_did: spaceDid, admin_did: adminDid }),
@@ -297,14 +338,18 @@ export async function listAttestations(opts: {
   );
 }
 
-export async function certifyRelease(body: CertifyRequest): Promise<Attestation> {
+export async function certifyRelease(
+  body: CertifyRequest,
+): Promise<Attestation> {
   return identityFetch<Attestation>("/api/identity/attestations/certify", {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
-export async function listReputation(subjectDid: string): Promise<Attestation[]> {
+export async function listReputation(
+  subjectDid: string,
+): Promise<Attestation[]> {
   return identityFetch<Attestation[]>(
     `/api/identity/reputation/${encodeURIComponent(subjectDid)}`,
   );
@@ -343,20 +388,26 @@ export async function startDomainBinding(
   subjectDid: string,
   domain: string,
 ): Promise<DomainBindStartResponse> {
-  return identityFetch<DomainBindStartResponse>("/api/identity/bindings/domain", {
-    method: "POST",
-    body: JSON.stringify({ subject_did: subjectDid, domain }),
-  });
+  return identityFetch<DomainBindStartResponse>(
+    "/api/identity/bindings/domain",
+    {
+      method: "POST",
+      body: JSON.stringify({ subject_did: subjectDid, domain }),
+    },
+  );
 }
 
 export async function verifyDomainBinding(
   subjectDid: string,
   domain: string,
 ): Promise<IdentityBinding> {
-  return identityFetch<IdentityBinding>("/api/identity/bindings/domain/verify", {
-    method: "POST",
-    body: JSON.stringify({ subject_did: subjectDid, domain }),
-  });
+  return identityFetch<IdentityBinding>(
+    "/api/identity/bindings/domain/verify",
+    {
+      method: "POST",
+      body: JSON.stringify({ subject_did: subjectDid, domain }),
+    },
+  );
 }
 
 export async function bindOAuth(body: {
@@ -370,7 +421,9 @@ export async function bindOAuth(body: {
   });
 }
 
-export async function listBindings(subjectDid?: string): Promise<IdentityBinding[]> {
+export async function listBindings(
+  subjectDid?: string,
+): Promise<IdentityBinding[]> {
   const q = subjectDid
     ? `?${new URLSearchParams({ subject_did: subjectDid })}`
     : "";

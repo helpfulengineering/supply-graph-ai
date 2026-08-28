@@ -83,5 +83,6 @@ of these to use OHM — they're here for when you meet one and want to check.
 
 **RFQ** *(request for quotation)*
 :   The document you'd send a workshop to ask what it would take for them to build
-    something. OHM can generate these, though this isn't yet available in the web
-    app.
+    something. OHM generates one per facility from a set of match results: select
+    facilities on [Match](../guides/find-who-can-build-it.md), then choose
+    "Contact selected facilities".

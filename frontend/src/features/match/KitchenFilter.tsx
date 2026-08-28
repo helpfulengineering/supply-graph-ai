@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
 import type { Kitchen } from "../../types/kitchen";
+import { Fieldset } from "../../components/ui/Fieldset";
+import { SCROLL_LIST } from "../../components/ui/surface";
+import { FIELD, LINK_BUTTON, LINK_BUTTON_MUTED } from "../../components/ui/field";
 
 /**
  * Kitchen scope for cooking-domain matching. Deliberately simpler than
@@ -40,13 +43,11 @@ export function KitchenFilter({
   }
 
   return (
-    <fieldset className="max-w-2xl rounded-lg border border-input p-4">
-      <legend className="px-1 text-sm font-medium text-foreground">Kitchens</legend>
-      <p className="mb-3 text-xs text-muted-foreground">{summary}</p>
+    <Fieldset legend="Kitchens" description={summary} className="max-w-2xl">
 
       {isLoading && <p className="text-sm text-muted-foreground">Loading kitchens…</p>}
       {isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
+        <p className="text-sm text-destructive">
           Couldn’t load kitchens. Try again before running a match.
         </p>
       )}
@@ -59,25 +60,25 @@ export function KitchenFilter({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Filter kitchens by name…"
             aria-label="Filter kitchens by name"
-            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className={FIELD}
           />
           <div className="flex gap-3 text-xs">
             <button
               type="button"
-              className="text-indigo-600 hover:underline dark:text-indigo-400"
+              className={LINK_BUTTON}
               onClick={() => onChange(visible.map((k) => k.id))}
             >
               Select all visible
             </button>
             <button
               type="button"
-              className="text-slate-600 hover:underline dark:text-slate-300"
+              className={LINK_BUTTON_MUTED}
               onClick={() => onChange([])}
             >
               Clear
             </button>
           </div>
-          <ul className="max-h-56 space-y-1 overflow-y-auto rounded-md border border-input p-2">
+          <ul className={SCROLL_LIST}>
             {visible.map((k) => (
               <li key={k.id}>
                 <label className="flex items-center gap-2 text-sm text-foreground">
@@ -99,6 +100,6 @@ export function KitchenFilter({
           </ul>
         </div>
       )}
-    </fieldset>
+    </Fieldset>
   );
 }

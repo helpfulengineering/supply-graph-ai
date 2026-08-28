@@ -7,6 +7,154 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A facility can be published to Maps of Making.** The bridge only ran
+  inbound: OHM read ~3,200 spaces over SPARQL and had no way to be read back,
+  so a workshop that enriched its record here had to describe itself again over
+  there — and `docs-site/docs/guides/list-or-enrich-your-facility.md` said so,
+  recommending people improve things at the source instead. `GET
+  /v1/api/okw/{id}/spaceapi` now serves one facility as the SpaceAPI document
+  MoM polls every ten minutes, with `ohm okw spaceapi <id> [--url]` to preview
+  it and print the address to register. `to_spaceapi_json` existed but was
+  unrouted and emitted capabilities only under `ext_fablab.capabilities`, which
+  MoM does not read — a published facility would have arrived as an untagged
+  pin, discarding the process detail that is the whole reason to send it. They
+  now go in `knowsAbout`, kebab-cased through the same `canonical_processes`
+  the network projection uses, promoted out of `okw_service` so a third
+  projection of one facility cannot drift from the other two. Verified against
+  MoM's own `SpaceAPISchema` and `classify_subset`: scores `mom:card`.
+
+  Gated on `public` alone, deliberately not `is_shareable()`. That helper also
+  admits `followers`, which means follow-gated federation sync where the
+  receiving node still decides what to re-share; an open third-party map is
+  broader. It is not theoretical — records predating Slice 4 resolve to
+  `followers` through `LEGACY_VISIBILITY`, and the seeded dataset writes
+  straight to storage, so the looser gate would have handed the entire seed to
+  a live public map on behalf of people who never chose that. Anything else
+  answers 404 rather than 403, and the endpoint takes no viewer dependency:
+  what it publishes cannot vary by caller.
+
+  The document carries coordinates, not the street, and no contact details.
+  Publishing copies a record into a store we do not run, so it carries less
+  than our own API does rather than more — and `location` is a single
+  disclosure group, so a profile cannot yet keep coordinates while withholding
+  the address. `api_compatibility` is not emitted: it declares conformance to a
+  schema that also requires `logo` and `contact`, and consumers such as
+  mapall.space are entitled to believe it. `facility_status` moved out of
+  `state.open`, which means "is the door open right now" and is a signal OHM
+  does not have, into `mom:operationalState` where MoM keeps lifecycle.
+
+- **The site layer's visitor gate exists.** Mission Control told visitors to
+  "sign in at the gate" and there was no gate — the sign-in RPC was wired but
+  nothing ever called it, so the page's own instruction was unfollowable and
+  the operator-marker step in the enable guide had no way to happen. Entering
+  `/mission-control` without a visitor record on the device now raises a modal
+  sign-in whose heading, body and fine print come from the `gate` key of
+  `ohmgr_site_config` (empty strings fall back field-by-field; `enabled: false`
+  turns it off), with client-side validation mirroring `ohmgr_gate_signin` so a
+  typo lands under the field rather than as a swallowed failure. It gates that
+  surface and nothing else: the dashboard, catalog and matching stay open in
+  both postures, which `e2e/site-layer.spec.ts` now asserts in each. Dismissal
+  (Esc, backdrop, "Not now") leaves a sign-in button rather than a dead end,
+  and a signed-in visitor can sign out. The drawer's focus trap became
+  `useDialogFocus` rather than being copied.
+
+- **The look and the page state ride in the URL.** `?theme=` and `?mode=` were
+  read on arrival but only ever written by the drawer's copy-link button, so
+  copying the address — the obvious way to share a page — lost the look. They
+  are now kept current on every route. The facilities surface joins the design
+  catalog in carrying its view mode, name search and page number as parameters,
+  and parameter writers merge rather than rebuild (`lib/urlState`) so no
+  surface drops another's state.
+
+- **Icons, and a gallery to pick them from.** Every one of the 51 processes in
+  the taxonomy now draws a glyph from the purchased Noun Project sets, keyed by
+  taxonomy id rather than by label so rewording a process cannot detach its
+  icon; a unit test reads `processes.yaml` and fails on any process without
+  one, and unknown ids from a federated peer fall back to their family. The
+  navigation and the sharing surface moved to the same collection. `/icons` is
+  an unlisted internal page rendering every glyph and every mapping — declared
+  in the parity manifest rather than left as an undeclared route.
+
+- **A tooltip component.** The app had none, so anything needing one used
+  `title`: unstyleable, invisible to touch, inconsistently announced. Built on
+  the same Base UI primitives as `button.tsx`, drawn in the shape the chart
+  tooltips already use (label over a dot-and-value row), and layered above the
+  map — Leaflet's panes reach z-index 800 and were painting over it.
+
+### Changed
+
+- **The map is usable on a phone.** Fitting every space at once puts a
+  worldwide network at zoom 0 on a 360px screen — a 256px world in a grey box.
+  The fit now falls back to the densest 30-degree neighbourhood when the full
+  extent cannot be framed at a zoom that fills the container, and will not zoom
+  out past that point. One-finger drags scroll the page and two fingers move
+  the map, so an embedded map is no longer a scroll trap; zoom controls are
+  44px on touch. Framing arithmetic is pure and tested in
+  `features/network/mapFraming.ts`.
+
+- **Charts drop axis furniture on narrow screens.** Value-axis ticks collided
+  into an unreadable run under bars that already carry their own labels; the
+  axis and its gridlines are hidden below `sm`, and category labels truncate
+  narrower.
+
+- **Headings carry the active world.** Every heading read `--foreground`, so
+  ten themes produced two headings. They now use `--color-heading`, the world's
+  text tinted 20% toward its accent, which the twenty-variant axe matrix holds
+  to AA.
+
+### Fixed
+
+- **Seven of the taxonomy's eleven Wikidata QIDs named the wrong thing.**
+  `welding` pointed at the Byzantine Empire, `laser_cutting` at a list of
+  mayors of Hof van Twente, `pcb_fabrication` at an asteroid, `cnc_machining`
+  at San Jose, `cnc_milling` at the Pink Panther; `cnc_turning`'s entity had no
+  English label. These are the anchor OHM and Maps of Making join on, and a
+  wrong one fails silently — the SPARQL join still runs and simply matches
+  nothing, or matches a partner who copied the same value, so both sides look
+  consistent while pointing at an asteroid. Corrected against the entities
+  themselves (`Q131172`, `Q593053`, `Q173350`, `Q3689317`, `Q656950`,
+  `Q258127`), and `vinyl_cutting` gained the QID a stale comment said it could
+  not have. MoM's `mom-to-okw.ttl` carries the same three bad values for vinyl
+  cutting, vacuum forming and metalworking; ours are the verified entities
+  rather than copies, which is worth sending upstream.
+
+  Nothing offline could catch this — the QID is only meaningful to a third
+  party — so `tests/matching/test_wikidata_qids_live.py` (`WIKIDATA_LIVE=1`)
+  now resolves every one and asserts its label shares a word with the process's
+  own vocabulary. Confirmed it flags all six previous values. `pcb_fabrication`
+  keeps a noted mismatch: `Q173350` is the board, not the making of it, and
+  Wikidata has no entity for the process.
+
+- **`mom_bridge` was invisible to the parity gate.** `inventory.py` globs
+  `*_service.py`, so the module passed by omission rather than by decision and
+  no layer contract was recorded for it. Declared as an internal area with its
+  inbound and outbound surfaces named.
+
+- **The theme picker's corrections went stale on a polarity switch.** The
+  swatches resolved once on mount, on the reasoning that a world's accent is
+  the same colour whichever world is applied — true of the accent, false of the
+  ink, which is solved against the surface it lands on. Switching to light left
+  all ten names between 1.05:1 and 3.18:1. They now re-resolve on theme and
+  polarity, deferred past the commit: the polarity class lands in the
+  provider's effect and React runs a child's effects first, so resolving
+  in-effect read the surface the app was leaving.
+
+- **Theme names and chart labels were unreadable in some worlds.** The theme
+  picker corrected each world's accent by a fixed 80% blend, which is not a
+  contrast guarantee — 80% of a pale accent is still pale, and Mono's grey
+  failed in light mode. Chart axis labels had no correction at all and sat at
+  2.4:1 in Synthwave. Both now solve for the ratio against the surface they are
+  painted on (`lib/contrastInk`), keeping as much of the hue as AA allows. The
+  axe matrix cannot see either case: one is inline style, the other is canvas.
+
+- **Mounting the map blocked the main thread for ~390ms.** Every space was a
+  React `<Marker>` wrapping an eagerly-rendered `<Popup>` — 3,200 popup bodies
+  built for the one a visitor might open. The marker layer is now built
+  directly on Leaflet with popup content deferred to open, halving the blocked
+  time, and `react-leaflet-cluster` is no longer needed.
+
 ## [0.10.7] - 2026-08-04
 
 ### Added

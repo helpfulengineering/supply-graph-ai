@@ -1,5 +1,11 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { Badge } from "../../components/ui/Badge";
+import { CHECKBOX } from "../../components/ui/field";
+import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 import type { RankedSolution } from "./matchViewModel";
 import { confidencePct, confidenceToken } from "./confidence";
 import { coverageLabel } from "./nearMiss";
@@ -27,17 +33,11 @@ export function MatchResultCard({
   const treeHref = solutionId ? `/visualization/${solutionId}` : null;
 
   return (
-    <div
-      className={
-        selected
-          ? "rounded-xl border border-indigo-300 bg-indigo-50/40 p-5 dark:border-indigo-700 dark:bg-indigo-950/30"
-          : "rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-      }
-    >
+    <div className={selected ? PANEL_ACCENT : PANEL}>
       <div className="flex items-start gap-3">
         <input
           type="checkbox"
-          className="mt-1 h-4 w-4 accent-indigo-600"
+          className={cn(CHECKBOX, "mt-1")}
           checked={selected}
           onChange={onToggle}
           aria-label={`Select ${solution.facilityName}`}
@@ -47,15 +47,15 @@ export function MatchResultCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-500 dark:text-slate-500">
+                <span className="text-xs text-muted-foreground">
                   #{solution.rank}
                 </span>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+                <h3 className={cn(CARD_TITLE, "min-w-0 break-words")}>
                   {solution.facilityName}
                 </h3>
               </div>
               {firstLine && (
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {firstLine}
                 </p>
               )}
@@ -68,10 +68,12 @@ export function MatchResultCard({
               secondary signal.
             */}
             <div className="flex shrink-0 flex-col items-end gap-1">
-              <Badge variant={solution.coverage?.missing ? "yellow" : token.variant}>
+              <Badge
+                variant={solution.coverage?.missing ? "yellow" : token.variant}
+              >
                 {coverageLabel(solution.coverage)}
               </Badge>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-muted-foreground">
                 confidence {confidencePct(solution.confidence)}%
               </span>
             </div>
@@ -79,8 +81,8 @@ export function MatchResultCard({
           {treeHref && (
             <div className="mt-3">
               <Link
-                to={treeHref}
-                className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                href={treeHref}
+                className="text-sm font-medium text-primary-ink hover:underline"
               >
                 View supply tree →
               </Link>

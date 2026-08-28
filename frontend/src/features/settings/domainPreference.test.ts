@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_DOMAIN,
-  navItemsForDomain,
   parseDomain,
 } from "./domainPreference";
 
@@ -19,19 +18,3 @@ describe("parseDomain", () => {
   });
 });
 
-describe("navItemsForDomain", () => {
-  it("manufacturing shows Designs, Facilities, Packages, Match", () => {
-    expect(navItemsForDomain("manufacturing").map((i) => i.label)).toEqual([
-      "Designs",
-      "Facilities",
-      "Packages",
-      "Match",
-    ]);
-  });
-
-  it("cooking shows only Recipes and Kitchens", () => {
-    const items = navItemsForDomain("cooking");
-    expect(items.map((i) => i.label)).toEqual(["Recipes", "Kitchens"]);
-    expect(items.map((i) => i.to)).toEqual(["/okh", "/facilities"]);
-  });
-});

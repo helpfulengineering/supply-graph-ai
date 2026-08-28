@@ -119,8 +119,8 @@ describe("MatchView — near-miss tolerance", () => {
     const user = userEvent.setup();
     renderView();
 
-    await user.click(await screen.findByLabelText("Alpha Lab"));
-    await user.click(screen.getByRole("button", { name: "⚡ Run Match" }));
+    await user.click(await screen.findByLabelText(/^Alpha Lab\b/));
+    await user.click(screen.getByRole("button", { name: "Run Match" }));
 
     expect(
       await screen.findByLabelText(/Allow facilities missing up to/),

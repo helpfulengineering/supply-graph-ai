@@ -37,7 +37,10 @@ function design(
 }
 
 const designs = [
-  design("okh-1", "Open-Ventilator", ["3D Printing"], "MIT", ["medical", "mask"]),
+  design("okh-1", "Open-Ventilator", ["3D Printing"], "MIT", [
+    "medical",
+    "mask",
+  ]),
   design("okh-2", "Face-Shield", ["Laser Cutting"], "GPL-2.0", ["medical"]),
   design("okh-3", "Lab-Mixer", ["Assembly"], "MIT", ["laboratory"]),
 ];
@@ -48,10 +51,19 @@ describe("DesignPicker", () => {
     render(
       <DesignPicker designs={designs} selectedId="" onSelect={onSelect} />,
     );
-    await userEvent.type(screen.getByLabelText(/search designs/i), "ventilator");
-    expect(screen.getByRole("option", { name: /Open Ventilator/i })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: /Face Shield/i })).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("option", { name: /Open Ventilator/i }));
+    await userEvent.type(
+      screen.getByLabelText(/search designs/i),
+      "ventilator",
+    );
+    expect(
+      screen.getByRole("option", { name: /Open Ventilator/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: /Face Shield/i }),
+    ).not.toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("option", { name: /Open Ventilator/i }),
+    );
     expect(onSelect).toHaveBeenCalledWith("okh-1");
   });
 
@@ -72,8 +84,15 @@ describe("DesignPicker", () => {
     render(
       <DesignPicker designs={designs} selectedId="" onSelect={() => {}} />,
     );
-    await userEvent.selectOptions(screen.getByLabelText("Category"), "Laboratory & Bio");
-    expect(screen.getByRole("option", { name: /Lab Mixer/i })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: /Open Ventilator/i })).not.toBeInTheDocument();
+    await userEvent.selectOptions(
+      screen.getByLabelText("Category"),
+      "Laboratory & Bio",
+    );
+    expect(
+      screen.getByRole("option", { name: /Lab Mixer/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: /Open Ventilator/i }),
+    ).not.toBeInTheDocument();
   });
 });

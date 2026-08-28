@@ -1,4 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_TITLE } from "../../components/ui/typography";
 import { fetchDomains } from "../../api/ohm/utility";
 import { useDomain } from "../../context/DomainContext";
 import { DEFAULT_DOMAIN, type OhmDomain } from "./domainPreference";
@@ -42,9 +45,9 @@ export function DomainPanel() {
     <div className="space-y-6">
       <section
         aria-labelledby="domain-selection-heading"
-        className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+        className={cn(PANEL, "p-5")}
       >
-        <h2 id="domain-selection-heading" className="text-lg font-semibold text-foreground">
+        <h2 id="domain-selection-heading" className={SECTION_TITLE}>
           Domain selection
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -53,7 +56,7 @@ export function DomainPanel() {
           Packages, and Match.
         </p>
 
-        <fieldset className="mt-4 space-y-3">
+        <fieldset className="mt-4 min-w-0 space-y-3">
           <legend className="sr-only">Active domain</legend>
           {choices.map((opt) => {
             const selected = domain === opt.id;
@@ -63,8 +66,8 @@ export function DomainPanel() {
                 className={[
                   "flex cursor-pointer gap-3 rounded-lg border p-3 transition-colors",
                   selected
-                    ? "border-indigo-600 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-950"
-                    : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800",
+                    ? "border-primary bg-accent/40"
+                    : "border-border hover:bg-accent/30",
                 ].join(" ")}
               >
                 <input
@@ -81,12 +84,13 @@ export function DomainPanel() {
                     // muted-foreground is tuned for the default surface; on the
                     // selected option's indigo background it falls to 4.24:1,
                     // under the 4.5:1 AA threshold. Darken it when selected.
-                    // (Same fix as DesignPicker/RecipePicker's selected option.)
+                    // Was a hand-picked indigo shade; primary-ink is the
+                    // token that encodes the same fix everywhere.
                     <span
                       className={[
                         "mt-0.5 block text-sm",
                         selected
-                          ? "text-indigo-900 dark:text-indigo-200"
+                          ? "text-primary-ink"
                           : "text-muted-foreground",
                       ].join(" ")}
                     >

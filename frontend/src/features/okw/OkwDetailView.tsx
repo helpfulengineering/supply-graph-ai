@@ -1,6 +1,12 @@
+"use client";
+
+import { Breadcrumb } from "../../components/layout/Breadcrumb";
+import { MapPin } from "lucide-react";
+import { FIELD } from "../../components/ui/field";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   deleteOkw,
   fetchOkwDetail,
@@ -18,12 +24,16 @@ import { humanizeProcess } from "./processDisplay";
 import { FacilityDesigns } from "./FacilityDesigns";
 import { AuthorshipPanel } from "../okh/AuthorshipPanel";
 import { SharingPanel } from "./SharingPanel";
+import { CapabilitiesDisclosure } from "./CapabilitiesDisclosure";
 import { deleteConfirmMessage } from "./deleteConfirmMessage";
 import {
   isSyncedFacilityProvenance,
   SyncedFacilityBanner,
 } from "./SyncedFacilityBanner";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
+import { PANEL } from "../../components/ui/surface";
+import { PAGE_TITLE, SECTION_LABEL } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -42,31 +52,32 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
   const suggestions = result.suggestions ?? [];
   const errors = result.errors ?? [];
   return (
-    <section
-      role="status"
-      aria-label="Validation result"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-    >
+    <section role="status" aria-label="Validation result" className={PANEL}>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Validation
-        </h2>
+        <h2 className={SECTION_LABEL}>Validation</h2>
         <Badge variant={result.is_valid ? "green" : "yellow"}>
           {result.is_valid ? "Valid" : "Needs attention"}
         </Badge>
       </div>
-      <p className="mb-2 text-sm text-slate-600 dark:text-slate-300">
+      <p className="mb-2 text-sm text-muted-foreground">
         Score: {Math.round(result.score * 100)}%
       </p>
       {[
-        ["Errors", errors.map((e) => (e as { message?: string }).message ?? JSON.stringify(e))],
+        [
+          "Errors",
+          errors.map(
+            (e) => (e as { message?: string }).message ?? JSON.stringify(e),
+          ),
+        ],
         ["Warnings", warnings],
         ["Suggestions", suggestions],
       ].map(([label, items]) =>
         (items as string[]).length > 0 ? (
           <div key={label as string} className="mb-2">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700 dark:text-slate-200">
+            <p className="text-xs font-semibold text-muted-foreground">
+              {label}
+            </p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
               {(items as string[]).map((t, i) => (
                 <li key={i}>{t}</li>
               ))}
@@ -74,9 +85,11 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
           </div>
         ) : null,
       )}
-      {errors.length === 0 && warnings.length === 0 && suggestions.length === 0 && (
-        <p className="text-sm text-slate-500 dark:text-slate-400">No issues reported.</p>
-      )}
+      {errors.length === 0 &&
+        warnings.length === 0 &&
+        suggestions.length === 0 && (
+          <p className="text-sm text-muted-foreground">No issues reported.</p>
+        )}
     </section>
   );
 }
@@ -91,17 +104,17 @@ function PostCreateBanner({
   return (
     <div
       role="status"
-      className="rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-100"
+      className={`${FIELD} border-primary/30 bg-accent px-4 py-3 text-primary-ink`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="font-medium">Facility created</p>
           <p className="text-xs opacity-90">
-            Add equipment or hours when you are ready, or share with peers from Sharing below.
-            Visibility stays private until you change it.
+            Add equipment or hours when you are ready, or share with peers from
+            Sharing below. Visibility stays private until you change it.
           </p>
           <div className="flex flex-wrap gap-3 pt-1">
-            <Link to={editHref} className="font-medium underline">
+            <Link href={editHref} className="font-medium underline">
               Edit facility
             </Link>
             <a href="#sharing" className="font-medium underline">
@@ -118,19 +131,28 @@ function PostCreateBanner({
 }
 
 export function OkwDetailView({ id }: { id: string }) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { hasWrite, reportAuthFailure } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const pathname = usePathname() ?? "";
+  const searchParams = useSearchParams();
   const showCreatedBanner = searchParams.get("created") === "1";
 
-  const [validateState, setValidateState] = useState<"idle" | "running" | "done" | "error">("idle");
+  const [validateState, setValidateState] = useState<
+    "idle" | "running" | "done" | "error"
+  >("idle");
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [validateError, setValidateError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { data: f, isLoading, isError, error, refetch } = useQuery<OkwFacility>({
+  const {
+    data: f,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<OkwFacility>({
     queryKey: ["okw-detail", id],
     queryFn: () => fetchOkwDetail(id),
   });
@@ -143,7 +165,8 @@ export function OkwDetailView({ id }: { id: string }) {
   const dismissCreatedBanner = () => {
     const next = new URLSearchParams(searchParams);
     next.delete("created");
-    setSearchParams(next, { replace: true });
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
   const handleValidate = async () => {
@@ -170,14 +193,16 @@ export function OkwDetailView({ id }: { id: string }) {
       // Still allow delete if visibility lookup fails.
     }
 
-    const ok = window.confirm(deleteConfirmMessage(f.name || "this facility", visibility));
+    const ok = window.confirm(
+      deleteConfirmMessage(f.name || "this facility", visibility),
+    );
     if (!ok) return;
 
     setDeleting(true);
     try {
       await deleteOkw(id);
       await queryClient.invalidateQueries({ queryKey: ["network"] });
-      navigate("/facilities");
+      router.push("/facilities");
     } catch (err) {
       reportAuthFailure(err);
       setDeleteError(err instanceof Error ? err.message : "Delete failed.");
@@ -190,7 +215,9 @@ export function OkwDetailView({ id }: { id: string }) {
   if (isError || !f) {
     return (
       <ErrorState
-        description={error instanceof Error ? error.message : "Facility not found."}
+        description={
+          error instanceof Error ? error.message : "Facility not found."
+        }
         onRetry={() => refetch()}
       />
     );
@@ -202,17 +229,19 @@ export function OkwDetailView({ id }: { id: string }) {
   const editHref = `/facilities/${id}/edit`;
 
   return (
-    <div className="space-y-8">
-      <nav className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-        <Link to="/facilities" className="hover:text-indigo-600 dark:hover:text-indigo-400">
-          Facilities
-        </Link>
-        <span aria-hidden="true">›</span>
-        <span className="truncate text-slate-700 dark:text-slate-200">{f.name || "Facility"}</span>
-      </nav>
+    <div className="space-y-6">
+      <Breadcrumb
+        trail={[
+          { label: "Facilities", href: "/facilities" },
+          { label: f.name || "Facility" },
+        ]}
+      />
 
       {showCreatedBanner && (
-        <PostCreateBanner onDismiss={dismissCreatedBanner} editHref={editHref} />
+        <PostCreateBanner
+          onDismiss={dismissCreatedBanner}
+          editHref={editHref}
+        />
       )}
       {isSyncedFacilityProvenance(provenance.data) && (
         <SyncedFacilityBanner publishedBy={provenance.data?.published_by} />
@@ -220,24 +249,33 @@ export function OkwDetailView({ id }: { id: string }) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-            {f.name || "Unnamed facility"}
-          </h1>
-          {location && <p className="text-base text-slate-600 dark:text-slate-300">📍 {location}</p>}
+          <h1 className={PAGE_TITLE}>{f.name || "Unnamed facility"}</h1>
+          {location && (
+            <p className="flex items-center gap-1.5 text-base text-muted-foreground">
+              <MapPin aria-hidden="true" className="h-4 w-4 shrink-0" />{" "}
+              {location}
+            </p>
+          )}
           <div className="flex flex-wrap gap-1.5 pt-1">
             {f.access_type && <Badge variant="blue">{f.access_type}</Badge>}
             {f.facility_status && (
-              <Badge variant={f.facility_status === "Active" ? "green" : "yellow"}>
+              <Badge
+                variant={f.facility_status === "Active" ? "green" : "yellow"}
+              >
                 {f.facility_status}
               </Badge>
             )}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => navigate(`/match?okw_id=${encodeURIComponent(id)}`)}>
+          <Button
+            onClick={() =>
+              router.push(`/match?okw_id=${encodeURIComponent(id)}`)
+            }
+          >
             Find matching designs →
           </Button>
-          <Button variant="outline" onClick={() => navigate(editHref)}>
+          <Button variant="outline" onClick={() => router.push(editHref)}>
             Edit
           </Button>
           <Button
@@ -251,7 +289,9 @@ export function OkwDetailView({ id }: { id: string }) {
             variant="destructive"
             onClick={() => void handleDelete()}
             disabled={!hasWrite || deleting}
-            title={hasWrite ? undefined : "Connect a write-capable API key to delete"}
+            title={
+              hasWrite ? undefined : "Connect a write-capable API key to delete"
+            }
           >
             {deleting ? "Deleting…" : "Delete"}
           </Button>
@@ -259,43 +299,52 @@ export function OkwDetailView({ id }: { id: string }) {
       </div>
 
       {deleteError && (
-        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {deleteError}
         </p>
       )}
 
       {validateState === "error" && (
-        <ErrorState description={validateError ?? "Validation failed."} onRetry={handleValidate} />
+        <ErrorState
+          description={validateError ?? "Validation failed."}
+          onRetry={handleValidate}
+        />
       )}
-      {validateState === "done" && result && <ValidationPanel result={result} />}
+      {validateState === "done" && result && (
+        <ValidationPanel result={result} />
+      )}
 
       <div className="max-w-xl">
         <AuthorshipPanel kind="okw" id={id} />
       </div>
       <SharingPanel id={id} />
 
+      <div className="mt-6">
+        <CapabilitiesDisclosure facility={f} />
+      </div>
+
       {f.description && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            About
-          </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-300">{f.description}</p>
+        <section className={PANEL}>
+          <h2 className={cn(SECTION_LABEL, "mb-2")}>About</h2>
+          <p className="text-sm text-muted-foreground">{f.description}</p>
         </section>
       )}
 
       {equipment.length > 0 && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <section className={PANEL}>
+          <h2 className={cn(SECTION_LABEL, "mb-4")}>
             Equipment ({equipment.length})
           </h2>
           <ul className="space-y-2">
             {equipment.map((e, i) => (
               <li key={i} className="flex items-center justify-between gap-2">
-                <span className="text-sm text-slate-700 dark:text-slate-200">
+                <span className="text-sm text-foreground">
                   {[e.make, e.model].filter(Boolean).join(" ") || "Equipment"}
                 </span>
                 {e.equipment_type && (
-                  <Badge variant="indigo">{humanizeProcess(e.equipment_type)}</Badge>
+                  <Badge variant="indigo">
+                    {humanizeProcess(e.equipment_type)}
+                  </Badge>
                 )}
               </li>
             ))}
@@ -304,13 +353,13 @@ export function OkwDetailView({ id }: { id: string }) {
       )}
 
       {certifications.length > 0 && (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Certifications
-          </h2>
+        <section className={PANEL}>
+          <h2 className={cn(SECTION_LABEL, "mb-4")}>Certifications</h2>
           <div className="flex flex-wrap gap-1.5">
             {certifications.map((c) => (
-              <Badge key={c} variant="default">{c}</Badge>
+              <Badge key={c} variant="default">
+                {c}
+              </Badge>
             ))}
           </div>
         </section>

@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { X } from "lucide-react";
 import type { OkhFileRef } from "../../types/okh";
 import { OkhFileDirectoryGroup } from "./OkhFileDirectoryGroup";
 import { OkhFilePreviewContent } from "./OkhFilePreviewContent";
 import { buildDirectoryTree } from "./okhFilePath";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   okhId: string;
   title: string;
-  icon: string;
+  icon: ReactNode;
   files: OkhFileRef[];
 }
 
@@ -20,7 +23,10 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
 
   useEffect(() => {
     if (previewFile && previewRef.current) {
-      previewRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      previewRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
     }
   }, [previewFile]);
 
@@ -28,10 +34,12 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
 
   return (
     <div>
-      <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-300">
-        <span aria-hidden="true">{icon}</span>
+      <h3 className={cn(CARD_TITLE, "mb-2 flex items-center gap-1.5")}>
+        <span aria-hidden="true" className="text-muted-foreground">
+          {icon}
+        </span>
         {title}
-        <span className="ml-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+        <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
           {files.length}
         </span>
       </h3>
@@ -41,10 +49,10 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
           <button
             type="button"
             onClick={() => setPreviewFile(null)}
-            className="absolute right-2 top-2 z-10 rounded-md px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="absolute right-2 top-2 z-10 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
             aria-label="Close preview"
           >
-            ✕
+            <X aria-hidden="true" className="h-3.5 w-3.5" />
           </button>
           <OkhFilePreviewContent okhId={okhId} file={previewFile} />
         </div>

@@ -30,6 +30,29 @@ gunicorn_timeout = "300"
 # deliberately.
 jobs_enabled = true
 
+# Federation, read-only posture. On here first for the same reason async
+# generation is: production stays off until this has been rehearsed.
+#
+# "Read-only" is a consequence of leaving OHM_FEDERATION_MANUAL_PEERS and
+# OHM_FEDERATION_SEED_PEER_URL unset, not a separate switch — with no manual
+# peers and nothing followed, the background sync loop iterates an empty
+# registry and the node makes no outbound peer calls. It answers /status,
+# /identify and /catalog; the routes that would change that (follow, sync/run,
+# packages/fetch) now require the write permission.
+#
+# The ohm_ prefix is load-bearing: deploy_env_vars() uppercases each key
+# verbatim, so `federation_enabled` would set FEDERATION_ENABLED, which nothing
+# reads — a silent no-op that looks correct in the diff.
+ohm_federation_enabled = true
+ohm_federation_node_name = "OHM Staging"
+ohm_federation_node_role = "peer"
+# Without this the default is ~/.ohm/federation, and the container's ohm user
+# has no home directory — identity load would raise inside a request handler and
+# every federation route would 500 instead of 404. See docs/ops/federation-infra.md.
+ohm_federation_data_dir = "/app/storage/federation"
+# mDNS is unreliable in Docker bridge networks and useless across cloud regions.
+ohm_federation_mdns_enabled = false
+
 # Same Redis instance as production, different databases. Basic C0 has 16, and
 # production uses 0/1/2. Sharing the instance means a heavy staging run can
 # evict production cache entries — acceptable on a beta with no users, and the

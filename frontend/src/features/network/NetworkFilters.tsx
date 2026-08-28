@@ -1,6 +1,10 @@
 import type { NetworkFilters as Filters } from "../../api/ohm/network";
+import { LABEL } from "../../components/ui/field";
 import type { FilterOptions } from "./deriveFilterOptions";
 import { Button } from "../../components/ui/button";
+import { PANEL } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
+import { CARD_TITLE } from "../../components/ui/typography";
 
 const SELECT_CLASS =
   "w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
@@ -21,10 +25,12 @@ function FilterSelect({
   hint?: string;
 }) {
   return (
-    <label className="block text-sm">
+    <label className={LABEL}>
       <span className="mb-1 block text-muted-foreground">
         {label}
-        {hint && <span className="ml-1 text-xs text-slate-500">({hint})</span>}
+        {hint && (
+          <span className="ml-1 text-xs text-muted-foreground">({hint})</span>
+        )}
       </span>
       <select
         className={SELECT_CLASS}
@@ -65,9 +71,9 @@ export function NetworkFilters({
     onChange({ ...filters, [key]: value || undefined });
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+    <div className={cn(PANEL, "space-y-3")}>
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground">Filters</h2>
+        <h2 className={CARD_TITLE}>Filters</h2>
         {activeCount > 0 && (
           <Button variant="ghost" size="sm" onClick={onClear}>
             Clear ({activeCount})
@@ -93,7 +99,7 @@ export function NetworkFilters({
           options={options.countries.map((c) => ({ value: c, label: c }))}
           onChange={(v) => set("country", v)}
         />
-        <label className="block text-sm">
+        <label className={LABEL}>
           <span className="mb-1 block text-muted-foreground">City</span>
           <input
             type="search"
@@ -107,7 +113,10 @@ export function NetworkFilters({
           label="Process"
           value={filters.process}
           allLabel="All processes"
-          options={options.processes.map((p) => ({ value: p.id, label: p.label }))}
+          options={options.processes.map((p) => ({
+            value: p.id,
+            label: p.label,
+          }))}
           onChange={(v) => set("process", v)}
         />
         <FilterSelect

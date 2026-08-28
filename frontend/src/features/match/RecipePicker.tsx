@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
 import type { Recipe } from "../../types/recipe";
+import { Fieldset } from "../../components/ui/Fieldset";
+import { PANEL_ACCENT } from "../../components/ui/surface";
+import { LINK_BUTTON } from "../../components/ui/field";
+import { cn } from "@/lib/utils";
 
 const RESULT_LIMIT = 40;
 
@@ -37,20 +41,24 @@ export function RecipePicker({
   const shown = matched.slice(0, RESULT_LIMIT);
 
   return (
-    <fieldset className="rounded-lg border border-input p-4">
-      <legend className="px-1 text-sm font-medium text-foreground">Recipe</legend>
+    <Fieldset legend="Recipe">
 
       {selected ? (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-indigo-200 bg-indigo-50/70 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/30">
+        <div
+          className={cn(
+            PANEL_ACCENT,
+            "mb-3 flex flex-wrap items-center justify-between gap-2 p-3",
+          )}
+        >
           <div className="min-w-0">
-            <p className="text-xs text-indigo-700 dark:text-indigo-400">Selected recipe</p>
-            <p className="truncate font-medium text-indigo-950 dark:text-indigo-100">
+            <p className="text-xs text-primary-ink">Selected recipe</p>
+            <p className="truncate font-medium text-primary-ink">
               {selected.name}
             </p>
           </div>
           <button
             type="button"
-            className="shrink-0 text-xs text-indigo-700 hover:underline dark:text-indigo-300"
+            className={cn(LINK_BUTTON, "shrink-0")}
             onClick={() => onSelect("")}
           >
             Clear
@@ -64,7 +72,7 @@ export function RecipePicker({
 
       {isLoading && <p className="text-sm text-muted-foreground">Loading recipes…</p>}
       {isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
+        <p className="text-sm text-destructive">
           Couldn’t load recipes. Try refreshing the page.
         </p>
       )}
@@ -99,11 +107,10 @@ export function RecipePicker({
                     role="option"
                     aria-selected={active}
                     onClick={() => onSelect(r.id)}
-                    className={
-                      active
-                        ? "flex w-full flex-col items-start rounded-md bg-indigo-100 px-3 py-2 text-left dark:bg-indigo-950/50"
-                        : "flex w-full flex-col items-start rounded-md px-3 py-2 text-left hover:bg-accent"
-                    }
+                    className={cn(
+                      "flex w-full min-w-0 flex-col items-start rounded-md px-3 py-2 text-left transition-colors",
+                      active ? "bg-accent" : "hover:bg-accent",
+                    )}
                   >
                     <span className="text-sm font-medium text-foreground break-words">
                       {r.name}
@@ -112,12 +119,13 @@ export function RecipePicker({
                       muted-foreground is tuned for the default surface; on the
                       selected row's indigo background it falls to 3.84:1,
                       under the 4.5:1 AA threshold. Darken it when active.
-                      (Same fix as DesignPicker's selected option.)
+                      Was a hand-picked indigo shade; primary-ink is the
+                      token that encodes the same fix for every tinted surface.
                     */}
                     <span
                       className={
                         active
-                          ? "mt-0.5 text-xs text-indigo-900 dark:text-indigo-200"
+                          ? "mt-0.5 text-xs text-primary-ink"
                           : "mt-0.5 text-xs text-muted-foreground"
                       }
                     >
@@ -135,6 +143,6 @@ export function RecipePicker({
           </p>
         </div>
       )}
-    </fieldset>
+    </Fieldset>
   );
 }

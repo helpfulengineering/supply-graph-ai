@@ -25,7 +25,9 @@ describe("federation F6 wrappers", () => {
   });
 
   it("follows a peer and runs sync", async () => {
-    const followed = await followFederationPeer(federationPeersFixture.peers[0]!.did);
+    const followed = await followFederationPeer(
+      federationPeersFixture.peers[0]!.did,
+    );
     expect(followed.followed).toBe(true);
 
     const sync = await runFederationSync("http://peer-b:8001");

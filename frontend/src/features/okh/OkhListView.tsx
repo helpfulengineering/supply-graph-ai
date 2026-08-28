@@ -1,15 +1,26 @@
+"use client";
+
+import { DesignsIllustration } from "../../components/ui/illustrations";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { PageHero } from "../../components/layout/PageHero";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { useOkhCatalog } from "./useOkhList";
 import { OkhCard } from "./OkhCard";
 import { OkhListRow } from "./OkhListRow";
 import { FacetPanel } from "./FacetPanel";
-import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
+import {
+  LoadingState,
+  EmptyState,
+  ErrorState,
+} from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Pagination } from "../../components/ui/Pagination";
 import { useAuth } from "../../context/AuthContext";
 import type { CatalogGroupBy, CatalogSort, CatalogView } from "./catalogBrowse";
 import type { OkhManifest } from "../../types/okh";
+import { CARD_TITLE } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 function SelectControl<T extends string>({
   label,
@@ -28,7 +39,7 @@ function SelectControl<T extends string>({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="rounded-md border border-input bg-background px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        className={`${FIELD_SM} text-foreground focus:outline-none focus:ring-2 focus:ring-ring`}
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -54,8 +65,8 @@ function ViewToggle({
       onClick={() => onChange(id)}
       className={
         view === id
-          ? "rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white dark:bg-slate-100 dark:text-slate-900"
-          : "rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+          ? "rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground"
+          : "rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
       }
     >
       {label}
@@ -82,7 +93,7 @@ function DesignItems({
 }) {
   if (view === "list") {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900">
+      <div className="rounded-lg border border-border bg-card px-4">
         {items.map((okh) => (
           <OkhListRow key={okh.id} okh={okh} />
         ))}
@@ -139,21 +150,47 @@ export function OkhListView() {
 
   const hasItems = pageGroups.some((g) => g.items.length > 0);
   const { hasWrite } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Open Hardware Designs</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Browse designs by category and capability, then run facility matching.
-          </p>
+          <PageHero
+            title="Open Hardware Designs"
+            crumb={[
+              // Was a self-link to /okh, which is a control that does nothing
+              // from the page it appears on. It names the results, so it goes
+              // to the results.
+              { label: "catalog", href: "#catalog" },
+              // Was text, on the reasoning that the facet panel is
+              // `hidden lg:block` and a fragment would scroll nowhere on a
+              // phone. True of the panel, not of the controls: the row below
+              // holds the search field at every width and the Filters toggle
+              // that opens the facets on the widths where the panel is hidden,
+              // so the anchor lands on something real on both.
+              { label: "facets", href: "#facets" },
+              { label: "matching", href: "/match" },
+            ]}
+          />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {/* The collection page is an operation ON the catalogue, so it is
+              reached from here rather than from the menu — navEntryFor resolves
+              /okh/collection to Designs by prefix, which is the correct
+              reading of what it is. */}
+          <Button
+            variant="outline"
+            onClick={() => router.push("/okh/collection")}
+          >
+            Collection
+          </Button>
           {/* Generation needs no write key: it produces a file to download, and
               deliberately does not save to the catalogue. */}
-          <Button variant="outline" onClick={() => navigate("/okh/generate")}>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/okh/generate")}
+          >
             Generate from URL
           </Button>
           <Button
@@ -162,38 +199,48 @@ export function OkhListView() {
                 ? undefined
                 : "Connect a write-capable API key first (opens Session)"
             }
-            onClick={() => navigate(hasWrite ? "/okh/new" : "/settings/session")}
+            onClick={() =>
+              router.push(hasWrite ? "/okh/new" : "/settings/session")
+            }
           >
             New design
           </Button>
         </div>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex gap-4 sm:gap-8">
         <aside className="hidden w-60 shrink-0 lg:block">{panel}</aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            id="facets"
+            className="flex scroll-mt-20 flex-col gap-2 sm:gap-3"
+          >
+            {/*
+              Search and Filters share a row at every width. Stacked, the two
+              controls plus the view/sort/group row below them spent four rows
+              and most of a phone screen before a single design appeared.
+            */}
+            <div className="flex items-center gap-2 sm:justify-between">
               <input
                 type="search"
                 aria-label="Search designs"
                 placeholder="Search designs…"
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
-                className="w-full max-w-md rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className={`${FIELD} w-full max-w-md`}
               />
               <Button
                 variant="outline"
                 size="sm"
-                className="lg:hidden"
+                className="shrink-0 lg:hidden"
                 onClick={() => setShowFilters((v) => !v)}
               >
                 Filters{selectedCount > 0 ? ` (${selectedCount})` : ""}
               </Button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <ViewToggle view={view} onChange={setView} />
               <SelectControl<CatalogSort>
                 label="Sort by"
@@ -232,14 +279,18 @@ export function OkhListView() {
           {isLoading && <LoadingState message="Loading designs…" />}
           {isError && (
             <ErrorState
-              description={error instanceof Error ? error.message : "Failed to load designs."}
+              description={
+                error instanceof Error
+                  ? error.message
+                  : "Failed to load designs."
+              }
               onRetry={() => refetch()}
             />
           )}
 
           {!isLoading && !isError && !hasItems && (
             <EmptyState
-              icon="🔩"
+              icon={<DesignsIllustration className="h-10 w-10" />}
               title="No designs found"
               description={
                 selectedCount > 0 || filterText
@@ -258,11 +309,16 @@ export function OkhListView() {
 
           {!isLoading && !isError && hasItems && (
             <>
-              <div className="space-y-6">
+              <div id="catalog" className="scroll-mt-20 space-y-6">
                 {pageGroups.map((group) => (
                   <section key={group.label || "__all__"} className="space-y-3">
                     {group.label ? (
-                      <h2 className="text-sm font-semibold text-foreground border-b border-slate-200 pb-1 dark:border-slate-700">
+                      <h2
+                        className={cn(
+                          CARD_TITLE,
+                          "border-b border-border pb-1",
+                        )}
+                      >
                         {group.label}
                         <span className="ml-2 font-normal text-muted-foreground">
                           ({group.items.length})

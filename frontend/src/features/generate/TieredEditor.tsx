@@ -8,6 +8,9 @@
  */
 
 import { useState } from "react";
+import { FIELD, FIELD_SM } from "../../components/ui/field";
+import { LINK_BUTTON } from "../../components/ui/field";
+import { CARD_TITLE } from "../../components/ui/typography";
 import {
   getPath,
   humanizeKey,
@@ -31,7 +34,11 @@ function asText(value: unknown): string {
   return typeof value === "string" ? value : String(value);
 }
 
-function ScalarField({ field, manifest, onChange }: EditorProps & { field: FieldSpec }) {
+function ScalarField({
+  field,
+  manifest,
+  onChange,
+}: EditorProps & { field: FieldSpec }) {
   const value = getPath(manifest, field.path);
   const empty = isEmptyValue(value);
   const long = field.path === "function" || field.path === "description";
@@ -40,26 +47,34 @@ function ScalarField({ field, manifest, onChange }: EditorProps & { field: Field
     <label htmlFor={id} className="block">
       <span className="block text-sm font-medium text-foreground">
         {field.label}
-        {empty && <span className="ml-2 text-xs text-amber-700 dark:text-amber-400">not extracted</span>}
+        {empty && (
+          <span className="ml-2 text-xs text-warning">not extracted</span>
+        )}
       </span>
       {field.hint && (
-        <span className="mt-0.5 block text-xs text-muted-foreground">{field.hint}</span>
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {field.hint}
+        </span>
       )}
       {long ? (
         <textarea
           id={id}
           rows={3}
           value={asText(value)}
-          onChange={(e) => onChange(setPath(manifest, field.path, e.target.value))}
-          className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+          onChange={(e) =>
+            onChange(setPath(manifest, field.path, e.target.value))
+          }
+          className={`${FIELD} mt-1 w-full`}
         />
       ) : (
         <input
           id={id}
           type="text"
           value={asText(value)}
-          onChange={(e) => onChange(setPath(manifest, field.path, e.target.value))}
-          className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+          onChange={(e) =>
+            onChange(setPath(manifest, field.path, e.target.value))
+          }
+          className={`${FIELD} mt-1 w-full`}
         />
       )}
     </label>
@@ -67,39 +82,51 @@ function ScalarField({ field, manifest, onChange }: EditorProps & { field: Field
 }
 
 /** Simple string lists render as removable chips plus an add box. */
-function ListField({ field, manifest, onChange }: EditorProps & { field: FieldSpec }) {
+function ListField({
+  field,
+  manifest,
+  onChange,
+}: EditorProps & { field: FieldSpec }) {
   const [draft, setDraft] = useState("");
   const raw = getPath(manifest, field.path);
   const items = Array.isArray(raw) ? raw.map(asText) : [];
   const id = `f-${field.path}`;
 
-  const commit = (next: string[]) => onChange(setPath(manifest, field.path, next));
+  const commit = (next: string[]) =>
+    onChange(setPath(manifest, field.path, next));
 
   return (
     <div>
-      <span className="block text-sm font-medium text-foreground">{field.label}</span>
+      <span className="block text-sm font-medium text-foreground">
+        {field.label}
+      </span>
       {field.hint && (
-        <span className="mt-0.5 block text-xs text-muted-foreground">{field.hint}</span>
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {field.hint}
+        </span>
       )}
-      <ul className="mt-1 flex flex-wrap gap-1.5" aria-label={`${field.label} values`}>
+      <ul
+        className="mt-1 flex flex-wrap gap-1.5"
+        aria-label={`${field.label} values`}
+      >
         {items.map((item, i) => (
           <li
             key={`${item}-${i}`}
-            className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs dark:bg-slate-800"
+            className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs"
           >
             {item}
             <button
               type="button"
               aria-label={`Remove ${item}`}
               onClick={() => commit(items.filter((_, j) => j !== i))}
-              className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-100"
+              className="text-muted-foreground hover:text-foreground"
             >
               ×
             </button>
           </li>
         ))}
         {items.length === 0 && (
-          <li className="text-xs text-amber-700 dark:text-amber-400">nothing extracted</li>
+          <li className="text-xs text-warning">nothing extracted</li>
         )}
       </ul>
       <div className="mt-1.5 flex gap-2">
@@ -116,7 +143,7 @@ function ListField({ field, manifest, onChange }: EditorProps & { field: FieldSp
               setDraft("");
             }
           }}
-          className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+          className={`${FIELD} flex-1`}
         />
         <button
           type="button"
@@ -125,7 +152,7 @@ function ListField({ field, manifest, onChange }: EditorProps & { field: FieldSp
             commit([...items, draft.trim()]);
             setDraft("");
           }}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
+          className={FIELD_SM}
         >
           Add
         </button>
@@ -135,26 +162,36 @@ function ListField({ field, manifest, onChange }: EditorProps & { field: FieldSp
 }
 
 /** Nested values: read-only view plus a raw-JSON editor that validates on change. */
-function NestedField({ field, manifest, onChange }: EditorProps & { field: FieldSpec }) {
+function NestedField({
+  field,
+  manifest,
+  onChange,
+}: EditorProps & { field: FieldSpec }) {
   const value = getPath(manifest, field.path);
   const [open, setOpen] = useState(false);
-  const [text, setText] = useState(() => JSON.stringify(value ?? null, null, 2));
+  const [text, setText] = useState(() =>
+    JSON.stringify(value ?? null, null, 2),
+  );
   const [error, setError] = useState<string | null>(null);
 
   return (
     <div>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-foreground">{field.label}</span>
+        <span className="text-sm font-medium text-foreground">
+          {field.label}
+        </span>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="text-xs text-indigo-600 dark:text-indigo-400"
+          className={LINK_BUTTON}
         >
           {open ? "Done" : "Edit as JSON"}
         </button>
       </div>
       {field.hint && (
-        <span className="mt-0.5 block text-xs text-muted-foreground">{field.hint}</span>
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {field.hint}
+        </span>
       )}
       {open ? (
         <>
@@ -165,23 +202,29 @@ function NestedField({ field, manifest, onChange }: EditorProps & { field: Field
             onChange={(e) => {
               setText(e.target.value);
               try {
-                onChange(setPath(manifest, field.path, JSON.parse(e.target.value)));
+                onChange(
+                  setPath(manifest, field.path, JSON.parse(e.target.value)),
+                );
                 setError(null);
               } catch {
-                setError("Not valid JSON — changes are not applied while this is broken.");
+                setError(
+                  "Not valid JSON — changes are not applied while this is broken.",
+                );
               }
             }}
-            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-xs dark:border-slate-600 dark:bg-slate-800"
+            className={`${FIELD_SM} mt-1 w-full`}
           />
           {error && (
-            <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
+            <p role="alert" className="mt-1 text-xs text-destructive">
               {error}
             </p>
           )}
         </>
       ) : (
-        <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-slate-50 p-2 font-mono text-xs dark:bg-slate-800/60">
-          {isEmptyValue(value) ? "nothing extracted" : JSON.stringify(value, null, 2)}
+        <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-background p-2 font-mono text-xs">
+          {isEmptyValue(value)
+            ? "nothing extracted"
+            : JSON.stringify(value, null, 2)}
         </pre>
       )}
     </div>
@@ -199,9 +242,9 @@ export function TieredEditor({ manifest, onChange }: EditorProps) {
   const extras = tier3Fields(manifest);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <section aria-labelledby="tier1">
-        <h3 id="tier1" className="text-sm font-semibold text-foreground">
+        <h3 id="tier1" className={CARD_TITLE}>
           Required
         </h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -209,18 +252,25 @@ export function TieredEditor({ manifest, onChange }: EditorProps) {
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           {TIER1.map((field) => (
-            <Field key={field.path} field={field} manifest={manifest} onChange={onChange} />
+            <Field
+              key={field.path}
+              field={field}
+              manifest={manifest}
+              onChange={onChange}
+            />
           ))}
         </div>
       </section>
 
       {TIER2_GROUPS.map((group) => (
         <section key={group.id} aria-labelledby={`tier2-${group.id}`}>
-          <h3 id={`tier2-${group.id}`} className="text-sm font-semibold text-foreground">
+          <h3 id={`tier2-${group.id}`} className={CARD_TITLE}>
             {group.title}
           </h3>
           {group.blurb && (
-            <p className="mt-0.5 text-xs text-muted-foreground">{group.blurb}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {group.blurb}
+            </p>
           )}
           <div className="mt-3 space-y-4">
             {group.fields.map((field) => (
@@ -241,7 +291,7 @@ export function TieredEditor({ manifest, onChange }: EditorProps) {
             type="button"
             id="tier3"
             onClick={() => setShowTier3((s) => !s)}
-            className="text-sm font-semibold text-indigo-600 dark:text-indigo-400"
+            className="text-sm font-semibold text-primary-ink"
           >
             {showTier3 ? "Hide" : "Show"} everything else ({extras.length})
           </button>

@@ -64,7 +64,9 @@ async def test_query_mom_spaces_for_process_parses_bindings():
     mock_client.post.assert_awaited_once()
     args, kwargs = mock_client.post.call_args
     assert args[0] == mom_bridge.MOM_SPARQL_ENDPOINT
-    assert "Q3062349" in kwargs["data"]["query"]
+    # Q593053 is laser cutting. It was Q3062349 here, which is a list of Dutch
+    # mayors — see tests/matching/test_wikidata_qids_live.py.
+    assert "Q593053" in kwargs["data"]["query"]
 
 
 @pytest.mark.asyncio

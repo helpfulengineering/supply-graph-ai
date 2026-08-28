@@ -2,6 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { getOkhProvenance, type RecordProvenance } from "../../api/ohm/okh";
 import { getOkwProvenance } from "../../api/ohm/okw";
 import type { components } from "../../api/generated/schema";
+import { PANEL } from "../../components/ui/surface";
+import {
+  SECTION_LABEL,
+  SECTION_LABEL_SM,
+} from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 type Credit = components["schemas"]["Credit"];
 
@@ -15,12 +21,13 @@ function ProvenanceBody({ data }: { data: RecordProvenance }) {
     <dl className="space-y-3">
       {authors.length > 0 && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Authored by
-          </dt>
+          <dt className={SECTION_LABEL_SM}>Authored by</dt>
           <dd className="mt-1 space-y-1">
             {authors.map((c, i) => (
-              <p key={i} className="break-all font-mono text-xs text-foreground">
+              <p
+                key={i}
+                className="break-all font-mono text-xs text-foreground"
+              >
                 {creditLabel(c)}
                 {c.role ? ` (${c.role})` : ""}
               </p>
@@ -30,22 +37,24 @@ function ProvenanceBody({ data }: { data: RecordProvenance }) {
       )}
       {data.published_by && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Published by
-          </dt>
-          <dd className="mt-1 break-all font-mono text-xs">{data.published_by}</dd>
+          <dt className={SECTION_LABEL_SM}>Published by</dt>
+          <dd className="mt-1 break-all font-mono text-xs">
+            {data.published_by}
+          </dd>
         </div>
       )}
       {data.on_behalf_of && (
         <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            On behalf of
-          </dt>
-          <dd className="mt-1 break-all font-mono text-xs">{data.on_behalf_of}</dd>
+          <dt className={SECTION_LABEL_SM}>On behalf of</dt>
+          <dd className="mt-1 break-all font-mono text-xs">
+            {data.on_behalf_of}
+          </dd>
         </div>
       )}
       {!authors.length && !data.published_by && !data.on_behalf_of && (
-        <p className="text-sm text-muted-foreground">Empty provenance record.</p>
+        <p className="text-sm text-muted-foreground">
+          Empty provenance record.
+        </p>
       )}
     </dl>
   );
@@ -60,25 +69,27 @@ export function AuthorshipPanel({
 }) {
   const query = useQuery({
     queryKey: [kind, "provenance", id],
-    queryFn: () => (kind === "okh" ? getOkhProvenance(id) : getOkwProvenance(id)),
+    queryFn: () =>
+      kind === "okh" ? getOkhProvenance(id) : getOkwProvenance(id),
     retry: false,
   });
 
   return (
-    <section
-      aria-labelledby={`${kind}-authorship-heading`}
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-    >
+    <section aria-labelledby={`${kind}-authorship-heading`} className={PANEL}>
       <h2
         id={`${kind}-authorship-heading`}
-        className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+        className={cn(SECTION_LABEL, "mb-3")}
       >
         Authorship
       </h2>
-      {query.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {query.isLoading && (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      )}
       {query.isError && (
-        <p className="text-sm text-red-600 dark:text-red-400">
-          {query.error instanceof Error ? query.error.message : "Failed to load provenance."}
+        <p className="text-sm text-destructive">
+          {query.error instanceof Error
+            ? query.error.message
+            : "Failed to load provenance."}
         </p>
       )}
       {query.isSuccess && !query.data && (

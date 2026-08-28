@@ -1,11 +1,29 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity secrets-check ready setup verify-env frontend-setup frontend-ready harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
+#
+# Every recipe below shells out to `uv run`, and each one re-resolves the lock
+# before it runs. `en_core_web_md` is a direct-URL dependency, so re-resolving
+# means asking github.com for the wheel's metadata — 13 times over a `make
+# ready`, any one of which can fail the whole gate on a network hiccup that has
+# nothing to do with the change under test. Freezing pins every recipe to the
+# committed lock, which is what a verification gate should be measuring anyway.
+# `lock-check` still runs `uv lock --check`, so a lock that has drifted from
+# pyproject.toml is caught there rather than hidden here.
+export UV_FROZEN := 1
+
+.PHONY: format format-check lint test check black ruff repo-map repo-map-check env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
 # mocked E2E + a11y + screenshots lane; nonzero on any failure.
 frontend-ready:
 	cd frontend && npm run frontend-ready
+
+# Deterministic demo world for local dev and the real-api E2E lane: designs and
+# facilities curated so browse -> match -> supply tree completes. Idempotent
+# (ids are content-derived), so re-running reseeds in place. `--summary` prints
+# match coverage without writing.
+seed-demo:
+	uv run python scripts/seed_demo_data.py
 
 # Multi-loop triage harness (parity / RED / synthetic smoke / client drift).
 # Modules load independently; stubs report ok until each judge comes online.
@@ -69,6 +87,10 @@ check: lint format-check test
 repo-map:
 	uv run python scripts/generate_repo_map.py
 
+# Staleness gate (lockfile pattern): fails if .repo-map.md is out of date.
+repo-map-check:
+	uv run python scripts/generate_repo_map.py --check
+
 # Regenerate the schema-owned block of .env.example from src/config/schema.py.
 env-template:
 	uv run python scripts/generate_env_template.py
@@ -116,6 +138,11 @@ lock-check:
 scripts:
 	uv run python scripts/generate_scripts_index.py
 
+# Demo-world drift gate: the client-side demo world is generated from the seed
+# dataset, so the two cannot show different catalogs without CI noticing.
+demo-world-check:
+	uv run python scripts/generate_demo_world.py --check
+
 # Script registry gate: fails if a script is unregistered or README is stale.
 scripts-check:
 	uv run python scripts/generate_scripts_index.py --check
@@ -134,15 +161,17 @@ secrets-check:
 # Definition of done. Green tests are not "ready to merge"; this is.
 # Each step verifies (does not mutate) and fails fast. Run before any MR.
 ready:
-	@echo "==> [1/11] env verify";      $(MAKE) verify-env
-	@echo "==> [2/11] format check";    $(MAKE) format-check
-	@echo "==> [3/11] lint";            $(MAKE) lint
-	@echo "==> [4/11] unit tests";      $(MAKE) test
-	@echo "==> [5/11] service parity";  $(MAKE) parity
-	@echo "==> [6/11] docs ↔ code";     $(MAKE) validate-docs
-	@echo "==> [7/11] site docs status";$(MAKE) docs-status
-	@echo "==> [8/11] taxonomy sync";   $(MAKE) taxonomy-check
-	@echo "==> [9/11] version sync";    $(MAKE) version-check
-	@echo "==> [10/11] lockfile sync";  $(MAKE) lock-check
-	@echo "==> [11/11] script registry";$(MAKE) scripts-check
+	@echo "==> [1/13] env verify";      $(MAKE) verify-env
+	@echo "==> [2/13] format check";    $(MAKE) format-check
+	@echo "==> [3/13] lint";            $(MAKE) lint
+	@echo "==> [4/13] unit tests";      $(MAKE) test
+	@echo "==> [5/13] service parity";  $(MAKE) parity
+	@echo "==> [6/13] docs ↔ code";     $(MAKE) validate-docs
+	@echo "==> [7/13] site docs status";$(MAKE) docs-status
+	@echo "==> [8/13] taxonomy sync";   $(MAKE) taxonomy-check
+	@echo "==> [9/13] version sync";    $(MAKE) version-check
+	@echo "==> [10/13] lockfile sync";  $(MAKE) lock-check
+	@echo "==> [11/13] script registry";$(MAKE) scripts-check
+	@echo "==> [12/13] demo world sync";$(MAKE) demo-world-check
+	@echo "==> [13/13] repo map sync";  $(MAKE) repo-map-check
 	@echo "==> READY: all gates passed."

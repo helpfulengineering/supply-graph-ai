@@ -1,6 +1,9 @@
+"use client";
+
+import { Breadcrumb } from "../../components/layout/Breadcrumb";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import {
   downloadPackageFile,
   fetchPackageMetadata,
@@ -15,6 +18,15 @@ import { Button } from "../../components/ui/button";
 import { useAuth } from "../../context/AuthContext";
 import { AttestationsPanel } from "../identity/AttestationsPanel";
 import { CertifyPackagePanel } from "./CertifyPackagePanel";
+import { verifyPackageSignature } from "../../api/ohm/package";
+import {
+  PANEL,
+  PANEL_DANGER,
+  PANEL_SUCCESS,
+  PANEL_WARNING,
+} from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
+import { PAGE_TITLE } from "../../components/ui/typography";
 
 interface Props {
   org: string;
@@ -36,12 +48,18 @@ export function PackageDetailView({ org, project, version }: Props) {
     queryFn: () => fetchPackageMetadata(org, project, version),
   });
 
+  const signature = useMutation({
+    mutationFn: () => verifyPackageSignature(org, project, version),
+  });
+
   const pin = useMutation({
     mutationFn: () => pinPackage(org, project, version),
     onError: reportAuthFailure,
     onSuccess: (result) => {
       setPinResult(result);
-      void queryClient.invalidateQueries({ queryKey: ["package", org, project, version] });
+      void queryClient.invalidateQueries({
+        queryKey: ["package", org, project, version],
+      });
     },
   });
 
@@ -53,7 +71,7 @@ export function PackageDetailView({ org, project, version }: Props) {
   if (meta.isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground break-all">{packageName}</h1>
+        <h1 className={cn(PAGE_TITLE, "break-all")}>{packageName}</h1>
         <LoadingSpinner message="Loading package…" />
       </div>
     );
@@ -61,7 +79,7 @@ export function PackageDetailView({ org, project, version }: Props) {
   if (meta.isError || !meta.data) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground break-all">{packageName}</h1>
+        <h1 className={cn(PAGE_TITLE, "break-all")}>{packageName}</h1>
         <ErrorMessage error={meta.error ?? new Error("Package not found")} />
       </div>
     );
@@ -70,30 +88,35 @@ export function PackageDetailView({ org, project, version }: Props) {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/packages" className="hover:text-indigo-600">
-          Packages
-        </Link>
-        <span aria-hidden="true">›</span>
-        <span className="truncate text-slate-700 dark:text-slate-200">
-          {packageName}@{version}
-        </span>
-      </nav>
+      <Breadcrumb
+        trail={[
+          { label: "Packages", href: "/packages" },
+          { label: `${packageName}@${version}` },
+        ]}
+      />
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground break-all">{packageName}</h1>
-          <p className="mt-1 font-mono text-sm text-muted-foreground">v{pkg.version}</p>
+          <h1 className={cn(PAGE_TITLE, "break-all")}>{packageName}</h1>
+          <p className="mt-1 font-mono text-sm text-muted-foreground">
+            v{pkg.version}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
             onClick={() =>
-              void downloadPackageFile(packageName, version).catch(reportAuthFailure)
+              void downloadPackageFile(packageName, version).catch(
+                reportAuthFailure,
+              )
             }
           >
             ↓ Download .tar.gz
           </Button>
-          <Button variant="outline" disabled={pin.isPending} onClick={() => pin.mutate()}>
+          <Button
+            variant="outline"
+            disabled={pin.isPending}
+            onClick={() => pin.mutate()}
+          >
             {pin.isPending ? "Pinning…" : "Pin"}
           </Button>
           <Button
@@ -103,29 +126,38 @@ export function PackageDetailView({ org, project, version }: Props) {
           >
             {verify.isPending ? "Verifying…" : "Verify pin"}
           </Button>
+          <Button
+            variant="outline"
+            disabled={signature.isPending}
+            onClick={() => signature.mutate()}
+          >
+            {signature.isPending ? "Checking…" : "Verify signature"}
+          </Button>
         </div>
       </div>
 
-      <dl className="grid gap-3 rounded-xl border border-slate-200 bg-white p-5 text-sm dark:border-slate-700 dark:bg-slate-900 sm:grid-cols-2">
+      <dl className={cn(PANEL, "grid gap-3 text-sm sm:grid-cols-2")}>
         <div>
-          <dt className="text-xs uppercase text-slate-500">Files</dt>
+          <dt className="text-xs uppercase text-muted-foreground">Files</dt>
           <dd>{pkg.total_files}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase text-slate-500">Size</dt>
+          <dt className="text-xs uppercase text-muted-foreground">Size</dt>
           <dd>{pkg.total_size_bytes.toLocaleString()} bytes</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase text-slate-500">Built</dt>
+          <dt className="text-xs uppercase text-muted-foreground">Built</dt>
           <dd>{pkg.build_timestamp}</dd>
         </div>
         {pkg.okh_manifest_id && (
           <div>
-            <dt className="text-xs uppercase text-slate-500">OKH manifest</dt>
+            <dt className="text-xs uppercase text-muted-foreground">
+              OKH manifest
+            </dt>
             <dd>
               <Link
-                className="font-mono text-indigo-600 hover:underline"
-                to={`/okh/${pkg.okh_manifest_id}`}
+                className="font-mono text-primary-ink hover:underline"
+                href={`/okh/${pkg.okh_manifest_id}`}
               >
                 {pkg.okh_manifest_id}
               </Link>
@@ -135,13 +167,13 @@ export function PackageDetailView({ org, project, version }: Props) {
       </dl>
 
       {pin.isSuccess && pinResult && (
-        <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
+        <p className="text-sm text-success" role="status">
           Package pinned. Bundle {pinResult.bundle_hash}
         </p>
       )}
       {verify.isSuccess && (
         <p
-          className={`text-sm ${verify.data.verified ? "text-emerald-700" : "text-amber-700"}`}
+          className={`text-sm ${verify.data.verified ? "text-success" : "text-warning"}`}
           role="status"
         >
           {verify.data.verified
@@ -150,11 +182,36 @@ export function PackageDetailView({ org, project, version }: Props) {
         </p>
       )}
       {(pin.isError || verify.isError) && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {(pin.error ?? verify.error) instanceof Error
             ? ((pin.error ?? verify.error) as Error).message
             : "Action failed."}
         </p>
+      )}
+
+      {signature.data && (
+        // Three outcomes, not two. No signature is a normal posture — the
+        // package was built without a federation identity — where an invalid
+        // one means the file manifest has been tampered with, and rendering
+        // them the same would either alarm people about unsigned packages or
+        // hide a real problem.
+        <div
+          role="status"
+          className={cn(
+            signature.data.valid === null
+              ? PANEL_WARNING
+              : signature.data.valid
+                ? PANEL_SUCCESS
+                : PANEL_DANGER,
+            "p-3 text-sm",
+          )}
+        >
+          {signature.data.valid === null
+            ? signature.data.message
+            : signature.data.valid
+              ? `Signature valid${signature.data.signedBy ? ` — signed by ${signature.data.signedBy}` : ""}.`
+              : "Signature does NOT match this package's file manifest. Its contents have changed since it was signed."}
+        </div>
       )}
 
       <CertifyPackagePanel version={version} pin={pinResult} />
@@ -171,7 +228,9 @@ export function parsePackageRoute(
 ): Props | null {
   if (!org || !project || !version) return null;
   try {
-    splitPackageName(`${decodeURIComponent(org)}/${decodeURIComponent(project)}`);
+    splitPackageName(
+      `${decodeURIComponent(org)}/${decodeURIComponent(project)}`,
+    );
   } catch {
     return null;
   }

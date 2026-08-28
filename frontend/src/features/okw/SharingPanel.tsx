@@ -1,5 +1,9 @@
 import { VisibilityControl } from "../okh/VisibilityControl";
 import { DisclosureControl } from "./DisclosureControl";
+import { PANEL } from "../../components/ui/surface";
+import { SECTION_LABEL } from "../../components/ui/typography";
+import { BrainCommunicationIcon } from "../../components/icons";
+import { cn } from "@/lib/utils";
 
 /**
  * Single Sharing composition for OKW facilities: visibility (whether / to whom)
@@ -10,17 +14,19 @@ export function SharingPanel({ id }: { id: string }) {
     <section
       id="sharing"
       aria-labelledby="okw-sharing-heading"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+      className={PANEL}
     >
       <h2
         id="okw-sharing-heading"
-        className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+        className={cn(SECTION_LABEL, "mb-1 flex items-center gap-1.5")}
       >
+        <BrainCommunicationIcon className="h-4 w-4 shrink-0" />
         Sharing
       </h2>
-      <p className="mb-5 text-xs text-slate-500 dark:text-slate-400">
-        Control what federation peers can receive. Visibility chooses whether (and to whom)
-        this facility is exported; disclosure chooses which field groups each audience gets.
+      <p className="mb-5 text-xs text-muted-foreground">
+        Control what federation peers can receive. Visibility chooses whether
+        (and to whom) this facility is exported; disclosure chooses which field
+        groups each audience gets.
       </p>
       <div className="space-y-6">
         <VisibilityControl
@@ -29,7 +35,7 @@ export function SharingPanel({ id }: { id: string }) {
           variant="plain"
           hint="private = local only. followers / public export the matching disclosure profile."
         />
-        <div className="border-t border-slate-200 pt-5 dark:border-slate-700">
+        <div className="border-t border-border pt-5">
           <DisclosureControl id={id} variant="plain" />
         </div>
       </div>

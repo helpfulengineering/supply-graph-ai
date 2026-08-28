@@ -1,9 +1,17 @@
+"use client";
+
+import { SearchX } from "lucide-react";
+import { LABEL } from "../../components/ui/field";
+import { PageHero } from "../../components/layout/PageHero";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import { withNavState } from "../../lib/navState";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchAllOkhList } from "../../api/ohm/okh";
 import { fetchNetworkSpaces } from "../../api/ohm/network";
-import { runMatch } from "../../api/ohm/match";
+import { listMatchDomains, runMatch } from "../../api/ohm/match";
+import { track } from "../../lib/site/stack";
+import { EVENTS, type MatchRunProps } from "../../lib/site/events";
 import { ApiError } from "../../api/ohm/client";
 import { solutionSelectionKey, toMatchView } from "./matchViewModel";
 import {
@@ -27,6 +35,13 @@ import {
   ErrorState,
 } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
+import {
+  PANEL_ACCENT,
+  PANEL_MUTED,
+  PANEL_WARNING,
+} from "../../components/ui/surface";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import { FIELD_SM } from "../../components/ui/field";
 import { humanizeProcessId } from "../network/deriveFilterOptions";
 import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
 import { cn } from "@/lib/utils";
@@ -102,7 +117,7 @@ export function MatchView({
   inlineManifest?: Record<string, unknown>;
   inlineTitle?: string;
 }) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const networkMode = !!networkFilter;
   const designs = useQuery({
     queryKey: ["okh-list"],
@@ -117,6 +132,16 @@ export function MatchView({
   });
   const [selected, setSelected] = useState(okhId ?? "");
   const [mode, setMode] = useState<SystemMode>("standard");
+  // "" is "detect automatically", which is what the server does when the field
+  // is absent — so the empty option is a real instruction, not a placeholder.
+  const [domain, setDomain] = useState("");
+  const domains = useQuery({
+    queryKey: ["match-domains"],
+    queryFn: listMatchDomains,
+    retry: false,
+    retryOnMount: false,
+    staleTime: Infinity,
+  });
   const [facilityIds, setFacilityIds] = useState<string[]>(() =>
     okwId ? [okwId] : [],
   );
@@ -137,10 +162,24 @@ export function MatchView({
       return runMatch(
         inlineManifest
           ? buildInlineMatchRequest(inlineManifest, m, undefined, ids, scope)
-          : buildMatchRequest(id, m, undefined, ids, scope),
+          : buildMatchRequest(id, m, undefined, ids, scope, domain),
       );
     },
-    onSuccess: () => setSelectedSolutionKeys([]),
+    onSuccess: (raw, variables) => {
+      setSelectedSolutionKeys([]);
+      // The one outcome a page view cannot describe. A run that returns
+      // nothing looks identical to a successful one in /match traffic, and
+      // "this design never matches anything here" is the finding an operator
+      // is actually looking for. Counted through the view model rather than
+      // the raw envelope, so the number recorded is the number shown. Ids
+      // only, never manifest contents — see events.ts.
+      track(EVENTS.matchRun, {
+        design: inlineManifest ? "inline" : variables.id,
+        solutions: toMatchView(raw).totalSolutions,
+        mode: variables.m,
+        facilities: variables.ids.length,
+      } satisfies MatchRunProps);
+    },
   });
   const rawView = useMemo(
     () => (mutation.data ? toMatchView(mutation.data) : null),
@@ -151,8 +190,10 @@ export function MatchView({
   // solution is evaluated against the same requirement set.
   const requirementCount = useMemo(
     () =>
-      rawView?.solutions.reduce((max, s) => Math.max(max, s.coverage?.total ?? 0), 0) ??
-      0,
+      rawView?.solutions.reduce(
+        (max, s) => Math.max(max, s.coverage?.total ?? 0),
+        0,
+      ) ?? 0,
     [rawView],
   );
   const ceiling = toleranceCeiling(requirementCount);
@@ -175,7 +216,8 @@ export function MatchView({
     };
   }, [rawView, effectiveTolerance]);
 
-  const hiddenCount = (rawView?.solutions.length ?? 0) - (view?.solutions.length ?? 0);
+  const hiddenCount =
+    (rawView?.solutions.length ?? 0) - (view?.solutions.length ?? 0);
 
   const selectedDesign = useMemo(
     () => (designs.data?.items ?? []).find((d) => d.id === selected) ?? null,
@@ -208,23 +250,30 @@ export function MatchView({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Match a Design</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Choose a design and the facilities to compare, then run a match.
-        </p>
-      </div>
+      <PageHero
+        title="Match a Design"
+        crumb={[
+          { label: "design", href: "/okh" },
+          { label: "facilities", href: "/facilities" },
+          // Solutions are what this page produces; there is no list of them to
+          // send anyone to.
+          // Was text. /solutions is a real route holding exactly these —
+          // the supply trees saved from matches — so the term names a place
+          // after all.
+          { label: "solutions", href: "/solutions" },
+        ]}
+      />
 
       <div className="space-y-4">
         {inlineManifest ? (
-          <div className="rounded-lg border border-input bg-muted/40 p-4">
+          <div className={PANEL_MUTED}>
             <p className="text-sm font-medium text-foreground">
               {inlineTitle || "Generated design"}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Matching a design you generated and reviewed in this session. It has
-              not been saved to the catalogue, and closing this page will discard
-              it — download it first if you want to keep it.
+              Matching a design you generated and reviewed in this session. It
+              has not been saved to the catalogue, and closing this page will
+              discard it — download it first if you want to keep it.
             </p>
           </div>
         ) : (
@@ -237,66 +286,85 @@ export function MatchView({
           />
         )}
 
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex-1">
+        {/*
+          Stacks below `sm`, sits on one baseline above it. As a single
+          `flex-wrap items-end` row the mode group and the button competed for
+          a phone's width: the group kept its intrinsic size, the button was
+          squeezed against it, and the mode description wrapped underneath both
+          — so "Run Match" ended up floating beside a paragraph it has nothing
+          to do with. Stacking makes the reading order the doing order: choose
+          a mode, read what it means, then run.
+        */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 sm:flex-1">
             <span className="mb-1 block text-sm text-muted-foreground">
               System mode
             </span>
-            <div
-              role="radiogroup"
-              aria-label="System mode"
-              className="inline-flex overflow-hidden rounded-md border border-input"
-            >
-              {SYSTEM_MODES.map((s) => (
-                <button
-                  key={s.mode}
-                  type="button"
-                  role="radio"
-                  aria-checked={mode === s.mode}
-                  onClick={() => setMode(s.mode)}
-                  className={cn(
-                    "px-3 py-1.5 text-sm transition-colors",
-                    mode === s.mode
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background text-foreground hover:bg-accent",
-                  )}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              label="System mode"
+              value={mode}
+              options={SYSTEM_MODES.map((s) => ({
+                value: s.mode,
+                label: s.label,
+              }))}
+              onChange={setMode}
+            />
             {modeInfo && (
               <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">
                 {modeInfo.description}
               </p>
             )}
+            {/* Only when the node offers more than one: a selector with a
+                single option is a control that cannot be used. */}
+            {(domains.data?.length ?? 0) > 1 && (
+              <label className="mt-3 block text-sm text-muted-foreground">
+                <span className="mb-1 block">Domain</span>
+                <select
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  className={`${FIELD_SM} text-foreground`}
+                >
+                  <option value="">Detect automatically</option>
+                  {domains.data?.map((d) => (
+                    <option key={d.name} value={d.name}>
+                      {d.name}
+                      {d.status && d.status !== "available"
+                        ? ` (${d.status})`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
           <Button
+            size="lg"
+            className="w-full sm:w-auto"
             disabled={!canRun}
             onClick={() =>
               mutation.mutate({ id: selected, m: mode, ids: facilityIds })
             }
           >
-            {mutation.isPending ? "Matching…" : "⚡ Run Match"}
+            {mutation.isPending ? "Matching…" : "Run Match"}
           </Button>
         </div>
         {requiresFacilityChoice && selected && facilityIds.length === 0 && (
-          <p className="text-xs text-amber-700 dark:text-amber-400">
+          <p className="text-xs text-warning">
             Select at least one facility below before running a match.
           </p>
         )}
         {!selected && (
-          <p className="text-xs text-amber-700 dark:text-amber-400">
+          <p className="text-xs text-warning">
             Search and select a design above before running a match.
           </p>
         )}
 
         {networkMode ? (
-          <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 text-sm dark:border-indigo-800 dark:bg-indigo-950/30">
-            <p className="font-medium text-indigo-800 dark:text-indigo-300">
+          <div className={cn(PANEL_ACCENT, "text-sm")}>
+            <p className="font-medium text-primary-ink">
               Matching against the network
             </p>
-            <p className="mt-0.5 text-indigo-700 dark:text-indigo-400">
+            <p className="mt-0.5 text-primary-ink">
               {describeNetworkFilter(networkFilter!)}
             </p>
           </div>
@@ -343,33 +411,34 @@ export function MatchView({
         !mutation.isPending &&
         (rawView.solutions.length === 0 ? (
           <EmptyState
-            icon="🔍"
+            icon={
+              <SearchX
+                aria-hidden="true"
+                className="h-8 w-8"
+                strokeWidth={1.5}
+              />
+            }
             title="No matches found"
             description="No facilities can currently produce this design."
           />
         ) : (
           <div className="space-y-4">
             {view.summary && (
-              <p className="rounded-lg border bg-muted/40 p-4 text-sm text-foreground">
+              <p className={cn(PANEL_MUTED, "text-sm text-foreground")}>
                 {view.summary}
               </p>
             )}
             {view.coverageGaps.length > 0 && (
-              <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-sm dark:border-yellow-800 dark:bg-yellow-950/30">
-                <p className="font-medium text-yellow-800 dark:text-yellow-300">
-                  Coverage gaps
-                </p>
-                <p className="mt-1 text-yellow-700 dark:text-yellow-400">
+              <div className={cn(PANEL_WARNING, "text-sm")}>
+                <p className="font-medium text-warning">Coverage gaps</p>
+                <p className="mt-1 text-warning">
                   Unmatched: {view.coverageGaps.join(", ")}
                 </p>
               </div>
             )}
             {ceiling > 0 && (
-              <div className="rounded-lg border border-input bg-muted/30 p-4">
-                <label
-                  htmlFor="near-miss-tolerance"
-                  className="block text-sm font-medium text-foreground"
-                >
+              <div className={PANEL_MUTED}>
+                <label htmlFor="near-miss-tolerance" className={LABEL}>
                   Allow facilities missing up to{" "}
                   {effectiveTolerance === 0
                     ? "nothing"
@@ -393,8 +462,9 @@ export function MatchView({
                     gap in a 2-requirement design is not the same as one gap in
                     a design with six.
                   */}
-                  This design has {requirementCount} requirements. The most you can
-                  relax to is {ceiling}, so a result always meets at least two.
+                  This design has {requirementCount} requirements. The most you
+                  can relax to is {ceiling}, so a result always meets at least
+                  two.
                   {hiddenCount > 0 &&
                     ` ${hiddenCount} facilit${hiddenCount === 1 ? "y is" : "ies are"} hidden at this setting.`}
                 </p>
@@ -403,7 +473,13 @@ export function MatchView({
 
             {view.solutions.length === 0 ? (
               <EmptyState
-                icon="🔍"
+                icon={
+                  <SearchX
+                    aria-hidden="true"
+                    className="h-8 w-8"
+                    strokeWidth={1.5}
+                  />
+                }
                 title="No matches within tolerance"
                 description="Every facility is missing more than the tolerance above allows. Increase it to see them."
               />
@@ -457,7 +533,7 @@ export function MatchView({
                             websiteByFacilityId,
                           ),
                         };
-                        navigate("/rfq", { state });
+                        router.push(withNavState("/rfq", state));
                       }}
                     >
                       Contact selected facilities →

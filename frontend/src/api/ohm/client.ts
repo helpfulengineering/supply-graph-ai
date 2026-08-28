@@ -79,6 +79,21 @@ export function errorMessage(body: unknown, fallback: string): string {
       detail?: unknown;
       errors?: Array<{ message?: unknown }>;
     };
+    // FastAPI validation errors (422) put an array of {loc, msg} in `detail`.
+    // Rendered raw that is "[object Object]"; joined it is a sentence naming
+    // the field the server rejected, which is the only part a reader needs.
+    if (Array.isArray(b.detail)) {
+      const parts = (b.detail as Array<{ loc?: unknown[]; msg?: unknown }>)
+        .map((d) => {
+          const field = Array.isArray(d.loc)
+            ? d.loc.filter((x) => x !== "body").join(".")
+            : "";
+          const msg = typeof d.msg === "string" ? d.msg : "invalid value";
+          return field ? `${field}: ${msg}` : msg;
+        })
+        .filter(Boolean);
+      if (parts.length) return parts.join("; ");
+    }
     if (typeof b.detail === "string") return b.detail;
     if (typeof b.message === "string") return b.message;
     const first = b.errors?.[0]?.message;

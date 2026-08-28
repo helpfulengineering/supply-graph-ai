@@ -62,9 +62,14 @@ frequently the ones that decide whether a design can be built at all.
 Your record there is published by you, on your own site, and read from there.
 Editing it in OHM does not change it, and does not take anything away from you.
 
-If you'd rather improve things at the source, that's a better outcome than
-duplicating effort here — the information reaches everything that reads it, not
-just OHM.
+You don't have to choose which one to maintain. OHM can serve your facility as a
+document [Maps of Making](https://mapsofmaking.org) reads, so you describe the
+workshop once here — including the process detail a map has no field for — and
+give the map an address to poll. It re-reads it every ten minutes, so later
+improvements travel on their own.
+
+See [publish to Maps of Making](publish-to-maps-of-making.md). Nothing is served
+until you mark the record public.
 
 ## Then choose who sees it
 

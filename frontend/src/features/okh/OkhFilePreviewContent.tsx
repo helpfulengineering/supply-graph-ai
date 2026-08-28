@@ -1,17 +1,23 @@
+"use client";
+
 import { useEffect, useState } from "react";
+import { FIELD_SM } from "../../components/ui/field";
+import { PANEL_ACCENT } from "../../components/ui/surface";
+import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import type { OkhFileRef } from "../../types/okh";
 import {
   canPreviewFile,
   encodePathSegments,
   filePrimaryLabel,
-  inferRenderTier,
+  renderTierFrom,
   isImageFile,
   isMarkdownFile,
   isPdfFile,
 } from "./okhFilePath";
+import { useFileTypeTaxonomy } from "./useFileTypeTaxonomy";
 import { okhFileHref } from "./okhFileHref";
 
 const MAX_TEXT_PREVIEW_BYTES = 5 * 1024 * 1024;
@@ -22,19 +28,29 @@ interface Props {
   fullPage?: boolean;
 }
 
-export function OkhFilePreviewContent({ okhId, file, fullPage = false }: Props) {
+export function OkhFilePreviewContent({
+  okhId,
+  file,
+  fullPage = false,
+}: Props) {
+  const fileTypes = useFileTypeTaxonomy();
   const href = okhFileHref(okhId, file);
   const label = filePrimaryLabel(file);
   const [textContent, setTextContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // The server's own answer first, then the taxonomy, then the regex. The
+  // middle step is the new one: a type the taxonomy knows and the regex does
+  // not was landing on download_only.
   const tier =
-    file.render_tier ?? inferRenderTier(file.display_path ?? file.path);
+    file.render_tier ??
+    renderTierFrom(file.display_path ?? file.path, fileTypes);
   const previewable = canPreviewFile(file);
   const showImage = previewable && isImageFile(file);
   const showPdf = previewable && isPdfFile(file) && !showImage;
-  const showTextFetch = previewable && tier === "text_viewer" && !showImage && !showPdf;
+  const showTextFetch =
+    previewable && tier === "text_viewer" && !showImage && !showPdf;
 
   useEffect(() => {
     if (!showTextFetch) {
@@ -72,23 +88,29 @@ export function OkhFilePreviewContent({ okhId, file, fullPage = false }: Props) 
 
   const wrapperClass = fullPage
     ? "min-h-[50vh] space-y-4"
-    : "mt-2 mb-4 space-y-3 rounded-lg border border-indigo-200 bg-indigo-50/40 p-4 dark:border-indigo-800 dark:bg-indigo-950/20";
+    : cn(PANEL_ACCENT, "mt-2 mb-4 space-y-3");
 
   if (!previewable) {
     return (
       <div className={wrapperClass}>
-        <p className="text-sm text-slate-600 dark:text-slate-300">
+        <p className="text-sm text-muted-foreground">
           <span className="font-medium">{label}</span>
           {file.file_type_display && (
-            <span className="ml-2 text-xs text-slate-500">({file.file_type_display})</span>
+            <span className="ml-2 text-xs text-muted-foreground">
+              ({file.file_type_display})
+            </span>
           )}
         </p>
-        <p className="font-mono text-xs text-slate-500">{file.display_path ?? file.path}</p>
-        <p className="text-sm text-slate-500">No in-browser preview for this file type.</p>
+        <p className="font-mono text-xs text-muted-foreground">
+          {file.display_path ?? file.path}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          No in-browser preview for this file type.
+        </p>
         <a
           href={href}
           download
-          className="inline-flex rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+          className="inline-flex rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent hover:bg-primary"
         >
           Download
         </a>
@@ -100,14 +122,16 @@ export function OkhFilePreviewContent({ okhId, file, fullPage = false }: Props) 
     <div className={wrapperClass}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{label}</p>
-          <p className="truncate font-mono text-xs text-slate-500">{file.display_path ?? file.path}</p>
+          <p className="text-sm font-medium text-foreground">{label}</p>
+          <p className="truncate font-mono text-xs text-muted-foreground">
+            {file.display_path ?? file.path}
+          </p>
         </div>
         <div className="flex shrink-0 gap-2">
           {!fullPage && (
             <Link
-              to={`/okh/${encodeURIComponent(okhId)}/files/${encodePathSegments(file.path)}`}
-              className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+              href={`/okh/${encodeURIComponent(okhId)}/files/${encodePathSegments(file.path)}`}
+              className={`${FIELD_SM} font-medium text-muted-foreground hover:bg-background`}
             >
               Full preview
             </Link>
@@ -115,7 +139,7 @@ export function OkhFilePreviewContent({ okhId, file, fullPage = false }: Props) 
           <a
             href={href}
             download
-            className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+            className={`${FIELD_SM} font-medium text-muted-foreground hover:bg-background`}
           >
             Download
           </a>
@@ -123,7 +147,7 @@ export function OkhFilePreviewContent({ okhId, file, fullPage = false }: Props) 
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+            className={`${FIELD_SM} font-medium text-muted-foreground hover:bg-background`}
           >
             Open tab
           </a>
@@ -134,7 +158,7 @@ export function OkhFilePreviewContent({ okhId, file, fullPage = false }: Props) 
         <img
           src={href}
           alt={label}
-          className="max-h-96 w-full rounded-md border border-slate-100 bg-white object-contain dark:border-slate-800"
+          className="max-h-96 w-full rounded-md border border-border bg-card object-contain"
         />
       )}
 
@@ -142,23 +166,25 @@ export function OkhFilePreviewContent({ okhId, file, fullPage = false }: Props) 
         <iframe
           src={href}
           title={label}
-          className="h-[32rem] w-full rounded-md border border-slate-200 bg-white dark:border-slate-700"
+          className="h-[32rem] w-full rounded-md border border-border bg-card"
         />
       )}
 
       {showTextFetch && (
         <>
-          {loading && <p className="text-sm text-slate-500">Loading preview…</p>}
-          {error && (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          {loading && (
+            <p className="text-sm text-muted-foreground">Loading preview…</p>
           )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           {textContent != null && isMarkdownFile(file) && (
-            <article className="max-w-none space-y-2 rounded-md bg-white p-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-200 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-semibold [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-slate-50 [&_pre]:p-3">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{textContent}</ReactMarkdown>
+            <article className="max-w-none space-y-2 rounded-md bg-card p-3 text-sm text-foreground [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-semibold [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-background [&_pre]:p-3">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {textContent}
+              </ReactMarkdown>
             </article>
           )}
           {textContent != null && !isMarkdownFile(file) && (
-            <pre className="max-h-96 overflow-auto rounded-md bg-white p-3 text-xs text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+            <pre className="max-h-96 overflow-auto rounded-md bg-card p-3 text-xs text-foreground">
               {textContent}
             </pre>
           )}

@@ -1,5 +1,13 @@
 import { Button } from "../../components/ui/button";
-import { PRIMARY_FACET, type FacetGroup, type FacetKey, type FacetSelections } from "./facets";
+import { CHECKBOX, CHOICE_ROW } from "../../components/ui/field";
+import {
+  PRIMARY_FACET,
+  type FacetGroup,
+  type FacetKey,
+  type FacetSelections,
+} from "./facets";
+import { CARD_TITLE, SECTION_LABEL_SM } from "../../components/ui/typography";
+import { cn } from "@/lib/utils";
 
 interface Props {
   groups: FacetGroup[];
@@ -17,9 +25,9 @@ export function FacetPanel({
   onClear,
 }: Props) {
   return (
-    <nav aria-label="Filters" className="space-y-5 text-sm">
+    <nav aria-label="Filters" className="space-y-6 text-sm">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-foreground">Filters</h2>
+        <h2 className={CARD_TITLE}>Filters</h2>
         {selectedCount > 0 && (
           <Button variant="ghost" size="sm" onClick={onClear}>
             Clear all
@@ -31,12 +39,14 @@ export function FacetPanel({
         const selected = selections[group.key] ?? [];
         return (
           <div key={group.key}>
-            <h3 className="mb-2 flex items-center gap-1.5 font-medium text-muted-foreground">
+            <h3
+              className={cn(SECTION_LABEL_SM, "mb-2 flex items-center gap-1.5")}
+            >
               {group.label}
               {group.key === PRIMARY_FACET && (
                 <span
                   title="Provisional categories derived from design text; a curated taxonomy is coming."
-                  className="rounded bg-muted px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-slate-600 dark:text-slate-300"
+                  className="rounded bg-muted px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-muted-foreground"
                 >
                   provisional
                 </span>
@@ -47,14 +57,16 @@ export function FacetPanel({
                 const checked = selected.includes(opt.value);
                 return (
                   <li key={opt.value}>
-                    <label className="flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 hover:bg-accent">
+                    <label className={CHOICE_ROW}>
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => onToggle(group.key, opt.value)}
-                        className="h-4 w-4 accent-primary"
+                        className={CHECKBOX}
                       />
-                      <span className="flex-1 truncate text-foreground">{opt.value}</span>
+                      <span className="min-w-0 flex-1 truncate text-foreground">
+                        {opt.value}
+                      </span>
                       <span className="tabular-nums text-xs text-muted-foreground">
                         {opt.count}
                       </span>

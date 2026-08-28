@@ -1,69 +1,118 @@
 /**
- * LLM credential management (admin). Raw fetch until OpenAPI types are regenerated.
+ * LLM credentials and runtime state (admin).
+ *
+ * Was a hand-rolled fetch, under a comment saying "until OpenAPI types are
+ * regenerated". They were: all five paths are in the committed schema, so this
+ * is the typed client now and a backend change to any of them is a compile
+ * error rather than a runtime surprise.
  */
-import { ApiError, apiBaseUrl, errorMessage, requestIdFromError } from "./client";
-import { authHeader } from "../../features/auth/tokenStorage";
+import {
+  apiClient,
+  ApiError,
+  errorMessage,
+  requestIdFromError,
+} from "./client";
+import type { components } from "../generated/schema";
 
-export interface LLMCredentialStatus {
-  provider: string;
-  model?: string | null;
-  masked_key: string;
-  configured: boolean;
-}
+export type LLMCredentialStatus = components["schemas"]["LLMCredentialStatus"];
+export type ProviderStatus = components["schemas"]["ProviderStatus"];
+export type LLMHealth = components["schemas"]["LLMHealthResponse"];
+export type LLMProviders = components["schemas"]["LLMProvidersResponse"];
 
-export interface LLMCredentialUpsert {
-  api_key: string;
-  model?: string | null;
-  activate?: boolean;
-}
+/** `activate` is required by the schema (it has a server-side default, which
+ *  openapi-typescript renders as required-in-the-body rather than optional). */
+export type LLMCredentialUpsert = components["schemas"]["LLMCredentialUpsert"];
 
-async function llmFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${apiBaseUrl}${path}`, {
-    ...init,
-    headers: {
-      Accept: "application/json",
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...authHeader(),
-      ...(init?.headers ?? {}),
-    },
-  });
-  let body: unknown;
-  try {
-    body = await res.json();
-  } catch {
-    body = undefined;
-  }
-  if (!res.ok) {
-    throw new ApiError(
-      res.status,
-      errorMessage(body, res.statusText),
-      requestIdFromError(body, res),
-    );
-  }
-  return body as T;
+/**
+ * Every provider a credential can be stored for.
+ *
+ * Client-side, and deliberately — GET /api/llm/providers looks like the right
+ * source and is not: it lists providers the service has already INSTANTIATED,
+ * which on a node with no keys is the empty list. Driving the picker from it
+ * would mean a fresh instance offering nothing to configure, and no way to add
+ * the first key.
+ *
+ * Authority is `LLMProvider` in src/config/llm_config.py. Kept in sync by
+ * hand, which is worth naming as a cost: the list this replaced had drifted to
+ * six of the seven, so `custom` could not be configured from the web app at
+ * all. The fix that removes the duplication is a backend one — putting the
+ * enum in the /providers response so it reaches the generated schema.
+ */
+export const LLM_PROVIDERS = [
+  "anthropic",
+  "openai",
+  "azure_openai",
+  "aws_bedrock",
+  "google",
+  "local",
+  "custom",
+] as const;
+
+function fail(error: unknown, response: Response, fallback: string): never {
+  throw new ApiError(
+    response.status,
+    errorMessage(error, `${fallback} (HTTP ${response.status})`),
+    requestIdFromError(error, response),
+  );
 }
 
 export async function listLLMCredentials(): Promise<LLMCredentialStatus[]> {
-  const body = await llmFetch<{ credentials?: LLMCredentialStatus[] }>(
-    "/api/llm/credentials",
-  );
-  return body.credentials ?? [];
+  const { data, error, response } = await apiClient.GET("/api/llm/credentials");
+  if (error || !response.ok)
+    fail(error, response, "Failed to load credentials");
+  return data?.credentials ?? [];
 }
 
 export async function upsertLLMCredential(
   provider: string,
   payload: LLMCredentialUpsert,
 ): Promise<LLMCredentialStatus> {
-  return llmFetch<LLMCredentialStatus>(`/api/llm/credentials/${provider}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
+  const { data, error, response } = await apiClient.PUT(
+    "/api/llm/credentials/{provider}",
+    { params: { path: { provider } }, body: payload },
+  );
+  if (error || !response.ok || !data)
+    fail(error, response, "Failed to save credential");
+  return data;
 }
 
 export async function deleteLLMCredential(provider: string): Promise<void> {
-  await llmFetch(`/api/llm/credentials/${provider}`, { method: "DELETE" });
+  const { error, response } = await apiClient.DELETE(
+    "/api/llm/credentials/{provider}",
+    {
+      params: { path: { provider } },
+    },
+  );
+  if (error || !response.ok)
+    fail(error, response, "Failed to remove credential");
 }
 
 export async function testLLMCredential(provider: string): Promise<void> {
-  await llmFetch(`/api/llm/credentials/${provider}/test`, { method: "POST" });
+  const { error, response } = await apiClient.POST(
+    "/api/llm/credentials/{provider}/test",
+    { params: { path: { provider } } },
+  );
+  if (error || !response.ok) fail(error, response, "Credential test failed");
+}
+
+/**
+ * Whether generation will work right now.
+ *
+ * The question a caller actually has when /okh/generate quietly degrades to
+ * heuristic extraction — which it does, silently, with no key configured.
+ */
+export async function fetchLLMHealth(): Promise<LLMHealth> {
+  const { data, error, response } = await apiClient.GET("/api/llm/health");
+  if (error || !response.ok || !data)
+    fail(error, response, "Failed to read LLM health");
+  return data;
+}
+
+/** Which providers are live, with their models. See LLM_PROVIDERS on why this
+ *  reports rather than offers. */
+export async function fetchLLMProviders(): Promise<LLMProviders> {
+  const { data, error, response } = await apiClient.GET("/api/llm/providers");
+  if (error || !response.ok || !data)
+    fail(error, response, "Failed to load providers");
+  return data;
 }

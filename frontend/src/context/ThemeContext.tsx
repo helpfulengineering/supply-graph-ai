@@ -1,15 +1,21 @@
+"use client";
+
 import { createContext, useContext } from "react";
+import {
+  DEFAULT_THEME,
+  THEMES,
+  type ThemeController,
+} from "../hooks/useDarkMode";
 
-interface ThemeContextValue {
-  isDark: boolean;
-  toggle: () => void;
-}
-
-export const ThemeContext = createContext<ThemeContextValue>({
+export const ThemeContext = createContext<ThemeController>({
   isDark: false,
   toggle: () => {},
+  theme: DEFAULT_THEME,
+  setTheme: () => {},
+  shareUrl: () => "",
+  themes: THEMES,
 });
 
-export function useTheme() {
+export function useTheme(): ThemeController {
   return useContext(ThemeContext);
 }

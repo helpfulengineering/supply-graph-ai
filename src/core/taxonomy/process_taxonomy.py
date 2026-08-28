@@ -176,7 +176,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "subtractive manufacturing",
             }
         ),
-        wikidata_qid="Q174689",
+        wikidata_qid="Q3689317",
     ),
     ProcessDefinition(
         canonical_id="cnc_milling",
@@ -192,7 +192,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "milling",
             }
         ),
-        wikidata_qid="Q179507",
+        wikidata_qid="Q656950",
     ),
     ProcessDefinition(
         canonical_id="cnc_turning",
@@ -208,7 +208,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "turning",
             }
         ),
-        wikidata_qid="Q1260093",
+        wikidata_qid="Q258127",
     ),
     ProcessDefinition(
         canonical_id="laser_cutting",
@@ -224,7 +224,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "laser_cutting",
             }
         ),
-        wikidata_qid="Q3062349",
+        wikidata_qid="Q593053",
     ),
     ProcessDefinition(
         canonical_id="vinyl_cutting",
@@ -241,6 +241,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "vinyl_cutting",
             }
         ),
+        wikidata_qid="Q12860083",
     ),
     ProcessDefinition(
         canonical_id="pcb_fabrication",
@@ -257,7 +258,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "printed_circuit_board",
             }
         ),
-        wikidata_qid="Q1047286",
+        wikidata_qid="Q173350",
     ),
     ProcessDefinition(
         canonical_id="assembly",
@@ -337,7 +338,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "welding",
             }
         ),
-        wikidata_qid="Q12544",
+        wikidata_qid="Q131172",
     ),
     ProcessDefinition(
         canonical_id="tig_welding",
@@ -1462,3 +1463,20 @@ def _create_taxonomy() -> ProcessTaxonomy:
 
 
 taxonomy: ProcessTaxonomy = _create_taxonomy()
+
+
+def canonical_processes(raw: Optional[List[str]]) -> List[str]:
+    """Normalize stored process strings to canonical ids, order-preserving.
+
+    Lives here rather than beside any one caller because a facility's process
+    list is projected into several shapes — the unified network space, the
+    SpaceAPI document MoM ingests — and those must not be able to disagree
+    about what a facility can do. Unrecognized entries are dropped, which is
+    what makes the output safe to publish as a vocabulary.
+    """
+    processes: List[str] = []
+    for p in raw or []:
+        cid = taxonomy.normalize(p)
+        if cid and cid not in processes:
+            processes.append(cid)
+    return processes

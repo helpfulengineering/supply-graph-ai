@@ -191,9 +191,13 @@ cython_debug/
 .pypirc
 
 # local dev files
+# Anchored to the repo root on purpose. Unanchored, `packages/` matches at any
+# depth — which silently swallowed frontend/app/packages/, so the Packages
+# route was never committed and the menu entry 404'd in every fresh clone
+# while working perfectly in the tree that wrote it.
 logs/
 notes/
-packages/
+/packages/
 test-data/
 temp_matching_context/
 temp_context/
@@ -231,3 +235,4 @@ tests/matching/artifacts/
 
 # local storage (repo-root volume only — not src/core/storage/)
 /storage/
+frontend/public/build-info.json

@@ -1,4 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories, UNCATEGORIZED } from "./categories";
 import { formatOkhDisplayTitle } from "./formatOkhDisplayTitle";
@@ -9,7 +12,7 @@ interface Props {
 }
 
 export function OkhListRow({ okh }: Props) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const title = formatOkhDisplayTitle(okh.title);
   const category =
     deriveCategories(okh).find((c) => c !== UNCATEGORIZED) ?? UNCATEGORIZED;
@@ -18,15 +21,13 @@ export function OkhListRow({ okh }: Props) {
   const processes = (okh.manufacturing_processes ?? []).slice(0, 3).join(", ");
 
   return (
-    <div className="flex flex-col gap-2 border-b border-slate-100 py-3 last:border-0 dark:border-slate-800 sm:flex-row sm:items-center sm:gap-4">
+    <div className="flex flex-col gap-2 border-b border-border py-3 last:border-0 sm:flex-row sm:items-center sm:gap-4">
       <Link
-        to={`/okh/${okh.id}`}
-        className="min-w-0 flex-1 no-underline hover:text-indigo-600 dark:hover:text-indigo-400"
+        href={`/okh/${okh.id}`}
+        className="min-w-0 flex-1 no-underline hover:text-primary-ink"
       >
-        <div className="font-medium text-slate-800 dark:text-slate-100 break-words">
-          {title}
-        </div>
-        <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500">
+        <div className="font-medium text-foreground break-words">{title}</div>
+        <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
           <span>{category}</span>
           {processes && <span>{processes}</span>}
           <span>{author}</span>
@@ -35,10 +36,10 @@ export function OkhListRow({ okh }: Props) {
         </div>
       </Link>
       <button
-        onClick={() => navigate(`/match?okh_id=${okh.id}`)}
-        className="shrink-0 self-start rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900 sm:self-center"
+        onClick={() => router.push(`/match?okh_id=${okh.id}`)}
+        className="shrink-0 self-start rounded-md bg-accent px-3 py-1 text-xs font-medium text-primary-ink hover:bg-accent transition-colors sm:self-center"
       >
-        Run Match ⚡
+        Run Match
       </button>
     </div>
   );

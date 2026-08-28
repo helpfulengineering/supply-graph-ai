@@ -1,4 +1,6 @@
-import { useParams } from "react-router-dom";
+"use client";
+
+import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOkwDetail } from "../../api/ohm/okw";
 import { LoadingState, ErrorState } from "../../components/ui/states";

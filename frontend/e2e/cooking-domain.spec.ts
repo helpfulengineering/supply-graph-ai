@@ -59,7 +59,7 @@ test("a recipe card opens its detail page", async ({ page }, testInfo) => {
 
   await page.getByRole("link", { name: "Sourdough Loaf" }).click();
 
-  await expect(page).toHaveURL(/\/okh\/recipe-1$/);
+  await expect(page).toHaveURL(/\/okh\/recipe-1(\?|$)/);
   await expect(page.getByRole("heading", { name: "Sourdough Loaf", level: 1 })).toBeVisible();
 
   // The three panels are the whole point of the detail page.
@@ -81,9 +81,9 @@ test("Run Match on a recipe card preselects that recipe", async ({ page }, testI
   await useCookingDomain(page);
   await page.goto("/okh");
 
-  await page.getByRole("button", { name: "Run Match ⚡" }).first().click();
+  await page.getByRole("button", { name: "Run Match" }).first().click();
 
-  await expect(page).toHaveURL(/\/match\?recipe_id=recipe-1$/);
+  await expect(page).toHaveURL(/\/match\?recipe_id=recipe-1\b/);
   await expect(page.getByRole("heading", { name: "Match a Recipe", level: 1 })).toBeVisible();
 });
 
@@ -92,9 +92,9 @@ test("Run Match on a recipe detail page preselects that recipe", async ({ page }
   await useCookingDomain(page);
   await page.goto("/okh/recipe-2");
 
-  await page.getByRole("button", { name: "⚡ Run Match" }).click();
+  await page.getByRole("button", { name: "Run Match" }).click();
 
-  await expect(page).toHaveURL(/\/match\?recipe_id=recipe-2$/);
+  await expect(page).toHaveURL(/\/match\?recipe_id=recipe-2\b/);
   await expect(page.getByRole("heading", { name: "Match a Recipe", level: 1 })).toBeVisible();
 });
 
@@ -108,14 +108,14 @@ test("cooking match guards on recipe and kitchen selection", async ({ page }, te
   await expect(
     page.getByText("Search and select a recipe above before running a match."),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "⚡ Run Match" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Run Match" })).toBeDisabled();
 
   // Recipe preselected but no kitchens chosen: still guarded, different reason.
   await page.goto("/match?recipe_id=recipe-1");
   await expect(
     page.getByText("Select at least one kitchen below before running a match."),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "⚡ Run Match" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Run Match" })).toBeDisabled();
 
   await expectNoA11yViolations(page);
 });
@@ -125,25 +125,31 @@ test("the domain toggle reshapes primary nav and persists across reloads", async
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "browser-local preference");
   const nav = page.getByRole("navigation", { name: "Primary navigation" });
+  const openMenu = () =>
+    page.getByRole("button", { name: "Site menu" }).click();
 
   // A fresh browser is manufacturing, and the server default agrees.
   await page.goto("/settings/domain");
-  await expect(nav.getByRole("link", { name: "Designs" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Facilities" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Packages" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Match" })).toBeVisible();
+  await openMenu();
+  await expect(nav.getByRole("link", { name: /^Designs\b/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Facilities\b/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Packages\b/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Match\b/ })).toBeVisible();
 
+  await page.keyboard.press("Escape");
   await page.getByRole("radio", { name: /Cooking/ }).check();
+  await openMenu();
 
   // Cooking renames two entries and drops the other two entirely.
-  await expect(nav.getByRole("link", { name: "Recipes" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Kitchens" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Packages" })).toHaveCount(0);
-  await expect(nav.getByRole("link", { name: "Match" })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: /^Recipes\b/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Kitchens\b/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Packages\b/ })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: /^Match\b/ })).toHaveCount(0);
 
   // localStorage owns the choice once it exists, so a reload keeps it.
   await page.reload();
-  await expect(nav.getByRole("link", { name: "Recipes" })).toBeVisible();
+  await openMenu();
+  await expect(nav.getByRole("link", { name: /^Recipes\b/ })).toBeVisible();
   await expect(page.getByRole("radio", { name: /Cooking/ })).toBeChecked();
 
   await expectNoA11yViolations(page);

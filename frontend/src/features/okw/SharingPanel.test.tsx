@@ -13,7 +13,10 @@ vi.mock("../../context/AuthContext", () => ({
 describe("SharingPanel", () => {
   it("composes visibility and disclosure under one Sharing heading", async () => {
     const client = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
     });
     render(
       <QueryClientProvider client={client}>
@@ -21,7 +24,9 @@ describe("SharingPanel", () => {
       </QueryClientProvider>,
     );
 
-    expect(await screen.findByRole("heading", { name: /^Sharing$/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: /^Sharing$/i }),
+    ).toBeInTheDocument();
     expect(
       await screen.findByRole("heading", { name: /Who can receive this/i }),
     ).toBeInTheDocument();
@@ -29,7 +34,9 @@ describe("SharingPanel", () => {
       await screen.findByRole("heading", { name: /How much they see/i }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(/Nothing is exported while visibility is private/i),
+      await screen.findByText(
+        /Nothing is exported while visibility is private/i,
+      ),
     ).toBeInTheDocument();
   });
 });

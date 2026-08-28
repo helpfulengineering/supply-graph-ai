@@ -37,7 +37,9 @@ describe("DisclosureControl", () => {
       await screen.findByRole("heading", { name: /How much they see/i }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(/Nothing is exported while visibility is private/i),
+      await screen.findByText(
+        /Nothing is exported while visibility is private/i,
+      ),
     ).toBeInTheDocument();
     expect(document.getElementById("followers-identity")).toBeDisabled();
   });
@@ -67,15 +69,19 @@ describe("DisclosureControl", () => {
           visibility: "followers",
           exported: true,
           groups: ["identity"],
-          facility: { id: "okw-1", name: "Test Fab Lab", facility_status: "Active" },
+          facility: {
+            id: "okw-1",
+            name: "Test Fab Lab",
+            facility_status: "Active",
+          },
         }),
       ),
     );
     renderControl();
     expect(await screen.findByText(/active for export/i)).toBeInTheDocument();
-    expect(await screen.findByTestId("disclosure-preview-json")).toHaveTextContent(
-      "Test Fab Lab",
-    );
+    expect(
+      await screen.findByTestId("disclosure-preview-json"),
+    ).toHaveTextContent("Test Fab Lab");
   });
 
   it("disables toggles when user lacks write", async () => {

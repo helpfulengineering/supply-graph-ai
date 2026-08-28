@@ -1,26 +1,24 @@
+import { LoadingState } from "./states";
+
 interface Props {
   message?: string;
   className?: string;
 }
 
+/**
+ * The older spelling of `LoadingState`, and now the same component.
+ *
+ * These were two implementations of one thing: identical layout, identical
+ * default message, differing only in which borrowed glyph they span — and
+ * only one of them was in a live region, so half the app's loading states
+ * were silent to a screen reader depending on which import a view happened to
+ * pick. The mark-based loader made that split visible, since a page could
+ * show the product's own mark in one panel and a generic arc in the next.
+ *
+ * Collapsing the ~20 call sites onto `LoadingState` is a rename, not a
+ * behaviour change, and belongs in its own change; this makes the two
+ * spellings mean the same thing today.
+ */
 export function LoadingSpinner({ message = "Loading…", className = "" }: Props) {
-  return (
-    <div className={`flex flex-col items-center justify-center gap-3 py-16 text-slate-500 dark:text-slate-400 ${className}`}>
-      <svg
-        className="h-8 w-8 animate-spin text-indigo-500"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-        />
-      </svg>
-      <span className="text-sm">{message}</span>
-    </div>
-  );
+  return <LoadingState message={message} className={className} />;
 }

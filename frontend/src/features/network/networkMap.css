@@ -1,0 +1,47 @@
+/* Touch-sized map controls.
+   Leaflet ships 26px zoom buttons (30px once it detects touch itself) — under
+   the 44px a thumb wants, and on a device with no scroll wheel they are the
+   only way to zoom that is not a pinch. Gated on the pointer so the desktop
+   control keeps its compact size. */
+@media (pointer: coarse) {
+  .leaflet-bar a,
+  .leaflet-touch .leaflet-bar a {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    font-size: 22px;
+  }
+}
+
+/* The plugin's own palette, switched off.
+   MarkerCluster.Default.css paints every bubble green, amber or orange by how
+   many points it holds — three colours on a map whose key names two, none of
+   them ours, encoding a count the number in the middle already states. The
+   bubble is drawn entirely by `clusterIcon`, so the defaults only have to stop
+   painting underneath it. */
+.ohm-cluster,
+.marker-cluster,
+.marker-cluster div {
+  background: none;
+  border-radius: 0;
+}
+
+/* The world's tiles, without a second tile provider.
+   OpenStreetMap's standard raster tiles arrive already painted, so they are
+   the one surface the token layer cannot reach through a var(). This used to
+   be a fixed `invert(1) hue-rotate(180deg)` on `.dark`, which does make light
+   tiles dark — but at whatever hue inverting OSM's blue water produces, the
+   same in all twenty worlds, and with nothing at all for the light ones. The
+   map was themed in the sense that it had A colour, not the world's.
+
+   The value now comes from `tileFilter.ts`, computed from --ttm-bg and set on
+   the container by NetworkMap. Kept as a custom property with a neutral
+   fallback so the tiles are still legible for the frame before it resolves,
+   and so a world that never sets it degrades to plain tiles rather than none.
+
+   Scoped to the tile pane on purpose: markers, cluster bubbles, popups and
+   controls are ours and already carry the world's colours, so filtering them
+   too would undo exactly the work the key depends on. */
+.leaflet-tile-pane {
+  filter: var(--ohm-tile-filter, none);
+}

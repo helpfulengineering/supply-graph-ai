@@ -1,4 +1,9 @@
 import { http, HttpResponse } from "msw";
+
+// The API parses okh_id as a UUID, so these must be well-formed: the client
+// now rejects anything else before the request, which is not what these tests
+// are exercising.
+const DEMO_OKH_ID = "51965300-d162-5ece-b77d-e8bc17756c02";
 import { describe, expect, it } from "vitest";
 import { server } from "../../test/msw/server";
 import { ApiError } from "./client";
@@ -13,13 +18,16 @@ describe("runMatch", () => {
         return HttpResponse.json({ data: { solutions: [] } });
       }),
     );
-    const res = await runMatch({ okhId: "okh-1" });
-    expect(body!.okh_id).toBe("okh-1");
+    const res = await runMatch({ okhId: DEMO_OKH_ID });
+    expect(body!.okh_id).toBe(DEMO_OKH_ID);
     expect(res.data?.solutions).toEqual([]);
   });
 
   it("sends network_filter together with okw_ids for a network subset", async () => {
-    let body: { network_filter?: Record<string, unknown>; okw_ids?: unknown } | null = null;
+    let body: {
+      network_filter?: Record<string, unknown>;
+      okw_ids?: unknown;
+    } | null = null;
     server.use(
       http.post("*/v1/api/match", async ({ request }) => {
         body = (await request.json()) as {
@@ -30,7 +38,7 @@ describe("runMatch", () => {
       }),
     );
     await runMatch({
-      okhId: "okh-1",
+      okhId: DEMO_OKH_ID,
       okwIds: ["a"],
       networkFilter: { country: "FR", include_mom: true },
     });
@@ -47,7 +55,7 @@ describe("runMatch", () => {
         ),
       ),
     );
-    await expect(runMatch({ okhId: "x" })).rejects.toMatchObject({
+    await expect(runMatch({ okhId: DEMO_OKH_ID })).rejects.toMatchObject({
       name: "ApiError",
       status: 503,
       requestId: "req-503",
@@ -60,11 +68,21 @@ describe("fetchDesignsForFacility", () => {
     let body: { okw_id?: string; min_confidence?: number } | null = null;
     server.use(
       http.post("*/v1/api/match/facility", async ({ request }) => {
-        body = (await request.json()) as { okw_id?: string; min_confidence?: number };
+        body = (await request.json()) as {
+          okw_id?: string;
+          min_confidence?: number;
+        };
         return HttpResponse.json({
           data: {
             facility_name: "Laser Fab Lab",
-            designs: [{ okh_id: "okh-0001", okh_title: "Open Ventilator", confidence: 0.9, rank: 1 }],
+            designs: [
+              {
+                okh_id: "okh-0001",
+                okh_title: "Open Ventilator",
+                confidence: 0.9,
+                rank: 1,
+              },
+            ],
             total_designs: 1,
           },
         });
@@ -83,6 +101,8 @@ describe("fetchDesignsForFacility", () => {
         HttpResponse.json({ detail: "nope" }, { status: 404 }),
       ),
     );
-    await expect(fetchDesignsForFacility("missing")).rejects.toBeInstanceOf(ApiError);
+    await expect(fetchDesignsForFacility("missing")).rejects.toBeInstanceOf(
+      ApiError,
+    );
   });
 });

@@ -11,7 +11,7 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -20,7 +20,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "plugins": [{ "name": "next" }]
   },
-  "include": ["src"]
+  "include": ["src", "app", "proxy.ts", "next-env.d.ts", ".next/types/**/*.ts"]
 }

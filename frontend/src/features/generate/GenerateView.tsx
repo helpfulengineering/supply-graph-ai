@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Generate an OKH manifest from one or more repository URLs.
  *
@@ -11,8 +13,18 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
+import {
+  PANEL,
+  PANEL_ACCENT,
+  PANEL_DANGER,
+  PANEL_INSET,
+  PANEL_WARNING,
+} from "../../components/ui/surface";
+import { PageHero } from "../../components/layout/PageHero";
 import { useQueries } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import { withNavState } from "../../lib/navState";
 import { ApiError } from "../../api/ohm/client";
 import {
   getGenerateJobStatus,
@@ -33,6 +45,7 @@ import {
   progressPercent,
   stageLabel,
 } from "./jobProgress";
+import { cn } from "@/lib/utils";
 
 type Manifest = Record<string, unknown>;
 
@@ -87,10 +100,10 @@ function ProgressBar({
         aria-valuemax={100}
         aria-valuenow={value}
         aria-label={label}
-        className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
+        className="h-2 overflow-hidden rounded-full bg-muted"
       >
         <div
-          className="h-full rounded-full bg-indigo-600 transition-[width] duration-300"
+          className="h-full rounded-full bg-primary transition-[width] duration-300"
           style={{ width: `${value}%` }}
         />
       </div>
@@ -99,7 +112,7 @@ function ProgressBar({
 }
 
 export function GenerateView() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -114,8 +127,9 @@ export function GenerateView() {
       queryKey: ["okh-generate-job", job.job_id] as const,
       queryFn: () => getGenerateJobStatus(job.job_id),
       enabled: active && jobs.length > 0,
-      refetchInterval: (q: { state: { data: GenerateJobStatus | undefined } }) =>
-        isTerminalJobState(q.state.data?.state) ? false : 1000,
+      refetchInterval: (q: {
+        state: { data: GenerateJobStatus | undefined };
+      }) => (isTerminalJobState(q.state.data?.state) ? false : 1000),
       retry: false,
     })),
   });
@@ -142,7 +156,9 @@ export function GenerateView() {
   useEffect(() => {
     if (!active || !allTerminal) return;
     setActive(false);
-    const successes = statuses.filter((s) => s.state === "SUCCESS" && s.manifest);
+    const successes = statuses.filter(
+      (s) => s.state === "SUCCESS" && s.manifest,
+    );
     const failures = statuses.filter((s) => s.state === "FAILURE");
     if (successes.length === 0) {
       if (failures.length > 0) {
@@ -204,19 +220,31 @@ export function GenerateView() {
   const showProgress = active || (jobs.length > 0 && !manifest && !allTerminal);
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Generate a design from a URL</h1>
+        {/* Stages of one flow, not places — and two of the three do not exist
+            until you run it: the progress list and the manifest editor are
+            rendered conditionally, so anchors to them would be dead links on
+            the page as first loaded. Terms rather than a string so that reads
+            as the decision it is. */}
+        <PageHero
+          title="Generate a design from a URL"
+          crumb={[
+            { label: "repository" },
+            { label: "extraction" },
+            { label: "review" },
+          ]}
+        />
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Point OHM at a public GitHub or GitLab repository and it will read what's there
-          into a structured design record. You can paste several URLs separated by commas.
-          Extraction is imperfect by nature — you review and correct it before doing
-          anything with it.
+          Point OHM at a public GitHub or GitLab repository and it will read
+          what's there into a structured design record. You can paste several
+          URLs separated by commas. Extraction is imperfect by nature — you
+          review and correct it before doing anything with it.
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-        <label htmlFor="repo-url" className="block text-sm font-medium text-foreground">
+      <div className={PANEL}>
+        <label htmlFor="repo-url" className={LABEL}>
           Repository URL(s)
         </label>
         <div className="mt-1.5 flex gap-2">
@@ -235,13 +263,13 @@ export function GenerateView() {
             }}
             aria-invalid={urlError ? true : undefined}
             aria-describedby={urlError ? "repo-url-error" : "repo-url-hint"}
-            className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+            className={`${FIELD} flex-1`}
           />
           <button
             type="button"
             onClick={() => void run()}
             disabled={active}
-            className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+            className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-on-accent hover:bg-primary disabled:opacity-60"
           >
             {active ? "Reading…" : "Generate"}
           </button>
@@ -253,7 +281,7 @@ export function GenerateView() {
           <p
             id="repo-url-error"
             role="alert"
-            className="mt-1.5 text-sm text-red-600 dark:text-red-400"
+            className="mt-1.5 text-sm text-destructive"
           >
             {urlError}
           </p>
@@ -261,10 +289,7 @@ export function GenerateView() {
       </div>
 
       {showProgress && (
-        <div
-          role="status"
-          className="space-y-4 rounded-xl border border-indigo-100 bg-indigo-50 p-5 dark:border-indigo-900 dark:bg-indigo-950/30"
-        >
+        <div role="status" className={cn(PANEL_ACCENT, "space-y-4")}>
           <ProgressBar
             id="generate-aggregate-progress"
             label={
@@ -294,7 +319,7 @@ export function GenerateView() {
             <button
               type="button"
               onClick={() => void cancel()}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
+              className={FIELD_SM}
             >
               Cancel
             </button>
@@ -305,14 +330,18 @@ export function GenerateView() {
       {error && (
         <p
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+          className={cn(
+            PANEL_DANGER,
+            "text-sm text-destructive bg-destructive/10",
+          )}
         >
           {error}
         </p>
       )}
 
       {allTerminal &&
-        statuses.filter((s) => s.state === "SUCCESS" && s.manifest).length > 1 && (
+        statuses.filter((s) => s.state === "SUCCESS" && s.manifest).length >
+          1 && (
           <div className="flex flex-wrap gap-2">
             {statuses
               .filter((s) => s.state === "SUCCESS" && s.manifest)
@@ -323,12 +352,14 @@ export function GenerateView() {
                   onClick={() => {
                     setSelectedJobId(s.job_id);
                     setManifest(s.manifest as Manifest);
-                    setReport((s.quality_report as OkhQualityReport | null) ?? null);
+                    setReport(
+                      (s.quality_report as OkhQualityReport | null) ?? null,
+                    );
                   }}
                   className={
                     selectedJobId === s.job_id
-                      ? "rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white"
-                      : "rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
+                      ? "rounded-md bg-primary px-3 py-1.5 text-sm text-on-accent"
+                      : "rounded-md border border-border px-3 py-1.5 text-sm"
                   }
                 >
                   Review {s.url?.replace(/^https:\/\//, "")}
@@ -339,14 +370,10 @@ export function GenerateView() {
 
       {manifest && banner && (
         <>
-          <div
-            className={
-              banner.tone === "warn"
-                ? "rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/40"
-                : "rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40"
-            }
-          >
-            <p className="text-sm font-medium text-foreground">{banner.headline}</p>
+          <div className={banner.tone === "warn" ? PANEL_WARNING : PANEL_INSET}>
+            <p className="text-sm font-medium text-foreground">
+              {banner.headline}
+            </p>
             {banner.recommendations.length > 0 && (
               <ul className="mt-2 list-disc pl-5 text-sm text-muted-foreground">
                 {banner.recommendations.map((r) => (
@@ -356,7 +383,7 @@ export function GenerateView() {
             )}
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+          <div className={PANEL}>
             <TieredEditor manifest={manifest} onChange={setManifest} />
           </div>
 
@@ -365,7 +392,7 @@ export function GenerateView() {
               type="button"
               disabled={missing.length > 0}
               onClick={() => downloadManifest(manifest, "yaml")}
-              className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+              className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-on-accent hover:bg-primary disabled:opacity-60"
             >
               Download YAML
             </button>
@@ -373,7 +400,7 @@ export function GenerateView() {
               type="button"
               disabled={missing.length > 0}
               onClick={() => downloadManifest(manifest, "json")}
-              className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold disabled:opacity-60 dark:border-slate-600"
+              className={`${FIELD} px-5 font-semibold disabled:opacity-60`}
             >
               Download JSON
             </button>
@@ -381,29 +408,31 @@ export function GenerateView() {
               type="button"
               disabled={missing.length > 0}
               onClick={() =>
-                navigate("/match", {
-                  state: {
+                router.push(
+                  withNavState("/match", {
                     okhManifest: manifest,
                     okhTitle:
-                      typeof manifest.title === "string" ? manifest.title : undefined,
-                  },
-                })
+                      typeof manifest.title === "string"
+                        ? manifest.title
+                        : undefined,
+                  }),
+                )
               }
-              className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold disabled:opacity-60 dark:border-slate-600"
+              className={`${FIELD} px-5 font-semibold disabled:opacity-60`}
             >
               Find who can build this
             </button>
             {missing.length > 0 && (
-              <p className="text-sm text-amber-700 dark:text-amber-400">
-                Fill in {missing.length} required field{missing.length === 1 ? "" : "s"}{" "}
-                first.
+              <p className="text-sm text-warning">
+                Fill in {missing.length} required field
+                {missing.length === 1 ? "" : "s"} first.
               </p>
             )}
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Generated designs aren't saved to the catalogue — download the file and keep
-            it, or add it yourself once you're happy with it.
+            Generated designs aren't saved to the catalogue — download the file
+            and keep it, or add it yourself once you're happy with it.
           </p>
         </>
       )}

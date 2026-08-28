@@ -75,7 +75,7 @@ dependencies = [
     "faker>=19.0.0",
     "geopy>=2.3.0",
     # Document parsing
-    # Security pin: PYSEC-2026-3655, PYSEC-2026-3656 (fixed 6.15.0).
+    # >=6.15.0 fixes PYSEC-2026-3655 and PYSEC-2026-3656.
     "pypdf>=6.15.0",
     "python-docx>=1.0.0",
     # TOML
@@ -150,9 +150,10 @@ override-dependencies = [
     "urllib3>=2.7.0",
     "idna>=3.15",
     # Security pins (pip-audit / OSV) — bump when CI security gate fails.
-    # GHSA-fjr4-x663-mwxc, GHSA-6p8h-3wgx-97gf, GHSA-r9mr-m37c-5fr3 (fixed 3.1.54),
-    # GHSA-94p4-4cq8-9g67 (fixed 3.1.55), and GHSA-9rj7-rf2p-w77r, GHSA-4gmw-gg2m-w46p,
-    # GHSA-hh9p-6wh2-4mfc, GHSA-wvpp-8hx9-p66j, GHSA-jm78-9fvv-mhgr (fixed 3.1.58).
+    # GHSA-fjr4-x663-mwxc, GHSA-6p8h-3wgx-97gf, GHSA-r9mr-m37c-5fr3 (fixed 3.1.54)
+    # and GHSA-94p4-4cq8-9g67 (fixed 3.1.55).
+    # >=3.1.58 fixes GHSA-9rj7-rf2p-w77r, GHSA-4gmw-gg2m-w46p,
+    # GHSA-hh9p-6wh2-4mfc, GHSA-wvpp-8hx9-p66j and GHSA-jm78-9fvv-mhgr.
     "gitpython>=3.1.58",
     "pillow>=12.3.0",
     "pyasn1>=0.6.4",

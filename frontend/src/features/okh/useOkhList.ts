@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useCallback, useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { fetchAllOkhList } from "../../api/ohm/okh";
 import type { OkhManifest } from "../../types/okh";
 import {
@@ -54,7 +54,12 @@ function textMatches(item: OkhManifest, q: string): boolean {
 }
 
 function parseList(raw: string | null): string[] {
-  return raw ? raw.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  return raw
+    ? raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
 }
 
 function parseView(raw: string | null): CatalogView {
@@ -71,7 +76,19 @@ function parseGroupBy(raw: string | null): CatalogGroupBy {
 }
 
 export function useOkhCatalog() {
-  const [params, setParams] = useSearchParams();
+  const params = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  // Next's useSearchParams is read-only; catalog state writes go through a
+  // history replace so refinements never grow the back stack (matching the
+  // previous `setParams(next, { replace: true })`).
+  const setParams = useCallback(
+    (next: URLSearchParams) => {
+      const qs = next.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [router, pathname],
+  );
 
   const query = useQuery({
     queryKey: ["okh-list"],
@@ -126,7 +143,7 @@ export function useOkhCatalog() {
     const next = new URLSearchParams(params);
     fn(next);
     next.delete("page"); // any refinement resets to page 1
-    setParams(next, { replace: true });
+    setParams(next);
   }
 
   function toggleFacet(key: FacetKey, value: string) {
@@ -154,7 +171,7 @@ export function useOkhCatalog() {
   function setPage(next: number) {
     const p = new URLSearchParams(params);
     p.set("page", String(next));
-    setParams(p, { replace: true });
+    setParams(p);
   }
 
   function setView(next: CatalogView) {

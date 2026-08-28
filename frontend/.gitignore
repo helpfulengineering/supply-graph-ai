@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.next/
 .env
 *.local
 
@@ -12,3 +13,4 @@ test-results/
 # pattern (for Python build output) that would otherwise swallow it.
 !/src/lib/
 
+frontend/playwright.local.ts
