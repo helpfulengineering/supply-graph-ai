@@ -26,6 +26,7 @@ const FacilityChart = dynamic(
 );
 import { ArtifactLinks } from "./ArtifactLinks";
 import { ComponentsPanel } from "./ComponentsPanel";
+import { PanelBoundary } from "@/components/ui/PanelBoundary";
 import { downloadSolutionJson } from "./downloadSolution";
 import {
   LoadingState,
@@ -94,13 +95,21 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         }
       />
 
-      <StalenessBanner solutionId={solutionId} />
+      <PanelBoundary label="Staleness">
+        <StalenessBanner solutionId={solutionId} />
+      </PanelBoundary>
 
       <KpiCards kpis={deriveKpis(data)} />
 
+      {/* Bounded separately: two third-party canvases over one payload, so a
+          failure in either should not take the other. */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <SupplyTreeGraph data={data} />
-        <FacilityChart data={data} />
+        <PanelBoundary label="Supply tree">
+          <SupplyTreeGraph data={data} />
+        </PanelBoundary>
+        <PanelBoundary label="Facilities">
+          <FacilityChart data={data} />
+        </PanelBoundary>
       </div>
 
       {(() => {
@@ -159,9 +168,13 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         );
       })()}
 
-      <ComponentsPanel solutionId={solutionId} />
+      <PanelBoundary label="Components">
+        <ComponentsPanel solutionId={solutionId} />
+      </PanelBoundary>
 
-      <ArtifactLinks data={data} solutionId={solutionId} />
+      <PanelBoundary label="Artifacts">
+        <ArtifactLinks data={data} solutionId={solutionId} />
+      </PanelBoundary>
     </div>
   );
 }

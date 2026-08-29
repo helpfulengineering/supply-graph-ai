@@ -1264,7 +1264,15 @@ export const solutionHierarchyFixture = {
   message: "Hierarchy retrieved",
   data: {
     hierarchy: {},
-    root_components: ["frame"],
+    // Objects, not ids — matching the API. A fixture of bare strings is what
+    // let a render of `{root}` pass its tests and throw React #31 for a user.
+    root_components: [
+      {
+        component_id: "frame",
+        component_name: "Frame",
+        tree_id: "11111111-1111-1111-1111-111111111111",
+      },
+    ],
     component_details: { frame: { name: "Frame" } },
     summary: {
       total_components: 1,
@@ -1295,13 +1303,18 @@ export const matchDomainsFixture = {
   data: {
     domains: [
       {
-        name: "manufacturing",
+        // `id` and `name` are deliberately different strings. A fixture that
+        // used the key for both made binding the selector to `name` look
+        // correct while it sent an unmatchable value to the server.
+        id: "manufacturing",
+        name: "Manufacturing & Hardware Production",
         status: "available",
         version: "1.0",
         supported_input_types: ["okh"],
       },
       {
-        name: "cooking",
+        id: "cooking",
+        name: "Cooking & Food Preparation",
         status: "available",
         version: "0.1",
         supported_input_types: ["recipe"],

@@ -129,8 +129,15 @@ export async function extendSolutionTtl(
   }
 }
 
+/** A top-level component in a solution's hierarchy — an object, not an id. */
+export interface RootComponent {
+  component_id: string;
+  component_name: string;
+  tree_id: string;
+}
+
 export interface SolutionHierarchy {
-  root_components: string[];
+  root_components: RootComponent[];
   component_details: Record<string, unknown>;
   summary: {
     total_components?: number;
@@ -166,7 +173,11 @@ export async function fetchSolutionHierarchy(
   const body = (data ?? {}) as Record<string, unknown>;
   const payload = (body.data as Record<string, unknown>) ?? body;
   return {
-    root_components: (payload.root_components as string[]) ?? [],
+    // Still an assertion, now of the shape the API really returns. The route
+    // has no response model, so codegen types nothing here and the compiler
+    // cannot check this. Replaced by a generated type and a parsed boundary
+    // in #370/#373 — until then this is the seam a drift comes through.
+    root_components: (payload.root_components as RootComponent[]) ?? [],
     component_details:
       (payload.component_details as Record<string, unknown>) ?? {},
     summary: (payload.summary as SolutionHierarchy["summary"]) ?? {},

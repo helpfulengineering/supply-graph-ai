@@ -191,6 +191,9 @@ export async function fetchDesignsForFacility(
 }
 
 export interface MatchDomain {
+  /** The key the API matches on ("manufacturing"). */
+  id: string;
+  /** Display label ("Manufacturing & Hardware Production"). Not a valid `domain`. */
   name: string;
   status?: string | null;
   version?: string | null;
