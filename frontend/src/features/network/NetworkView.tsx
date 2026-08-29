@@ -3,7 +3,7 @@
 import { FacilitiesIllustration } from "../../components/ui/illustrations";
 import { FIELD, LABEL } from "../../components/ui/field";
 import { PageHero } from "../../components/layout/PageHero";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -63,6 +63,9 @@ function ViewToggle({
     />
   );
 }
+
+/** How long typing has to pause before the address catches up. */
+const NAME_QUERY_SYNC_MS = 250;
 
 export function NetworkView() {
   const router = useRouter();
@@ -213,10 +216,45 @@ export function NetworkView() {
     syncUrl({ page: next === 1 ? null : next });
   };
 
+  /**
+   * The address follows the search box, but not keystroke by keystroke.
+   *
+   * This wrote the URL on every character, so typing "FabLab Lyon" issued
+   * eleven `router.replace` calls. The box is local state and stays instant
+   * either way; what the writes buy is a shareable address, and an address is
+   * only worth writing once the typing pauses.
+   *
+   * Eleven navigations for eleven characters is also unreliable, not merely
+   * wasteful: under load the router coalesces them and the last one — the only
+   * one carrying the complete query — can fail to land. Reproduced under
+   * deliberate CPU contention, with the box correctly reading "Laser" and the
+   * address stuck one character behind at `q=Lase`.
+   *
+   * Held in a ref so the pending write always uses the CURRENT syncUrl, which
+   * closes over the latest search params. A timer capturing the callback at
+   * schedule time would merge its update onto a snapshot taken a keystroke ago
+   * and could drop a filter changed in between.
+   */
+  const syncUrlRef = useRef(syncUrl);
+  useEffect(() => {
+    syncUrlRef.current = syncUrl;
+  }, [syncUrl]);
+
+  const nameSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (nameSyncTimer.current) clearTimeout(nameSyncTimer.current);
+    },
+    [],
+  );
+
   const applyNameQuery = (next: string) => {
     setNameQuery(next);
     setPage(1);
-    syncUrl({ q: next || null, page: null });
+    if (nameSyncTimer.current) clearTimeout(nameSyncTimer.current);
+    nameSyncTimer.current = setTimeout(() => {
+      syncUrlRef.current({ q: next || null, page: null });
+    }, NAME_QUERY_SYNC_MS);
   };
 
   return (

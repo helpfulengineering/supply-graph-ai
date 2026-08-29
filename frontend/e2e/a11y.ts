@@ -6,6 +6,32 @@ import { expect, type Page } from "@playwright/test";
  * serious or critical violations. Feature slices call this on each journey.
  */
 export async function expectNoA11yViolations(page: Page): Promise<void> {
+  // Wait for the document to finish loading before scanning.
+  //
+  // axe judges the document it is handed, and a document still being parsed is
+  // not the one under test. `<title>` is the tell: it lives in <head>, so a
+  // scan landing mid-parse reports `document-title` ("Documents must have
+  // <title> element") against a page whose title arrives microseconds later.
+  //
+  // The window is narrow enough to be invisible on an idle machine and real on
+  // a loaded one. It widens when a client-side navigation falls back to a full
+  // browser navigation — Next does that when an RSC payload fetch fails, which
+  // a busy runner makes likely — because that replaces the settled document
+  // with a fresh one mid-test. Reproduced under deliberate CPU contention:
+  // `document-title`, serious, on a recipe detail page reached by a click.
+  //
+  // `complete` rather than `domcontentloaded`: a document that has parsed its
+  // head but not finished loading can still swap under the scan. If the
+  // document IS complete and the title is still missing, that is a real
+  // violation and this wait does not hide it.
+  await page
+    .waitForFunction(() => document.readyState === "complete", undefined, {
+      timeout: 5_000,
+    })
+    .catch(() => {
+      /* a page that never reports complete is the scan's problem, not ours */
+    });
+
   // Wait for animations to finish before scanning.
   //
   // Elements fade in (tw-animate-css), and axe computes contrast from whatever
