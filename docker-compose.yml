@@ -17,7 +17,7 @@
 services:
   # Open Hardware Manager API Server
   ohm-api:
-    image: touchthesun/openhardwaremanager:${OHM_VERSION:-0.11.0}
+    image: touchthesun/openhardwaremanager:${OHM_VERSION:-0.11.1}
     build:
       context: .
       dockerfile: Dockerfile
@@ -132,7 +132,7 @@ services:
 
   # Celery worker sidecar (same image as ohm-api, worker entrypoint mode).
   ohm-worker:
-    image: touchthesun/openhardwaremanager:${OHM_VERSION:-0.11.0}
+    image: touchthesun/openhardwaremanager:${OHM_VERSION:-0.11.1}
     build:
       context: .
       dockerfile: Dockerfile
@@ -179,7 +179,7 @@ services:
   # Web UI. Serves the SPA and reverse-proxies /v1 to the API, so the browser
   # talks to one origin and there is no CORS configuration to get wrong.
   ohm-frontend:
-    image: touchthesun/openhardwaremanager-frontend:${OHM_VERSION:-0.11.0}
+    image: touchthesun/openhardwaremanager-frontend:${OHM_VERSION:-0.11.1}
     build: frontend
     container_name: ohm-frontend
     ports:

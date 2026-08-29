@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-08-29
+
+Ships the 0.11.0 frontend, which 0.11.0 itself could not.
+
+### Fixed
+
+- **The frontend image is built natively instead of under emulation.** The build
+  stage was unpinned, so Buildx ran the whole of it — `npm ci` and `next build` —
+  once per target architecture, with the `linux/arm64` pass emulated through
+  QEMU on an amd64 runner. Emulated `npm ci` is syscall-bound single-threaded
+  work and does not finish in a useful time: the 0.11.0 release sat on it for 52
+  minutes before it was cancelled, against 7 minutes for the Vite image it
+  replaced. The API, worker and GitHub Release published; the frontend did not.
+
+  The build stage is now pinned to `BUILDPLATFORM`. `next build` emits portable
+  JavaScript, so one native build serves both architectures and only the runtime
+  stage varies — and it does nothing but `COPY`. Measured locally: **2m33s for
+  both architectures**, with the build stage running once. The cross-built
+  `linux/amd64` image was verified to boot and serve, and `contract:proxy`
+  passes 10/10 against the result.
+
+### Changed
+
+- Image optimisation is declared off (`images: { unoptimized: true }`). Next
+  pulls `sharp` into the standalone output, and sharp ships a platform-specific
+  binary that is now the *build* architecture's. Nothing loads it — `next/image`
+  appears only in two comments explaining it has no meaning inside an
+  `ImageResponse` — so this states the existing property rather than changing
+  behaviour. A future change wanting `next/image` needs sharp for the target
+  architecture, installed in the runtime stage.
+
+
 ## [0.11.0] - 2026-08-29
 
 The web interface, rebuilt. Contributed as a 163-commit fork by
