@@ -16,6 +16,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+    # Only one job reads this today (site-layer-enabled), and it exists to keep
+    # ~4 minutes of Playwright off every backend-only pull request.
+    #
+    # Deliberately NOT a third-party filter action: this is one git diff, and a
+    # dependency that can read the workflow context is a poor trade for six
+    # lines of shell in a repo that otherwise uses only first-party actions.
+    #
+    # Anything that is not a pull request — a push to main or dev, a tag, a
+    # manual dispatch — answers "true" without looking. Those are the runs where
+    # the full picture matters and where a wrong answer is expensive; the
+    # shortcut is for PR feedback speed, not for the record.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Which areas does this change touch?
+        id: filter
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "not a pull request — running everything"
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # The workflow itself counts: editing the job that runs the suite has
+          # to re-run the suite, or the edit goes in unverified.
+          pattern='^(frontend/|\.github/workflows/ci-cd\.yml$)'
+          changed=$(git diff --name-only "$BASE...$HEAD")
+          echo "changed files:"; echo "$changed" | sed 's/^/  /'
+          if echo "$changed" | grep -qE "$pattern"; then touched=true; else touched=false; fi
+          echo "frontend touched: $touched"
+          echo "frontend=$touched" >> "$GITHUB_OUTPUT"
+
   quality:
     name: Quality (format, lint, repo-map)
     runs-on: ubuntu-latest
@@ -198,7 +241,9 @@ jobs:
       # lane — which carries the 20-variant theme contrast matrix and the
       # chart-ramp distinctness check. The site layer is absent from this
       # environment on purpose: the default (disabled) deployment is what CI
-      # must prove, and e2e/site-layer.spec.ts asserts it.
+      # must prove, and e2e/site-layer.spec.ts asserts it. The opposite posture
+      # is proved by the site-layer-enabled job below; neither direction is
+      # allowed to be the untested one.
       - name: frontend-ready
         run: npm run frontend-ready
 
@@ -209,6 +254,77 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
+          path: |
+            frontend/artifacts/test-results
+            frontend/artifacts/playwright-report
+          retention-days: 7
+          if-no-files-found: ignore
+
+  site-layer-enabled:
+    name: Frontend (site layer enabled)
+    runs-on: ubuntu-latest
+    needs: [quality, changes]
+    # Skipped on a pull request that touches no frontend file. GitHub reports a
+    # skipped job as successful to branch protection, so this stays safe to make
+    # a required check.
+    if: needs.changes.outputs.frontend == 'true' 
+    defaults:
+      run:
+        working-directory: frontend
+    # The site layer defaults to OFF and the job above proves that posture. This
+    # one proves the other, because "off is a first-class state" is a claim about
+    # a PAIR — it only means something if the enabled direction is also known to
+    # work. It was verified once by hand when the layer was written and then had
+    # no gate, which is the condition under which a capability rots silently and
+    # nobody finds out until the day they switch it on.
+    #
+    # The credentials are deliberately fake and point at a host that cannot
+    # resolve (.invalid is reserved by RFC 2606). That is not a shortcut around
+    # provisioning a project — it is the more interesting half of the contract.
+    # docs/architecture/site-layer.md promises that an unreachable or
+    # unprovisioned backend yields default gate copy rather than an error, and
+    # lib/site/stack.ts backs that with a catch on every call plus a dormant flag
+    # after the first failure. This job holds that promise to account. A live
+    # project would test the happy path and quietly stop testing this one.
+    env:
+      # NEXT_PUBLIC_* are inlined at BUILD time, so these must be set for the
+      # build, not merely for the test run.
+      NEXT_PUBLIC_OHM_SUPABASE_URL: https://ci-stub.supabase.invalid
+      NEXT_PUBLIC_OHM_SUPABASE_ANON_KEY: ci-stub-anon-key
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Fails loudly if the build did not take the env. A green suite against a
+      # disabled build proves nothing while looking exactly like proof, and that
+      # is the one failure mode this job cannot be allowed to have.
+      - name: Build, and confirm it is in the enabled posture
+        run: |
+          npm run build
+          grep -rq "ci-stub.supabase.invalid" .next/static/chunks/ \
+            || { echo "::error::site layer did not reach the client bundle — this job would be testing the disabled posture"; exit 1; }
+
+      - name: e2e (site layer enabled)
+        run: npm run e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-site-layer-enabled
           path: |
             frontend/artifacts/test-results
             frontend/artifacts/playwright-report
