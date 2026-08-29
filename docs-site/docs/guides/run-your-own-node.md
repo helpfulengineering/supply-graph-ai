@@ -50,21 +50,47 @@ that matters more than it sounds.
 
 ## Before anyone else can reach it
 
-**A node with no `API_KEYS` set accepts anonymous writes.** Anyone who can reach
-the port can create and delete designs. That is fine on a laptop and dangerous on
-a public IP.
+**A node in its default configuration accepts anonymous writes.** Anyone who can
+reach the port can create and delete designs. That is fine on a laptop and
+dangerous on a public IP.
 
-Set a credential before the node is reachable by anyone but you:
+Closing that takes **two** settings, and this is the part that catches people:
 
 ```bash
 echo "API_KEYS=$(openssl rand -hex 32)" >> .env
+echo "ENVIRONMENT=production" >> .env
 docker compose up -d
 ```
 
-Requests then carry it as `Authorization: Bearer <token>`, the same way the CLI
-and web interface do. This is also how you bootstrap the first credential on a
-new instance: there are no users yet, so `API_KEYS` is what you authenticate with
-to create everything else.
+`API_KEYS` supplies the credential. `ENVIRONMENT` decides whether one is
+*demanded*. Setting the key alone does not protect the node:
+
+| `ENVIRONMENT` | Anonymous write | Why |
+|---|---|---|
+| `development` (the default) | **Accepted, even with `API_KEYS` set** | Keeps dev and test flows frictionless |
+| `production` | Rejected, `401` | Write auth enforced |
+
+A key on a development node is accepted when you send it and not required when
+you don't — so if the node is reachable by anyone but you, `ENVIRONMENT` is the
+setting that matters. The `crisis` and `shielded` security modes enforce writes
+whatever `ENVIRONMENT` says.
+
+Reads stay open in every posture. It is writes that are gated.
+
+Requests carry the credential as `Authorization: Bearer <token>`, the same way
+the CLI and web interface do. This is also how you bootstrap the first
+credential on a new instance: there are no users yet, so `API_KEYS` is what you
+authenticate with to create everything else — see
+[get a write key](get-a-write-key.md) for creating narrower, revocable keys from
+it, which is what you want for anything beyond the first few minutes.
+
+A node in `production` also refuses to start without `LLM_ENCRYPTION_SALT` and
+`LLM_ENCRYPTION_PASSWORD`, which protect stored language-model credentials:
+
+```bash
+echo "LLM_ENCRYPTION_SALT=$(openssl rand -hex 16)" >> .env
+echo "LLM_ENCRYPTION_PASSWORD=$(openssl rand -hex 32)" >> .env
+```
 
 Redis is deliberately **not** published to your host — nothing outside the stack
 needs it, and an unauthenticated Redis reachable from the internet is a
