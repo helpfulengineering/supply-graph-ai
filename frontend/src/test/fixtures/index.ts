@@ -1263,7 +1263,9 @@ export const solutionHierarchyFixture = {
   status: "success",
   message: "Hierarchy retrieved",
   data: {
-    hierarchy: {},
+    // A list, as the API returns. Nothing in the app reads it yet, which is
+    // exactly why it drifted to `{}` unnoticed.
+    hierarchy: [],
     // Objects, not ids — matching the API. A fixture of bare strings is what
     // let a render of `{root}` pass its tests and throw React #31 for a user.
     root_components: [
