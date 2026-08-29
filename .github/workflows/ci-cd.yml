@@ -16,6 +16,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+    # Only one job reads this today (site-layer-enabled), and it exists to keep
+    # ~4 minutes of Playwright off every backend-only pull request.
+    #
+    # Deliberately NOT a third-party filter action: this is one git diff, and a
+    # dependency that can read the workflow context is a poor trade for six
+    # lines of shell in a repo that otherwise uses only first-party actions.
+    #
+    # Anything that is not a pull request — a push to main or dev, a tag, a
+    # manual dispatch — answers "true" without looking. Those are the runs where
+    # the full picture matters and where a wrong answer is expensive; the
+    # shortcut is for PR feedback speed, not for the record.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Which areas does this change touch?
+        id: filter
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "not a pull request — running everything"
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # The workflow itself counts: editing the job that runs the suite has
+          # to re-run the suite, or the edit goes in unverified.
+          pattern='^(frontend/|\.github/workflows/ci-cd\.yml$)'
+          changed=$(git diff --name-only "$BASE...$HEAD")
+          echo "changed files:"; echo "$changed" | sed 's/^/  /'
+          if echo "$changed" | grep -qE "$pattern"; then touched=true; else touched=false; fi
+          echo "frontend touched: $touched"
+          echo "frontend=$touched" >> "$GITHUB_OUTPUT"
+
   quality:
     name: Quality (format, lint, repo-map)
     runs-on: ubuntu-latest
@@ -220,7 +263,11 @@ jobs:
   site-layer-enabled:
     name: Frontend (site layer enabled)
     runs-on: ubuntu-latest
-    needs: quality
+    needs: [quality, changes]
+    # Skipped on a pull request that touches no frontend file. GitHub reports a
+    # skipped job as successful to branch protection, so this stays safe to make
+    # a required check.
+    if: needs.changes.outputs.frontend == 'true' 
     defaults:
       run:
         working-directory: frontend
