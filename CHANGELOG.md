@@ -7,6 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-29
+
+The web interface, rebuilt. Contributed as a 163-commit fork by
+[@binaryLady](https://github.com/binaryLady) and integrated over #358, #360 and
+#361. Also carries the cooking domain and three access-control fixes.
+
+A minor rather than a patch: the frontend is a different framework, the match
+surface has a second domain, and there is a new optional subsystem.
+
+### Added
+
+- **The cooking domain.** Recipes and kitchens are first-class alongside designs
+  and facilities: a domain toggle in Settings reshapes the primary nav, `/okh`
+  and `/facilities` browse the cooking catalog, recipe cards open a detail page
+  with ingredients, instructions and equipment, and "Run Match" hands a
+  preselected recipe to a cooking-aware match view. RFQ generation and coverage
+  explanations follow for cooking results. The choice is browser-local, and a
+  stored preference outranks the server default.
+- **A design system rather than a set of pages.** Colour, type and surfaces live
+  in one token layer, with guards asserting they stay there: no raw hex, no
+  hardcoded palette utilities, headings drawn from the type scale, panels from
+  named surface constants, one-of-N choices through a `SegmentedControl` that
+  implements the WAI-ARIA pattern once. A 20-variant theme matrix checks
+  contrast in every theme, and `--color-primary-ink` fixes the class of failure
+  where an accent used as text on a tinted surface sits between 3.8:1 and 4.5:1
+  — fine as a fill, failing as ink.
+- **New surfaces**: an assets register, a saved-solutions browse, a network map
+  with a mobile sheet, a demo mode with a deterministic world, an icon gallery,
+  a help page carrying the sitemap and keyboard chords, and real error and
+  loading states.
+- **An optional site layer**, off by default and quarantined behind a build-time
+  switch (`docs/architecture/site-layer.md`). With no Supabase configured the
+  instance is not degraded: no gate, no telemetry, `/operator-tools` 404s, and
+  the SDK is code-split out of the initial document. CI proves both postures.
+- **Federation** can fetch a package from a peer, and a facility can be
+  published to Maps of Making.
+
+### Fixed
+
+- **Federation routes authorized nothing.** Every route gated only on whether
+  the feature was enabled, never on who was calling, so `POST /sync/run` would
+  have auto-followed a supplied peer and ingested its manifests — an
+  unauthenticated write path into the object store, bypassing the gate
+  production security mode exists to apply. Write auth is now required.
+- **Private records were readable anonymously.** Visibility was enforced on the
+  federation plane and nowhere else, so a record the API itself reported as
+  `private` was listed, searchable and fetchable without credentials, address
+  included — contradicting our own published `who-can-see-your-data.md`. Read
+  paths now take a viewer and filter on shareability.
+- **Saved supply-tree solutions were listed to every caller.** The endpoint took
+  no user dependency and no owner filter against one shared storage prefix, so
+  any caller received every solution on the instance, each carrying a design
+  title and primary facility. Solutions now carry an owner and the listing is
+  scoped. This is the leak `df639dd` deferred rather than fixed.
+- **A default near-miss tolerance hid every match** in both domains, rendering
+  an empty state where the API had in fact returned results (#355, #356).
+- **The storage bootstrap restamped tracked placeholders on every startup** — it
+  probed a key the organizer never writes, so it re-seeded each time and left
+  `make ready` with a dirty tree.
+- Recipe manifests shaped like OKH are recognised by the discriminator; the
+  low-volatility cache refresh covers recipes and kitchens.
+
+### Changed
+
+- **The frontend is a Next.js standalone server, not a Vite SPA behind nginx.**
+  The container serves the same contract — `/v1` proxying with forwarding
+  headers, `/docs` terminating in a 404 rather than the app shell, `/healthz`,
+  `build-info.json` — through route handlers instead of an nginx config.
+  `frontend/harness/proxy-contract.mjs` asserts all ten behaviours against the
+  real image; the docs tree must be built (`make docs-site`) before the build.
+- `make ready` grows from 11 gates to 13, adding a repository-map staleness gate
+  and a demo-world drift gate.
+- Make targets are pinned to the committed lock (`UV_FROZEN`), so a gate run no
+  longer re-resolves a direct-URL dependency 13 times against the network.
+
+
 ### Added
 
 - **A facility can be published to Maps of Making.** The bridge only ran
