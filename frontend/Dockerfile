@@ -1,7 +1,18 @@
 # syntax=docker/dockerfile:1
 
 # ---- Build stage: compile the Next.js app to a standalone server ----
-FROM node:22-alpine AS build
+#
+# Pinned to BUILDPLATFORM so this stage runs once, natively, instead of once per
+# target architecture under QEMU. `next build` emits portable JavaScript, so one
+# build serves both architectures; only the runtime stage below has to vary, and
+# it does nothing but COPY.
+#
+# This is not a micro-optimisation. Emulated `npm ci` is syscall-bound
+# single-threaded work and it does not finish in a useful time: the v0.11.0
+# release sat on it for 52 minutes and was cancelled, against 7 minutes for the
+# Vite image this replaced. Dropping the emulated pass is the difference between
+# a release that ships and one that does not.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 
 # Install deps against the committed lockfile (reproducible, matches CI).
