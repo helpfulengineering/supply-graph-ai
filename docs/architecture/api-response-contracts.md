@@ -65,6 +65,22 @@ against the old code — if it doesn't, it isn't testing the contract.
 
 ## Enforcement
 
-`make ready` fails when a route the frontend calls has no response model, with
-an allowlist for routes not yet converted (#374). An intentional exception is a
-recorded row, not an absence — the same pattern as `tests/parity/manifest.py`.
+`make ready` fails when a route the frontend calls has no response model. The
+gate is `tests/parity/test_response_models.py`, run by `make parity`
+(`make ready` step [5/14]).
+
+It is a ratchet and fails in both directions, like `tests/parity/manifest.py`:
+
+- a frontend-called route that is untyped and unlisted fails the build, so the
+  class cannot reopen through a new endpoint;
+- a listed route that has since been typed also fails, so the list shrinks as
+  the work lands rather than rotting.
+
+"Frontend-called" is not re-derived there. It comes from
+`inventory.fe_api_call_sites`, the same source the API-coverage gate uses, so
+there is one definition of the question and a failure names the call site.
+
+`ALLOWLIST` holds the routes untyped at the time the gate was added — 34
+operations across 28 paths, which is the real scope of the conversion work. A
+row is a debt, not an exemption: adding one to get a build green is how the
+list stops shrinking.
