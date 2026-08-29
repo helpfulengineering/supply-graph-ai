@@ -5,16 +5,22 @@ repos:
       - id: black
         args: ["--config=pyproject.toml"]
 
-  - repo: local
-    hooks:
-      - id: update-repo-map
-        name: update repository map
-        # `uv run`, not bare `python`: the map is built by parsing every tracked
-        # source with ast, so an interpreter older than the project's
-        # requires-python (>=3.12) fails on newer syntax and silently writes
-        # "# Error:" placeholders instead of the symbols. That map then differs
-        # from the one CI regenerates, and the drift gate fails.
-        entry: bash -c 'uv run python scripts/generate_repo_map.py && git add .repo-map.md'
-        language: system
-        pass_filenames: false
-        always_run: true
+# There is deliberately no hook that regenerates .repo-map.md.
+#
+# It used to be one, and it could destroy uncommitted work. pre-commit stashes
+# unstaged changes before running hooks; a hook that rewrites a tracked file the
+# stash also touches makes the restore conflict, and pre-commit then rolls back,
+# leaving the changes only in ~/.cache/pre-commit/patch*. The map is exactly
+# that file: `make ready` tells you to run `make repo-map` when it is stale, so
+# it is routinely dirty in the worktree, and the hook ran on every commit.
+#
+# The map has one writer — `make repo-map`, which `make format` calls — and the
+# drift is caught three times over, all read-only:
+#
+#   * CI, on every push          .github/workflows/ci-cd.yml  (authoritative)
+#   * make ready [13/14]         repo-map-check
+#   * the unit suite             tests/unit/test_repo_map_generation.py
+#
+# A check-only hook is not the fix either: during the stash the tree is HEAD
+# plus staged files only, so a map generated then will not match one generated
+# from your full worktree, and every partial commit fails spuriously.
