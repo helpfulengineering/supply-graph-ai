@@ -8,6 +8,47 @@ This follows the same idiom as [`OHM_SECURITY_MODE`](security-modes.md): a
 posture selected by environment variable, read through config, never
 hard-coded.
 
+## Status: conditional keep, review by 2027-02-28
+
+No environment enables this layer. `config/environments/*.toml` does not mention
+Supabase, no deploy step sets the two `NEXT_PUBLIC_OHM_SUPABASE_*` variables,
+and no project is provisioned — so on every deployment that exists today, this
+is code that does not run.
+
+It is kept anyway, deliberately, on measured grounds rather than optimism:
+
+- **It costs nothing to carry.** The Supabase SDK is code-split into a chunk the
+  initial document never references — verified against a production build, not
+  assumed. `track()` returns immediately when the layer is off, `/operator-tools`
+  is a real 404, and the whole suite is 93 unit tests adding ~3s.
+- **It is finished, not a stub.** Both postures were verified against real
+  builds when it was written, and CI now proves both on every run
+  (`site-layer-enabled` in `ci-cd.yml`).
+- **Cutting is a one-way door.** Roughly 3,900 lines with tests, plus a
+  428-line schema. "We can add it back later" is not a thing anyone does.
+
+**The condition.** This is a keep with an expiry, not a park. If the hosted
+instance has not enabled the layer by **2027-02-28**, cut it — at that point the
+"we might want it" argument has failed its own test, and what remains is code
+that reads as live to every contributor who opens it while never having run.
+
+Whoever cuts it: delete `src/features/site/`, `src/lib/site/`, `supabase/`,
+`app/operator-tools/`, `e2e/site-layer.spec.ts`, the `site-layer-enabled` CI job
+and this document, and drop `@supabase/supabase-js`. Three files outside the
+layer then need an edit, and one needs a glance:
+
+| File | What to remove |
+|---|---|
+| `src/features/match/MatchView.tsx` | the `track(EVENTS.matchRun, …)` call and both `lib/site` imports |
+| `src/components/layout/NavDrawer.tsx` | `useSiteLayer()` and the `site.enabled &&` guard around the Operator group |
+| `app/providers.tsx` | `siteConfig` (the `data-site-layer` attribute) and `<RouteTelemetry />` |
+| `src/api/ohm/federation.ts` | a comment pointing at `lib/site/stack.ts` as prior art — prose, not a dependency |
+
+Note the last one: `e2e/site-layer.spec.ts` and `app/providers.tsx` are a pair.
+The spec reads the posture from the `data-site-layer` attribute that
+`providers.tsx` publishes, so removing one without the other leaves a spec
+asserting against an attribute nothing writes.
+
 ## Off is a first-class state
 
 With no Supabase configured, an instance is **not degraded**. It is the default
