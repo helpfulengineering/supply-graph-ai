@@ -31,6 +31,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 
 | Script | What it does | Run |
 | --- | --- | --- |
+| `check_doc_links` | Fail when a documentation link cannot be followed: wrong host, an absolute link to a docs page that does not exist, or a repo-internal markdown link to a missing file. | `uv run python scripts/check_doc_links.py [--list]` |
 | `local_async_generation_e2e` | Localhost Compose e2e for async generate-from-url jobs, progress, revoke, and LLM credential gates. | `uv run python scripts/local_async_generation_e2e.py` |
 | `validate_docs` | Validate documentation claims against the code implementation. | `uv run python scripts/validate_docs.py` |
 | `validate_okw_in_storage` | Read configured storage (local or remote) and report the OKW facilities found — quick config sanity check. | `uv run python scripts/validate_okw_in_storage.py` |

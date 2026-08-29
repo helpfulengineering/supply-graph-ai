@@ -10,7 +10,7 @@
 # pyproject.toml is caught there rather than hidden here.
 export UV_FROZEN := 1
 
-.PHONY: format format-check lint test check black ruff repo-map repo-map-check env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
+.PHONY: format format-check lint test check black ruff repo-map repo-map-check links-check env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -87,6 +87,14 @@ check: lint format-check test
 repo-map:
 	uv run python scripts/generate_repo_map.py
 
+# Documentation link gate: every link into the docs must reach a real page, and
+# no link may name the host that does not serve them. mkdocs validates relative
+# links between pages and nothing validated the rest -- which is how the facility
+# form spent months pointing at docs.openhardwaremanager.org/auth/get-a-write-key/,
+# a wrong host and a page that was never written.
+links-check:
+	uv run python scripts/check_doc_links.py
+
 # Staleness gate (lockfile pattern): fails if .repo-map.md is out of date.
 repo-map-check:
 	uv run python scripts/generate_repo_map.py --check
@@ -161,17 +169,18 @@ secrets-check:
 # Definition of done. Green tests are not "ready to merge"; this is.
 # Each step verifies (does not mutate) and fails fast. Run before any MR.
 ready:
-	@echo "==> [1/13] env verify";      $(MAKE) verify-env
-	@echo "==> [2/13] format check";    $(MAKE) format-check
-	@echo "==> [3/13] lint";            $(MAKE) lint
-	@echo "==> [4/13] unit tests";      $(MAKE) test
-	@echo "==> [5/13] service parity";  $(MAKE) parity
-	@echo "==> [6/13] docs ↔ code";     $(MAKE) validate-docs
-	@echo "==> [7/13] site docs status";$(MAKE) docs-status
-	@echo "==> [8/13] taxonomy sync";   $(MAKE) taxonomy-check
-	@echo "==> [9/13] version sync";    $(MAKE) version-check
-	@echo "==> [10/13] lockfile sync";  $(MAKE) lock-check
-	@echo "==> [11/13] script registry";$(MAKE) scripts-check
-	@echo "==> [12/13] demo world sync";$(MAKE) demo-world-check
-	@echo "==> [13/13] repo map sync";  $(MAKE) repo-map-check
+	@echo "==> [1/14] env verify";      $(MAKE) verify-env
+	@echo "==> [2/14] format check";    $(MAKE) format-check
+	@echo "==> [3/14] lint";            $(MAKE) lint
+	@echo "==> [4/14] unit tests";      $(MAKE) test
+	@echo "==> [5/14] service parity";  $(MAKE) parity
+	@echo "==> [6/14] docs ↔ code";     $(MAKE) validate-docs
+	@echo "==> [7/14] site docs status";$(MAKE) docs-status
+	@echo "==> [8/14] taxonomy sync";   $(MAKE) taxonomy-check
+	@echo "==> [9/14] version sync";    $(MAKE) version-check
+	@echo "==> [10/14] lockfile sync";  $(MAKE) lock-check
+	@echo "==> [11/14] script registry";$(MAKE) scripts-check
+	@echo "==> [12/14] demo world sync";$(MAKE) demo-world-check
+	@echo "==> [13/14] repo map sync";  $(MAKE) repo-map-check
+	@echo "==> [14/14] doc links";      $(MAKE) links-check
 	@echo "==> READY: all gates passed."

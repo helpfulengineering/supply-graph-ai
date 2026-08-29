@@ -57,4 +57,4 @@ output "api_key" {
 }
 ```
 
-See the parent [README.md](../README.md) for the full multi-peer federation lab.
+See the parent [README.md](../../README.md) for the full multi-peer federation lab.
