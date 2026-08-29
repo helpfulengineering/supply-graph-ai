@@ -10,7 +10,29 @@ Accepted
 
 ## Context
 
-OHM requires federated OKH design synchronization. Prior art ([notes/federation-prior-art-and-recommendations.md](../../notes/federation-prior-art-and-recommendations.md)) recommends a three-tier stack (physical mesh → LAN → internet). We need a minimal, testable slice before relay/registry, IPFS, or ActivityPub.
+OHM requires federated OKH design synchronization.
+
+A prior-art survey (OAI-PMH, Secure Scuttlebutt, IPFS, ActivityPub, CouchDB
+replication, Kademlia, mDNS/Zeroconf, disaster mesh networking, DIDs) pointed at
+a **three-tier discovery architecture**, each tier independent of the ones above
+it so the system degrades rather than fails:
+
+| Tier | Transport | Propagates |
+|---|---|---|
+| 1 — physical mesh | LoRa / Serval | content hashes, node names, summaries |
+| 2 — local LAN | mDNS / Zeroconf | full manifests, design metadata, replication sync |
+| 3 — internet | DHT + ActivityPub | full manifests and files, globally searchable |
+
+A node in a total blackout still propagates design hashes to neighbours over
+Tier 1; when WiFi returns, Tier 2 syncs manifests; when the internet returns,
+Tier 3 makes them globally discoverable.
+
+This ADR takes a minimal, testable slice of that before committing to relay,
+registry, IPFS, or ActivityPub.
+
+*The survey lives in the maintainers' working notes, which are not tracked in
+this repository — its conclusions are summarised above so this decision can be
+read and challenged without them.*
 
 ## Decision
 

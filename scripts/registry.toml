@@ -43,6 +43,13 @@ run = "uv run python scripts/generate_env_template.py [--check]"
 mutates = true
 used_by = ["make ready (env-template-check)", "ci: quality"]
 
+[scripts.check_doc_links]
+category = "verify"
+summary = "Fail when a documentation link cannot be followed: wrong host, an absolute link to a docs page that does not exist, or a repo-internal markdown link to a missing file."
+run = "uv run python scripts/check_doc_links.py [--list]"
+mutates = false
+used_by = ["make ready (links-check)", "ci: quality"]
+
 [scripts.generate_repo_map]
 category = "generate"
 summary = "Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation; --check gates staleness."

@@ -48,10 +48,15 @@ Authorization: Bearer <your-token>
 ```
 
 Read operations are generally open. Writes are checked against the credentials an
-instance is configured with — but note that **an instance started with no
-`API_KEYS` configured accepts anonymous writes**, so on a node you run, setting
-one is what turns write protection on. See
-[run your own node](run-your-own-node.md#before-anyone-else-can-reach-it).
+instance is configured with — but **whether they are checked at all depends on
+the node's posture**. A node running with the default `ENVIRONMENT=development`
+accepts anonymous writes even when `API_KEYS` is set; `ENVIRONMENT=production`
+returns `401` without a valid credential.
+
+So on a node you run, protecting writes takes both settings. See
+[get a write key](get-a-write-key.md) for the credential, and
+[run your own node](run-your-own-node.md#before-anyone-else-can-reach-it) for
+the posture.
 
 ## Two things worth knowing before you build
 

@@ -13,7 +13,7 @@ that never enables it is not degraded; it is the normal deployment.
 
 It never grants application permissions. Whether you may create a design or
 manage API keys comes from your OHM API key, not from anything here. See
-[the architecture note](https://github.com/binaryLady/OHM/blob/main/docs/architecture/site-layer.md)
+[the architecture note](https://github.com/helpfulengineering/supply-graph-ai/blob/main/docs/architecture/site-layer.md)
 for why that boundary matters.
 
 Everything below runs in the Supabase **SQL editor**. None of it is reachable
@@ -22,7 +22,7 @@ from a browser client — that is deliberate.
 ## 1. Create a project and run the schema
 
 Create a Supabase project, open the SQL editor, and run
-[`supabase/schema.sql`](https://github.com/binaryLady/OHM/blob/main/supabase/schema.sql)
+[`supabase/schema.sql`](https://github.com/helpfulengineering/supply-graph-ai/blob/main/supabase/schema.sql)
 in full.
 
 It creates four tables — `ohmgr_visitors`, `ohmgr_telemetry_events`,

@@ -23,7 +23,7 @@ signature against the issuer's DID — no network, no central authority.
 ## Identities
 
 An identity is a keypair whose public half is encoded as a
-[`did:key`](https://w3c-ccg.github.io/did-method-key/) (the same primitive the
+[`did:key`](https://w3c-ccg.github.io/did-key-spec/) (the same primitive the
 federation node uses). Identities are minted for an **account** (person or space)
 and are **custodial** at first — the node holds the private key on the owner's
 behalf until they claim it.

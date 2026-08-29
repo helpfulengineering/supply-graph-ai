@@ -845,6 +845,12 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         path="guides/deploy-a-cooking-domain-instance.md",
     ),
     SiteDoc(
+        "identity",
+        "Get a write key",
+        "deployed",
+        path="guides/get-a-write-key.md",
+    ),
+    SiteDoc(
         "api",
         "Use the OHM API from your own software",
         "deployed",
