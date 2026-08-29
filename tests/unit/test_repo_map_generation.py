@@ -256,3 +256,35 @@ def test_committed_map_names_the_project_not_a_directory():
         "the map header must come from pyproject.toml; a checkout-derived name "
         "makes the drift gate unpassable for every other checkout."
     )
+
+
+# --------------------------------------------------------------------------
+# Untracked sources
+# --------------------------------------------------------------------------
+
+
+def test_staged_sources_are_not_reported_as_untracked(tmp_path):
+    repo = _make_repo(tmp_path, "staged")
+    assert gen.untracked_python_files(repo) == []
+
+
+def test_an_unstaged_source_is_reported(tmp_path):
+    """The false-green case: written, not staged, therefore not in the map.
+
+    `git ls-files` reads the index, so a file in this state is invisible to the
+    generator. Regenerating would produce a map that goes stale the moment the
+    file is committed — the local gate passing and CI then failing on the same
+    commit.
+    """
+    repo = _make_repo(tmp_path, "unstaged")
+    (repo / "pkg" / "new_module.py").write_text("def added():\n    return 1\n")
+    assert gen.untracked_python_files(repo) == ["pkg/new_module.py"]
+
+
+def test_ignored_sources_are_not_reported(tmp_path):
+    """Scratch space is not a contribution, so it must not fail the gate."""
+    repo = _make_repo(tmp_path, "ignored")
+    (repo / ".gitignore").write_text("scratch/\n", encoding="utf-8")
+    (repo / "scratch").mkdir()
+    (repo / "scratch" / "throwaway.py").write_text("x = 1\n", encoding="utf-8")
+    assert gen.untracked_python_files(repo) == []
