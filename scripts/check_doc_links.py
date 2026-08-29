@@ -13,6 +13,10 @@ Three classes of rot, none of which mkdocs catches on its own:
 3. **Repo-internal markdown links.** Cross-links between `docs/`, `deploy/` and
    the README point at files, not pages, and nothing validated them.
 
+Skips anything git ignores: `notes/` and friends are scratch, absent from CI,
+and letting them fail the gate makes it red for reasons the repository does not
+contain.
+
 Resolves against the SOURCE tree rather than a built site, so the gate needs no
 mkdocs run. Pages generated at build time (`reference/whats-built.md`) exist only
 in the output, so nav entries count as valid targets alongside files on disk.
@@ -26,6 +30,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -71,12 +76,41 @@ def doc_pages() -> set[str]:
     return pages
 
 
+def git_ignored(paths: list[Path]) -> set[Path]:
+    """The subset of ``paths`` that git ignores.
+
+    Ignored files are scratch — `notes/` is the case here — so they are not
+    part of the published documentation and CI never sees them. Checking them
+    makes the gate fail on a machine for reasons that do not exist in the
+    repository, which turns `make ready` red for every change regardless of
+    what the change did.
+
+    Fails open: if git is unavailable or this is not a checkout, everything is
+    checked, which is the safer direction for a gate.
+    """
+    if not paths:
+        return set()
+    try:
+        proc = subprocess.run(
+            ["git", "check-ignore", "--stdin"],
+            input="\n".join(p.relative_to(ROOT).as_posix() for p in paths),
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+            check=False,
+        )
+    except (OSError, ValueError):
+        return set()
+    # Exit 1 simply means nothing matched, which is not an error here.
+    return {ROOT / line for line in proc.stdout.splitlines() if line}
+
+
 def sources() -> list[tuple[Path, str]]:
-    out: list[tuple[Path, str]] = []
+    candidates: list[Path] = []
     for p in ROOT.rglob("*.md"):
         if SKIP_DIRS & set(p.relative_to(ROOT).parts):
             continue
-        out.append((p, p.read_text(errors="ignore")))
+        candidates.append(p)
     for base in (ROOT / "frontend" / "src", ROOT / "frontend" / "app"):
         if not base.exists():
             continue
@@ -84,8 +118,10 @@ def sources() -> list[tuple[Path, str]]:
             for p in base.glob(pat):
                 if SKIP_DIRS & set(p.relative_to(ROOT).parts):
                     continue
-                out.append((p, p.read_text(errors="ignore")))
-    return out
+                candidates.append(p)
+
+    ignored = git_ignored(candidates)
+    return [(p, p.read_text(errors="ignore")) for p in candidates if p not in ignored]
 
 
 def main() -> int:
