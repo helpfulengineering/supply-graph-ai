@@ -63,6 +63,33 @@ def get_git_files(repo_path: Path) -> List[Path]:
     return files
 
 
+def untracked_python_files(repo_path: Path) -> List[str]:
+    """Python files present in the working tree but not in the index.
+
+    The map is generated from ``git ls-files``, i.e. the index. A file that has
+    been written but not staged is invisible to the generator, so regenerating
+    now yields a map that goes stale the instant that file is committed: the
+    local gate passes and CI then fails on the same commit.
+
+    That false green is worse than either honest outcome, so ``--check`` refuses
+    to pass while any exist. Ignored files are excluded — scratch space is not a
+    contribution.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard", "*.py"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except (OSError, ValueError):
+        # Not a git checkout, or git is unavailable. get_git_files falls back to
+        # walking the tree in that case, where the index does not apply.
+        return []
+    return [line for line in result.stdout.splitlines() if line]
+
+
 def parse_failures_in(map_content: str) -> List[str]:
     """Placeholders left where a source file could not be parsed.
 
@@ -520,6 +547,20 @@ def main():
         return 1
 
     if args.check:
+        untracked = untracked_python_files(target_path)
+        if untracked:
+            print(
+                f"UNTRACKED: {len(untracked)} Python file(s) are not staged, so "
+                f"{args.filename} cannot account for them yet:"
+            )
+            for path in sorted(untracked):
+                print(f"    {path}")
+            print(
+                "The map is built from the git index, not the working tree. "
+                "`git add` them, then run `make repo-map`."
+            )
+            return 1
+
         current = (
             output_file.read_text(encoding="utf-8") if output_file.exists() else ""
         )
