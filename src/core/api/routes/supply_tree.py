@@ -44,6 +44,7 @@ from ..models.supply_tree.request import (
     SupplyTreeOptimizeRequest,
     SupplyTreeValidateRequest,
 )
+from ..models.supply_tree.response import SolutionHierarchyResponse
 
 logger = get_logger(__name__)
 
@@ -2082,6 +2083,7 @@ async def get_solution_visualization_report(
 @router.get(
     "/solution/{solution_id}/hierarchy",
     status_code=status.HTTP_200_OK,
+    response_model=SolutionHierarchyResponse,
     summary="Get Component Hierarchy",
     description="""
     Get the component hierarchy for a supply tree solution.

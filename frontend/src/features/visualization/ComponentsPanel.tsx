@@ -28,7 +28,9 @@ export function ComponentsPanel({ solutionId }: { solutionId: string }) {
 
   if (query.isError) return null;
 
-  const summary = query.data?.summary ?? {};
+  // The response model makes these required, so the old `?? {}` fallback now
+  // widens the type to something with no fields. Optional access instead.
+  const summary = query.data?.summary;
   const roots = query.data?.root_components ?? [];
 
   return (
@@ -43,10 +45,10 @@ export function ComponentsPanel({ solutionId }: { solutionId: string }) {
         <>
           <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              ["Components", summary.total_components],
-              ["Roots", summary.root_components],
-              ["Trees", summary.total_trees],
-              ["Max depth", summary.max_depth],
+              ["Components", summary?.total_components],
+              ["Roots", summary?.root_components],
+              ["Trees", summary?.total_trees],
+              ["Max depth", summary?.max_depth],
             ].map(([label, value]) => (
               <div key={String(label)}>
                 <dt className={CAPTION}>{label}</dt>

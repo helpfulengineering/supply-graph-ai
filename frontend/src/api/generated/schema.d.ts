@@ -3050,7 +3050,9 @@ export interface paths {
          * @description Generate RFQ documents for selected match solutions.
          *
          *     Accepts a subset of match results (as returned by POST /api/match) plus
-         *     OKH design metadata. Returns one RFQ document per selected solution.
+         *     either OKH design metadata (domain="manufacturing", the default) or
+         *     recipe metadata (domain="cooking"). Returns one RFQ document per selected
+         *     solution.
          */
         post: operations["generate_rfq_api_rfq_generate_post"];
         delete?: never;
@@ -4667,6 +4669,28 @@ export interface components {
             before_date?: string | null;
         };
         /**
+         * ComponentDetail
+         * @description Per-component summary, plus the serialised trees that produced it.
+         */
+        ComponentDetail: {
+            /** Component Id */
+            component_id: string;
+            /** Component Name */
+            component_name: string;
+            /** Tree Count */
+            tree_count: number;
+            /** Depth */
+            depth: number;
+            /** Production Stage */
+            production_stage: string;
+            /** Component Path */
+            component_path: string[];
+            /** Trees */
+            trees: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
          * ConvertFromDatasheetResponse
          * @description Response model for MSF datasheet → OKH conversion.
          *
@@ -5391,6 +5415,44 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * HierarchyNode
+         * @description One node of the component tree, with its children inline.
+         *
+         *     Recursive: ``children`` holds the same shape, which is how the hierarchy
+         *     carries parent/child structure the visualization bundle does not have.
+         */
+        HierarchyNode: {
+            /** Component Id */
+            component_id: string;
+            /** Component Name */
+            component_name: string;
+            /** Tree Id */
+            tree_id: string;
+            /** Depth */
+            depth: number;
+            /** Production Stage */
+            production_stage: string;
+            /**
+             * Children
+             * @default []
+             */
+            children: components["schemas"]["HierarchyNode"][];
+        };
+        /**
+         * HierarchySummary
+         * @description Counts the UI shows as KPIs above the component list.
+         */
+        HierarchySummary: {
+            /** Total Components */
+            total_components: number;
+            /** Root Components */
+            root_components: number;
+            /** Total Trees */
+            total_trees: number;
+            /** Max Depth */
+            max_depth: number;
         };
         /** IdentifyResponse */
         IdentifyResponse: {
@@ -7863,14 +7925,31 @@ export interface components {
         };
         /** RFQGenerateRequest */
         RFQGenerateRequest: {
+            /**
+             * Domain
+             * @default manufacturing
+             */
+            domain: string;
             /** Okh Id */
-            okh_id: string;
+            okh_id?: string | null;
             /** Okh Title */
-            okh_title: string;
+            okh_title?: string | null;
             /** Okh Function */
             okh_function?: string | null;
             /** Okh Version */
             okh_version?: string | null;
+            /** Okh Manifest */
+            okh_manifest?: {
+                [key: string]: unknown;
+            } | null;
+            /** Recipe Id */
+            recipe_id?: string | null;
+            /** Recipe Title */
+            recipe_title?: string | null;
+            /** Recipe */
+            recipe?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Quantity
              * @default 1
@@ -7878,10 +7957,6 @@ export interface components {
             quantity: number;
             /** Solutions */
             solutions: components["schemas"]["RFQSolutionInput"][];
-            /** Okh Manifest */
-            okh_manifest?: {
-                [key: string]: unknown;
-            } | null;
         };
         /** RFQGenerateResponse */
         RFQGenerateResponse: {
@@ -7925,6 +8000,8 @@ export interface components {
             facility: {
                 [key: string]: unknown;
             };
+            /** Explanation Human */
+            explanation_human?: string | null;
         };
         /**
          * RecordProvenance
@@ -7944,6 +8021,21 @@ export interface components {
              * @default
              */
             signature: string;
+        };
+        /**
+         * RootComponentRef
+         * @description A top-level component — an object, not an id.
+         *
+         *     Named explicitly because the frontend assumed this was a bare string and
+         *     rendered it directly, which threw React #31 and took down the page (#369).
+         */
+        RootComponentRef: {
+            /** Component Id */
+            component_id: string;
+            /** Component Name */
+            component_name: string;
+            /** Tree Id */
+            tree_id: string;
         };
         /**
          * RuleCompareRequest
@@ -8875,6 +8967,73 @@ export interface components {
             resource_availability?: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * SolutionHierarchyData
+         * @description The ``data`` payload of the component-hierarchy route.
+         */
+        SolutionHierarchyData: {
+            /** Hierarchy */
+            hierarchy: components["schemas"]["HierarchyNode"][];
+            /** Root Components */
+            root_components: components["schemas"]["RootComponentRef"][];
+            /** Component Details */
+            component_details: {
+                [key: string]: components["schemas"]["ComponentDetail"];
+            };
+            summary: components["schemas"]["HierarchySummary"];
+        };
+        /**
+         * SolutionHierarchyResponse
+         * @description Envelope for the component-hierarchy route.
+         *
+         *     Declaring this is what makes ``openapi-typescript`` generate a response
+         *     type for the route. Without it the endpoint returned a bare ``dict``, the
+         *     generated schema said nothing, and the frontend filled the gap with a
+         *     hand-written type that was wrong.
+         *
+         *     ``response_model`` filters undeclared fields, so this model is frozen
+         *     against a golden capture in
+         *     ``tests/api/test_supply_tree_hierarchy_contract.py``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        SolutionHierarchyResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["SolutionHierarchyData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * SolutionLoadRequest
@@ -14041,7 +14200,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SolutionHierarchyResponse"];
                 };
             };
             /** @description Bad Request */
