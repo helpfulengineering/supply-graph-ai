@@ -88,7 +88,10 @@ test("settings identities / grants / spaces tabs (F3)", async ({
   await expect(page.getByText("vouch")).toBeVisible();
   await expectNoA11yViolations(page);
 
+  // Same race as the Grants transition above — these three were left without
+  // the wait when it was added.
   await page.getByRole("link", { name: "Bindings" }).click();
+  await page.waitForURL(/\/settings\/bindings(\?|$)/);
   await expect(
     page.getByRole("heading", { name: "Domain bind" }),
   ).toBeVisible();
@@ -106,6 +109,7 @@ test("settings identities / grants / spaces tabs (F3)", async ({
   await expectNoA11yViolations(page);
 
   await page.getByRole("link", { name: "Directory" }).click();
+  await page.waitForURL(/\/settings\/directory(\?|$)/);
   await expect(
     page.getByRole("heading", { name: "Directory", exact: true }),
   ).toBeVisible();
@@ -113,6 +117,7 @@ test("settings identities / grants / spaces tabs (F3)", async ({
   await expectNoA11yViolations(page);
 
   await page.getByRole("link", { name: "Federation" }).click();
+  await page.waitForURL(/\/settings\/federation(\?|$)/);
   await expect(
     page.getByRole("heading", { name: "Node status" }),
   ).toBeVisible();
