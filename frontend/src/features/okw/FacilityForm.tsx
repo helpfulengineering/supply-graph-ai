@@ -197,15 +197,14 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           <p className="mt-2 text-xs">
             Details:{" "}
             <a
-              href="https://docs.openhardwaremanager.org/auth/get-a-write-key/"
+              href="https://www.openhardwaremanager.org/docs/guides/get-a-write-key/"
               className="underline"
               target="_blank"
               rel="noreferrer"
             >
               Get a write key
-            </a>{" "}
-            (local:{" "}
-            <code className="text-xs">docs/auth/get-a-write-key.md</code>).
+            </a>
+            .
           </p>
         </div>
       )}
