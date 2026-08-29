@@ -65,8 +65,8 @@ export function ComponentsPanel({ solutionId }: { solutionId: string }) {
               <p className={CAPTION}>Starts from</p>
               <ul className="mt-1 space-y-0.5">
                 {roots.map((root) => (
-                  <li key={root} className="text-sm text-foreground">
-                    {root}
+                  <li key={root.tree_id} className="text-sm text-foreground">
+                    {root.component_name}
                   </li>
                 ))}
               </ul>

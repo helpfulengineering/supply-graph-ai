@@ -326,7 +326,7 @@ export function MatchView({
                 >
                   <option value="">Detect automatically</option>
                   {domains.data?.map((d) => (
-                    <option key={d.name} value={d.name}>
+                    <option key={d.id} value={d.id}>
                       {d.name}
                       {d.status && d.status !== "available"
                         ? ` (${d.status})`
