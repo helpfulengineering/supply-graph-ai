@@ -104,8 +104,77 @@ class SupplyTreeListResponse(BaseModel):
     page_size: int
 
 
-class SuccessResponse(BaseModel):
-    """Response model for successful operations"""
+class HierarchyNode(BaseModel):
+    """One node of the component tree, with its children inline.
 
-    success: bool
-    message: str
+    Recursive: ``children`` holds the same shape, which is how the hierarchy
+    carries parent/child structure the visualization bundle does not have.
+    """
+
+    component_id: str
+    component_name: str
+    tree_id: str
+    depth: int
+    production_stage: str
+    children: List["HierarchyNode"] = []
+
+
+class RootComponentRef(BaseModel):
+    """A top-level component — an object, not an id.
+
+    Named explicitly because the frontend assumed this was a bare string and
+    rendered it directly, which threw React #31 and took down the page (#369).
+    """
+
+    component_id: str
+    component_name: str
+    tree_id: str
+
+
+class ComponentDetail(BaseModel):
+    """Per-component summary, plus the serialised trees that produced it."""
+
+    component_id: str
+    component_name: str
+    tree_count: int
+    depth: int
+    production_stage: str
+    component_path: List[str]
+    # Free-form on purpose. These are ``SupplyTree.to_dict()`` payloads, and a
+    # strict model here would silently filter any field that dict grows —
+    # reintroducing the drift this model exists to prevent, one level down.
+    trees: List[Dict[str, Any]]
+
+
+class HierarchySummary(BaseModel):
+    """Counts the UI shows as KPIs above the component list."""
+
+    total_components: int
+    root_components: int
+    total_trees: int
+    max_depth: int
+
+
+class SolutionHierarchyData(BaseModel):
+    """The ``data`` payload of the component-hierarchy route."""
+
+    hierarchy: List[HierarchyNode]
+    root_components: List[RootComponentRef]
+    component_details: Dict[str, ComponentDetail]
+    summary: HierarchySummary
+
+
+class SolutionHierarchyResponse(SuccessResponse):
+    """Envelope for the component-hierarchy route.
+
+    Declaring this is what makes ``openapi-typescript`` generate a response
+    type for the route. Without it the endpoint returned a bare ``dict``, the
+    generated schema said nothing, and the frontend filled the gap with a
+    hand-written type that was wrong.
+
+    ``response_model`` filters undeclared fields, so this model is frozen
+    against a golden capture in
+    ``tests/api/test_supply_tree_hierarchy_contract.py``.
+    """
+
+    data: SolutionHierarchyData

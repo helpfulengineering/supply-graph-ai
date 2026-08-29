@@ -1,4 +1,7 @@
+import { z } from "zod";
 import { apiClient, ApiError, errorMessage } from "./client";
+import { parsePayload } from "./parse";
+import type { components } from "../generated/schema";
 import type { VisualizationData } from "../../types/supply-tree";
 
 /** One row of the caller's saved supply-tree history. */
@@ -130,22 +133,41 @@ export async function extendSolutionTtl(
 }
 
 /** A top-level component in a solution's hierarchy — an object, not an id. */
-export interface RootComponent {
-  component_id: string;
-  component_name: string;
-  tree_id: string;
-}
+export type RootComponent = components["schemas"]["RootComponentRef"];
 
-export interface SolutionHierarchy {
-  root_components: RootComponent[];
-  component_details: Record<string, unknown>;
-  summary: {
-    total_components?: number;
-    root_components?: number;
-    total_trees?: number;
-    max_depth?: number;
-  };
-}
+/** The hierarchy payload, as the route's response model declares it. */
+export type SolutionHierarchy = components["schemas"]["SolutionHierarchyData"];
+
+/**
+ * Runtime shape check for the fields this app reads.
+ *
+ * `looseObject` throughout, deliberately. A plain `z.object` strips keys it
+ * does not declare, which would rebuild — at the client, one layer down — the
+ * very filtering hazard that makes `response_model` dangerous to write by
+ * hand. Nothing here may remove a field the server sent.
+ *
+ * Only the fields the UI actually renders are described. The point is to name
+ * the endpoint and field when a drift arrives, not to restate the whole
+ * generated type in a second place that can itself go stale.
+ */
+const HIERARCHY_PATH = "/api/supply-tree/solution/{solution_id}/hierarchy";
+
+const hierarchySchema = z.looseObject({
+  root_components: z.array(
+    z.looseObject({
+      component_id: z.string(),
+      component_name: z.string(),
+      tree_id: z.string(),
+    }),
+  ),
+  component_details: z.record(z.string(), z.unknown()),
+  summary: z.looseObject({
+    total_components: z.number(),
+    root_components: z.number(),
+    total_trees: z.number(),
+    max_depth: z.number(),
+  }),
+});
 
 /**
  * Component parent/child structure.
@@ -157,10 +179,9 @@ export interface SolutionHierarchy {
 export async function fetchSolutionHierarchy(
   solutionId: string,
 ): Promise<SolutionHierarchy> {
-  const { data, error, response } = await apiClient.GET(
-    "/api/supply-tree/solution/{solution_id}/hierarchy",
-    { params: { path: { solution_id: solutionId } } },
-  );
+  const { data, error, response } = await apiClient.GET(HIERARCHY_PATH, {
+    params: { path: { solution_id: solutionId } },
+  });
   if (error || !response.ok) {
     throw new ApiError(
       response.status,
@@ -170,16 +191,14 @@ export async function fetchSolutionHierarchy(
       ),
     );
   }
-  const body = (data ?? {}) as Record<string, unknown>;
-  const payload = (body.data as Record<string, unknown>) ?? body;
-  return {
-    // Still an assertion, now of the shape the API really returns. The route
-    // has no response model, so codegen types nothing here and the compiler
-    // cannot check this. Replaced by a generated type and a parsed boundary
-    // in #370/#373 — until then this is the seam a drift comes through.
-    root_components: (payload.root_components as RootComponent[]) ?? [],
-    component_details:
-      (payload.component_details as Record<string, unknown>) ?? {},
-    summary: (payload.summary as SolutionHierarchy["summary"]) ?? {},
-  };
+  // The widening is the one assertion left, and it is a much smaller one than
+  // the cast it replaces. The schema deliberately describes only what the UI
+  // reads, so its inferred type is narrower than the contract; the rest of the
+  // type comes from codegen, generated from the server's own schema, rather
+  // than from someone reading the route and guessing.
+  return parsePayload(
+    HIERARCHY_PATH,
+    hierarchySchema,
+    data?.data,
+  ) as SolutionHierarchy;
 }

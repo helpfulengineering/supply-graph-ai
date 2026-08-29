@@ -1,0 +1,113 @@
+{
+  "data": {
+    "component_details": {
+      "frame": {
+        "component_id": "frame",
+        "component_name": "Frame",
+        "component_path": [],
+        "depth": 0,
+        "production_stage": "fabrication",
+        "tree_count": 1,
+        "trees": [
+          {
+            "assembly_location": null,
+            "capabilities_used": [],
+            "child_tree_ids": [],
+            "component_id": "frame",
+            "component_name": "Frame",
+            "component_path": [],
+            "component_quantity": null,
+            "component_unit": null,
+            "confidence_score": 0.95,
+            "creation_time": "<timestamp>",
+            "depends_on": [],
+            "depth": 0,
+            "estimated_cost": null,
+            "estimated_time": null,
+            "facility_name": "FabLab Drome",
+            "id": "11111111-1111-1111-1111-111111111111",
+            "match_type": "direct",
+            "materials_required": [],
+            "metadata": {},
+            "okh_reference": "okh-vent",
+            "okw_reference": "okw-drome",
+            "parent_tree_id": null,
+            "production_stage": "fabrication",
+            "required_by": []
+          }
+        ]
+      },
+      "pump": {
+        "component_id": "pump",
+        "component_name": "Pump assembly",
+        "component_path": [],
+        "depth": 1,
+        "production_stage": "assembly",
+        "tree_count": 1,
+        "trees": [
+          {
+            "assembly_location": null,
+            "capabilities_used": [],
+            "child_tree_ids": [],
+            "component_id": "pump",
+            "component_name": "Pump assembly",
+            "component_path": [],
+            "component_quantity": null,
+            "component_unit": null,
+            "confidence_score": 0.8,
+            "creation_time": "<timestamp>",
+            "depends_on": [],
+            "depth": 1,
+            "estimated_cost": null,
+            "estimated_time": null,
+            "facility_name": "FabLab Drome",
+            "id": "22222222-2222-2222-2222-222222222222",
+            "match_type": "direct",
+            "materials_required": [],
+            "metadata": {},
+            "okh_reference": "okh-vent",
+            "okw_reference": "okw-drome",
+            "parent_tree_id": "11111111-1111-1111-1111-111111111111",
+            "production_stage": "assembly",
+            "required_by": []
+          }
+        ]
+      }
+    },
+    "hierarchy": [
+      {
+        "children": [
+          {
+            "children": [],
+            "component_id": "pump",
+            "component_name": "Pump assembly",
+            "depth": 1,
+            "production_stage": "assembly",
+            "tree_id": "22222222-2222-2222-2222-222222222222"
+          }
+        ],
+        "component_id": "frame",
+        "component_name": "Frame",
+        "depth": 0,
+        "production_stage": "fabrication",
+        "tree_id": "11111111-1111-1111-1111-111111111111"
+      }
+    ],
+    "root_components": [
+      {
+        "component_id": "frame",
+        "component_name": "Frame",
+        "tree_id": "11111111-1111-1111-1111-111111111111"
+      }
+    ],
+    "summary": {
+      "max_depth": 1,
+      "root_components": 1,
+      "total_components": 2,
+      "total_trees": 2
+    }
+  },
+  "message": "Hierarchy retrieved successfully",
+  "metadata": {},
+  "status": "success"
+}
