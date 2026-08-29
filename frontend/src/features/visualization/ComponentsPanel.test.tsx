@@ -12,6 +12,9 @@ import { ComponentsPanel } from "./ComponentsPanel";
  * the whole visualization view.
  */
 const hierarchy: SolutionHierarchy = {
+  // Required by the response model, and unread by this panel — the tree
+  // structure lives here, the panel only shows roots and counts.
+  hierarchy: [],
   root_components: [
     {
       component_id: "frame",
