@@ -140,19 +140,29 @@ class AuthenticationService:
         hashed = bcrypt.hashpw(token.encode("utf-8"), salt)
         return hashed.decode("utf-8")
 
-    def _verify_token(self, token: str, key_hash: str) -> bool:
-        """
-        Verify a token against its hash.
+    def _verify_token(self, token: str, key: APIKey) -> bool:
+        """Verify a presented token against a stored key.
 
-        Args:
-            token: Plain text token to verify
-            key_hash: Hashed token to verify against
+        Digest comparison for keys that carry one, bcrypt for the pre-#409 keys
+        that do not. bcrypt is not doing security work for the first group: it
+        exists to make guessing a *password* expensive, and these tokens are 256
+        bits of CSPRNG output with nothing to guess. Since #409 stores a SHA-256
+        of the token beside the bcrypt hash, an attacker holding the store
+        already holds the weaker artifact — so bcrypt was costing 186ms on every
+        request while raising no floor.
 
-        Returns:
-            True if token matches hash, False otherwise
+        Compared against the digest on the **key record**, never against the one
+        the lookup was made with. That is what keeps a write to the index from
+        being an authentication bypass: pointing a digest at someone else's key
+        still fails, because that key's own digest does not match the presented
+        token.
         """
         try:
-            return bcrypt.checkpw(token.encode("utf-8"), key_hash.encode("utf-8"))
+            if key.token_digest:
+                return secrets.compare_digest(
+                    self._token_digest(token), key.token_digest
+                )
+            return bcrypt.checkpw(token.encode("utf-8"), key.key_hash.encode("utf-8"))
         except Exception as e:
             logger.warning(f"Token verification failed: {e}")
             return False
@@ -243,10 +253,10 @@ class AuthenticationService:
         if auth_mode in (AUTH_MODE_STORAGE, AUTH_MODE_HYBRID):
             if self._auth_storage:
                 try:
-                    # One lookup, then at most one bcrypt (#409). Before this,
-                    # every request bcrypt-checked keys until one matched, so an
-                    # invalid token cost a full scan — 186ms per key on the
-                    # machine this was measured on — and self-service
+                    # One lookup, then one digest comparison (#409). Before
+                    # this, every request bcrypt-checked keys until one matched,
+                    # so an invalid token cost a full scan — 186ms per key on
+                    # the machine this was measured on — and self-service
                     # registration made the key count grow without bound.
                     candidate = await self._auth_storage.find_by_digest(
                         self._token_digest(token)
@@ -254,7 +264,7 @@ class AuthenticationService:
                     keys = [candidate] if candidate else await self._legacy_keys()
 
                     for key in keys:
-                        if self._verify_token(token, key.key_hash):
+                        if self._verify_token(token, key):
                             # Check if key is revoked
                             if key.revoked:
                                 logger.warning(
