@@ -50,13 +50,6 @@ run = "uv run python scripts/check_doc_links.py [--list]"
 mutates = false
 used_by = ["make ready (links-check)", "ci: quality"]
 
-[scripts.generate_repo_map]
-category = "generate"
-summary = "Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation; --check gates staleness."
-run = "uv run python scripts/generate_repo_map.py [--check]"
-mutates = true
-used_by = ["make format", "make ready (repo-map-check)", "ci: quality"]
-
 [scripts.dump_api_routes]
 category = "generate"
 summary = "Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count; --openapi for the spec itself."

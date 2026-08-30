@@ -24,7 +24,6 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | `generate_demo_world` ✎ | Emit frontend/src/lib/demo/world.ts from the seed dataset so the client Demo data toggle shows the same world make seed-demo produces; --check gates drift. | `uv run python scripts/generate_demo_world.py [--check]` |
 | `generate_env_template` ✎ | Regenerate the schema-owned block of .env.example from the config schema; --check gates staleness. | `uv run python scripts/generate_env_template.py [--check]` |
 | `generate_process_definitions` ✎ | Generate the PROCESS_DEFINITIONS fallback literal from processes.yaml; --check gates drift between the two. | `uv run python scripts/generate_process_definitions.py [--check]` |
-| `generate_repo_map` ✎ | Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation; --check gates staleness. | `uv run python scripts/generate_repo_map.py [--check]` |
 | `generate_scripts_index` ✎ | Generate scripts/README.md from this registry; --check gates staleness and registry completeness. | `uv run python scripts/generate_scripts_index.py [--check]` |
 
 ## Verification & validation gates
