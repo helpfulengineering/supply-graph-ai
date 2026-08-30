@@ -257,7 +257,14 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, requests_per_minute: int = 60):
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
-        self.request_counts = {}  # In production, use Redis or similar
+        # Per-process, and deliberately so for now: with N workers the
+        # effective budget is N x requests_per_minute, which is loose but
+        # bounded, and the counters cost nothing. That is adequate while this
+        # is a coarse abuse brake. It is NOT adequate for anything that must
+        # count exactly — a login or recovery-code attempt limit needs shared
+        # state (#414), because N chances per window instead of one is the
+        # difference between a guessing limit and a suggestion.
+        self.request_counts = {}
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
@@ -268,6 +275,11 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith("/v1/api/federation/"):
             return await call_next(request)
 
+        # Trustworthy only because the proxy trust set is now specific:
+        # uvicorn rewrites request.client from X-Forwarded-For when the peer is
+        # trusted and ignores the header when it is not. While that set was "*"
+        # this value was whatever the caller claimed, so a fresh address per
+        # request bought an unlimited budget. See src/config/proxy_trust.py.
         client_ip = request.client.host if request.client else "unknown"
         current_time = time.time()
 
