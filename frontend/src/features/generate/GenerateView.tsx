@@ -17,16 +17,20 @@ import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import {
   PANEL,
   PANEL_ACCENT,
+  PANEL_BODY,
   PANEL_DANGER,
   PANEL_INSET,
   PANEL_WARNING,
 } from "../../components/ui/surface";
+import { BODY_MUTED, CARD_TITLE } from "../../components/ui/typography";
 import { PageHero } from "../../components/layout/PageHero";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { withNavState } from "../../lib/navState";
 import { ApiError } from "../../api/ohm/client";
 import {
+  getGenerateJobEvents,
   getGenerateJobStatus,
   revokeGenerateJob,
   submitGenerateJobs,
@@ -39,10 +43,12 @@ import { downloadManifest } from "./serialize";
 import { missingRequired } from "./manifestTiers";
 import { TieredEditor } from "./TieredEditor";
 import { ProvenanceRecord } from "./ProvenanceRecord";
+import { ReopenRecord } from "./ReopenRecord";
 import {
   readGenerationProvenance,
   type GenerationProvenance,
 } from "./generationProvenance";
+import { plannedStages, stageLabel as labelFor } from "./jobProgress";
 import { parseRepoUrlList } from "./urlValidation";
 import {
   aggregatePercent,
@@ -116,6 +122,29 @@ function ProgressBar({
   );
 }
 
+/**
+ * Time since the run began, ticking.
+ *
+ * Its own component so the second-by-second re-render stays here rather than
+ * driving the whole view — the progress bar and the job list only change when
+ * the server says something new.
+ */
+function Elapsed({ since }: { since: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const seconds = Math.max(0, Math.round((now - since) / 1000));
+  return (
+    <p className="text-xs tabular-nums text-muted-foreground">
+      {seconds < 60
+        ? `${seconds}s elapsed`
+        : `${Math.floor(seconds / 60)}m ${seconds % 60}s elapsed`}
+    </p>
+  );
+}
+
 export function GenerateView() {
   const router = useRouter();
   const [url, setUrl] = useState("");
@@ -127,6 +156,8 @@ export function GenerateView() {
   const [provenance, setProvenance] = useState<GenerationProvenance | null>(
     null,
   );
+  const [noLlm, setNoLlm] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
   const [report, setReport] = useState<OkhQualityReport | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
@@ -141,6 +172,24 @@ export function GenerateView() {
       retry: false,
     })),
   });
+
+  // The run log for a single job, so finished stages stay on screen instead of
+  // being replaced by whatever is running now. Status reports the current stage
+  // only, and it is overwritten on every update — a stage shorter than the poll
+  // never appears there at all (#375).
+  //
+  // One job only: a batch already gets a row each in the list below, and nine
+  // stages times N repositories is a wall, not a status.
+  const soleJob = jobs.length === 1 ? jobs[0] : null;
+  const soleState = statusQueries[0]?.data?.state;
+  const eventsQuery = useQuery({
+    queryKey: ["okh-generate-job-events", soleJob?.job_id] as const,
+    queryFn: () => getGenerateJobEvents(soleJob!.job_id),
+    enabled: Boolean(soleJob),
+    refetchInterval: isTerminalJobState(soleState) ? false : 1000,
+    retry: false,
+  });
+  const ranStages = eventsQuery.data?.events ?? [];
 
   const statuses = useMemo(() => {
     return jobs.map((job, i) => {
@@ -211,7 +260,8 @@ export function GenerateView() {
     setActive(true);
 
     try {
-      const batch = await submitGenerateJobs(parsed.urls);
+      setStartedAt(Date.now());
+      const batch = await submitGenerateJobs(parsed.urls, { noLlm });
       setJobs(batch.jobs);
     } catch (err) {
       setActive(false);
@@ -289,6 +339,25 @@ export function GenerateView() {
         <p id="repo-url-hint" className="mt-1.5 text-xs text-muted-foreground">
           Separate multiple repositories with commas.
         </p>
+
+        {/* min-h-7: the responsive lane measures a checkbox's LABEL, since the
+            row is what a thumb hits. A flex label is block-level and so spans
+            the panel, and at the line-height of its text it sat at 20px —
+            under the 24px WCAG 2.5.8 floor. */}
+        <label className="mt-3 flex min-h-7 items-center gap-2 text-sm text-foreground">
+          <input
+            type="checkbox"
+            checked={noLlm}
+            disabled={active}
+            onChange={(e) => setNoLlm(e.target.checked)}
+            className="h-4 w-4 rounded border-border"
+          />
+          Skip the language model
+        </label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Faster, and it never invents a field — but it reads less out of prose,
+          so more of the manifest comes back empty.
+        </p>
         {urlError && (
           <p
             id="repo-url-error"
@@ -299,6 +368,33 @@ export function GenerateView() {
           </p>
         )}
       </div>
+
+      {!showProgress && !manifest && !provenance && (
+        <>
+        <div className={cn(PANEL, PANEL_BODY)}>
+          <h2 className={CARD_TITLE}>What will happen</h2>
+          <p className={cn(BODY_MUTED, "mt-1")}>
+            {plannedStages(!noLlm).length} stages, typically under a minute.
+            Each records what it produced, so every field in the result can be
+            traced back to the layer that made it.
+          </p>
+          <ol className="mt-3 flex flex-wrap gap-x-2 gap-y-1.5">
+            {plannedStages(!noLlm).map((stage, i) => (
+              <li
+                key={stage}
+                className={cn(
+                  "text-sm text-muted-foreground",
+                  i > 0 && "border-l border-border pl-2",
+                )}
+              >
+                {labelFor(stage)}
+              </li>
+            ))}
+          </ol>
+        </div>
+        <ReopenRecord onOpen={setProvenance} />
+        </>
+      )}
 
       {showProgress && (
         <div role="status" className={cn(PANEL_ACCENT, "space-y-4")}>
@@ -311,6 +407,42 @@ export function GenerateView() {
             }
             value={aggregate}
           />
+          {startedAt !== null && <Elapsed since={startedAt} />}
+          {ranStages.length > 0 && (
+            <ol className="space-y-1">
+              {ranStages.map((event, i) => {
+                // A stage is emitted when it BEGINS, so the last entry is the
+                // one in flight — ticking it would report work as done while
+                // it is still running.
+                const running =
+                  i === ranStages.length - 1 && !isTerminalJobState(soleState);
+                return (
+                  <li
+                    key={event.seq}
+                    className="flex items-baseline gap-2 text-sm text-muted-foreground"
+                  >
+                    {running ? (
+                      <span
+                        aria-hidden="true"
+                        className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary motion-reduce:animate-none"
+                      />
+                    ) : (
+                      <Check
+                        aria-hidden="true"
+                        className="h-4 w-4 shrink-0 text-success"
+                      />
+                    )}
+                    <span className="text-foreground">
+                      {labelFor(event.stage)}
+                    </span>
+                    <span className="ml-auto font-mono text-xs tabular-nums">
+                      {Math.round(event.fraction * 100)}%
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
           {statuses.length > 1 && (
             <ul className="space-y-3">
               {statuses.map((s) => (

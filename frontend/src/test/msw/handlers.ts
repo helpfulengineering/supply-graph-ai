@@ -1,6 +1,7 @@
 import { http, HttpResponse } from "msw";
 import {
   domainsFixture,
+  generateJobEventsFixture,
   healthFixture,
   metricsFixture,
   matchResponseFixture,
@@ -89,6 +90,9 @@ export const handlers = [
     HttpResponse.json(fileTypesValidationFixture),
   ),
   http.get("*/v1/api/file-types", () => HttpResponse.json(fileTypesFixture)),
+  http.get("*/v1/api/okh/generate-from-url/jobs/:id/events", () =>
+    HttpResponse.json(generateJobEventsFixture),
+  ),
   http.get("*/v1/api/match/domains", () =>
     HttpResponse.json(matchDomainsFixture),
   ),

@@ -1285,6 +1285,39 @@ export const solutionHierarchyFixture = {
   },
 };
 
+export const generateJobEventsFixture = {
+  status: "success",
+  message: "Events retrieved",
+  data: {
+    job_id: "job-1",
+    state: "PROGRESS",
+    next_cursor: 3,
+    events: [
+      {
+        seq: 0,
+        stage: "clone",
+        fraction: 0.12,
+        message: "Reading repository",
+        ts: "2026-08-29T12:00:00+00:00",
+      },
+      {
+        seq: 1,
+        stage: "direct",
+        fraction: 0.17,
+        message: null,
+        ts: "2026-08-29T12:00:04+00:00",
+      },
+      {
+        seq: 2,
+        stage: "nlp",
+        fraction: 0.4,
+        message: null,
+        ts: "2026-08-29T12:00:04.200+00:00",
+      },
+    ],
+  },
+};
+
 export const remotePackagesFixture = {
   status: "success",
   message: "Remote packages listed",
@@ -1327,6 +1360,7 @@ export const matchDomainsFixture = {
 
 export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/match/domains": matchDomainsFixture,
+  "/v1/api/okh/generate-from-url/jobs/job-1/events": generateJobEventsFixture,
   "/v1/api/package/remote": remotePackagesFixture,
   "/v1/api/package/demo/widget/1.0.0/verify-signature": packageSignatureFixture,
   "/v1/api/supply-tree/solution/sol-1/staleness": solutionStalenessFixture,

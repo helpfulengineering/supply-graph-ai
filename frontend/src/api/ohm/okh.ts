@@ -363,6 +363,37 @@ export async function submitGenerateJobs(
   return data;
 }
 
+export type GenerateJobEvents =
+  components["schemas"]["OKHGenerateJobEvents"];
+
+/**
+ * The run's stage log, in order.
+ *
+ * Distinct from job status, which reports the stage a run is *on*: that field
+ * is overwritten on every update, so polling it samples the timeline rather
+ * than receiving it and a stage shorter than the interval is never seen. The
+ * log is cumulative, so a poll at any rate gets everything that ran.
+ *
+ * Fetched whole rather than paged from a cursor. The endpoint takes `since`,
+ * but a run has nine stages — carrying a cursor to save eight rows would be
+ * state to keep correct for no gain.
+ */
+export async function getGenerateJobEvents(
+  jobId: string,
+): Promise<GenerateJobEvents> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okh/generate-from-url/jobs/{job_id}/events",
+    { params: { path: { job_id: jobId }, query: { since: 0 } } },
+  );
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Could not read the run log (HTTP ${response.status})`),
+    );
+  }
+  return data as GenerateJobEvents;
+}
+
 export async function getGenerateJobStatus(
   jobId: string,
 ): Promise<GenerateJobStatus> {
