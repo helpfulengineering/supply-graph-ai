@@ -5,6 +5,7 @@ This service handles API key creation, validation, permission checking,
 and integrates with storage for persistence.
 """
 
+import hashlib
 import json
 import logging
 import secrets
@@ -77,11 +78,11 @@ class AuthenticationService:
     """Service for authentication and authorization."""
 
     _instance = None
-    _cache: Dict[UUID, Tuple[APIKey, datetime]] = {}
-    _cache_ttl = timedelta(minutes=5)
 
     def __init__(self):
         """Initialize authentication service."""
+        # None until first asked; see _legacy_keys. Never holds key material.
+        self._has_legacy_keys: Optional[bool] = None
         self._auth_storage: Optional[AuthStorage] = None
         self._account_storage: Optional[AccountStorage] = None
         self._identity_store: Optional[IdentityKeyStore] = None
@@ -156,6 +157,18 @@ class AuthenticationService:
             logger.warning(f"Token verification failed: {e}")
             return False
 
+    @staticmethod
+    def _token_digest(token: str) -> str:
+        """SHA-256 of a token, used purely as a lookup key (#409).
+
+        Deliberately not a stretching function. Stretching defends a *password*,
+        whose entropy is low enough to brute-force offline; these tokens are 256
+        bits of CSPRNG output, so there is nothing to brute-force and a plain
+        digest is as unreversible as anything slower would be. bcrypt still does
+        the verification — this only decides which single key to verify against.
+        """
+        return hashlib.sha256(token.strip().encode("utf-8")).hexdigest()
+
     def _generate_token(self, length: int = 32) -> str:
         """
         Generate a secure random token.
@@ -171,6 +184,38 @@ class AuthenticationService:
         token_bytes = secrets.token_bytes(length)
         token = base64.urlsafe_b64encode(token_bytes).decode("utf-8").rstrip("=")
         return token
+
+    async def _legacy_keys(self) -> List[APIKey]:
+        """Keys issued before #409, which have no digest to look up by.
+
+        A bcrypt hash cannot be reversed, so these can never be backfilled — the
+        plaintext token exists only wherever its owner put it. They therefore
+        keep the old scan, bounded to however many pre-#409 keys a node has
+        (operator-made, typically single digits) rather than to every key ever
+        issued. The set only shrinks: every key minted from now on is
+        addressable, so the scan disappears as the old ones are rotated out.
+
+        Guarded by a one-shot check, because this is also the path an *unknown*
+        token takes: without the guard a bogus token would still cost a full
+        listing of the key store on every request — no bcrypt, but one object
+        read per key, which is the same denial-of-service shape a step quieter.
+        Nodes with no pre-#409 keys, which is every new deployment, never list.
+
+        The check memoises only *whether* legacy keys exist, never the keys
+        themselves: a cached key object would let a since-revoked key keep
+        authenticating from a stale ``revoked`` flag.
+        """
+        if not self._auth_storage or self._has_legacy_keys is False:
+            return []
+        legacy = [k for k in await self._auth_storage.list_keys() if not k.token_digest]
+        if self._has_legacy_keys is None:
+            self._has_legacy_keys = bool(legacy)
+            if legacy:
+                logger.warning(
+                    f"{len(legacy)} API key(s) predate the digest index and still "
+                    "require a scan to authenticate; rotate them to remove it"
+                )
+        return legacy
 
     async def validate_api_key(self, token: str) -> AuthenticatedUser:
         """
@@ -198,8 +243,15 @@ class AuthenticationService:
         if auth_mode in (AUTH_MODE_STORAGE, AUTH_MODE_HYBRID):
             if self._auth_storage:
                 try:
-                    # List all keys and find matching one
-                    keys = await self._auth_storage.list_keys()
+                    # One lookup, then at most one bcrypt (#409). Before this,
+                    # every request bcrypt-checked keys until one matched, so an
+                    # invalid token cost a full scan — 186ms per key on the
+                    # machine this was measured on — and self-service
+                    # registration made the key count grow without bound.
+                    candidate = await self._auth_storage.find_by_digest(
+                        self._token_digest(token)
+                    )
+                    keys = [candidate] if candidate else await self._legacy_keys()
 
                     for key in keys:
                         if self._verify_token(token, key.key_hash):
@@ -226,9 +278,6 @@ class AuthenticationService:
                             # Update last_used_at
                             key.last_used_at = datetime.utcnow()
                             await self._auth_storage.save_key(key)
-
-                            # Cache the key
-                            self._cache[key.key_id] = (key, datetime.utcnow())
 
                             logger.info(f"Successfully authenticated key: {key.key_id}")
                             account_id = self._account_id_from_key(key)
@@ -367,6 +416,7 @@ class AuthenticationService:
         api_key = APIKey(
             key_id=uuid4(),
             key_hash=key_hash,
+            token_digest=self._token_digest(token),
             name=key_data.name,
             description=key_data.description,
             permissions=key_data.permissions,
@@ -414,10 +464,6 @@ class AuthenticationService:
         key.revoked = True
         await self._auth_storage.save_key(key)
 
-        # Remove from cache
-        if key_id in self._cache:
-            del self._cache[key_id]
-
         logger.info(f"Revoked API key: {key_id}")
 
     async def list_api_keys(self) -> List[APIKeyResponse]:
@@ -463,7 +509,9 @@ class AuthenticationService:
 
         # Check if token matches any env key
         for env_key in env_keys:
-            if env_key and env_key.strip() == token.strip():
+            # Constant-time: a plain == leaks the length of the shared prefix,
+            # which is a usable oracle against a configured secret.
+            if env_key and secrets.compare_digest(env_key.strip(), token.strip()):
                 logger.info("Authenticated using environment variable key")
                 return AuthenticatedUser(
                     key_id=UUID(
