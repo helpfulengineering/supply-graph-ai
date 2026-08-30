@@ -2,21 +2,41 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { useDomain } from "../../context/DomainContext";
 import { NavDrawer } from "./NavDrawer";
+import { GENERATE_ENTRY, isActivePath, navGroupsForDomain } from "./nav";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { DemoDataBadge } from "../../features/dashboard/DemoDataBadge";
 import { Logo } from "./Logo";
 
 /**
  * The universal header, in the TTM chrome idiom: a slim bar that carries the
- * wordmark and the tools cluster, and nothing else. Every page's own h1 is
- * its identity; all navigation is consolidated in the hamburger sitemap.
+ * wordmark and the tools cluster. Every page's own h1 is its identity, and the
+ * sitemap stays consolidated in the hamburger.
+ *
+ * One exception, and it is deliberate: Generate. It is the longest-running and
+ * most distinctive operation in the product, and it sat two clicks away behind
+ * an icon with no word on it — present in the sitemap under Create, invisible
+ * in the chrome. Promoting it puts the only word in the bar on the thing most
+ * worth finding. It is an action rather than a section, which is why it reads
+ * as a button and not as the first of a row of nav links.
  */
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isDark, toggle } = useTheme();
+  const { domain } = useDomain();
+  const pathname = usePathname() ?? "";
+
+  // Asked of the domain-filtered sitemap rather than of GENERATE_ENTRY, because
+  // cooking drops generation altogether: promoting a row that domain removes
+  // would advertise a route it deliberately hides.
+  const generatePromoted = navGroupsForDomain(domain).some((group) =>
+    group.entries.includes(GENERATE_ENTRY),
+  );
+  const GenerateIcon = GENERATE_ENTRY.icon;
 
   // Stable, because the drawer's focus trap keys its effect on this callback:
   // an inline arrow made every header render a teardown and rebuild of the
@@ -51,6 +71,25 @@ export function SiteHeader() {
           <span className="mr-2 empty:mr-0">
             <DemoDataBadge />
           </span>
+
+          {/* Square below `sm`, labelled from `sm` up. One text node either
+              way — `sr-only`, not a second hidden copy — so the accessible
+              name is the same string at every width, and being out of flow it
+              opens no gap beside the icon on a phone. */}
+          {generatePromoted && (
+            <Link
+              href={GENERATE_ENTRY.href}
+              aria-current={
+                isActivePath(pathname, GENERATE_ENTRY.href) ? "page" : undefined
+              }
+              className="mr-1 flex h-11 w-11 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground no-underline transition-colors hover:bg-primary/80 sm:w-auto sm:px-3"
+            >
+              <GenerateIcon aria-hidden="true" className="h-5 w-5" />
+              <span className="text-sm font-medium sr-only sm:not-sr-only">
+                Generate
+              </span>
+            </Link>
+          )}
 
           <button
             type="button"

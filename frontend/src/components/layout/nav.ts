@@ -90,6 +90,22 @@ export interface NavGroup {
   accent: string;
 }
 
+/**
+ * Generate, which the header promotes to a labelled action.
+ *
+ * Declared once and referenced into Create below rather than spelled twice, so
+ * the header and the sitemap cannot disagree about the route, name or icon.
+ * Promotion adds a second way in; the row stays. It is still dropped for
+ * cooking by `navGroupsForDomain`, which is why the header asks that function
+ * rather than reaching for this constant.
+ */
+export const GENERATE_ENTRY: NavEntry = {
+  href: "/okh/generate",
+  name: "Generate",
+  desc: "draft a design manifest from a URL",
+  icon: RobotIcon,
+};
+
 export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Explore",
@@ -151,12 +167,7 @@ export const NAV_GROUPS: NavGroup[] = [
         desc: "pair a design with facilities that can build it",
         icon: IntegrationIcon,
       },
-      {
-        href: "/okh/generate",
-        name: "Generate",
-        desc: "draft a design manifest from a URL",
-        icon: RobotIcon,
-      },
+      GENERATE_ENTRY,
       {
         href: "/okh/new",
         name: "New design",
