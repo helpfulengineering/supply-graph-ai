@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List
 
 from ..models.package import PackageMetadata
+from ..utils.safe_paths import safe_join, safe_key
 from ..storage.package_storage import (
     build_info_key_candidates,
     default_package_prefix,
@@ -73,7 +74,9 @@ class PackageRemoteStorage:
         else:
             relative_path = file_path
 
-        return f"{base}/files/{relative_path}"
+        # Guarded: relative_path derives from manifest content, so an unchecked
+        # join here writes to an arbitrary object key — including under auth/.
+        return safe_key(f"{base}/files", relative_path)
 
     async def _locate_remote_package_base(
         self, org: str, project: str, version: str
@@ -187,9 +190,12 @@ class PackageRemoteStorage:
             # 4. Upload all package files
             for file_info in package_metadata.file_inventory:
                 try:
-                    local_file_path = (
-                        local_package_path / file_info.local_path
-                    ).resolve()
+                    # Containment, not just existence: a path that escaped the
+                    # package directory is readable and would be uploaded into
+                    # the package for anyone who can read it.
+                    local_file_path = safe_join(
+                        local_package_path, file_info.local_path
+                    )
                     if not local_file_path.exists():
                         logger.warning(f"Local file not found: {local_file_path}")
                         push_results["failed_files"].append(

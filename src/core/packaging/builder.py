@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from ..models.okh import DocumentationType, DocumentRef, OKHManifest, PartSpec, Software
 from ..models.package import BuildOptions, FileInfo, PackageMetadata
+from ..utils.safe_paths import safe_join
 from .file_resolver import FileResolver
 from .repo_file_urls import resolve_repo_relative_file_url
 
@@ -593,10 +594,13 @@ class PackageBuilder:
                     ext = self._guess_extension_from_url(actual_url)
                     relative_path = f"{filename}{ext}"
 
-            target_path = target_dir / relative_path
+            # Derived from the URL's path segments, so ".." in a crafted URL
+            # would otherwise walk out of the package directory.
+            target_path = safe_join(target_dir, relative_path)
         else:
-            # For relative paths, preserve the full structure
-            target_path = target_dir / url
+            # For relative paths, preserve the full structure. This one comes
+            # straight from manifest content, which any writer supplies.
+            target_path = safe_join(target_dir, url)
 
         result = await self.file_resolver.resolve_and_download(
             doc_ref, target_path, file_type
