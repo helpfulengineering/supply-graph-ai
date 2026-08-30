@@ -662,6 +662,14 @@ async def list_okh(
             manifest_dict = (
                 manifest.to_dict() if hasattr(manifest, "to_dict") else manifest
             )
+            # Visibility rides the item because to_dict() is a whitelist and the
+            # list is otherwise silent about it. A caller sees shareable records
+            # plus their own, so a non-shareable row here is one of the caller's
+            # own — which is what makes "created but not yet shared" findable in
+            # the UI rather than only through the CLI.
+            manifest_dict["visibility"] = (
+                await okh_service.get_visibility(manifest.id)
+            ).value
             results.append(manifest_dict)
 
         # Create pagination info

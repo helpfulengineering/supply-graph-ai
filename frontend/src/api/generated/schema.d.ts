@@ -7631,6 +7631,8 @@ export interface components {
             typical_materials: {
                 [key: string]: unknown;
             }[];
+            /** Visibility */
+            visibility?: string | null;
             /**
              * Certifications
              * @default []

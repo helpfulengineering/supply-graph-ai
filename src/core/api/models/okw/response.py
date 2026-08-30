@@ -48,6 +48,10 @@ class OKWResponse(SuccessResponse, LLMResponseMixin):
     floor_size: Optional[int] = None
     storage_capacity: Optional[str] = None
     typical_materials: List[Dict[str, Any]] = []
+    #: How far this facility may travel from the node. Carried on search results
+    #: so the UI can surface a facility its owner created but has not shared —
+    #: a caller only ever sees shareable records plus their own.
+    visibility: Optional[str] = None
     certifications: List[str] = []
     metadata: Dict[str, Any] = {}
     domain: Optional[str] = None  # "manufacturing" or "cooking"

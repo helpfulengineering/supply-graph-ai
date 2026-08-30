@@ -248,6 +248,7 @@ async def search_okw(
                 message="OKW facility retrieved successfully",
                 id=facility.id,
                 name=facility.name,
+                visibility=(await okw_service.get_visibility(facility.id)).value,
                 location=location_dict,
                 facility_status=facility_status_str,
                 access_type=access_type_str,
@@ -812,6 +813,10 @@ async def list_okw(
                 "manufacturing_processes": facility.manufacturing_processes,
                 "equipment": facility.equipment,
                 "typical_materials": facility.typical_materials,
+                # A caller sees shareable facilities plus their own, so a
+                # non-shareable row here is one of the caller's own — which is
+                # what makes "created but not yet shared" findable in the UI.
+                "visibility": (await okw_service.get_visibility(facility.id)).value,
             }
             results.append(facility_dict)
 

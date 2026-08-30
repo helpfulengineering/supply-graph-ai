@@ -34,6 +34,8 @@ export interface SecurityPolicyPublic {
   metadata_logging: string;
   registry_attestations: string;
   anonymous_submission_allowed: boolean;
+  /** Whether a visitor may mint their own account without an operator. */
+  open_registration: boolean;
 }
 
 /** Space claim (not yet in committed OpenAPI). */
@@ -85,6 +87,32 @@ export async function fetchWhoami(): Promise<AuthenticatedUser> {
 
 export async function fetchSecurityPolicy(): Promise<SecurityPolicyPublic> {
   return identityFetch<SecurityPolicyPublic>("/api/identity/security-policy");
+}
+
+export type RegistrationCreate = components["schemas"]["RegistrationCreate"];
+export type RegistrationResponse = components["schemas"]["RegistrationResponse"];
+
+/**
+ * Register a person on this node. Deliberately unauthenticated: a node operator
+ * should not be the only way to become someone on a node.
+ *
+ * The token in the response is the only copy that will ever exist.
+ */
+export async function registerPerson(
+  displayName: string,
+): Promise<RegistrationResponse> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/register",
+    { body: { display_name: displayName } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Registration failed"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
 }
 
 export async function listApiKeys(): Promise<APIKeyResponse[]> {

@@ -241,8 +241,11 @@ AREAS: tuple[Area, ...] = (
         "capability grants, space claims, edge bootstrap, attestations, domain/OAuth "
         "bindings, trust-on-follow directory, and security-policy status. See "
         "notes/federated-identity-spec.md Slices 1-8. Frontend Track F: Settings "
-        "(admin) under /settings; F3–F6 panels landed.",
-        fe_routes=("/settings",),
+        "(admin) under /settings; F3–F6 panels landed. F8 adds self-service "
+        "registration at /register and the signed-in visitor's own page at "
+        "/account — Settings stays admin-only, so a registered non-admin needs "
+        "somewhere that is theirs.",
+        fe_routes=("/settings", "/register", "/account"),
         fe_api_prefixes=("/api/identity",),
     ),
     # --- Frontend-only surfaces: no service, no API, no CLI ---------------
@@ -612,15 +615,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/supply-tree/solution/{solution_id}/export",
     ),
     # --- Planned: the backlog, deleted by the commit that wires the call ---
-    *_decision(
-        "planned",
-        "backlog",
-        "Self-service onboarding (#403). The /register route, the session it "
-        "adopts and the non-admin shell are #404; this row is that backlog and "
-        "the commit that wires the call deletes it. The CLI (ohm identity "
-        "register) already covers registering against a node you do not operate.",
-        "/api/identity/register",
-    ),
     *_decision(
         "planned",
         "backlog",

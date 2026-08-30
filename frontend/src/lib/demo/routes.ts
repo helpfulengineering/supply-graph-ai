@@ -15,6 +15,7 @@ import {
   packageMetadataFixture,
   packageSignatureFixture,
   provenanceFixture,
+  registrationFixture,
   salvageMatchFixture,
   solutionHierarchyFixture,
   solutionStalenessFixture,
@@ -327,6 +328,14 @@ export function resolveDemoRoute(method: string, pathname: string): DemoRoute {
 
   if (verb === "POST" && pathname in QUERY_POSTS) {
     return json(QUERY_POSTS[pathname]);
+  }
+
+  // Registering in the demo world is a write in name only: the identity it
+  // hands back is the same canned one every visitor gets, and the token it
+  // carries authenticates nothing. Answered rather than refused so the tour
+  // can walk the whole join-a-node journey without hitting an error page.
+  if (verb === "POST" && pathname === "/v1/api/identity/register") {
+    return json(registrationFixture);
   }
 
   // Submitting a generation batch is a write in name only — nothing persists,

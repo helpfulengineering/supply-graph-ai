@@ -18,8 +18,16 @@ export interface OkhPagination {
   has_previous: boolean;
 }
 
+/**
+ * A list row. The list carries `visibility`, which the detail manifest does
+ * not: `to_dict()` is a whitelist, so the payload is otherwise silent about it.
+ * A caller sees shareable records plus their own, so a row that is not
+ * shareable is necessarily one of the caller's own.
+ */
+export type OkhListItem = OkhManifest & { visibility?: VisibilityLevel };
+
 export interface OkhListResult {
-  items: OkhManifest[];
+  items: OkhListItem[];
   pagination: OkhPagination;
 }
 
@@ -72,7 +80,7 @@ export async function fetchOkhList(
     pagination?: Partial<OkhPagination>;
   };
   return {
-    items: (body.items ?? []) as OkhManifest[],
+    items: (body.items ?? []) as OkhListItem[],
     pagination: { ...EMPTY_PAGINATION, ...body.pagination },
   };
 }

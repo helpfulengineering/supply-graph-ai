@@ -11,6 +11,7 @@ import { GENERATE_ENTRY, isActivePath, navGroupsForDomain } from "./nav";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { DemoDataBadge } from "../../features/dashboard/DemoDataBadge";
 import { Logo } from "./Logo";
+import { SessionControl } from "./SessionControl";
 
 /**
  * The universal header, in the TTM chrome idiom: a slim bar that carries the
@@ -90,6 +91,8 @@ export function SiteHeader() {
               </span>
             </Link>
           )}
+
+          <SessionControl />
 
           <button
             type="button"

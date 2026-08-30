@@ -4,8 +4,11 @@ import type { components } from "../generated/schema";
 
 export type ValidationResult = components["schemas"]["ValidationResult"];
 
+/** A search row, which carries `visibility` where the facility type does not. */
+export type OkwListItem = OkwFacility & { visibility?: VisibilityLevel };
+
 export interface OkwSearchResult {
-  results: OkwFacility[];
+  results: OkwListItem[];
   total: number;
   page: number;
   page_size: number;
