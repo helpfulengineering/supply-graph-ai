@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import logging
+import os
+import stat
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -12,6 +15,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
     Ed25519PublicKey,
 )
+
+logger = logging.getLogger(__name__)
 
 # multicodec ed25519-pub
 _ED25519_PUB_MULTICODEC = bytes([0xED, 0x01])
@@ -162,6 +167,60 @@ def verify_payload(did: str, payload: dict[str, Any], signature_hex: str) -> boo
         return False
 
 
+# Private key material is written by two callers — the node's own identity and
+# the person/space key store — so the mode belongs to a shared helper rather
+# than to each write site. Plaintext-at-rest is a documented peacetime decision
+# (#410 does not change it); the permissions were never a decision at all, just
+# the default from a plain text write, which left every user's signing key
+# readable by any local process.
+SECRET_FILE_MODE = 0o600
+SECRET_DIR_MODE = 0o700
+
+_repaired_dirs: set[str] = set()
+
+
+def secret_dir(path: Path) -> Path:
+    """Ensure ``path`` exists and holds secrets at 0700, repairing it once."""
+    path.mkdir(parents=True, exist_ok=True, mode=SECRET_DIR_MODE)
+    key = str(path.resolve())
+    if key in _repaired_dirs:
+        return path
+    _repaired_dirs.add(key)
+    # mkdir's mode is masked by umask, and ignored outright when the directory
+    # already exists — so an explicit chmod is what actually settles it, and is
+    # also what repairs directories created before this change.
+    if stat.S_IMODE(path.stat().st_mode) != SECRET_DIR_MODE:
+        path.chmod(SECRET_DIR_MODE)
+    repaired = 0
+    for child in path.glob("*.json"):
+        if stat.S_IMODE(child.stat().st_mode) != SECRET_FILE_MODE:
+            child.chmod(SECRET_FILE_MODE)
+            repaired += 1
+    if repaired:
+        logger.warning(
+            f"Tightened permissions on {repaired} key file(s) in {path} that "
+            "were written world-readable before this version"
+        )
+    return path
+
+
+def write_secret_file(path: Path, text: str) -> None:
+    """Write private key material, never observable wider than 0600.
+
+    Opened with an explicit mode rather than written and then chmod-ed: a
+    create-then-chmod leaves a window in which the key is readable, which is
+    the whole bug this closes. The trailing chmod covers the case where the
+    file already existed at a wider mode, since ``os.open`` applies its mode
+    only on creation.
+    """
+    secret_dir(path.parent)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, SECRET_FILE_MODE)
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(text)
+    if stat.S_IMODE(path.stat().st_mode) != SECRET_FILE_MODE:
+        path.chmod(SECRET_FILE_MODE)
+
+
 def generate_identity(display_name: str) -> NodeIdentity:
     """Create a new node identity."""
     private_key = Ed25519PrivateKey.generate()
@@ -171,7 +230,7 @@ def generate_identity(display_name: str) -> NodeIdentity:
 
 def load_or_create_identity(data_dir: Path, display_name: str) -> NodeIdentity:
     """Load identity from data_dir/identity.json or create and persist it."""
-    data_dir.mkdir(parents=True, exist_ok=True)
+    secret_dir(data_dir)
     identity_path = data_dir / "identity.json"
     if identity_path.is_file():
         raw = json.loads(identity_path.read_text(encoding="utf-8"))
@@ -182,14 +241,10 @@ def load_or_create_identity(data_dir: Path, display_name: str) -> NodeIdentity:
                 display_name=display_name,
                 private_key=identity.private_key,
             )
-            identity_path.write_text(
-                json.dumps(identity.to_identity_file(), indent=2),
-                encoding="utf-8",
+            write_secret_file(
+                identity_path, json.dumps(identity.to_identity_file(), indent=2)
             )
         return identity
     identity = generate_identity(display_name or "OHM Node")
-    identity_path.write_text(
-        json.dumps(identity.to_identity_file(), indent=2),
-        encoding="utf-8",
-    )
+    write_secret_file(identity_path, json.dumps(identity.to_identity_file(), indent=2))
     return identity
