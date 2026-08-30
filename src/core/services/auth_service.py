@@ -74,10 +74,13 @@ from ..storage.space_claim_store import SpaceClaimStore
 logger = logging.getLogger(__name__)
 
 
-#: What a self-service credential may ever carry. Registration and recovery both
-#: mint keys without an operator in the loop, so neither may hand out `admin` —
-#: recovery especially, since the account it restores might have held it. Stated
-#: once because two copies of a permission floor is one copy too many.
+#: What a credential minted without an operator in the loop may ever carry.
+#: Three paths reach it now — registration, recovery-code redemption, and a
+#: person minting their own second key — and none may hand out `admin`.
+#: Recovery especially, since the account it restores might have held it, and
+#: self-service key creation, since otherwise "manage your own keys" would be a
+#: route to it. Stated once because two copies of a permission floor is one too
+#: many.
 SELF_SERVICE_PERMISSIONS = ["read", "write"]
 
 
@@ -483,6 +486,108 @@ class AuthenticationService:
 
         logger.info(f"Revoked API key: {key_id}")
 
+    @staticmethod
+    def _owns(key: APIKey, account_id: UUID) -> bool:
+        """Whether ``key`` belongs to ``account_id``."""
+        return str(key.created_by) == str(account_id)
+
+    async def list_api_keys_for(self, user: AuthenticatedUser) -> List[APIKeyResponse]:
+        """The keys ``user`` may see: their own, or all of them for an admin.
+
+        Same scoping move #403 made for records, applied to the identity plane.
+        An admin's node-wide view is unchanged; what changes is that an ordinary
+        person now has one at all, over their own keys.
+        """
+        keys = await self.list_api_keys()
+        if "admin" in user.permissions:
+            return keys
+        owned = {
+            k.key_id
+            for k in (
+                await self._auth_storage.list_keys() if self._auth_storage else []
+            )
+            if self._owns(k, user.account_id)
+        }
+        return [k for k in keys if k.key_id in owned]
+
+    async def revoke_api_key_for(self, user: AuthenticatedUser, key_id: UUID) -> None:
+        """Revoke ``key_id`` if ``user`` may.
+
+        A key belonging to someone else is refused exactly as a key that does
+        not exist is: otherwise the error message is an oracle for which key ids
+        are real.
+        """
+        if "admin" not in user.permissions:
+            if not self._auth_storage:
+                raise RuntimeError("Storage not available for API key revocation")
+            key = await self._auth_storage.load_key(key_id)
+            if key is None or not self._owns(key, user.account_id):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
+                )
+        await self.revoke_api_key(key_id)
+
+    async def revoke_other_keys(self, user: AuthenticatedUser) -> int:
+        """Revoke every key on the caller's account except the one in use.
+
+        The realistic panic is "I pasted my key somewhere I should not have",
+        and asking someone in that state to enumerate and revoke individually is
+        the wrong thing to ask. Returns how many were revoked.
+        """
+        if not self._auth_storage:
+            raise RuntimeError("Storage not available for API key revocation")
+        revoked = 0
+        for key in await self._auth_storage.list_keys():
+            if (
+                self._owns(key, user.account_id)
+                and key.key_id != user.key_id
+                and not key.revoked
+            ):
+                key.revoked = True
+                await self._auth_storage.save_key(key)
+                revoked += 1
+        logger.info(f"Revoked {revoked} other key(s) for account {user.account_id}")
+        return revoked
+
+    async def renew_api_key(
+        self, user: AuthenticatedUser, key_id: UUID
+    ) -> APIKeyResponse:
+        """Push a key's expiry out by the policy TTL, without minting a new one.
+
+        Renewal keeps the same token, so nothing has to be re-pasted anywhere it
+        is already stored — which is the whole point of having it rather than
+        telling people to create a replacement.
+        """
+        if not self._auth_storage:
+            raise RuntimeError("Storage not available for API key renewal")
+        key = await self._auth_storage.load_key(key_id)
+        if key is None or (
+            "admin" not in user.permissions and not self._owns(key, user.account_id)
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
+            )
+        if key.revoked:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="A revoked key cannot be renewed",
+            )
+        key.expires_at = datetime.utcnow() + timedelta(
+            days=get_security_policy().key_ttl_days
+        )
+        await self._auth_storage.save_key(key)
+        return APIKeyResponse(
+            key_id=key.key_id,
+            name=key.name,
+            description=key.description,
+            permissions=key.permissions,
+            created_at=key.created_at,
+            last_used_at=key.last_used_at,
+            expires_at=key.expires_at,
+            revoked=key.revoked,
+            token=None,
+        )
+
     async def list_api_keys(self) -> List[APIKeyResponse]:
         """
         List all API keys (without tokens).
@@ -577,6 +682,9 @@ class AuthenticationService:
                 description="Issued by self-service registration",
                 permissions=list(SELF_SERVICE_PERMISSIONS),
                 account_id=account.id,
+                # Bounded, so an abandoned key stops working on its own.
+                expires_at=datetime.utcnow()
+                + timedelta(days=get_security_policy().key_ttl_days),
             )
         )
         recovery_code = await self._issue_recovery_code(account)

@@ -1,4 +1,5 @@
 import {
+  apiKeysFixture,
   assetDetailFixture,
   attestationsFixture,
   claimComponentFixture,
@@ -329,6 +330,21 @@ export function resolveDemoRoute(method: string, pathname: string): DemoRoute {
 
   if (verb === "POST" && pathname in QUERY_POSTS) {
     return json(QUERY_POSTS[pathname]);
+  }
+
+  // Key management in the demo world is a write in name only, like registration
+  // below: the canned key list is the same for every visitor, so revoking or
+  // renewing changes nothing. Answered rather than refused so the tour can walk
+  // the whole flow without hitting an error page.
+  if (verb === "POST" && pathname === "/v1/api/identity/keys/revoke-others") {
+    return json({ success: true, message: "Revoked 0 other key(s) on your account" });
+  }
+  if (verb === "POST" && /^\/v1\/api\/identity\/keys\/[^/]+\/renew$/.test(pathname)) {
+    return json({
+      ...apiKeysFixture[0],
+      expires_at: new Date(Date.now() + 180 * 86_400_000).toISOString(),
+      token: null,
+    });
   }
 
   // Registering in the demo world is a write in name only: the identity it

@@ -47,6 +47,12 @@ class SecurityPolicy:
     # Whether a visitor may mint their own account/DID/key without an operator.
     # Off under shielded: onboarding is an out-of-band, hand-vetted act there.
     open_registration: bool = True
+    # How long a self-service API key lives before it must be renewed (#413).
+    # Longer than a capability grant because this is the credential a person
+    # actually holds and re-entering it is a real cost — but not unlimited, so
+    # an abandoned key stops working on its own rather than staying valid for
+    # ever. Crisis runs long for offline grace; shielded runs short.
+    key_ttl_days: int = 180
 
     def to_public_dict(self) -> Dict[str, Any]:
         """JSON-serializable view of the active policy (for API/CLI status)."""
@@ -68,6 +74,7 @@ _PEACETIME = SecurityPolicy(
     registry_attestations="trust_on_follow",
     anonymous_submission_allowed=True,
     open_registration=True,
+    key_ttl_days=180,
 )
 
 # Availability under degraded connectivity: long grants, TOFU-friendly, mDNS on.
@@ -83,6 +90,7 @@ _CRISIS = SecurityPolicy(
     registry_attestations="trust_on_follow",
     anonymous_submission_allowed=True,
     open_registration=True,
+    key_ttl_days=365,
 )
 
 # Confidentiality under surveillance: short TTLs, no mDNS, minimal metadata.
@@ -98,6 +106,7 @@ _SHIELDED = SecurityPolicy(
     registry_attestations="ca_pinned",
     anonymous_submission_allowed=False,
     open_registration=False,
+    key_ttl_days=30,
 )
 
 _PRESETS = {

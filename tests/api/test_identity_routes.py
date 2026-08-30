@@ -31,33 +31,59 @@ def _get_app() -> tuple[FastAPI, FastAPI]:
 @pytest.mark.asyncio
 @pytest.mark.contract
 async def test_create_key_returns_token_once(monkeypatch):
-    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "development")
-    from src.core.api.routes.identity import get_auth_service
-    from src.core.models.auth import APIKeyResponse
+    """Minting a key now requires a caller (#413).
 
-    svc = MagicMock()
-    svc.create_api_key = AsyncMock(
-        return_value=APIKeyResponse(
+    It used to be admin-gated, which the dev policy left open — so an
+    unauthenticated request could mint a credential, which is the same shape as
+    the anonymous-write hole. The operation is now scoped to the account making
+    it, and an account is exactly what an anonymous caller does not have. The
+    unauthenticated bootstrap path is POST /identity/register.
+    """
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "development")
+    from src.core.api.dependencies import get_current_user
+    from src.core.api.routes.identity import get_auth_service
+    from src.core.models.auth import APIKeyResponse, AuthenticatedUser
+
+    account_id = uuid4()
+    captured = {}
+
+    async def _create(payload):
+        captured["payload"] = payload
+        return APIKeyResponse(
             key_id=uuid4(),
-            name="k",
-            permissions=["write"],
+            name=payload.name,
+            permissions=payload.permissions,
             created_at=datetime.utcnow(),
             token="secret-token",
         )
+
+    svc = MagicMock()
+    svc.create_api_key = AsyncMock(side_effect=_create)
+    caller = AuthenticatedUser(
+        key_id=uuid4(), name="ada", permissions=["read", "write"], account_id=account_id
     )
 
     app, api_v1 = _get_app()
     api_v1.dependency_overrides[get_auth_service] = lambda: svc
+    api_v1.dependency_overrides[get_current_user] = lambda: caller
     try:
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(
             transport=transport, base_url="http://testserver"
         ) as client:
             resp = await client.post(
-                "/v1/api/identity/keys", json={"name": "k", "permissions": ["write"]}
+                "/v1/api/identity/keys",
+                # Asking for admin on someone else's account: both are ignored.
+                json={
+                    "name": "k",
+                    "permissions": ["read", "admin"],
+                    "account_id": str(uuid4()),
+                },
             )
         assert resp.status_code == 201, resp.text
         assert resp.json()["token"] == "secret-token"
+        assert captured["payload"].account_id == account_id
+        assert "admin" not in captured["payload"].permissions
     finally:
         api_v1.dependency_overrides.clear()
 

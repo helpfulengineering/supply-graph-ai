@@ -356,6 +356,60 @@ async def keys_revoke(
     cli_ctx.log(f"Revoked key {key_id}", "success")
 
 
+@keys_group.command(name="revoke-others")
+@standard_cli_command(
+    help_text="Revoke every other key on your account.", async_cmd=True
+)
+@click.pass_context
+async def keys_revoke_others(
+    ctx: click.Context,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Kill every key on your account except the one in OHM_API_KEY.
+
+    For when a key went somewhere it should not have and you would rather not
+    enumerate them one at a time.
+    """
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    result = await _request(cli_ctx, "POST", "/keys/revoke-others")
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(result.get("message", "Done"), "success")
+
+
+@keys_group.command(name="renew")
+@click.argument("key_id")
+@standard_cli_command(help_text="Extend a key's expiry.", async_cmd=True)
+@click.pass_context
+async def keys_renew(
+    ctx: click.Context,
+    key_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Push a key's expiry out, keeping the same token."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    result = await _request(cli_ctx, "POST", f"/keys/{key_id}/renew")
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Expires: {result.get('expires_at')}", "success")
+
+
 @identity_group.group(name="accounts")
 def accounts_group() -> None:
     """Create, list, and disable accounts."""
