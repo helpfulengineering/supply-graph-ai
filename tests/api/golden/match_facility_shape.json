@@ -1,0 +1,18 @@
+{
+  "data": {
+    "designs": [],
+    "designs_considered": "*",
+    "facility_name": "*",
+    "okw_id": "*",
+    "processing_time": "*",
+    "total_designs": "*"
+  },
+  "message": "*",
+  "metadata": {
+    "processing_time": "*",
+    "timestamp": "*"
+  },
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

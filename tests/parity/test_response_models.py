@@ -40,8 +40,16 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         ("DELETE", "/api/asset/{id}"),
         ("POST", "/api/convert/to-datasheet"),
         ("GET", "/api/identity/security-policy"),
+        # Two structurally different payloads, chosen by matching_mode:
+        # single-level returns `solutions` (a list) with matching_metrics;
+        # nested returns `solution` (one) with match_summary, coverage_gaps and
+        # suggestions. One model would filter whichever branch it is not.
+        #
+        # Unlike /api/utility/metrics this IS typable — matching_mode is a
+        # literal discriminator, so a discriminated union fits — but it needs a
+        # golden for BOTH branches, and no in-process test exercises this route
+        # today. Deferred as its own change rather than guessed at here.
         ("POST", "/api/match"),
-        ("POST", "/api/match/facility"),
         ("POST", "/api/okh/diff-collection"),
         ("GET", "/api/okh/export-collection"),
         ("POST", "/api/okh/import-collection"),

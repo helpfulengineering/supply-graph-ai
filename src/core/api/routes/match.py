@@ -89,7 +89,7 @@ from ..models.match.request import (
     SimulateRequest,
     ValidateMatchRequest,
 )
-from ..models.match.response import SimulateResponse
+from ..models.match.response import FacilityDesignsResponse, SimulateResponse
 from ..models.match.suggestion_codes import MATCH_SUGGESTION_CODES
 
 # Create consolidated router
@@ -1031,6 +1031,7 @@ async def match_requirements_from_file(
 @router.post(
     "/facility",
     status_code=status.HTTP_200_OK,
+    response_model=FacilityDesignsResponse,
     summary="Reverse Match (Designs a Facility Can Produce)",
     description="""
     Reverse matching: given an OKW facility, return the OKH designs it can produce.
