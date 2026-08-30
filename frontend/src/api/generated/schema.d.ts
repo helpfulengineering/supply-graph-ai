@@ -6394,6 +6394,72 @@ export interface components {
             } | null;
         };
         /**
+         * NetworkSpace
+         * @description One space on the unified network surface — a local OKW facility or a
+         *     Maps of Making entry, projected to a common shape and source-labelled.
+         *
+         *     Every optional field here is required-but-nullable: the projection always
+         *     emits the key and may set it to null (a facility with no coordinates, an
+         *     owner with no website). Giving these defaults would mark them optional in
+         *     the schema, and clients would then handle an `undefined` the route never
+         *     sends.
+         *
+         *     Derived from the payload captured in
+         *     ``tests/api/golden/okw_spaces_shape.json`` before this model existed.
+         */
+        NetworkSpace: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Lat */
+            lat: number | null;
+            /** Lon */
+            lon: number | null;
+            /** City */
+            city: string | null;
+            /** Region */
+            region: string | null;
+            /** Country */
+            country: string | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "local" | "mom";
+            /** Status */
+            status: string | null;
+            /** Processes */
+            processes: string[];
+            /** Access Type */
+            access_type: string | null;
+            /** Url */
+            url: string | null;
+            /** Ambiguous */
+            ambiguous: boolean;
+        };
+        /**
+         * NetworkSpacesResponse
+         * @description GET /api/okw/spaces. Not the SuccessResponse envelope — this route
+         *     returns its payload at the top level.
+         */
+        NetworkSpacesResponse: {
+            /** Success */
+            success: boolean;
+            /** Spaces */
+            spaces: components["schemas"]["NetworkSpace"][];
+            /** Total */
+            total: number;
+            /** Local Count */
+            local_count: number;
+            /** Mom Count */
+            mom_count: number;
+            /** Dropped No Coords */
+            dropped_no_coords: number;
+            /** Mom Available */
+            mom_available: boolean;
+        };
+        /**
          * OAuthBindRequest
          * @description Record an OAuth/OIDC external-subject binding (post-IdP verification).
          *
@@ -7482,6 +7548,20 @@ export interface components {
             processing_time: number;
             /** Validation Results */
             validation_results?: components["schemas"]["ValidationResult"][] | null;
+        };
+        /**
+         * OKWTemplateResponse
+         * @description GET /api/okw/template — a blank facility for a client to fill in.
+         */
+        OKWTemplateResponse: {
+            /** Success */
+            success: boolean;
+            /** Template */
+            template: {
+                [key: string]: unknown;
+            };
+            /** Model Name */
+            model_name: string;
         };
         /**
          * OKWUpdateRequest
@@ -12403,7 +12483,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["OKWTemplateResponse"];
                 };
             };
             /** @description Bad Request */
@@ -12463,7 +12543,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["NetworkSpacesResponse"];
                 };
             };
             /** @description Bad Request */

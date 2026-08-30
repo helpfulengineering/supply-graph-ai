@@ -1,30 +1,30 @@
 import { apiBaseUrl, ApiError, errorMessage } from "./client";
+import type { components } from "../generated/schema";
 
-/** A space on the unified network surface (local OKW facility or MoM space). */
-export interface NetworkSpace {
-  id: string;
-  name: string;
-  lat: number;
-  lon: number;
-  source: "local" | "mom";
-  city: string | null;
-  region: string | null;
-  country: string | null;
-  status: string | null;
-  processes: string[]; // canonical OHM process ids
-  access_type: string | null;
-  url: string | null;
-  /** True when kept despite a local-only filter it can't express (sorted last). */
-  ambiguous?: boolean;
-}
+/**
+ * A space on the unified network surface (local OKW facility or MoM space).
+ *
+ * From the route's response model (#373). `lat`/`lon` are nullable there and
+ * were `number` here: local facilities without coordinates are dropped before
+ * the response (counted as `dropped_no_coords`), but MoM spaces are not
+ * filtered that way, so a null can arrive. `plottable` below is where that is
+ * dealt with once, rather than at each map call site.
+ */
+export type NetworkSpace = components["schemas"]["NetworkSpace"];
 
-export interface NetworkData {
-  spaces: NetworkSpace[];
-  total: number;
-  local_count: number;
-  mom_count: number;
-  dropped_no_coords: number;
-  mom_available: boolean;
+/** A space the map can actually place: coordinates present. */
+export type PlottableSpace = NetworkSpace & { lat: number; lon: number };
+
+export type NetworkData = Omit<
+  components["schemas"]["NetworkSpacesResponse"],
+  "success" | "spaces"
+> & { spaces: PlottableSpace[] };
+
+/** Spaces with coordinates. A space that cannot be placed is not a map pin. */
+export function plottable(spaces: NetworkSpace[]): PlottableSpace[] {
+  return spaces.filter(
+    (s): s is PlottableSpace => typeof s.lat === "number" && typeof s.lon === "number",
+  );
 }
 
 export interface NetworkFilters {
@@ -77,10 +77,13 @@ export async function fetchNetworkSpaces(
       ),
     );
   }
-  const d = (body ?? {}) as Partial<NetworkData>;
+  const d = (body ?? {}) as Partial<
+    components["schemas"]["NetworkSpacesResponse"]
+  >;
+  const spaces = plottable(d.spaces ?? []);
   return {
-    spaces: (d.spaces ?? []) as NetworkSpace[],
-    total: d.total ?? d.spaces?.length ?? 0,
+    spaces,
+    total: d.total ?? spaces.length,
     local_count: d.local_count ?? 0,
     mom_count: d.mom_count ?? 0,
     dropped_no_coords: d.dropped_no_coords ?? 0,

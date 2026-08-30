@@ -12,7 +12,7 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "./networkMap.css";
-import type { NetworkSpace } from "../../api/ohm/network";
+import type { NetworkSpace, PlottableSpace } from "../../api/ohm/network";
 import { SOURCE_STYLES, sourceVar } from "./networkSummary";
 import { useSourceColors } from "./useSourceColors";
 import { denseBounds, fillZoom, fitPadding } from "./mapFraming";
@@ -172,7 +172,7 @@ function popupContent(space: NetworkSpace): HTMLElement {
  * plugin underneath react-leaflet-cluster), same icons, no React in the
  * per-space path.
  */
-function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
+function SpaceMarkers({ spaces }: { spaces: PlottableSpace[] }) {
   const map = useMap();
 
   // Built when the data changes and at no other time. This used to depend on
@@ -213,7 +213,7 @@ function SpaceMarkers({ spaces }: { spaces: NetworkSpace[] }) {
 }
 
 /** Fit the viewport to the loaded spaces whenever the set changes. */
-function FitBounds({ spaces }: { spaces: NetworkSpace[] }) {
+function FitBounds({ spaces }: { spaces: PlottableSpace[] }) {
   const map = useMap();
   useEffect(() => {
     if (spaces.length === 0) return;
@@ -274,8 +274,8 @@ function ViewportReport({
   spaces,
   onChange,
 }: {
-  spaces: NetworkSpace[];
-  onChange: (visible: NetworkSpace[]) => void;
+  spaces: PlottableSpace[];
+  onChange: (visible: PlottableSpace[]) => void;
 }) {
   const map = useMap();
   useEffect(() => {
@@ -370,9 +370,11 @@ function useTransientFlag(ms: number): [boolean, () => void] {
 }
 
 interface NetworkMapProps {
-  spaces: NetworkSpace[];
+  /** Plottable only: fetchNetworkSpaces filters out anything without coordinates. */
+  spaces: PlottableSpace[];
   /** Called with the spaces inside the viewport each time it settles. */
-  onVisibleChange?: (visible: NetworkSpace[]) => void;
+  /** Reports what it plotted, so callers get the narrowed type back. */
+  onVisibleChange?: (visible: PlottableSpace[]) => void;
   /** Called on each gesture at the map — not on the initial fit. */
   onInteract?: () => void;
 }

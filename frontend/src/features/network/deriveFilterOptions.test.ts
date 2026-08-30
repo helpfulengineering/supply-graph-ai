@@ -5,7 +5,8 @@ import type { NetworkSpace } from "../../api/ohm/network";
 function space(p: Partial<NetworkSpace>): NetworkSpace {
   return {
     id: "x", name: "X", lat: 0, lon: 0, source: "local", city: null, region: null,
-    country: null, status: null, processes: [], access_type: null, url: null, ...p,
+    country: null, status: null, processes: [], access_type: null, url: null,
+    ambiguous: false, ...p,
   };
 }
 
