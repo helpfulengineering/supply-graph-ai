@@ -25,7 +25,6 @@ import {
 import { BODY_MUTED, CARD_TITLE } from "../../components/ui/typography";
 import { PageHero } from "../../components/layout/PageHero";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { withNavState } from "../../lib/navState";
 import { ApiError } from "../../api/ohm/client";
@@ -45,6 +44,7 @@ import { TieredEditor } from "./TieredEditor";
 import { ProvenanceRecord } from "./ProvenanceRecord";
 import { ReopenRecord } from "./ReopenRecord";
 import {
+  liveRecordFrom,
   readGenerationProvenance,
   type GenerationProvenance,
 } from "./generationProvenance";
@@ -190,6 +190,11 @@ export function GenerateView() {
     retry: false,
   });
   const ranStages = eventsQuery.data?.events ?? [];
+
+  const liveRecord =
+    ranStages.length > 0
+      ? liveRecordFrom(ranStages, soleJob?.url ?? null)
+      : null;
 
   const statuses = useMemo(() => {
     return jobs.map((job, i) => {
@@ -408,41 +413,6 @@ export function GenerateView() {
             value={aggregate}
           />
           {startedAt !== null && <Elapsed since={startedAt} />}
-          {ranStages.length > 0 && (
-            <ol className="space-y-1">
-              {ranStages.map((event, i) => {
-                // A stage is emitted when it BEGINS, so the last entry is the
-                // one in flight — ticking it would report work as done while
-                // it is still running.
-                const running =
-                  i === ranStages.length - 1 && !isTerminalJobState(soleState);
-                return (
-                  <li
-                    key={event.seq}
-                    className="flex items-baseline gap-2 text-sm text-muted-foreground"
-                  >
-                    {running ? (
-                      <span
-                        aria-hidden="true"
-                        className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary motion-reduce:animate-none"
-                      />
-                    ) : (
-                      <Check
-                        aria-hidden="true"
-                        className="h-4 w-4 shrink-0 text-success"
-                      />
-                    )}
-                    <span className="text-foreground">
-                      {labelFor(event.stage)}
-                    </span>
-                    <span className="ml-auto font-mono text-xs tabular-nums">
-                      {Math.round(event.fraction * 100)}%
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
           {statuses.length > 1 && (
             <ul className="space-y-3">
               {statuses.map((s) => (
@@ -469,6 +439,14 @@ export function GenerateView() {
             </button>
           )}
         </div>
+      )}
+
+      {/* Not gated on showProgress: that goes false the moment the batch is
+          terminal, and a failed run's stages are the only account of how far
+          it got. `live` drops with it, so the heading stops claiming the run
+          is still going. */}
+      {!provenance && liveRecord && (
+        <ProvenanceRecord record={liveRecord} live={!allTerminal} />
       )}
 
       {error && (

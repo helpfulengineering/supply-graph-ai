@@ -139,6 +139,28 @@ export function groupForReview(record: GenerationProvenance): ReviewGroup[] {
   ].filter((group) => group.fields.length > 0);
 }
 
+/**
+ * The run so far, in the shape a finished record has.
+ *
+ * Fields stay empty until the run ends — they are only known once the manifest
+ * exists — so this is honestly partial rather than a different kind of thing.
+ * Building it here means the live view and the downloaded record are the same
+ * structure rendered by the same component, which is the whole reason the
+ * record was designed before the live view.
+ */
+export function liveRecordFrom(
+  stages: ProvenanceStage[],
+  sourceUrl: string | null,
+): GenerationProvenance {
+  return {
+    schema: "ohm-generation-provenance/v1",
+    generated_at: null,
+    source_url: sourceUrl,
+    stages,
+    fields: {},
+  };
+}
+
 /** Seconds each stage ran, from the gap to the next one. The last has no successor. */
 export function stageDurations(
   stages: ProvenanceStage[],

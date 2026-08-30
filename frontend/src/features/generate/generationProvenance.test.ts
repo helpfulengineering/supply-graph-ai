@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  liveRecordFrom,
   groupForReview,
   readGenerationProvenance,
   stageDurations,
@@ -110,5 +111,28 @@ describe("stageDurations", () => {
       { seq: 0, stage: "clone", fraction: 0.1, message: null, ts: null },
     ]);
     expect(only.seconds).toBeNull();
+  });
+});
+
+describe("liveRecordFrom", () => {
+  it("carries the stages that have run, and no fields yet", () => {
+    const live = liveRecordFrom(record.stages, "https://github.com/org/repo");
+    expect(live.stages).toEqual(record.stages);
+    // Fields are only known once the manifest exists; claiming any mid-run
+    // would be inventing them.
+    expect(live.fields).toEqual({});
+    expect(live.source_url).toBe("https://github.com/org/repo");
+  });
+
+  it("is the same structure the finished record has", () => {
+    // The live view and the downloaded sidecar must be one page, not two that
+    // happen to look alike — so the partial one has to parse as a record.
+    const live = liveRecordFrom(record.stages, null);
+    expect(readGenerationProvenance(live)).not.toBeNull();
+    expect(readGenerationProvenance(live)?.stages).toEqual(record.stages);
+  });
+
+  it("groups to nothing while no fields exist, rather than inventing a group", () => {
+    expect(groupForReview(liveRecordFrom(record.stages, null))).toEqual([]);
   });
 });
