@@ -6,7 +6,33 @@ export function isTerminalJobState(state: string | undefined | null): boolean {
   return Boolean(state && TERMINAL_JOB_STATES.has(state));
 }
 
-const STAGE_LABELS: Record<string, string> = {
+/**
+ * The stages a run reports, in pipeline order.
+ *
+ * Mirrors `planned_stages()` on the server, which is what makes it possible to
+ * say what will happen *before* a run starts rather than only narrating it
+ * afterwards. `llm` is conditional there and here: a run told to skip the model
+ * never emits it, and promising a stage that will not run is worse than saying
+ * nothing.
+ */
+export const PLANNED_STAGES = [
+  "clone",
+  "direct",
+  "heuristic",
+  "nlp",
+  "llm",
+  "bom_verification",
+  "bom_normalization",
+  "quality",
+  "materials_routing",
+] as const;
+
+export function plannedStages(useLlm: boolean): string[] {
+  return PLANNED_STAGES.filter((stage) => useLlm || stage !== "llm");
+}
+
+/** Exported for the drift check in the tests: labels and planned stages must agree. */
+export const STAGE_LABELS: Record<string, string> = {
   clone: "Reading repository",
   direct: "Mapping fields",
   heuristic: "Analysing structure",
