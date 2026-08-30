@@ -134,7 +134,7 @@ async def disable_account(
     return await svc.disable_account(account_id)
 
 
-# --- Self-sovereign identities (Slice 2) -------------------------------------
+# --- Self-service onboarding (#403) ------------------------------------------
 
 
 @router.post(
@@ -155,6 +155,9 @@ async def register(
     issued key never carries ``admin``. The token is returned once.
     """
     return await svc.register(payload.display_name)
+
+
+# --- Self-sovereign identities (Slice 2) -------------------------------------
 
 
 @router.post(

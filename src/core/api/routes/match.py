@@ -1077,11 +1077,10 @@ async def match_designs_for_facility(
         manifests: List[OKHManifest] = []
         page = 1
         page_size = 200
+        scope = await viewer_scope(user)
         while True:
             summaries, _ = await okh_service.list(
-                page=page,
-                page_size=page_size,
-                viewer=await viewer_scope(user),
+                page=page, page_size=page_size, viewer=scope
             )
             if not summaries:
                 break

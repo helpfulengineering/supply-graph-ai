@@ -23,7 +23,6 @@ from ..models.visibility import (
     LEGACY_VISIBILITY,
     ViewerScope,
     VisibilityLevel,
-    is_shareable,
     visible_to,
 )
 from ..storage.disclosure_store import DisclosureStore
@@ -682,13 +681,9 @@ class OKWService(BaseService["OKWService"]):
         # Convert dict values to list and apply pagination
         unique_facilities = list(facilities_by_id.values())
         if viewer is not None:
-            visible: List[ManufacturingFacility] = []
-            for facility in unique_facilities:
-                did, account = attribution_by_id.get(facility.id, (None, None))
-                level = await self.get_visibility(facility.id)
-                if visible_to(level, viewer, did, account):
-                    visible.append(facility)
-            unique_facilities = visible
+            unique_facilities = await self._visible_facilities(
+                unique_facilities, attribution_by_id, viewer
+            )
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
         paginated_facilities = unique_facilities[start_idx:end_idx]
@@ -699,18 +694,24 @@ class OKWService(BaseService["OKWService"]):
 
         return paginated_facilities, len(unique_facilities)
 
-    async def filter_shareable(
-        self, facilities: List[ManufacturingFacility]
+    async def _visible_facilities(
+        self,
+        facilities: List[ManufacturingFacility],
+        attribution: Dict[UUID, Tuple[Optional[str], Optional[str]]],
+        viewer: ViewerScope,
     ) -> List[ManufacturingFacility]:
-        """Drop records that must not be served to an unauthenticated caller.
+        """Drop facilities ``viewer`` may not see.
 
         ``private`` is the create default, so this is the difference between a
         facility staying on the instance and its address being readable by
-        anyone who asks.
+        anyone who asks. Attribution is passed in because ``from_dict`` has
+        already dropped the ``ohm_*`` keys it comes from.
         """
         allowed: List[ManufacturingFacility] = []
         for facility in facilities:
-            if is_shareable(await self.get_visibility(facility.id)):
+            did, account = attribution.get(facility.id, (None, None))
+            level = await self.get_visibility(facility.id)
+            if visible_to(level, viewer, did, account):
                 allowed.append(facility)
         return allowed
 

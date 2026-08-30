@@ -20,7 +20,10 @@ from fastapi import FastAPI
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from src.core.models.visibility import VisibilityLevel  # noqa: E402
+from src.core.models.visibility import (  # noqa: E402
+    ANONYMOUS_SCOPE,
+    VisibilityLevel,
+)
 
 PRIVATE_ID = UUID("11111111-1111-4111-8111-111111111111")
 SHAREABLE_ID = UUID("22222222-2222-4222-8222-222222222222")
@@ -43,39 +46,53 @@ def _record(record_id: UUID, name: str) -> MagicMock:
     return record
 
 
-def _visibility_side_effect(record_id: UUID) -> VisibilityLevel:
+def _visibility_side_effect(record_id) -> VisibilityLevel:
+    # The list path looks visibility up off the raw catalogue dict, so this is
+    # asked with a string id there and a UUID elsewhere.
     return (
-        VisibilityLevel.PRIVATE if record_id == PRIVATE_ID else VisibilityLevel.PUBLIC
+        VisibilityLevel.PRIVATE
+        if str(record_id) == str(PRIVATE_ID)
+        else VisibilityLevel.PUBLIC
     )
 
 
 @pytest.mark.asyncio
 @pytest.mark.contract
 async def test_okh_list_hides_private_from_anonymous_callers() -> None:
-    """The filter belongs to the service so `total` and the page agree."""
+    """The filter belongs to the service so `total` and the page agree.
+
+    Exercises the seam ``list()`` actually calls. Asserting against a helper the
+    list path no longer uses would keep passing while the product regressed.
+    """
     from src.core.services.okh_service import OKHService
 
     service = OKHService.__new__(OKHService)
     service.get_visibility = AsyncMock(side_effect=_visibility_side_effect)
 
-    kept = await OKHService.filter_shareable(
+    kept = await OKHService._visible_entries(
         service,
-        [_record(PRIVATE_ID, "Secret"), _record(SHAREABLE_ID, "Shared")],
+        [
+            {"manifest": {"id": str(PRIVATE_ID), "title": "Secret"}},
+            {"manifest": {"id": str(SHAREABLE_ID), "title": "Shared"}},
+        ],
+        ANONYMOUS_SCOPE,
     )
-    assert [r.id for r in kept] == [SHAREABLE_ID]
+    assert [e["manifest"]["id"] for e in kept] == [str(SHAREABLE_ID)]
 
 
 @pytest.mark.asyncio
 @pytest.mark.contract
-async def test_okw_filter_shareable_drops_private() -> None:
+async def test_okw_list_hides_private_from_anonymous_callers() -> None:
     from src.core.services.okw_service import OKWService
 
     service = OKWService.__new__(OKWService)
     service.get_visibility = AsyncMock(side_effect=_visibility_side_effect)
 
-    kept = await OKWService.filter_shareable(
+    kept = await OKWService._visible_facilities(
         service,
         [_record(PRIVATE_ID, "Secret Workshop"), _record(SHAREABLE_ID, "Open Shop")],
+        {},
+        ANONYMOUS_SCOPE,
     )
     assert [r.id for r in kept] == [SHAREABLE_ID]
 

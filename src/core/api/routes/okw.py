@@ -120,12 +120,13 @@ async def search_okw(
         facilities = []
         fetch_page = 1
         fetch_page_size = 500
+        scope = await viewer_scope(user)
         while True:
             batch, total = await okw_service.list(
                 page=fetch_page,
                 page_size=fetch_page_size,
                 filter_params=None,
-                viewer=await viewer_scope(user),
+                viewer=scope,
             )
             facilities.extend(batch)
             if len(batch) < fetch_page_size or len(facilities) >= total:

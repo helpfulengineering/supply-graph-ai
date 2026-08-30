@@ -1,7 +1,7 @@
 import asyncio
 import json
 import traceback
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID
 
 import httpx
@@ -28,7 +28,6 @@ from ..models.visibility import (
     LEGACY_VISIBILITY,
     ViewerScope,
     VisibilityLevel,
-    is_shareable,
     visible_to,
 )
 from ..storage.provenance_store import ProvenanceStore
@@ -249,11 +248,15 @@ class OKHService(BaseService["OKHService"]):
             return None
         return await self._provenance_store().load(str(manifest_id))
 
-    async def get_visibility(self, manifest_id: UUID) -> VisibilityLevel:
+    async def get_visibility(self, manifest_id: Union[UUID, str]) -> VisibilityLevel:
         """Return visibility for a manifest.
 
         Missing (pre-Slice-4) records resolve to ``followers`` so they keep
         appearing in the catalog; new creates stamp ``private`` explicitly.
+
+        Accepts a raw string id as well as a ``UUID`` because the list path
+        looks visibility up straight off the catalogue dict, before anything has
+        parsed it.
         """
         await self.ensure_initialized()
         if not self.storage or not self.storage.manager:
@@ -563,18 +566,6 @@ class OKHService(BaseService["OKHService"]):
             if visible_to(level, viewer, did, account):
                 kept.append(entry)
         return kept
-
-    async def filter_shareable(self, manifests: List[OKHManifest]) -> List[OKHManifest]:
-        """Drop records that must not be served to an unauthenticated caller.
-
-        ``private`` is the create default, so this is the difference between a
-        record staying on the instance and being readable by anyone who asks.
-        """
-        allowed: List[OKHManifest] = []
-        for manifest in manifests:
-            if is_shareable(await self.get_visibility(manifest.id)):
-                allowed.append(manifest)
-        return allowed
 
     def _invalidate_catalog_cache(self) -> None:
         """Drop the cached catalogue after a write.
