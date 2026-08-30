@@ -5331,6 +5331,78 @@ export interface components {
             additional_days: number;
         };
         /**
+         * FacilityDesignsData
+         * @description The ``data`` payload of POST /api/match/facility — reverse matching.
+         *
+         *     Derived from the payload captured in
+         *     ``tests/api/golden/match_facility_shape.json`` before this model existed.
+         *
+         *     ``designs`` is deliberately left free-form. The committed fixtures produce
+         *     no matches, so no golden of a populated list exists, and constraining the
+         *     item shape from reading the code would risk filtering a field never
+         *     observed on the wire — the exact failure this whole exercise exists to
+         *     prevent. The frontend narrows the item for its own use. Tighten this when
+         *     a fixture that actually matches exists, and freeze the item shape first.
+         */
+        FacilityDesignsData: {
+            /** Okw Id */
+            okw_id: string;
+            /** Facility Name */
+            facility_name: string | null;
+            /** Designs */
+            designs: {
+                [key: string]: unknown;
+            }[];
+            /** Total Designs */
+            total_designs: number;
+            /** Designs Considered */
+            designs_considered: number;
+            /** Processing Time */
+            processing_time: number;
+        };
+        /**
+         * FacilityDesignsResponse
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        FacilityDesignsResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["FacilityDesignsData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
          * FacilityMatchRequest
          * @description Reverse-match request: which designs can a given facility produce?
          * @example {
@@ -10393,9 +10465,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["FacilityDesignsResponse"];
                 };
             };
             /** @description Bad Request */

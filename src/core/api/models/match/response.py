@@ -163,3 +163,30 @@ class SimulationResult(BaseModel):
     critical_path: List[Dict[str, Any]] = []
     bottlenecks: List[Dict[str, Any]] = []
     resource_utilization: Dict[str, Any] = {}
+
+
+class FacilityDesignsData(BaseModel):
+    """The ``data`` payload of POST /api/match/facility — reverse matching.
+
+    Derived from the payload captured in
+    ``tests/api/golden/match_facility_shape.json`` before this model existed.
+
+    ``designs`` is deliberately left free-form. The committed fixtures produce
+    no matches, so no golden of a populated list exists, and constraining the
+    item shape from reading the code would risk filtering a field never
+    observed on the wire — the exact failure this whole exercise exists to
+    prevent. The frontend narrows the item for its own use. Tighten this when
+    a fixture that actually matches exists, and freeze the item shape first.
+    """
+
+    okw_id: str
+    facility_name: Optional[str]
+    designs: List[Dict[str, Any]]
+    total_designs: int
+    #: How many manifests were examined to produce `designs`.
+    designs_considered: int
+    processing_time: float
+
+
+class FacilityDesignsResponse(SuccessResponse):
+    data: FacilityDesignsData
