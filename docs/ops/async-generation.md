@@ -136,6 +136,41 @@ app looks wrong** — you only see it by comparing the two.
 
 Generated manifests are held in the result backend for 24 hours and then expire.
 
+## Reading what a run actually did
+
+`GET /api/okh/generate-from-url/jobs/{job_id}/events` returns the run's stage
+log, in order:
+
+```json
+{
+  "job_id": "…", "state": "PROGRESS", "next_cursor": 4,
+  "events": [
+    {"seq": 0, "stage": "clone",     "fraction": 0.0,  "message": "…", "ts": "…"},
+    {"seq": 1, "stage": "direct",    "fraction": 0.12, "message": "…", "ts": "…"},
+    {"seq": 2, "stage": "heuristic", "fraction": 0.17, "message": "…", "ts": "…"},
+    {"seq": 3, "stage": "nlp",       "fraction": 0.25, "message": "…", "ts": "…"}
+  ]
+}
+```
+
+Or `ohm okh generate-jobs events <job_id> --since 0`.
+
+**Why this exists alongside the status endpoint.** Status reports the stage a
+run is *on*. Celery's `update_state` overwrites its meta, so polling that field
+*samples* the timeline rather than receiving it: any stage shorter than the
+interval between two polls is never observed. The early stages carry small
+weights against `llm`'s dominant one, so on a fast repository several can pass
+between polls and no client learns they ran. "Progress looked like it skipped
+from 0% to 40%" is that, not a fault.
+
+The log avoids it by being cumulative — the worker republishes the whole list on
+every update — so a poll at any interval sees every stage. Pass the previous
+response's `next_cursor` as `since` to fetch only what is new.
+
+It shares the result backend's 24-hour retention, and rides in the job result
+once the run finishes, so it remains readable after completion rather than
+vanishing at the moment it becomes worth reading.
+
 ## Generation quality
 
 Generation prefers an LLM layer but degrades to direct + heuristic + NLP when no

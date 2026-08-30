@@ -615,6 +615,16 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
+        "The generate-from-url run log. Job status reports the stage a run is "
+        "on, which a poll can only sample — a stage shorter than the poll "
+        "interval is never seen — so this returns the ordered log instead. The "
+        "provenance view (#378/#379) reads it to draw the stage timeline, and "
+        "the commit that wires that call deletes this row.",
+        "/api/okh/generate-from-url/jobs/{job_id}/events",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
         "Calls asset_service.salvage_match and enriches a design's components "
         "with fleet availability, so it belongs to the /assets section rather "
         "than to the design catalogue — the salvage surface is where a reader "

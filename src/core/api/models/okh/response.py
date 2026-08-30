@@ -213,6 +213,30 @@ class OKHGenerateJobStatus(BaseModel):
     quality_report: Optional[Dict[str, Any]] = None
 
 
+class OKHGenerateJobEvent(BaseModel):
+    """One stage transition in a generate-from-url run."""
+
+    seq: int
+    stage: str
+    fraction: float
+    message: Optional[str] = None
+    ts: Optional[str] = None
+
+
+class OKHGenerateJobEvents(BaseModel):
+    """An ordered page of a run's stage events.
+
+    ``next_cursor`` is what to pass as ``since`` on the following poll. It is
+    the length of the whole log rather than of this page, so a caller that skips
+    ahead does not silently re-read events it already has.
+    """
+
+    job_id: str
+    state: str
+    events: List[OKHGenerateJobEvent]
+    next_cursor: int
+
+
 class OKHExportResponse(BaseModel):
     """Response model for OKH schema export"""
 
