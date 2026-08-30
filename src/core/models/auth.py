@@ -19,6 +19,12 @@ class APIKey(BaseModel):
 
     key_id: UUID
     key_hash: str  # bcrypt hashed token
+    # SHA-256 of the token, used only as a lookup key so authentication does not
+    # have to scan (#409). Safe as a plain digest because the token is 256 bits
+    # of CSPRNG output, not a password: there is no brute-force surface for a
+    # stretching function to defend. ``None`` on keys issued before #409 — a
+    # bcrypt hash cannot be reversed, so those can never gain one.
+    token_digest: Optional[str] = None
     name: str
     description: Optional[str] = None
     permissions: List[str] = Field(default_factory=list)

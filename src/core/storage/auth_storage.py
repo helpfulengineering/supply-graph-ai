@@ -11,7 +11,11 @@ from uuid import UUID
 
 from ..models.auth import APIKey
 from ..services.storage_service import StorageService
-from .constants import AUTH_API_KEYS_PREFIX, STORAGE_OBJECT_TYPE_API_KEY
+from .constants import (
+    AUTH_API_KEY_INDEX_PREFIX,
+    AUTH_API_KEYS_PREFIX,
+    STORAGE_OBJECT_TYPE_API_KEY,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +69,21 @@ class AuthStorage:
             },
         )
 
+        # The digest pointer is what keeps authentication from scanning (#409).
+        # Written after the key itself so a crash between the two leaves a key
+        # that still authenticates by the legacy path, rather than a pointer to
+        # a key that does not exist.
+        if key.token_digest:
+            await self.storage_service.manager.put_object(
+                key=self._get_index_key(key.token_digest),
+                data=json.dumps({"key_id": str(key.key_id)}).encode("utf-8"),
+                content_type="application/json",
+                metadata={
+                    "type": STORAGE_OBJECT_TYPE_API_KEY,
+                    "key_id": str(key.key_id),
+                },
+            )
+
     async def load_key(self, key_id: UUID) -> Optional[APIKey]:
         """
         Load API key from storage.
@@ -100,6 +119,22 @@ class AuthStorage:
         except Exception as e:
             logger.debug(f"Failed to load API key {key_id}: {e}")
             return None
+
+    async def find_by_digest(self, token_digest: str) -> Optional[APIKey]:
+        """Resolve a token digest to its key in constant work, or ``None``.
+
+        Two point reads rather than a listing: the pointer object, then the key
+        it names. Returns ``None`` for a digest nothing was issued against,
+        which is the common case for a bogus token and costs no bcrypt at all.
+        """
+        try:
+            data = await self.storage_service.manager.get_object(
+                self._get_index_key(token_digest)
+            )
+            key_id = json.loads(data.decode("utf-8"))["key_id"]
+        except Exception:
+            return None
+        return await self.load_key(UUID(key_id))
 
     async def list_keys(self) -> List[APIKey]:
         """
@@ -175,3 +210,9 @@ class AuthStorage:
             Storage key path
         """
         return f"{self._storage_prefix}/{key_id}.json"
+
+    @staticmethod
+    def _get_index_key(token_digest: str) -> str:
+        """Storage key for a digest pointer. The digest is hex, so it is safe
+        to interpolate into a path without further escaping."""
+        return f"{AUTH_API_KEY_INDEX_PREFIX}/{token_digest}.json"

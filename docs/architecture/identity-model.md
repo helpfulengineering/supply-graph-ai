@@ -30,7 +30,10 @@ behalf until they claim it.
 
 - Private keys live **node-local**, never in the object store and never federated
   (`OHM_FEDERATION_DATA_DIR/identities/<did>.json`). Plaintext in peacetime;
-  encryption-at-rest is on the roadmap.
+  encryption-at-rest is on the roadmap. The files are written `0600` inside a
+  `0700` directory, and files written by older versions are tightened on the
+  next write — plaintext means *not encrypted*, not *readable by anyone with a
+  shell on the host*.
 - **Rotation** mints a fresh keypair and records a signed `IdentityLink`
   (`from_did → to_did`, signed by the *old* key) so reputation follows the chain
   rather than a single key.
