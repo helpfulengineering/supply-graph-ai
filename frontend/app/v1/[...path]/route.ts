@@ -81,11 +81,12 @@ async function proxy(request: Request): Promise<Response> {
   request.headers.forEach((value, key) => {
     if (!HOP_BY_HOP.has(key.toLowerCase())) headers.set(key, value);
   });
-  const clientIp = request.headers
-    .get("x-forwarded-for")
-    ?.split(",")[0]
-    ?.trim();
-  if (clientIp) headers.set("x-real-ip", clientIp);
+  // No x-real-ip is set here. It was derived from the FIRST X-Forwarded-For
+  // entry, which is the part a caller writes themselves — so it laundered
+  // client-supplied data into a header that reads as authoritative. Nothing
+  // consumed it, and the API resolves the client from X-Forwarded-For against
+  // its own trusted-proxy set (src/config/proxy_trust.py), which is where that
+  // decision belongs. X-Forwarded-For itself is forwarded unchanged above.
   headers.set("x-forwarded-proto", url.protocol.replace(":", ""));
 
   let upstream: Response;

@@ -20,7 +20,14 @@ bind = f"0.0.0.0:{port}"
 # X-Forwarded-Proto: https.  Without this setting Starlette sees the raw
 # HTTP scheme and generates redirect URLs with http://, breaking all
 # trailing-slash redirects (e.g. /v1 → http://…/v1/ instead of https://…).
-forwarded_allow_ips = os.getenv("FORWARDED_ALLOW_IPS", "*")
+#
+# Trusting every peer ("*") would also mean believing any caller's own
+# X-Forwarded-For, which is how the rate limiter became evadable — see
+# src/config/proxy_trust.py for why the default is loopback plus the private
+# ranges instead.
+from src.config.proxy_trust import forwarded_allow_ips as _forwarded_allow_ips
+
+forwarded_allow_ips = _forwarded_allow_ips()
 
 # Debug output (will appear in Gunicorn startup logs)
 print(f"[Gunicorn Config] PORT env var: {port_env}")

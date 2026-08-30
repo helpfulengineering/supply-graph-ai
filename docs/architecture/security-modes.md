@@ -52,6 +52,38 @@ networks.
 | `anonymous_submission_allowed` | yes | yes | **no** (Slice M.2) |
 | `open_registration` | yes | yes | **no** |
 
+## Who may speak for the client
+
+Everything keyed on a caller's address — the rate limiter, request logs, metrics
+— is only as trustworthy as the set of proxies allowed to rewrite it.
+
+Uvicorn's proxy-headers middleware replaces `request.client` with the address in
+`X-Forwarded-For` **when the immediate peer is trusted**, and ignores the header
+entirely when it is not. `FORWARDED_ALLOW_IPS` names those peers.
+
+| Value | Effect |
+|---|---|
+| default (loopback + RFC1918) | Platform ingress is believed; a direct public caller's forwarded headers are ignored |
+| `*` | **Every** peer is believed, and uvicorn then takes the *leftmost* `X-Forwarded-For` entry — the part the caller writes |
+
+It was `*`. That is why the per-client rate limit could be evaded by sending a
+different forwarded address on each request, and why one caller could exhaust
+another's budget by naming them. The setting exists for a real reason —
+`X-Forwarded-Proto` must be trusted or Starlette builds `http://` redirects
+behind a TLS-terminating ingress — so the fix was to name the proxies, not to
+stop trusting them. See `src/config/proxy_trust.py`.
+
+**If your topology differs** — a reverse proxy on a public address, a service
+mesh, an ingress outside the private ranges — set `FORWARDED_ALLOW_IPS` to that
+proxy's address or CIDR. Widening it back to `*` is supported but means any peer
+can claim to be any client.
+
+**The limiter counts per process.** With N workers the effective budget is
+N x the configured rate: loose but bounded, and adequate for a coarse abuse
+brake. It is not adequate for anything that must count exactly — an attempt
+limit on a guessable secret needs shared state, because N chances per window
+instead of one is the difference between a limit and a suggestion.
+
 ## What is wired today
 
 - **Grant TTL** — `issue_grant` defaults to `grant_ttl_days`.
