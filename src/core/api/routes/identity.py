@@ -16,7 +16,13 @@ from src.config.security_policy import get_security_policy
 
 from ...models.account import Account, AccountCreate
 from ...models.attestation import Attestation, AttestationIssue, CertifyRequest
-from ...models.auth import APIKeyCreate, APIKeyResponse, AuthenticatedUser
+from ...models.auth import (
+    APIKeyCreate,
+    APIKeyResponse,
+    AuthenticatedUser,
+    RegistrationCreate,
+    RegistrationResponse,
+)
 from ...models.binding import (
     DirectoryEntry,
     DirectoryPublishRequest,
@@ -129,6 +135,26 @@ async def disable_account(
 
 
 # --- Self-sovereign identities (Slice 2) -------------------------------------
+
+
+@router.post(
+    "/register",
+    response_model=RegistrationResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a person on this node",
+)
+async def register(
+    payload: RegistrationCreate,
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> RegistrationResponse:
+    """Self-service onboarding — deliberately unauthenticated.
+
+    A node operator should not be the only way to become someone on a node: that
+    is what would make one node structurally special rather than merely
+    well-known (ADR §9). Refused when the active mode closes registration; the
+    issued key never carries ``admin``. The token is returned once.
+    """
+    return await svc.register(payload.display_name)
 
 
 @router.post(

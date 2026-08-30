@@ -38,7 +38,7 @@ async def test_create_okw_returns_201_with_okw_field():
     svc = MagicMock()
     # Service echoes the parsed facility back (create returns the stored record).
     svc.create = AsyncMock(
-        side_effect=lambda facility, created_by=None, provenance=None: facility
+        side_effect=lambda facility, created_by=None, created_by_did=None, provenance=None: facility
     )
     api_v1.dependency_overrides[get_okw_service] = lambda: svc
 

@@ -50,12 +50,15 @@ networks.
 | `metadata_logging` | `full` | `full` | `minimal` |
 | `registry_attestations` | `trust_on_follow` | `trust_on_follow` | `ca_pinned` |
 | `anonymous_submission_allowed` | yes | yes | **no** (Slice M.2) |
+| `open_registration` | yes | yes | **no** |
 
 ## What is wired today
 
 - **Grant TTL** — `issue_grant` defaults to `grant_ttl_days`.
 - **Write auth** — `require_write` / `require_admin` honor `require_auth_for_writes`.
 - **Custodial mint** — `create_identity` is refused when `custodial_keys_allowed` is false.
+- **Self-service registration** — `POST /api/identity/register` is refused when
+  `open_registration` is false; shielded onboards out of band instead.
 - **mDNS** — advertise and browse require env flag **and** role capability **and**
   `mdns_advertise` (so shielded never LAN-announces).
 - **Directory** — under `ca_pinned`, `list_directory` only returns entries with a verified

@@ -139,6 +139,53 @@ async def whoami(
     cli_ctx.log(f"Permissions: {', '.join(result.get('permissions', []))}", "success")
 
 
+@identity_group.command()
+@click.option("--display-name", required=True, help="How you want to be credited.")
+@standard_cli_command(help_text="Register yourself on a node.", async_cmd=True)
+@click.pass_context
+async def register(
+    ctx: click.Context,
+    display_name: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Mint an account, a person DID and a first key on the configured server.
+
+    Needs no credential — that is the point. Use it against a node you do not
+    operate. The token is shown once and never again; save it before moving on.
+    """
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx, "POST", "/register", json={"display_name": display_name}
+        )
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 403:
+            cli_ctx.log(
+                "This node does not accept self-service registration. "
+                "Ask its operator to mint an account for you.",
+                "error",
+            )
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Account: {result.get('account_id')}", "info")
+    cli_ctx.log(f"DID: {result.get('did')}", "info")
+    cli_ctx.log(f"Token: {result.get('key', {}).get('token')}", "success")
+    cli_ctx.log(
+        "Save that token now — it is not stored and cannot be shown again.", "warning"
+    )
+
+
 @identity_group.group(name="keys")
 def keys_group() -> None:
     """Create, list, and revoke API keys."""

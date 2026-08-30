@@ -25,6 +25,7 @@ def test_peacetime_preset_values():
     assert policy.metadata_logging == "full"
     assert policy.registry_attestations == "trust_on_follow"
     assert policy.anonymous_submission_allowed is True
+    assert policy.open_registration is True
 
 
 def test_crisis_preset_values():
@@ -39,6 +40,7 @@ def test_crisis_preset_values():
     assert policy.registry_attestations == "trust_on_follow"
     assert policy.require_auth_for_writes is True
     assert policy.anonymous_submission_allowed is True
+    assert policy.open_registration is True
 
 
 def test_shielded_preset_values():
@@ -53,6 +55,7 @@ def test_shielded_preset_values():
     assert policy.registry_attestations == "ca_pinned"
     assert policy.require_auth_for_writes is True
     assert policy.anonymous_submission_allowed is False
+    assert policy.open_registration is False
     assert allows_full_metadata_logging(policy) is False
 
 

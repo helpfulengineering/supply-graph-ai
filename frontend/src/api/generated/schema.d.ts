@@ -3477,6 +3477,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/identity/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register a person on this node
+         * @description Self-service onboarding — deliberately unauthenticated.
+         *
+         *     A node operator should not be the only way to become someone on a node: that
+         *     is what would make one node structurally special rather than merely
+         *     well-known (ADR §9). Refused when the active mode closes registration; the
+         *     issued key never carries ``admin``. The token is returned once.
+         */
+        post: operations["register_api_identity_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/identity/identities": {
         parameters: {
             query?: never;
@@ -8458,6 +8483,33 @@ export interface components {
              * @default
              */
             signature: string;
+        };
+        /**
+         * RegistrationCreate
+         * @description Request payload for self-service registration.
+         */
+        RegistrationCreate: {
+            /** Display Name */
+            display_name: string;
+        };
+        /**
+         * RegistrationResponse
+         * @description What a newly registered person needs to start using the node.
+         *
+         *     Flat rather than nesting the full ``Identity``: a registrant needs their DID,
+         *     not the rotation chain, and ``key.token`` is the only time the token exists.
+         */
+        RegistrationResponse: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Did */
+            did: string;
+            key: components["schemas"]["APIKeyResponse"];
         };
         /**
          * RootComponentRef
@@ -18104,6 +18156,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_api_identity_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationResponse"];
                 };
             };
             /** @description Validation Error */

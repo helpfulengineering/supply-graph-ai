@@ -18,6 +18,9 @@ from pydantic import BaseModel, Field, model_validator
 # keys must be carried through create explicitly (see apply_ohm_metadata).
 OHM_METADATA_PREFIX = "ohm_"
 OHM_CREATED_BY_KEY = "ohm_created_by"
+# The creator's subject DID. Record ownership keys on this (#403); the
+# account id above is the fallback for env keys and pre-#403 records.
+OHM_CREATED_BY_DID_KEY = "ohm_created_by_did"
 
 
 class Credit(BaseModel):
@@ -91,10 +94,21 @@ def verify_provenance(provenance: RecordProvenance) -> bool:
     )
 
 
+def record_attribution(record: dict) -> tuple[Optional[str], Optional[str]]:
+    """The ``(creator DID, creator account)`` a stored record was stamped with.
+
+    Read from the raw dict rather than a parsed model: ``to_dict()`` is a
+    whitelist that drops ``ohm_*``, so the attribution is gone by the time a
+    record is an ``OKHManifest`` or a ``ManufacturingFacility``.
+    """
+    return record.get(OHM_CREATED_BY_DID_KEY), record.get(OHM_CREATED_BY_KEY)
+
+
 def apply_ohm_metadata(
     payload: dict,
     source: Optional[object] = None,
     created_by: Optional[str] = None,
+    created_by_did: Optional[str] = None,
 ) -> dict:
     """Attach OHM-namespaced metadata to a serialized manifest ``payload``.
 
@@ -113,4 +127,6 @@ def apply_ohm_metadata(
                 payload[key] = value
     if created_by:
         payload[OHM_CREATED_BY_KEY] = created_by
+    if created_by_did:
+        payload[OHM_CREATED_BY_DID_KEY] = created_by_did
     return payload

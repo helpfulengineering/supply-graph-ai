@@ -615,6 +615,15 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
+        "Self-service onboarding (#403). The /register route, the session it "
+        "adopts and the non-admin shell are #404; this row is that backlog and "
+        "the commit that wires the call deletes it. The CLI (ohm identity "
+        "register) already covers registering against a node you do not operate.",
+        "/api/identity/register",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
         "Calls asset_service.salvage_match and enriches a design's components "
         "with fleet availability, so it belongs to the /assets section rather "
         "than to the design catalogue — the salvage surface is where a reader "

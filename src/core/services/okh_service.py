@@ -18,12 +18,18 @@ from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
-from ..models.provenance import RecordProvenance, apply_ohm_metadata
+from ..models.provenance import (
+    RecordProvenance,
+    apply_ohm_metadata,
+    record_attribution,
+)
 from ..models.visibility import (
     DEFAULT_VISIBILITY,
     LEGACY_VISIBILITY,
+    ViewerScope,
     VisibilityLevel,
     is_shareable,
+    visible_to,
 )
 from ..storage.provenance_store import ProvenanceStore
 from ..storage.visibility_store import VisibilityStore
@@ -166,6 +172,7 @@ class OKHService(BaseService["OKHService"]):
         self,
         manifest_data: Dict[str, Any],
         created_by: Optional[str] = None,
+        created_by_did: Optional[str] = None,
         provenance: Optional[RecordProvenance] = None,
     ) -> OKHManifest:
         """Persist a new manifest under ``okh/`` when storage is available.
@@ -206,7 +213,7 @@ class OKHService(BaseService["OKHService"]):
                 # explicitly because to_dict() is a whitelist that drops ohm_* keys —
                 # this is what lets ohm_created_by survive a federation ingest.
                 payload = apply_ohm_metadata(
-                    manifest.to_dict(), manifest_data, created_by
+                    manifest.to_dict(), manifest_data, created_by, created_by_did
                 )
                 manifest_json = json.dumps(
                     payload, indent=2, ensure_ascii=False, default=str
@@ -424,7 +431,7 @@ class OKHService(BaseService["OKHService"]):
         page_size: int = 100,
         filter_params: Optional[Dict[str, Any]] = None,
         *,
-        include_private: bool = True,
+        viewer: Optional[ViewerScope] = None,
     ) -> Tuple[List[OKHManifest], int]:
         """Return a page of minimal OKH manifests discovered under the ``okh/`` prefix.
 
@@ -432,10 +439,13 @@ class OKHService(BaseService["OKHService"]):
             page: 1-based page index.
             page_size: Page length.
             filter_params: Reserved for future filtering (currently unused).
-            include_private: When False, drop records whose visibility is not
-                shareable. Filtering happens before pagination so ``total`` and
-                the page contents agree; doing it in the caller would return
-                short pages against an inflated count.
+            viewer: Whose view this is. ``None`` means unscoped and is for
+                trusted internal callers only (the federation catalogue builder,
+                the CLI) — a request handler must always pass a scope, or it
+                serves every private record on the node to anyone who asks.
+                Filtering happens before pagination so ``total`` and the page
+                contents agree; doing it in the caller would return short pages
+                against an inflated count.
 
         Returns:
             ``(manifests, total_count)`` after deduplication by manifest id (newest file wins).
@@ -458,10 +468,10 @@ class OKHService(BaseService["OKHService"]):
             # that drops ohm_* keys. Caching what we already feed to from_dict
             # keeps the cached path identical to the uncached one.
             entries = await self._catalog_entries()
+            if viewer is not None:
+                entries = await self._visible_entries(entries, viewer)
 
             all_manifests = [OKHManifest.from_dict(e["manifest"]) for e in entries]
-            if not include_private:
-                all_manifests = await self.filter_shareable(all_manifests)
             total = len(all_manifests)
 
             start_idx = (page - 1) * page_size
@@ -534,6 +544,25 @@ class OKHService(BaseService["OKHService"]):
         recipes = list(recipes_by_id.values())
         logger.info(f"Found {len(recipes)} unique recipes")
         return recipes
+
+    async def _visible_entries(
+        self, entries: List[Dict[str, Any]], viewer: ViewerScope
+    ) -> List[Dict[str, Any]]:
+        """Drop catalogue entries ``viewer`` may not see.
+
+        Runs on the raw catalogue dicts rather than parsed manifests because
+        ``to_dict()`` is a whitelist: by the time an entry is an ``OKHManifest``
+        the ``ohm_*`` creator attribution is gone. Those dicts are already in
+        hand, so ownership costs no extra I/O.
+        """
+        kept: List[Dict[str, Any]] = []
+        for entry in entries:
+            manifest = entry["manifest"]
+            did, account = record_attribution(manifest)
+            level = await self.get_visibility(manifest.get("id"))
+            if visible_to(level, viewer, did, account):
+                kept.append(entry)
+        return kept
 
     async def filter_shareable(self, manifests: List[OKHManifest]) -> List[OKHManifest]:
         """Drop records that must not be served to an unauthenticated caller.
