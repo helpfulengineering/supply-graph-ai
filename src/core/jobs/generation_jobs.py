@@ -109,12 +109,14 @@ def get_job_status(job_id: str) -> Dict[str, Any]:
         "url": meta.get("url"),
         "error": None,
         "manifest": None,
+        "provenance": None,
         "quality_report": None,
     }
     if state == "SUCCESS" and isinstance(result.result, dict):
         payload["url"] = result.result.get("url") or payload["url"]
         payload["message"] = result.result.get("message") or payload["message"]
         payload["manifest"] = result.result.get("manifest")
+        payload["provenance"] = result.result.get("provenance")
         payload["quality_report"] = result.result.get("quality_report")
         payload["fraction"] = 1.0
     elif state == "FAILURE":

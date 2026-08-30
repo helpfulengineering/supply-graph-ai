@@ -1099,10 +1099,19 @@ class OKHService(BaseService["OKHService"]):
                 # Prepended: it explains the gaps the other recommendations list.
                 recommendations.insert(0, note)
 
+            # Always produced, never behind a flag: the one run worth explaining
+            # is otherwise the run that recorded nothing. A sidecar, not part of
+            # the manifest — see generation/provenance.py for why that matters
+            # to the content hash.
+            from ..generation.provenance import build_provenance
+
+            provenance = build_provenance(result, source_url=url)
+
             return {
                 "success": True,
                 "message": "Manifest generated successfully",
                 "manifest": manifest_dict,
+                "provenance": provenance,
                 "quality_report": {
                     "overall_quality": result.quality_report.overall_quality,
                     "required_fields_complete": result.quality_report.required_fields_complete,

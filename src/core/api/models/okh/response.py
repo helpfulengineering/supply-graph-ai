@@ -181,6 +181,10 @@ class OKHGenerateResponse(BaseModel):
     success: bool
     message: str
     manifest: Dict[str, Any]
+    # The sidecar: how this manifest was produced. Deliberately alongside the
+    # manifest rather than inside it — embedding it would change the design's
+    # content address and break pins, collection dedup and federation dedup.
+    provenance: Optional[Dict[str, Any]] = None
 
     quality_report: Optional[Dict[str, Any]] = None
 
@@ -210,6 +214,7 @@ class OKHGenerateJobStatus(BaseModel):
     url: Optional[str] = None
     error: Optional[str] = None
     manifest: Optional[Dict[str, Any]] = None
+    provenance: Optional[Dict[str, Any]] = None
     quality_report: Optional[Dict[str, Any]] = None
 
 

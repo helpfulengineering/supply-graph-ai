@@ -95,8 +95,13 @@ async def test_generate_manifest_async_reports_monotonic_progress():
     assert "heuristic" in stage_names
     assert "quality" in stage_names
     assert "llm" not in stage_names
-    logs = project.metadata.get("_generation_processing_logs")
-    assert logs and any("direct" in line for line in logs)
+    # The run's own record of what it did. This used to be a list of formatted
+    # strings on project.metadata that nothing but this assertion read; it is
+    # now the structured timeline the provenance sidecar renders.
+    assert result.stage_events, "expected the run to record its stages"
+    assert any(event["stage"] == "direct" for event in result.stage_events)
+    recorded = [event["fraction"] for event in result.stage_events]
+    assert recorded == sorted(recorded)
 
 
 def test_celery_task_forwards_progress_via_update_state(monkeypatch):

@@ -677,9 +677,11 @@ class GenerationEngine:
             emitter.emit("materials_routing", "Routing materials confidence")
             await self._apply_materials_confidence_routing(result)
 
-            project_data.metadata["_generation_processing_logs"] = list(
-                gen_meta.processing_logs
-            )
+            # Was `project_data.metadata["_generation_processing_logs"]`, a list
+            # of formatted strings no production code read. The same record now
+            # reaches the provenance sidecar structured, so it can be rendered
+            # and sorted rather than only logged.
+            result.stage_events = list(emitter.events)
 
             # Update metrics
             processing_time = time.time() - start_time
