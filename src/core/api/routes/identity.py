@@ -36,7 +36,10 @@ from ...models.binding import (
 from ...models.capability import CapabilityGrant, GrantIssue
 from ...models.identity import Identity, IdentityMint
 from ...models.space import SpaceClaim, SpaceClaimRequest
-from ...services.auth_service import AuthenticationService
+from ...services.auth_service import (
+    SELF_SERVICE_PERMISSIONS,
+    AuthenticationService,
+)
 from ..dependencies import get_current_user, require_admin
 from ..models.base import SuccessResponse
 
@@ -72,20 +75,39 @@ async def show_security_policy() -> Dict[str, Any]:
 )
 async def create_key(
     payload: APIKeyCreate,
-    _admin: object = Depends(require_admin),
+    user: AuthenticatedUser = Depends(get_current_user),
     svc: AuthenticationService = Depends(get_auth_service),
 ) -> APIKeyResponse:
-    """Mint an API key. The plaintext token is returned only in this response."""
+    """Mint an API key. The plaintext token is returned only in this response.
+
+    Scoped rather than admin-only (#413): an ordinary person mints keys on
+    their own account — a second one for the CLI, a replacement before revoking
+    the old — and cannot mint for anyone else or above the self-service floor.
+    An admin keeps both abilities.
+    """
+    if "admin" not in user.permissions:
+        payload = payload.model_copy(
+            update={
+                "account_id": user.account_id,
+                "permissions": [
+                    p for p in payload.permissions if p in SELF_SERVICE_PERMISSIONS
+                ]
+                or list(SELF_SERVICE_PERMISSIONS),
+            }
+        )
     return await svc.create_api_key(payload)
 
 
 @router.get("/keys", response_model=List[APIKeyResponse], summary="List API keys")
 async def list_keys(
-    _admin: object = Depends(require_admin),
+    user: AuthenticatedUser = Depends(get_current_user),
     svc: AuthenticationService = Depends(get_auth_service),
 ) -> List[APIKeyResponse]:
-    """List API keys. Tokens are never returned here."""
-    return await svc.list_api_keys()
+    """List API keys — your own, or all of them for an admin.
+
+    Tokens are never returned here.
+    """
+    return await svc.list_api_keys_for(user)
 
 
 @router.delete(
@@ -93,11 +115,49 @@ async def list_keys(
 )
 async def revoke_key(
     key_id: UUID = Path(...),
-    _admin: object = Depends(require_admin),
+    user: AuthenticatedUser = Depends(get_current_user),
     svc: AuthenticationService = Depends(get_auth_service),
 ) -> SuccessResponse:
-    await svc.revoke_api_key(key_id)
+    """Revoke a key you own; an admin may revoke any."""
+    await svc.revoke_api_key_for(user, key_id)
     return SuccessResponse(success=True, message=f"API key {key_id} revoked")
+
+
+@router.post(
+    "/keys/revoke-others",
+    response_model=SuccessResponse,
+    summary="Revoke every other key on your account",
+)
+async def revoke_other_keys(
+    user: AuthenticatedUser = Depends(get_current_user),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> SuccessResponse:
+    """Kill every key on your account except the one making this request.
+
+    The panic case is "I pasted my key somewhere I should not have"; enumerating
+    and revoking one at a time is the wrong thing to ask of someone in it.
+    """
+    revoked = await svc.revoke_other_keys(user)
+    return SuccessResponse(
+        success=True, message=f"Revoked {revoked} other key(s) on your account"
+    )
+
+
+@router.post(
+    "/keys/{key_id}/renew",
+    response_model=APIKeyResponse,
+    summary="Extend a key's expiry",
+)
+async def renew_key(
+    key_id: UUID = Path(...),
+    user: AuthenticatedUser = Depends(get_current_user),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> APIKeyResponse:
+    """Push the expiry out by the policy TTL, keeping the same token.
+
+    So nothing has to be re-pasted wherever it is already stored.
+    """
+    return await svc.renew_api_key(user, key_id)
 
 
 @router.post(

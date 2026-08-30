@@ -167,6 +167,35 @@ export async function createApiKey(
   return data;
 }
 
+export async function revokeOtherApiKeys(): Promise<string> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/keys/revoke-others",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to revoke other keys"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data.message ?? "Done";
+}
+
+export async function renewApiKey(keyId: string): Promise<APIKeyResponse> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/keys/{key_id}/renew",
+    { params: { path: { key_id: keyId } } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to renew key"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
 export async function revokeApiKey(keyId: string): Promise<void> {
   const { error, response } = await apiClient.DELETE(
     "/api/identity/keys/{key_id}",

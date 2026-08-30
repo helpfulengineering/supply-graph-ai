@@ -12,6 +12,7 @@ import { SECTION_LABEL_SM, SECTION_TITLE } from "../../components/ui/typography"
 import { FIELD_SM } from "../../components/ui/field";
 import { useAuth } from "../../context/AuthContext";
 import { fetchOkhList } from "../../api/ohm/okh";
+import { MyKeysPanel } from "./MyKeysPanel";
 import { searchOkw } from "../../api/ohm/okw";
 
 /**
@@ -129,6 +130,8 @@ export function AccountView() {
             Sign out
           </button>
         </section>
+
+        <MyKeysPanel />
 
         <UnsharedSection
           id="designs"

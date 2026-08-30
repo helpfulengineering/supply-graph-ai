@@ -166,6 +166,30 @@ returned once and is not recoverable. Shielded mode refuses registration
 This is what keeps a well-known node from being a structurally special one: any
 node that accepts registrations is as good a place to start as any other.
 
+## Managing your own keys
+
+Key operations are scoped to the caller rather than gated on `admin` — the same
+scoping move records got, applied to the identity plane. An admin's node-wide
+view is unchanged; what changed is that an ordinary person has one at all.
+
+```bash
+ohm identity keys create --name laptop-cli   # a second key, for another device
+ohm identity keys list                        # yours, or all of them as admin
+ohm identity keys revoke <key_id>             # yours only
+ohm identity keys revoke-others               # everything but the key in use
+ohm identity keys renew <key_id>              # same token, later expiry
+```
+
+A key belonging to someone else is refused exactly as a key that does not exist
+is, so the error cannot be used to discover which key ids are real. A key minted
+without an operator in the loop can never carry `admin`, whoever mints it.
+
+**Self-service keys expire.** `key_ttl_days` is 180 in peacetime, 365 in crisis
+(offline grace) and 30 under shielded. The ADR's revocation-by-expiry story
+covered capability *grants*; this extends it to the credential that actually
+authenticates a request, so an abandoned key stops working on its own. Renewal
+keeps the same token, so nothing has to be re-pasted where it is already stored.
+
 ## Losing your key
 
 Registration issues a **recovery code** alongside the token, shown once and
@@ -194,6 +218,7 @@ onboarding and recovery are both out-of-band acts there.
 Guessing is not what the rate limit on this endpoint defends against: the code
 is 256 bits of CSPRNG output, the same generator as an API token. The limit
 bounds the cost of hammering the endpoint and makes a sustained attempt visible.
+
 
 ## Who can see a record
 

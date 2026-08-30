@@ -3410,13 +3410,20 @@ export interface paths {
         };
         /**
          * List API keys
-         * @description List API keys. Tokens are never returned here.
+         * @description List API keys — your own, or all of them for an admin.
+         *
+         *     Tokens are never returned here.
          */
         get: operations["list_keys_api_identity_keys_get"];
         put?: never;
         /**
          * Create an API key
          * @description Mint an API key. The plaintext token is returned only in this response.
+         *
+         *     Scoped rather than admin-only (#413): an ordinary person mints keys on
+         *     their own account — a second one for the CLI, a replacement before revoking
+         *     the old — and cannot mint for anyone else or above the self-service floor.
+         *     An admin keeps both abilities.
          */
         post: operations["create_key_api_identity_keys_post"];
         delete?: never;
@@ -3435,8 +3442,56 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Revoke an API key */
+        /**
+         * Revoke an API key
+         * @description Revoke a key you own; an admin may revoke any.
+         */
         delete: operations["revoke_key_api_identity_keys__key_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/keys/revoke-others": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke every other key on your account
+         * @description Kill every key on your account except the one making this request.
+         *
+         *     The panic case is "I pasted my key somewhere I should not have"; enumerating
+         *     and revoking one at a time is the wrong thing to ask of someone in it.
+         */
+        post: operations["revoke_other_keys_api_identity_keys_revoke_others_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/keys/{key_id}/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Extend a key's expiry
+         * @description Push the expiry out by the policy TTL, keeping the same token.
+         *
+         *     So nothing has to be re-pasted wherever it is already stored.
+         */
+        post: operations["renew_key_api_identity_keys__key_id__renew_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -18111,6 +18166,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_other_keys_api_identity_keys_revoke_others_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+        };
+    };
+    renew_key_api_identity_keys__key_id__renew_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIKeyResponse"];
                 };
             };
             /** @description Validation Error */
