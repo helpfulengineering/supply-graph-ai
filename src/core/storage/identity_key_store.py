@@ -1,6 +1,6 @@
 """Node-local identity key store (federated-identity Slice 2).
 
-Private keys are **secret and never federated**, so they live as plaintext files
+Private keys are **secret and never federated**, so they live as 0600 files
 under ``OHM_FEDERATION_DATA_DIR/identities/<did>.json`` (peacetime; encryption-at-rest
 is on the roadmap) — the same node-local plane as the node's own ``identity.json``,
 distinct from the object store used for OKH/OKW/API keys.
@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from ..federation.identity import NodeIdentity
+from ..federation.identity import NodeIdentity, secret_dir, write_secret_file
 from ..models.identity import Identity, IdentityKind, IdentityLink
 
 
@@ -34,7 +34,7 @@ class IdentityKeyStore:
 
     def save(self, signing_key: NodeIdentity, identity: Identity) -> None:
         """Persist a keypair + its public identity record."""
-        self._dir.mkdir(parents=True, exist_ok=True)
+        secret_dir(self._dir)
         data = signing_key.to_identity_file()
         data.update(
             {
@@ -48,7 +48,7 @@ class IdentityKeyStore:
                 ],
             }
         )
-        self._path(identity.did).write_text(json.dumps(data, indent=2), "utf-8")
+        write_secret_file(self._path(identity.did), json.dumps(data, indent=2))
 
     def load_signing_key(self, did: str) -> Optional[NodeIdentity]:
         """Load the Ed25519 keypair for ``did`` (for signing), or None."""
