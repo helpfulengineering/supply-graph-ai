@@ -38,6 +38,11 @@ import { toQualityBanner } from "./qualityBanner";
 import { downloadManifest } from "./serialize";
 import { missingRequired } from "./manifestTiers";
 import { TieredEditor } from "./TieredEditor";
+import { ProvenanceRecord } from "./ProvenanceRecord";
+import {
+  readGenerationProvenance,
+  type GenerationProvenance,
+} from "./generationProvenance";
 import { parseRepoUrlList } from "./urlValidation";
 import {
   aggregatePercent,
@@ -119,6 +124,9 @@ export function GenerateView() {
   const [jobs, setJobs] = useState<GenerateJobRef[]>([]);
   const [active, setActive] = useState(false);
   const [manifest, setManifest] = useState<Manifest | null>(null);
+  const [provenance, setProvenance] = useState<GenerationProvenance | null>(
+    null,
+  );
   const [report, setReport] = useState<OkhQualityReport | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
@@ -145,6 +153,7 @@ export function GenerateView() {
         message: data?.message,
         error: data?.error,
         manifest: data?.manifest,
+        provenance: data?.provenance,
         quality_report: data?.quality_report,
       };
     });
@@ -175,6 +184,9 @@ export function GenerateView() {
     const pick = successes[0];
     setSelectedJobId(pick.job_id);
     setManifest(pick.manifest as Manifest);
+    // Parsed rather than cast: the server types this Dict[str, Any], so codegen
+    // vouches for nothing. A malformed record costs this panel, not the run.
+    setProvenance(readGenerationProvenance(pick.provenance));
     setReport((pick.quality_report as OkhQualityReport | null) ?? null);
     if (failures.length > 0) {
       setError(
@@ -352,6 +364,9 @@ export function GenerateView() {
                   onClick={() => {
                     setSelectedJobId(s.job_id);
                     setManifest(s.manifest as Manifest);
+                    // Also swapped, or the record would describe the run the
+                    // reader just navigated away from.
+                    setProvenance(readGenerationProvenance(s.provenance));
                     setReport(
                       (s.quality_report as OkhQualityReport | null) ?? null,
                     );
@@ -386,6 +401,8 @@ export function GenerateView() {
           <div className={PANEL}>
             <TieredEditor manifest={manifest} onChange={setManifest} />
           </div>
+
+          {provenance && <ProvenanceRecord record={provenance} />}
 
           <div className="flex flex-wrap items-center gap-3">
             <button
