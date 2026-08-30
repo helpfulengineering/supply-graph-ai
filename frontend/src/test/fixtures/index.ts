@@ -452,6 +452,21 @@ export const securityPolicyFixture = {
   metadata_logging: "full",
   registry_attestations: "trust_on_follow",
   anonymous_submission_allowed: true,
+  open_registration: true,
+};
+
+export const registrationFixture = {
+  account_id: "00000000-0000-0000-0000-0000000000cc",
+  display_name: "Ada Lovelace",
+  did: "did:key:zAdaRegistered",
+  key: {
+    key_id: "00000000-0000-0000-0000-0000000000cd",
+    name: "Ada Lovelace (first key)",
+    permissions: ["read", "write"],
+    created_at: "2026-08-30T00:00:00Z",
+    revoked: false,
+    token: "ohm_registered_once",
+  },
 };
 
 export const apiKeysFixture = [

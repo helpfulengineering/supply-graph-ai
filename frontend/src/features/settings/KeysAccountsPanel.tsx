@@ -3,7 +3,6 @@ import {
   CHECKBOX,
   CHOICE_ROW,
   FIELD,
-  FIELD_SM,
   LABEL,
 } from "../../components/ui/field";
 import { cn } from "@/lib/utils";
@@ -19,21 +18,15 @@ import {
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
-import { PANEL, PANEL_WARNING } from "../../components/ui/surface";
+import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
-import { useToast } from "../../components/ui/Toast";
+import { TokenOnce } from "../auth/TokenOnce";
 
 const PERMISSION_OPTIONS = ["read", "write", "admin"] as const;
-
-/** Said on the toast rather than only in the panel, which the copy may scroll away from. */
-const TOKEN_HINT = "Store it now — this instance will not show it again.";
-const TOKEN_HINT_FAILED =
-  "The token is still on screen. Select it and copy it by hand before leaving this page.";
 
 export function KeysAccountsPanel() {
   const queryClient = useQueryClient();
   const { reportAuthFailure } = useAuth();
-  const { showSuccess, showError } = useToast();
   const [keyName, setKeyName] = useState("");
   const [permissions, setPermissions] = useState<string[]>(["read"]);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
@@ -101,51 +94,11 @@ export function KeysAccountsPanel() {
       </p>
 
       {createdToken && (
-        <div
-          role="dialog"
-          aria-labelledby="token-once-heading"
-          className={PANEL_WARNING}
-        >
-          <h2
-            id="token-once-heading"
-            className={cn(SECTION_TITLE, "text-warning")}
-          >
-            Copy this token now
-          </h2>
-          <p className="mt-1 text-sm text-warning">
-            It will not be shown again.
-          </p>
-          <pre className="mt-3 overflow-x-auto rounded-md bg-card p-3 font-mono text-xs">
-            {createdToken}
-          </pre>
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent"
-              // The token is shown once and never again, so a silent copy is
-              // the worst case in the app: a visitor presses Copy, sees
-              // nothing, presses Done, and has lost the credential. Confirmed,
-              // and — more to the point — a denied clipboard now says so.
-              onClick={() =>
-                navigator.clipboard.writeText(createdToken).then(
-                  () =>
-                    showSuccess("Token copied", { description: TOKEN_HINT }),
-                  (err: unknown) =>
-                    showError(err, { description: TOKEN_HINT_FAILED }),
-                )
-              }
-            >
-              Copy
-            </button>
-            <button
-              type="button"
-              className={FIELD_SM}
-              onClick={() => setCreatedToken(null)}
-            >
-              Done
-            </button>
-          </div>
-        </div>
+        <TokenOnce
+          token={createdToken}
+          description="It will not be shown again."
+          onDismiss={() => setCreatedToken(null)}
+        />
       )}
 
       <section aria-labelledby="keys-heading" className={PANEL}>

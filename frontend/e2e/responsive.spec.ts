@@ -55,6 +55,8 @@ const ROUTES = [
   "/rfq",
   "/settings",
   "/settings/keys",
+  "/register",
+  "/account",
   "/help",
   "/packages",
   "/solutions",

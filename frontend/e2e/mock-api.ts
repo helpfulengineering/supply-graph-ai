@@ -8,6 +8,7 @@ import {
   federationSyncFixture,
   fixturesByPath,
   pinRecordFixture,
+  registrationFixture,
 } from "../src/test/fixtures";
 
 /**
@@ -41,6 +42,10 @@ export const test = base.extend({
               data: { pin_record: pinRecordFixture },
             },
           });
+          return;
+        }
+        if (method === "POST" && pathname.endsWith("/api/identity/register")) {
+          await route.fulfill({ json: registrationFixture, status: 201 });
           return;
         }
         if (method === "POST" && pathname.endsWith("/api/identity/attestations/certify")) {
