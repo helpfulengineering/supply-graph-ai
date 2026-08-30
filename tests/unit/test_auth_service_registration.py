@@ -105,3 +105,130 @@ async def test_shielded_mode_refuses_registration(service, monkeypatch):
     # posture refused them, not merely that something did.
     assert "shielded" in str(exc.value.detail)
     assert await service.list_accounts() == []
+
+
+# --- Recovery (#414) --------------------------------------------------------
+#
+# Without this, a person who registers, closes the tab and did not save the
+# token has permanently lost their identity and every private record it made —
+# unreachable by everyone, including the operator, because registration collects
+# no email, no password and no second factor.
+
+
+@pytest.mark.asyncio
+async def test_registration_issues_a_recovery_code_alongside_the_token(service):
+    result = await service.register("Ada")
+
+    assert result.recovery_code
+    assert result.recovery_code != result.key.token
+
+    # Stored only as a hash, like the token.
+    accounts = await service.list_accounts()
+    stored = accounts[0]
+    assert stored.recovery_digest
+    assert result.recovery_code not in str(stored.model_dump())
+
+
+@pytest.mark.asyncio
+async def test_redeeming_returns_a_key_on_the_same_account_and_did(service):
+    registered = await service.register("Ada")
+
+    recovered = await service.redeem_recovery_code(registered.recovery_code)
+
+    assert recovered.account_id == registered.account_id
+    assert recovered.did == registered.did, "recovery must not orphan the identity"
+    user = await service.validate_api_key(recovered.key.token)
+    assert user.account_id == registered.account_id
+    # The DID is what record ownership keys on, so this is what makes the
+    # account's own private records visible again.
+    assert user.subject_did == registered.did
+
+
+@pytest.mark.asyncio
+async def test_redeeming_revokes_the_keys_it_replaces(service):
+    """Serves 'it leaked' as well as 'I lost it', so the old key must die."""
+    from fastapi import HTTPException
+
+    registered = await service.register("Ada")
+    await service.redeem_recovery_code(registered.recovery_code)
+
+    with pytest.raises(HTTPException) as exc:
+        await service.validate_api_key(registered.key.token)
+    assert exc.value.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_a_code_cannot_be_redeemed_twice(service):
+    from fastapi import HTTPException
+
+    registered = await service.register("Ada")
+    replacement = await service.redeem_recovery_code(registered.recovery_code)
+
+    with pytest.raises(HTTPException) as exc:
+        await service.redeem_recovery_code(registered.recovery_code)
+    assert exc.value.status_code == 401
+
+    # ...and the replacement it issued does work.
+    again = await service.redeem_recovery_code(replacement.recovery_code)
+    assert again.account_id == registered.account_id
+
+
+@pytest.mark.asyncio
+async def test_a_recovered_key_never_carries_admin(service):
+    """A way back in, never a way up — whatever the account held before."""
+    registered = await service.register("Ada")
+    keys = await service._auth_storage.list_keys()
+    promoted = keys[0]
+    promoted.permissions = ["read", "write", "admin"]
+    await service._auth_storage.save_key(promoted)
+
+    recovered = await service.redeem_recovery_code(registered.recovery_code)
+    assert "admin" not in recovered.key.permissions
+
+
+@pytest.mark.asyncio
+async def test_an_unknown_code_is_refused_without_naming_an_account(service):
+    from fastapi import HTTPException
+
+    await service.register("Ada")
+
+    with pytest.raises(HTTPException) as exc:
+        await service.redeem_recovery_code("not-a-real-code")
+    assert exc.value.status_code == 401
+    assert "Ada" not in str(exc.value.detail)
+
+
+@pytest.mark.asyncio
+async def test_an_index_pointer_alone_cannot_take_over_an_account(service):
+    """Verification reads the digest off the account record, not off the index
+    that found it — the same rule that keeps a written index entry from being
+    an authentication bypass for API keys."""
+    import json
+
+    from fastapi import HTTPException
+
+    victim = await service.register("Victim")
+    attacker_code = "attacker-chosen-value"
+    storage = service._account_storage
+    await storage.storage_service.manager.put_object(
+        storage._recovery_index_key(service._token_digest(attacker_code)),
+        json.dumps({"account_id": str(victim.account_id)}).encode("utf-8"),
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        await service.redeem_recovery_code(attacker_code)
+    assert exc.value.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_shielded_mode_refuses_recovery_and_names_the_mode(service, monkeypatch):
+    registered = await service.register("Ada")
+    monkeypatch.setattr(
+        "src.core.services.auth_service.get_security_policy",
+        lambda: get_security_policy(SecurityMode.SHIELDED),
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        await service.redeem_recovery_code(registered.recovery_code)
+    assert exc.value.status_code == 403
+    assert "shielded" in str(exc.value.detail)

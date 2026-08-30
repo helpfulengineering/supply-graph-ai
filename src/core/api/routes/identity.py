@@ -20,6 +20,7 @@ from ...models.auth import (
     APIKeyCreate,
     APIKeyResponse,
     AuthenticatedUser,
+    RecoveryRedeem,
     RegistrationCreate,
     RegistrationResponse,
 )
@@ -155,6 +156,25 @@ async def register(
     issued key never carries ``admin``. The token is returned once.
     """
     return await svc.register(payload.display_name)
+
+
+@router.post(
+    "/recover",
+    response_model=RegistrationResponse,
+    summary="Redeem a recovery code",
+)
+async def recover(
+    payload: RecoveryRedeem,
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> RegistrationResponse:
+    """Trade a recovery code for a working key — deliberately unauthenticated.
+
+    The credential this returns is the one the caller lost, so requiring a
+    credential to reach it would defeat the purpose. Redeeming revokes the
+    account's existing keys and issues a replacement code, which is what both
+    cases want: a lost token and a leaked one.
+    """
+    return await svc.redeem_recovery_code(payload.code)
 
 
 # --- Self-sovereign identities (Slice 2) -------------------------------------

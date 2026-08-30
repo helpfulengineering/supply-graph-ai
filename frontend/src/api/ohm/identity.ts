@@ -115,6 +115,30 @@ export async function registerPerson(
   return data;
 }
 
+/**
+ * Trade a recovery code for a working key on the same account and DID.
+ *
+ * Unauthenticated by necessity: the credential this returns is the one the
+ * caller lost. Redeeming revokes the account's other keys and issues a
+ * replacement code, so the response carries both values, once.
+ */
+export async function redeemRecoveryCode(
+  code: string,
+): Promise<RegistrationResponse> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/recover",
+    { body: { code } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "That recovery code is not valid"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
 export async function listApiKeys(): Promise<APIKeyResponse[]> {
   const { data, error, response } = await apiClient.GET("/api/identity/keys");
   if (error || !response.ok || !data) {

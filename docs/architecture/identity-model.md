@@ -166,6 +166,35 @@ returned once and is not recoverable. Shielded mode refuses registration
 This is what keeps a well-known node from being a structurally special one: any
 node that accepts registrations is as good a place to start as any other.
 
+## Losing your key
+
+Registration issues a **recovery code** alongside the token, shown once and
+stored only as a hash:
+
+```bash
+ohm identity recover --code <the code you saved>
+```
+
+Redeeming it returns a working key on the **same account and the same DID**, so
+the records that identity owns become visible again — the DID is what ownership
+keys on, so recovery that minted a new identity would be no recovery at all.
+
+Three properties worth knowing, because they are deliberate:
+
+- **It revokes the account's other keys.** The code serves "I lost my token" and
+  "my token leaked" equally, and both want the old keys dead.
+- **It is single-use**, and issues a replacement. Whoever holds the code
+  controls the account, so keep it where you keep passwords — not in a browser.
+- **It never grants `admin`.** A recovered key carries `read` and `write`
+  whatever the account held before: a way back in, never a way up.
+
+Shielded mode refuses self-service recovery, as it refuses registration —
+onboarding and recovery are both out-of-band acts there.
+
+Guessing is not what the rate limit on this endpoint defends against: the code
+is 256 bits of CSPRNG output, the same generator as an API token. The limit
+bounds the cost of hammering the endpoint and makes a sustained attempt visible.
+
 ## Who can see a record
 
 Record lists are scoped to the caller. Ownership keys on the creator's **subject

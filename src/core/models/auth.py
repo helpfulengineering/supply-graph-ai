@@ -90,3 +90,13 @@ class RegistrationResponse(BaseModel):
     display_name: str
     did: str
     key: APIKeyResponse
+    #: The way back in if the token is lost. Shown once, like the token, and
+    #: stored only as a hash. Registration is the only place it is issued, and
+    #: redeeming it issues a replacement.
+    recovery_code: Optional[str] = None
+
+
+class RecoveryRedeem(BaseModel):
+    """Request payload for redeeming a recovery code."""
+
+    code: str = Field(..., min_length=1, max_length=512)

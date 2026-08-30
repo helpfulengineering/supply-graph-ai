@@ -102,6 +102,17 @@ export function RegisterView() {
             description="You are already signed in on this tab. Keep the token to sign in again on another device."
           />
 
+          {registered.recovery_code && (
+            <TokenOnce
+              token={registered.recovery_code}
+              heading="Save your recovery code"
+              // Different advice from the token on purpose. The token is a
+              // convenience you can replace; this is the only way back if you
+              // lose it, and it belongs somewhere that outlives this browser.
+              description="This is the only way back into your account if you lose the token. Put it in a password manager — not in this browser."
+            />
+          )}
+
           <section className={PANEL}>
             <h2 className={SECTION_TITLE}>You are signed in</h2>
             <dl className="mt-3 space-y-2 text-sm">
