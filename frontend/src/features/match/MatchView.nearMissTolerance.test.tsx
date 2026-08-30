@@ -48,6 +48,7 @@ const seededNetwork: NetworkData = {
       processes: [],
       access_type: null,
       url: null,
+      ambiguous: false,
     },
   ],
   total: 1,

@@ -66,10 +66,12 @@ from ..models.base import (
 from ..models.okw.request import OKWExtractRequest, OKWUpdateRequest, OKWValidateRequest
 from ..models.okw.response import (
     Capability,
+    NetworkSpacesResponse,
     OKWExportResponse,
     OKWExtractResponse,
     OKWListResponse,
     OKWResponse,
+    OKWTemplateResponse,
     OKWUploadResponse,
 )
 
@@ -398,6 +400,7 @@ async def export_okw_schema(http_request: Request = None) -> Any:
 
 @router.get(
     "/template",
+    response_model=OKWTemplateResponse,
     summary="Get blank OKW facility template",
     description="""
     Return a blank OKW facility template as a JSON object.
@@ -420,6 +423,7 @@ async def get_okw_template(http_request: Request = None) -> Any:
 
 @router.get(
     "/spaces",
+    response_model=NetworkSpacesResponse,
     summary="Unified network surface (local OKW ∪ Maps of Making), server-filtered",
     description="""
     Return the unified network surface for the map + list views: local OKW

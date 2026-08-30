@@ -17,6 +17,7 @@ function space(overrides: Partial<NetworkSpace>): NetworkSpace {
     status: null,
     access_type: null,
     url: "https://example.org",
+    ambiguous: false,
     processes: [],
     ...overrides,
   };

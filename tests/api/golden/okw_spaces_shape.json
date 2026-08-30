@@ -1,0 +1,27 @@
+{
+  "dropped_no_coords": "*",
+  "local_count": "*",
+  "mom_available": "*",
+  "mom_count": "*",
+  "spaces": [
+    {
+      "access_type": "*",
+      "ambiguous": "*",
+      "city": "*",
+      "country": "*",
+      "id": "*",
+      "lat": "*",
+      "lon": "*",
+      "name": "*",
+      "processes": [
+        "*"
+      ],
+      "region": "*",
+      "source": "*",
+      "status": "*",
+      "url": "*"
+    }
+  ],
+  "success": "*",
+  "total": "*"
+}

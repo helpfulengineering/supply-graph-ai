@@ -46,8 +46,6 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         ("GET", "/api/okh/export-collection"),
         ("POST", "/api/okh/import-collection"),
         ("GET", "/api/okh/template"),
-        ("GET", "/api/okw/spaces"),
-        ("GET", "/api/okw/template"),
         ("POST", "/api/package/build/{manifest_id}"),
         ("POST", "/api/package/download-zip"),
         ("GET", "/api/package/remote"),

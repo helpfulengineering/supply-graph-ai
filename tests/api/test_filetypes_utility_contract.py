@@ -8,8 +8,13 @@ BEFORE the models and the models are correct exactly when they still pass.
 ``/api/utility/domains`` is the route behind #369: the frontend bound a
 selector to the display name because nothing told it there was an ``id``.
 
-``/api/utility/metrics`` is captured here but deliberately carries no response
-model: it returns four different shapes depending on its parameters — a
+``/api/utility/metrics`` is frozen STRUCTURALLY rather than by value: it is a
+counter payload, and its nested cache stats (hits, misses, size) move with
+whatever else has run in the same session. Freezing those made the golden
+order-dependent — it passed alone and failed inside the full suite. Keys are
+what a response model can drop, so keys are what this freezes.
+
+``/api/utility/metrics`` also deliberately carries no response model: it returns four different shapes depending on its parameters — a
 Prometheus text body, per-endpoint metrics, a summary, or a detailed breakdown
 — and one model would filter three of them into nonsense. Freezing it anyway is
 worth it: the capture is what a later change splitting the route would be
@@ -83,9 +88,27 @@ def _freeze(node):
     return node
 
 
-def _normalise(payload: dict) -> dict:
+#: Routes whose values legitimately move between runs; only their keys are
+#: frozen. Everything else is compared exactly.
+SHAPE_ONLY = {"utility_metrics"}
+
+
+def _structure(node: dict) -> dict:
+    """The top-level key set, and nothing below it.
+
+    Deliberately shallow. The sub-payloads here are keyed by things that come
+    and go — error codes seen, endpoints touched, cache entries — so descending
+    would make the signature depend on what else ran, which is the flakiness
+    this is meant to remove. The top-level keys are what a response model could
+    drop, and they are what a client reads.
+    """
+    return {k: "*" for k in sorted(node)}
+
+
+def _normalise(payload: dict, name: str) -> dict:
     text = re.sub(re.escape(str(REPO_ROOT)), "<repo>", json.dumps(payload))
-    return _freeze(json.loads(text))
+    body = json.loads(text)
+    return _structure(body) if name in SHAPE_ONLY else _freeze(body)
 
 
 @pytest.mark.asyncio
@@ -98,7 +121,7 @@ async def test_payload_is_field_identical_to_the_golden(path, name):
         response = await client.get(path)
 
     assert response.status_code == 200, response.text
-    body = _normalise(response.json())
+    body = _normalise(response.json(), name)
 
     golden = GOLDEN_DIR / f"{name}.json"
     if os.getenv("BLESS_FILETYPES_UTILITY_CONTRACT"):

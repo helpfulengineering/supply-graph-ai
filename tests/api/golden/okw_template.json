@@ -1,0 +1,513 @@
+{
+  "model_name": "ManufacturingFacility",
+  "success": true,
+  "template": {
+    "access_type": "Restricted",
+    "affiliations": [
+      {
+        "bio": null,
+        "contact": {
+          "email": null,
+          "fax": null,
+          "landline": null,
+          "mobile": null,
+          "whatsapp": null
+        },
+        "contact_person": null,
+        "images": [],
+        "languages": [],
+        "location": {
+          "address": {
+            "city": null,
+            "country": null,
+            "district": null,
+            "number": null,
+            "postcode": null,
+            "region": null,
+            "street": null
+          },
+          "city": null,
+          "country": null,
+          "directions": null,
+          "gps_coordinates": null,
+          "region": null,
+          "what3words": {
+            "language": "",
+            "words": ""
+          }
+        },
+        "mailing_list": null,
+        "name": "",
+        "social_media": {
+          "facebook": null,
+          "instagram": null,
+          "other_urls": [],
+          "twitter": null
+        },
+        "website": null
+      }
+    ],
+    "backup_generator": null,
+    "certifications": [],
+    "circular_economy": {
+      "applies_principles": false,
+      "by_products": [],
+      "description": null
+    },
+    "contact": {
+      "bio": null,
+      "contact": {
+        "email": null,
+        "fax": null,
+        "landline": null,
+        "mobile": null,
+        "whatsapp": null
+      },
+      "contact_person": null,
+      "images": [],
+      "languages": [],
+      "location": {
+        "address": {
+          "city": null,
+          "country": null,
+          "district": null,
+          "number": null,
+          "postcode": null,
+          "region": null,
+          "street": null
+        },
+        "city": null,
+        "country": null,
+        "directions": null,
+        "gps_coordinates": null,
+        "region": null,
+        "what3words": {
+          "language": "",
+          "words": ""
+        }
+      },
+      "mailing_list": null,
+      "name": "",
+      "social_media": {
+        "facebook": null,
+        "instagram": null,
+        "other_urls": [],
+        "twitter": null
+      },
+      "website": null
+    },
+    "customer_reviews": [],
+    "date_founded": null,
+    "description": null,
+    "domain": null,
+    "equipment": [
+      {
+        "additional_properties": {},
+        "axes": null,
+        "bed_size": null,
+        "build_volume": null,
+        "computer_controlled": false,
+        "condition": null,
+        "current_firmware": null,
+        "equipment_type": "",
+        "extraction_system": false,
+        "laser_power": null,
+        "location": {
+          "address": {
+            "city": null,
+            "country": null,
+            "district": null,
+            "number": null,
+            "postcode": null,
+            "region": null,
+            "street": null
+          },
+          "city": null,
+          "country": null,
+          "directions": null,
+          "gps_coordinates": null,
+          "region": null,
+          "what3words": {
+            "language": "",
+            "words": ""
+          }
+        },
+        "maintenance_schedule": null,
+        "make": null,
+        "manufacturing_process": "",
+        "materials_worked": [
+          {
+            "brand": null,
+            "manufacturer": null,
+            "material_type": "",
+            "supplier_location": {
+              "address": {
+                "city": null,
+                "country": null,
+                "district": null,
+                "number": null,
+                "postcode": null,
+                "region": null,
+                "street": null
+              },
+              "city": null,
+              "country": null,
+              "directions": null,
+              "gps_coordinates": null,
+              "region": null,
+              "what3words": {
+                "language": "",
+                "words": ""
+              }
+            }
+          }
+        ],
+        "model": null,
+        "notes": null,
+        "nozzle_size": null,
+        "owner": {
+          "bio": null,
+          "contact": {
+            "email": null,
+            "fax": null,
+            "landline": null,
+            "mobile": null,
+            "whatsapp": null
+          },
+          "contact_person": null,
+          "images": [],
+          "languages": [],
+          "location": {
+            "address": {
+              "city": null,
+              "country": null,
+              "district": null,
+              "number": null,
+              "postcode": null,
+              "region": null,
+              "street": null
+            },
+            "city": null,
+            "country": null,
+            "directions": null,
+            "gps_coordinates": null,
+            "region": null,
+            "what3words": {
+              "language": "",
+              "words": ""
+            }
+          },
+          "mailing_list": null,
+          "name": "",
+          "social_media": {
+            "facebook": null,
+            "instagram": null,
+            "other_urls": [],
+            "twitter": null
+          },
+          "website": null
+        },
+        "power_rating": null,
+        "quantity": null,
+        "serial_number": null,
+        "throughput": null,
+        "tolerance_class": null,
+        "uninterrupted_power_supply": false,
+        "usage_levels": null,
+        "working_surface": null,
+        "x_travel": null,
+        "y_travel": null,
+        "z_travel": null
+      }
+    ],
+    "facility_status": "Active",
+    "floor_size": null,
+    "human_capacity": {
+      "headcount": null
+    },
+    "id": "",
+    "innovation_space": {
+      "footfall": null,
+      "learning_resources": [],
+      "residencies": false,
+      "services": [],
+      "staff": null
+    },
+    "loading_dock": null,
+    "location": {
+      "address": {
+        "city": null,
+        "country": null,
+        "district": null,
+        "number": null,
+        "postcode": null,
+        "region": null,
+        "street": null
+      },
+      "city": null,
+      "country": null,
+      "directions": null,
+      "gps_coordinates": null,
+      "region": null,
+      "what3words": {
+        "language": "",
+        "words": ""
+      }
+    },
+    "maintenance_schedule": null,
+    "manufacturing_processes": [],
+    "name": "",
+    "opening_hours": null,
+    "owner": {
+      "bio": null,
+      "contact": {
+        "email": null,
+        "fax": null,
+        "landline": null,
+        "mobile": null,
+        "whatsapp": null
+      },
+      "contact_person": null,
+      "images": [],
+      "languages": [],
+      "location": {
+        "address": {
+          "city": null,
+          "country": null,
+          "district": null,
+          "number": null,
+          "postcode": null,
+          "region": null,
+          "street": null
+        },
+        "city": null,
+        "country": null,
+        "directions": null,
+        "gps_coordinates": null,
+        "region": null,
+        "what3words": {
+          "language": "",
+          "words": ""
+        }
+      },
+      "mailing_list": null,
+      "name": "",
+      "social_media": {
+        "facebook": null,
+        "instagram": null,
+        "other_urls": [],
+        "twitter": null
+      },
+      "website": null
+    },
+    "partners_funders": [
+      {
+        "bio": null,
+        "contact": {
+          "email": null,
+          "fax": null,
+          "landline": null,
+          "mobile": null,
+          "whatsapp": null
+        },
+        "contact_person": null,
+        "images": [],
+        "languages": [],
+        "location": {
+          "address": {
+            "city": null,
+            "country": null,
+            "district": null,
+            "number": null,
+            "postcode": null,
+            "region": null,
+            "street": null
+          },
+          "city": null,
+          "country": null,
+          "directions": null,
+          "gps_coordinates": null,
+          "region": null,
+          "what3words": {
+            "language": "",
+            "words": ""
+          }
+        },
+        "mailing_list": null,
+        "name": "",
+        "social_media": {
+          "facebook": null,
+          "instagram": null,
+          "other_urls": [],
+          "twitter": null
+        },
+        "website": null
+      }
+    ],
+    "record_data": {
+      "created_by": {
+        "bio": null,
+        "contact": {
+          "email": null,
+          "fax": null,
+          "landline": null,
+          "mobile": null,
+          "whatsapp": null
+        },
+        "contact_person": null,
+        "images": [],
+        "languages": [],
+        "location": {
+          "address": {
+            "city": null,
+            "country": null,
+            "district": null,
+            "number": null,
+            "postcode": null,
+            "region": null,
+            "street": null
+          },
+          "city": null,
+          "country": null,
+          "directions": null,
+          "gps_coordinates": null,
+          "region": null,
+          "what3words": {
+            "language": "",
+            "words": ""
+          }
+        },
+        "mailing_list": null,
+        "name": "",
+        "social_media": {
+          "facebook": null,
+          "instagram": null,
+          "other_urls": [],
+          "twitter": null
+        },
+        "website": null
+      },
+      "data_collection_method": null,
+      "date_created": "",
+      "date_verified": null,
+      "last_updated": null,
+      "updated_by": {
+        "bio": null,
+        "contact": {
+          "email": null,
+          "fax": null,
+          "landline": null,
+          "mobile": null,
+          "whatsapp": null
+        },
+        "contact_person": null,
+        "images": [],
+        "languages": [],
+        "location": {
+          "address": {
+            "city": null,
+            "country": null,
+            "district": null,
+            "number": null,
+            "postcode": null,
+            "region": null,
+            "street": null
+          },
+          "city": null,
+          "country": null,
+          "directions": null,
+          "gps_coordinates": null,
+          "region": null,
+          "what3words": {
+            "language": "",
+            "words": ""
+          }
+        },
+        "mailing_list": null,
+        "name": "",
+        "social_media": {
+          "facebook": null,
+          "instagram": null,
+          "other_urls": [],
+          "twitter": null
+        },
+        "website": null
+      },
+      "verified_by": {
+        "bio": null,
+        "contact": {
+          "email": null,
+          "fax": null,
+          "landline": null,
+          "mobile": null,
+          "whatsapp": null
+        },
+        "contact_person": null,
+        "images": [],
+        "languages": [],
+        "location": {
+          "address": {
+            "city": null,
+            "country": null,
+            "district": null,
+            "number": null,
+            "postcode": null,
+            "region": null,
+            "street": null
+          },
+          "city": null,
+          "country": null,
+          "directions": null,
+          "gps_coordinates": null,
+          "region": null,
+          "what3words": {
+            "language": "",
+            "words": ""
+          }
+        },
+        "mailing_list": null,
+        "name": "",
+        "social_media": {
+          "facebook": null,
+          "instagram": null,
+          "other_urls": [],
+          "twitter": null
+        },
+        "website": null
+      }
+    },
+    "road_access": null,
+    "storage_capacity": null,
+    "typical_batch_size": null,
+    "typical_materials": [
+      {
+        "brand": null,
+        "manufacturer": null,
+        "material_type": "",
+        "supplier_location": {
+          "address": {
+            "city": null,
+            "country": null,
+            "district": null,
+            "number": null,
+            "postcode": null,
+            "region": null,
+            "street": null
+          },
+          "city": null,
+          "country": null,
+          "directions": null,
+          "gps_coordinates": null,
+          "region": null,
+          "what3words": {
+            "language": "",
+            "words": ""
+          }
+        }
+      }
+    ],
+    "typical_products": [],
+    "uninterrupted_power_supply": null,
+    "wheelchair_accessibility": null
+  }
+}
