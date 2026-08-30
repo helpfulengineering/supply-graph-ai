@@ -54,7 +54,7 @@ export function RegisterView() {
       setRegistered(result);
       // Adopt the session immediately. The visitor asked to join, not to be
       // handed a credential and told to come back with it.
-      if (result.key.token) await setToken(result.key.token);
+      if (result.key.token) await setToken(result.key.token, "minted");
       showSuccess("Registered", { description: `Signed in as ${name}.` });
     } catch (err) {
       showError(err);

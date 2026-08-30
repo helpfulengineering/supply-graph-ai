@@ -48,7 +48,14 @@ describe("RegisterView", () => {
     expect(await screen.findByText("You are signed in")).toBeInTheDocument();
   });
 
-  it("never writes the token to localStorage", async () => {
+  it("persists the session it minted, and only in one store", async () => {
+    // This reverses what #404 asserted, deliberately. Tab-scoped storage was
+    // the right call when the only user was an operator pasting an admin key;
+    // a member of the public who registered is a different user, and making
+    // them re-enter a 43-character secret per tab is the pressure that teaches
+    // people to keep credentials somewhere careless. It is only an acceptable
+    // trade because these keys now expire (#413) and their owner can revoke
+    // them (#413) — a pasted key is still tab-scoped, see tokenStorage tests.
     const user = userEvent.setup();
     renderView();
 
@@ -56,12 +63,10 @@ describe("RegisterView", () => {
     await user.click(screen.getByRole("button", { name: "Register" }));
     await screen.findByText("ohm_registered_once");
 
-    // The app does use localStorage elsewhere (theme, domain preference), so
-    // the check is that the credential never reaches it — not that it is empty.
-    expect(JSON.stringify({ ...localStorage })).not.toContain(
-      "ohm_registered_once",
-    );
-    expect(sessionStorage.getItem("ohm_api_key")).toBe("ohm_registered_once");
+    expect(localStorage.getItem("ohm_api_key")).toBe("ohm_registered_once");
+    // Never both: signing out of one store would otherwise leave the other
+    // holding a live credential.
+    expect(sessionStorage.getItem("ohm_api_key")).toBeNull();
   });
 
   it("shows no form at all when the node has registration closed", async () => {
@@ -100,5 +105,34 @@ describe("RegisterView", () => {
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(getToken()).toBeNull();
     expect(screen.queryByText("You are signed in")).not.toBeInTheDocument();
+  });
+});
+
+describe("RegisterView — session persistence (#415)", () => {
+  it("keeps a registered visitor signed in across tabs", async () => {
+    const user = userEvent.setup();
+    renderView();
+
+    await user.type(await screen.findByLabelText(/display name/i), "Ada");
+    await user.click(screen.getByRole("button", { name: "Register" }));
+    await screen.findByText("ohm_registered_once");
+
+    // Reopening the tab clears sessionStorage; a minted session survives it.
+    sessionStorage.clear();
+    expect(getToken()).toBe("ohm_registered_once");
+  });
+
+  it("still keeps the credential out of a pasted session's store", async () => {
+    const user = userEvent.setup();
+    renderView();
+
+    await user.type(await screen.findByLabelText(/display name/i), "Ada");
+    await user.click(screen.getByRole("button", { name: "Register" }));
+    await screen.findByText("ohm_registered_once");
+
+    // It persists deliberately — but only because these keys now expire and
+    // their owner can revoke them. It must never be in BOTH stores, or signing
+    // out of one would leave the other holding a live credential.
+    expect(sessionStorage.getItem("ohm_api_key")).toBeNull();
   });
 });

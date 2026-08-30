@@ -190,6 +190,26 @@ covered capability *grants*; this extends it to the credential that actually
 authenticates a request, so an abandoned key stops working on its own. Renewal
 keeps the same token, so nothing has to be re-pasted where it is already stored.
 
+## Staying signed in
+
+Two kinds of browser session, decided by how the session *began* rather than by
+what it can do:
+
+| Began as | Lives in | Survives the tab |
+|---|---|---|
+| minted — issued at registration or recovery | `localStorage` | yes |
+| pasted — an existing key entered in Settings | `sessionStorage` | no |
+
+A pasted key wins inside the tab it was pasted into, and signing out clears
+both. The token is never in both stores at once, so signing out of one cannot
+leave the other holding a live credential.
+
+Persisting a credential means an XSS reads it for as long as it is valid, which
+on its own is a bad trade. It is acceptable here only because the other two
+pieces landed first: these keys **expire**, and their owner can **revoke** them
+without finding an operator. Persistence, expiry and revocation are one package
+— shipping the first without the other two would be the wrong call.
+
 ## Losing your key
 
 Registration issues a **recovery code** alongside the token, shown once and
