@@ -39,8 +39,6 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
     {
         ("DELETE", "/api/asset/{id}"),
         ("POST", "/api/convert/to-datasheet"),
-        ("GET", "/api/file-types"),
-        ("GET", "/api/file-types/validate"),
         ("GET", "/api/identity/security-policy"),
         ("POST", "/api/match"),
         ("POST", "/api/match/facility"),
@@ -66,7 +64,11 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         ("GET", "/api/supply-tree/solution/{solution_id}/staleness"),
         ("GET", "/api/supply-tree/solution/{solution_id}/visualization"),
         ("GET", "/api/supply-tree/solutions"),
-        ("GET", "/api/utility/domains"),
+        # Cannot be typed as one model: /metrics returns four different shapes
+        # depending on its parameters — a Prometheus text body, per-endpoint
+        # metrics, a summary, or a detailed breakdown. A single response_model
+        # would filter three of them into nonsense. Splitting the route is the
+        # real fix, and is not this change.
         ("GET", "/api/utility/metrics"),
     }
 )

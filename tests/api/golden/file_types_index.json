@@ -1,0 +1,426 @@
+{
+  "data": {
+    "file_types": [
+      {
+        "canonical_id": "archive",
+        "display_name": "Archive",
+        "extensions": [
+          ".7z",
+          ".gz",
+          ".rar",
+          ".tar",
+          ".tar.gz",
+          ".tgz",
+          ".zip"
+        ],
+        "mime_types": [],
+        "okh_role": "documentation",
+        "parent": null,
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "cad",
+        "display_name": "CAD",
+        "extensions": [],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": null,
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "cad_dwg",
+        "display_name": "AutoCAD DWG",
+        "extensions": [
+          ".dwg"
+        ],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": "cad",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "cad_dxf",
+        "display_name": "DXF",
+        "extensions": [
+          ".dxf"
+        ],
+        "mime_types": [],
+        "okh_role": "grey_zone",
+        "parent": "cad",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "cad_f3d",
+        "display_name": "Fusion 360",
+        "extensions": [
+          ".f3d"
+        ],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": "cad",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "cad_fcstd",
+        "display_name": "FreeCAD",
+        "extensions": [
+          ".fcstd"
+        ],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": "cad",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "cad_iges",
+        "display_name": "IGES",
+        "extensions": [
+          ".iges",
+          ".igs"
+        ],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": "cad",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "cad_scad",
+        "display_name": "OpenSCAD",
+        "extensions": [
+          ".scad"
+        ],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": "cad",
+        "render_tier": "text_viewer"
+      },
+      {
+        "canonical_id": "cad_step",
+        "display_name": "STEP",
+        "extensions": [
+          ".step",
+          ".stp"
+        ],
+        "mime_types": [
+          "application/step",
+          "model/step"
+        ],
+        "okh_role": "design",
+        "parent": "cad",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "code",
+        "display_name": "Source Code",
+        "extensions": [
+          ".c",
+          ".cpp",
+          ".go",
+          ".h",
+          ".java",
+          ".js",
+          ".py",
+          ".rs",
+          ".sh",
+          ".ts"
+        ],
+        "mime_types": [],
+        "okh_role": "software",
+        "parent": null,
+        "render_tier": "text_viewer"
+      },
+      {
+        "canonical_id": "document",
+        "display_name": "Document",
+        "extensions": [],
+        "mime_types": [],
+        "okh_role": "documentation",
+        "parent": null,
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "document_markdown",
+        "display_name": "Markdown",
+        "extensions": [
+          ".markdown",
+          ".md",
+          ".mdown"
+        ],
+        "mime_types": [
+          "text/markdown",
+          "text/x-markdown"
+        ],
+        "okh_role": "documentation",
+        "parent": "document",
+        "render_tier": "text_viewer"
+      },
+      {
+        "canonical_id": "document_office",
+        "display_name": "Office Document",
+        "extensions": [
+          ".doc",
+          ".docx",
+          ".odt",
+          ".rtf"
+        ],
+        "mime_types": [],
+        "okh_role": "documentation",
+        "parent": "document",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "document_pdf",
+        "display_name": "PDF",
+        "extensions": [
+          ".pdf"
+        ],
+        "mime_types": [
+          "application/pdf"
+        ],
+        "okh_role": "documentation",
+        "parent": "document",
+        "render_tier": "native_inline"
+      },
+      {
+        "canonical_id": "document_plain_text",
+        "display_name": "Plain Text",
+        "extensions": [
+          ".csv",
+          ".log",
+          ".txt"
+        ],
+        "mime_types": [
+          "text/csv",
+          "text/plain"
+        ],
+        "okh_role": "documentation",
+        "parent": "document",
+        "render_tier": "text_viewer"
+      },
+      {
+        "canonical_id": "document_structured",
+        "display_name": "Structured Text",
+        "extensions": [
+          ".json",
+          ".toml",
+          ".xml",
+          ".yaml",
+          ".yml"
+        ],
+        "mime_types": [
+          "application/json",
+          "application/xml",
+          "application/yaml",
+          "text/xml"
+        ],
+        "okh_role": "documentation",
+        "parent": "document",
+        "render_tier": "text_viewer"
+      },
+      {
+        "canonical_id": "drill",
+        "display_name": "Drill File",
+        "extensions": [
+          ".drl",
+          ".xln"
+        ],
+        "mime_types": [],
+        "okh_role": "manufacturing",
+        "parent": "manufacturing",
+        "render_tier": "text_viewer"
+      },
+      {
+        "canonical_id": "eda",
+        "display_name": "EDA",
+        "extensions": [],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": null,
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "eda_kicad_pcb",
+        "display_name": "KiCad PCB",
+        "extensions": [
+          ".kicad_pcb"
+        ],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": "eda",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "eda_schematic",
+        "display_name": "Schematic",
+        "extensions": [
+          ".brd",
+          ".sch"
+        ],
+        "mime_types": [],
+        "okh_role": "design",
+        "parent": "eda",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "gcode",
+        "display_name": "G-code",
+        "extensions": [
+          ".bgcode",
+          ".cnc",
+          ".gcode",
+          ".nc",
+          ".ngc",
+          ".tap"
+        ],
+        "mime_types": [],
+        "okh_role": "manufacturing",
+        "parent": "manufacturing",
+        "render_tier": "text_viewer"
+      },
+      {
+        "canonical_id": "gerber",
+        "display_name": "Gerber",
+        "extensions": [
+          ".gbr",
+          ".ger"
+        ],
+        "mime_types": [],
+        "okh_role": "manufacturing",
+        "parent": "manufacturing",
+        "render_tier": "text_viewer"
+      },
+      {
+        "canonical_id": "image",
+        "display_name": "Image",
+        "extensions": [],
+        "mime_types": [],
+        "okh_role": "documentation",
+        "parent": null,
+        "render_tier": "native_inline"
+      },
+      {
+        "canonical_id": "image_raster",
+        "display_name": "Raster Image",
+        "extensions": [
+          ".bmp",
+          ".gif",
+          ".jpeg",
+          ".jpg",
+          ".png",
+          ".svg",
+          ".webp"
+        ],
+        "mime_types": [
+          "image/bmp",
+          "image/gif",
+          "image/jpeg",
+          "image/png",
+          "image/svg+xml",
+          "image/webp"
+        ],
+        "okh_role": "documentation",
+        "parent": "image",
+        "render_tier": "native_inline"
+      },
+      {
+        "canonical_id": "manufacturing",
+        "display_name": "Manufacturing",
+        "extensions": [],
+        "mime_types": [],
+        "okh_role": "manufacturing",
+        "parent": null,
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "mesh_3d",
+        "display_name": "3D Mesh",
+        "extensions": [],
+        "mime_types": [],
+        "okh_role": "grey_zone",
+        "parent": null,
+        "render_tier": "wasm_3d"
+      },
+      {
+        "canonical_id": "mesh_3mf",
+        "display_name": "3MF",
+        "extensions": [
+          ".3mf"
+        ],
+        "mime_types": [
+          "application/vnd.ms-package.3dmanufacturing-3dmodel+xml",
+          "model/3mf"
+        ],
+        "okh_role": "manufacturing",
+        "parent": "mesh_3d",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "mesh_amf",
+        "display_name": "AMF",
+        "extensions": [
+          ".amf"
+        ],
+        "mime_types": [],
+        "okh_role": "manufacturing",
+        "parent": "mesh_3d",
+        "render_tier": "download_only"
+      },
+      {
+        "canonical_id": "mesh_obj",
+        "display_name": "OBJ Mesh",
+        "extensions": [
+          ".obj"
+        ],
+        "mime_types": [
+          "model/obj",
+          "text/plain"
+        ],
+        "okh_role": "grey_zone",
+        "parent": "mesh_3d",
+        "render_tier": "wasm_3d"
+      },
+      {
+        "canonical_id": "mesh_ply",
+        "display_name": "PLY Mesh",
+        "extensions": [
+          ".ply"
+        ],
+        "mime_types": [],
+        "okh_role": "grey_zone",
+        "parent": "mesh_3d",
+        "render_tier": "wasm_3d"
+      },
+      {
+        "canonical_id": "mesh_stl",
+        "display_name": "STL Mesh",
+        "extensions": [
+          ".stl"
+        ],
+        "mime_types": [
+          "application/sla",
+          "application/vnd.ms-pki.stl",
+          "model/stl"
+        ],
+        "okh_role": "grey_zone",
+        "parent": "mesh_3d",
+        "render_tier": "wasm_3d"
+      },
+      {
+        "canonical_id": "unknown",
+        "display_name": "Unknown",
+        "extensions": [],
+        "mime_types": [],
+        "okh_role": "documentation",
+        "parent": null,
+        "render_tier": "download_only"
+      }
+    ],
+    "source": "<repo>/src/config/taxonomy/file_types.yaml",
+    "total": 32
+  },
+  "message": "File type taxonomy retrieved successfully",
+  "metadata": {},
+  "request_id": "<volatile>",
+  "status": "success",
+  "timestamp": "<volatile>"
+}

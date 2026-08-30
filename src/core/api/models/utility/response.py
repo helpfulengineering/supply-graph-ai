@@ -15,7 +15,15 @@ class Domain(BaseModel):
 
 
 class DomainsResponse(SuccessResponse, LLMResponseMixin):
-    """Response model for available domains with standardized fields and LLM information"""
+    """Response model for available domains with standardized fields and LLM information
+
+    .. warning::
+       Not what GET /api/utility/domains returns, and not used by it. This
+       declares ``domains``/``default_domain`` at the TOP level; the route
+       nests them under ``data``. Attaching this as a ``response_model`` would
+       filter the real payload away. ``DomainListResponse`` below is the one
+       that matches the route.
+    """
 
     domains: List[Domain]
     # Which domain a fresh browser session should open in on this instance
@@ -97,3 +105,24 @@ class ErrorResponse(BaseModel):
     """Response model for API errors"""
 
     error: Dict[str, Any]  # Contains code, message, details
+
+
+class DomainListData(BaseModel):
+    """The ``data`` payload of GET /api/utility/domains.
+
+    Derived from the payload captured in ``tests/api/golden/utility_domains.json``
+    before this model existed. Note the nesting: the route puts these under
+    ``data``, which is why ``DomainsResponse`` above — which declares them at
+    the top level — does not describe this route and is not used by it.
+    """
+
+    default_domain: str
+    domains: List[Domain]
+    #: Per-domain validation reports. Left free-form: they come from the domain
+    #: validators, and a strict model would filter whatever those grow next.
+    validation_results: List[Dict[str, Any]]
+    processing_time: float
+
+
+class DomainListResponse(SuccessResponse):
+    data: DomainListData

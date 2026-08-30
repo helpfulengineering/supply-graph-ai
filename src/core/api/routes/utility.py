@@ -32,7 +32,7 @@ from ..models.base import ErrorCode, ErrorDetail, ValidationResult
 
 # Import consolidated utility models
 from ..models.utility.request import ContextFilterRequest, DomainFilterRequest
-from ..models.utility.response import Context, Domain
+from ..models.utility.response import Context, Domain, DomainListResponse
 
 # Set up logging
 logger = get_logger(__name__)
@@ -47,6 +47,7 @@ router = APIRouter(
 
 @router.get(
     "/domains",
+    response_model=DomainListResponse,
     summary="List Available Domains",
     description="""
     Get a list of available domains with enhanced capabilities.

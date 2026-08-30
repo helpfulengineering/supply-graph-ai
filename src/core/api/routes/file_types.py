@@ -6,6 +6,10 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 from src.core.api.constants.openapi import RESPONSES_400_500
 from src.core.api.error_handlers import create_success_response
+from src.core.api.models.file_types.response import (
+    FileTypeIndexResponse,
+    FileTypeValidationResponse,
+)
 from src.core.taxonomy.file_type_taxonomy import (
     DEFAULT_FILE_TYPES_PATH,
     file_type_taxonomy,
@@ -22,6 +26,7 @@ router = APIRouter(
 
 @router.get(
     "",
+    response_model=FileTypeIndexResponse,
     summary="Get file type taxonomy",
     description="Returns all file types in the current taxonomy.",
 )
@@ -59,6 +64,7 @@ async def get_file_types(http_request: Request = None) -> Any:
 
 @router.get(
     "/validate",
+    response_model=FileTypeValidationResponse,
     summary="Validate file type taxonomy YAML",
 )
 async def validate_file_types(http_request: Request = None) -> Any:

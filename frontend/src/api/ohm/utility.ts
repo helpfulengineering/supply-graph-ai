@@ -1,10 +1,14 @@
 import { apiClient, ApiError, errorMessage } from "./client";
+import type { components } from "../generated/schema";
 
-export interface Domain {
-  id: string;
-  name: string;
-  description?: string | null;
-}
+/**
+ * Generated from the route's response model (#373).
+ *
+ * `id` is the key the API matches on; `name` is for reading. Nothing declared
+ * that before, which is how the match view came to send the second where the
+ * first was required (#369).
+ */
+export type Domain = components["schemas"]["Domain"];
 
 /** Available matching domains (manufacturing, cooking, …). */
 export async function fetchDomains(): Promise<Domain[]> {
@@ -15,24 +19,21 @@ export async function fetchDomains(): Promise<Domain[]> {
       errorMessage(error, `Failed to load domains (HTTP ${response.status})`),
     );
   }
-  return ((data as { data?: { domains?: Domain[] } })?.data?.domains ??
-    []) as Domain[];
+  return data?.data.domains ?? [];
 }
 
 /**
  * Server-configured default domain (`OHM_DEFAULT_DOMAIN`) for first-time
  * visitors — e.g. a cooking-domain instance can default new browsers to
- * "cooking" instead of the hardcoded "manufacturing" fallback. Not yet in the
- * generated schema (the endpoint returns a plain dict), so read defensively;
- * returns null on any failure rather than throwing, since callers treat this
- * as a nice-to-have seed, not a hard requirement.
+ * "cooking" instead of the hardcoded "manufacturing" fallback. Returns null on
+ * any failure rather than throwing, since callers treat this as a
+ * nice-to-have seed, not a hard requirement.
  */
 export async function fetchDefaultDomain(): Promise<string | null> {
   try {
     const { data, error, response } = await apiClient.GET("/api/utility/domains");
     if (error || !response.ok) return null;
-    const value = (data as { data?: { default_domain?: unknown } })?.data?.default_domain;
-    return typeof value === "string" ? value : null;
+    return data?.data.default_domain ?? null;
   } catch {
     return null;
   }
