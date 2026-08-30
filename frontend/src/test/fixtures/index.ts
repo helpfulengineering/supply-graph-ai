@@ -1386,7 +1386,13 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/taxonomy/reload": {
     status: "success",
     message: "Taxonomy reloaded",
-    data: { total_processes: 51 },
+    data: {
+      added: [],
+      removed: [],
+      total: 51,
+      source: "config/processes.yaml",
+      version: "1.0.0",
+    },
   },
   "/v1/api/file-types/validate": fileTypesValidationFixture,
   "/v1/api/file-types": fileTypesFixture,

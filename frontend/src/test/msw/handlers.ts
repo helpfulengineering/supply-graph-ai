@@ -119,7 +119,18 @@ export const handlers = [
     HttpResponse.json({
       status: "success",
       message: "Taxonomy reloaded",
-      data: { total_processes: 51 },
+      data: {
+        // The shape the route actually returns — the golden in
+        // tests/api/golden/taxonomy_reload.json is the source of truth. This
+        // said `total_processes`, matching a field the client read and the API
+        // has never sent, so the suite was green against a payload that does
+        // not exist.
+        added: [],
+        removed: [],
+        total: 51,
+        source: "config/processes.yaml",
+        version: "1.0.0",
+      },
     }),
   ),
   http.get("*/v1/api/llm/health", () => HttpResponse.json(llmHealthFixture)),

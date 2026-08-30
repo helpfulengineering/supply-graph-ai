@@ -1,42 +1,53 @@
+import { z } from "zod";
 import { apiClient, ApiError, errorMessage } from "./client";
+import { parsePayload } from "./parse";
+import type { components } from "../generated/schema";
 import type { TaxonomyProcess } from "../../features/okw/facilityFormModel";
 
-type RawProcess = {
-  canonical_id?: string;
-  display_name?: string;
-  parent?: string | null;
-  children?: string[];
-};
+/**
+ * Generated from the route's response model — no longer hand-written here.
+ *
+ * Kept exported because it is this function's return type; the process shape
+ * is reachable from the generated module if a caller ever needs it.
+ */
+export type TaxonomyValidation =
+  components["schemas"]["TaxonomyValidationData"];
+
+const TAXONOMY_PATH = "/api/taxonomy";
+
+/**
+ * The process list drives the facility form's options, so a drift here degrades
+ * to a form with nothing to choose rather than to a visible error. That is the
+ * case the runtime parse is for; validate and reload below are operator
+ * actions whose results are read on screen, where a wrong shape shows itself.
+ */
+const taxonomySchema = z.looseObject({
+  processes: z.array(
+    z.looseObject({
+      canonical_id: z.string(),
+      display_name: z.string(),
+      parent: z.string().nullish(),
+      children: z.array(z.string()),
+    }),
+  ),
+});
 
 /** Load process taxonomy (processes.yaml via GET /api/taxonomy). */
 export async function fetchProcessTaxonomy(): Promise<TaxonomyProcess[]> {
-  const { data, error, response } = await apiClient.GET("/api/taxonomy");
+  const { data, error, response } = await apiClient.GET(TAXONOMY_PATH);
   if (error || !response.ok) {
     throw new ApiError(
       response.status,
       errorMessage(error, `Failed to load taxonomy (HTTP ${response.status})`),
     );
   }
-  const raw =
-    (data as { data?: { processes?: RawProcess[] } } | null)?.data?.processes ??
-    [];
-  return raw
-    .filter((p): p is RawProcess & { canonical_id: string } =>
-      Boolean(p.canonical_id),
-    )
-    .map((p) => ({
-      canonical_id: p.canonical_id,
-      display_name: p.display_name || p.canonical_id,
-      parent: p.parent ?? null,
-      children: Array.isArray(p.children) ? p.children : [],
-    }));
-}
-
-export interface TaxonomyValidation {
-  valid: boolean;
-  total_processes: number;
-  errors: string[];
-  source: string;
+  const payload = parsePayload(TAXONOMY_PATH, taxonomySchema, data?.data);
+  return payload.processes.map((p) => ({
+    canonical_id: p.canonical_id,
+    display_name: p.display_name || p.canonical_id,
+    parent: p.parent ?? null,
+    children: p.children,
+  }));
 }
 
 /** Check processes.yaml on the server's disk, without applying it. */
@@ -44,20 +55,13 @@ export async function validateProcessTaxonomy(): Promise<TaxonomyValidation> {
   const { data, error, response } = await apiClient.GET(
     "/api/taxonomy/validate",
   );
-  if (error || !response.ok) {
+  if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
       errorMessage(error, `Validation failed (HTTP ${response.status})`),
     );
   }
-  const body =
-    (data as { data?: Partial<TaxonomyValidation> } | null)?.data ?? {};
-  return {
-    valid: body.valid ?? false,
-    total_processes: body.total_processes ?? 0,
-    errors: body.errors ?? [],
-    source: body.source ?? "",
-  };
+  return data.data;
 }
 
 /**
@@ -67,18 +71,21 @@ export async function validateProcessTaxonomy(): Promise<TaxonomyValidation> {
  * the server validates first and keeps the current taxonomy if the new file
  * does not parse, so a bad edit degrades to "nothing changed" rather than to a
  * node that can no longer match.
+ *
+ * Returns the process count. This read `total_processes`, which the route has
+ * never returned — the field is `total` — so the settings panel reported
+ * "Reloaded 0 process(es)" on every successful reload. The hand-written cast
+ * is what let a name that matched nothing compile.
  */
 export async function reloadProcessTaxonomy(): Promise<number> {
   const { data, error, response } = await apiClient.POST(
     "/api/taxonomy/reload",
   );
-  if (error || !response.ok) {
+  if (error || !response.ok || !data) {
     throw new ApiError(
       response.status,
       errorMessage(error, `Reload failed (HTTP ${response.status})`),
     );
   }
-  const body =
-    (data as { data?: { total_processes?: number } } | null)?.data ?? {};
-  return body.total_processes ?? 0;
+  return data.data.total;
 }

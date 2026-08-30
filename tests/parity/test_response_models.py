@@ -66,9 +66,6 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         ("GET", "/api/supply-tree/solution/{solution_id}/staleness"),
         ("GET", "/api/supply-tree/solution/{solution_id}/visualization"),
         ("GET", "/api/supply-tree/solutions"),
-        ("GET", "/api/taxonomy"),
-        ("POST", "/api/taxonomy/reload"),
-        ("GET", "/api/taxonomy/validate"),
         ("GET", "/api/utility/domains"),
         ("GET", "/api/utility/metrics"),
     }
