@@ -6,6 +6,8 @@ SUPPLY_TREE_SOLUTIONS_PREFIX = "supply-tree-solutions"
 SUPPLY_TREE_SOLUTIONS_METADATA_PREFIX = f"{SUPPLY_TREE_SOLUTIONS_PREFIX}/metadata"
 
 AUTH_API_KEYS_PREFIX = "auth/api-keys"
+# digest -> key_id pointers, so a token resolves in one lookup (#409)
+AUTH_API_KEY_INDEX_PREFIX = "auth/api-key-index"
 AUTH_ACCOUNTS_PREFIX = "auth/accounts"
 IDENTITY_GRANTS_PREFIX = "identity/grants"
 PROVENANCE_PREFIX = "provenance"
