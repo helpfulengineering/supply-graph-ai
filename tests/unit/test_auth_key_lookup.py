@@ -62,13 +62,15 @@ async def _mint(service, name: str) -> str:
 
 
 def _count_bcrypt():
-    """Count real bcrypt verifications, which are the whole cost of a request."""
-    return patch.object(
-        AuthenticationService,
-        "_verify_token",
-        autospec=True,
-        side_effect=AuthenticationService._verify_token,
-    )
+    """Count real bcrypt calls, which are the whole cost of a request.
+
+    Patched at bcrypt itself rather than at the service's verifier: since the
+    digest replaced bcrypt on the fast path, counting verifier calls would
+    count cheap comparisons and report a cost that is no longer being paid.
+    """
+    import bcrypt as bcrypt_module
+
+    return patch.object(bcrypt_module, "checkpw", side_effect=bcrypt_module.checkpw)
 
 
 @pytest.mark.asyncio
@@ -85,8 +87,8 @@ async def test_valid_token_costs_one_bcrypt_regardless_of_key_count(service):
         await service.validate_api_key(tokens[-1])
         last = verify.call_count
 
-    assert first == 1, f"expected one verification, took {first}"
-    assert last == 1, f"cost depends on position in the store: {last}"
+    assert first == 0, f"a modern key still cost {first} bcrypt call(s)"
+    assert last == 0, f"cost depends on position in the store: {last}"
 
 
 @pytest.mark.asyncio
@@ -227,6 +229,75 @@ async def test_benchmark_authentication_is_flat_across_key_counts(service):
 
     worst = max(timings.values())
     best = min(timings.values())
-    assert (
-        worst < best * 3
-    ), f"authentication cost still scales with key count: {timings}"
+    # A ratio alone is a flake at these speeds: with sub-millisecond timings,
+    # scheduler noise makes 0.05ms look three times worse than 0.02ms. Scaling
+    # is what is under test, so the ratio applies only once the numbers are
+    # large enough to mean anything; below that an absolute ceiling is the real
+    # assertion, and a scan over 50 keys could not possibly fit inside it.
+    if best > 0.005:
+        assert worst < best * 3, f"cost still scales with key count: {timings}"
+    else:
+        assert worst < 0.05, f"cost is no longer roughly constant: {timings}"
+
+
+# --- The premise the digest rests on ----------------------------------------
+#
+# Verifying by SHA-256 instead of bcrypt is sound *because* the token has no
+# brute-force surface. That is an assumption about the generator, so it is
+# pinned here rather than believed: if someone shortens the token or swaps the
+# source of randomness, this fails, and the reasoning above it stops being true
+# in a way a reader will notice.
+
+
+def test_tokens_carry_the_entropy_the_digest_argument_assumes():
+    service = AuthenticationService()
+    tokens = [service._generate_token() for _ in range(200)]
+
+    assert len(set(tokens)) == len(tokens), "generator produced a collision"
+    for token in tokens:
+        # 32 random bytes, url-safe base64, padding stripped.
+        assert len(token) == 43, f"token length changed: {len(token)} for {token!r}"
+        assert all(c.isalnum() or c in "-_" for c in token), f"charset: {token!r}"
+
+
+def test_the_generator_uses_a_cryptographic_source():
+    """A digest is only as unreversible as its input is unpredictable."""
+    import inspect
+
+    source = inspect.getsource(AuthenticationService._generate_token)
+    assert "secrets." in source, (
+        "token generation no longer uses the secrets module; verifying by plain "
+        "digest assumes a CSPRNG and is unsafe without one"
+    )
+
+
+@pytest.mark.asyncio
+async def test_an_index_entry_pointing_at_another_key_does_not_authenticate(service):
+    """Verification reads the digest off the *key record*, not off the lookup.
+
+    Without that, writing an index object would be an authentication bypass —
+    which is the only thing bcrypt was still defending on this path.
+    """
+    from fastapi import HTTPException
+
+    victim_token = await _mint(service, "victim")
+    attacker_token = await _mint(service, "attacker")
+
+    keys = {k.name: k for k in await service._auth_storage.list_keys()}
+    # Point the attacker's digest at the victim's key id.
+    storage = service._auth_storage
+    manager = storage.storage_service.manager
+    import json
+
+    attacker_digest = service._token_digest(attacker_token)
+    await manager.put_object(
+        storage._get_index_key(attacker_digest),
+        json.dumps({"key_id": str(keys["victim"].key_id)}).encode("utf-8"),
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        await service.validate_api_key(attacker_token)
+    assert exc.value.status_code == 401
+
+    # The victim's own token still works, so the redirect broke nothing else.
+    assert (await service.validate_api_key(victim_token)).name == "victim"
