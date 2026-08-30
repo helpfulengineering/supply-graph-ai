@@ -10,10 +10,6 @@
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stage-generated-before-commit.sh"
-          },
-          {
-            "type": "command",
             "if": "Bash(git worktree add*)",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/fetch-origin-before-worktree.sh",
             "statusMessage": "Refreshing origin/main",

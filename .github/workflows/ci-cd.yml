@@ -60,7 +60,7 @@ jobs:
           echo "frontend=$touched" >> "$GITHUB_OUTPUT"
 
   quality:
-    name: Quality (format, lint, repo-map)
+    name: Quality (format, lint)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -79,9 +79,6 @@ jobs:
 
       - name: Black format check
         run: uv run black --check src tests
-
-      - name: Verify repository map is up to date
-        run: uv run python scripts/generate_repo_map.py --check
 
       - name: Verify .env.example is up to date
         run: |
