@@ -1582,6 +1582,23 @@ async def generate_from_url(
                 with open(manifest_path, "w") as f:
                     json.dump(result, f, indent=2)
 
+            # The generation record, written beside the manifest and never
+            # inside it: the manifest's content hash is what pins a package and
+            # dedups the federation catalogue, so embedding how it was made
+            # would give the same design two addresses. See
+            # src/core/generation/provenance.py.
+            if raw_result is not None and hasattr(raw_result, "generated_fields"):
+                from src.core.generation.provenance import build_provenance
+
+                provenance_path = output_path / "manifest.provenance.json"
+                with open(provenance_path, "w") as f:
+                    json.dump(
+                        build_provenance(raw_result, source_url=url),
+                        f,
+                        indent=2,
+                        default=str,
+                    )
+
             # Export BOM if available, formats specified, and NOT in unified mode
             if (
                 bom_formats

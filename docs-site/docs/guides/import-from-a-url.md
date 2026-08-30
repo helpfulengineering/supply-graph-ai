@@ -103,6 +103,49 @@ is the better choice if software is going to consume it directly.
     records to a shared catalogue would degrade it for everyone. Saving arrives
     with accounts.
 
+## What the generator did, and why
+
+Every run also produces a **provenance record** — a second file beside the
+manifest, not part of it:
+
+```
+manifest.okh.json          the design
+manifest.provenance.json   how it was produced
+```
+
+It carries the stage timeline and, for each field, which layer produced it, by
+what method, at what confidence, and from where:
+
+```json
+{
+  "fields": {
+    "title":       {"layer": "direct", "method": "metadata_name",
+                    "confidence": 0.91, "source": "metadata.name"},
+    "description": {"layer": "nlp", "method": "readme_summary",
+                    "confidence": 0.62, "source": "README.md"}
+  }
+}
+```
+
+That is what makes review possible rather than guesswork. A field read straight
+from repository metadata and a field inferred from prose are not equally
+trustworthy, and the record tells you which you are looking at.
+
+`source` is a short label — `metadata.name`, `README.md`, `no_version_found` —
+naming where the extractor looked. It is not an excerpt, and does not point at
+a line.
+
+!!! note "Why it is a separate file"
+
+    A manifest's content hash is taken over the whole file, and that hash is
+    what pins a package and dedups the federation catalogue. Recording *how* a
+    design was made inside the design itself would give the same design two
+    different addresses. So the manifest stays exactly what it would have been,
+    and the record travels beside it.
+
+It is always produced — there is no flag to remember, because the run worth
+explaining is invariably the one you did not think to ask about.
+
 ## When it doesn't work
 
 **"That repository couldn't be read."** Private, misspelled, or moved. Only

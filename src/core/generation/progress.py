@@ -9,7 +9,8 @@ large-repo runs; renormalize after dropping inactive stages (e.g. ``no_llm``).
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Sequence
+from datetime import datetime, timezone
+from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from src.core.generation.models import GenerationMetadata
 
@@ -64,6 +65,10 @@ class ProgressEmitter:
         self._callback = callback
         self._metadata = metadata
         self._last = 0.0
+        # The structured record of what ran. `processing_logs` holds the same
+        # information as prose, which reads well in a log and cannot be
+        # rendered, sorted or diffed.
+        self.events: List[Dict[str, Any]] = []
         total = sum(_STAGE_WEIGHTS.get(s, 1.0) for s in self._stages)
         running = 0.0
         self._cum: Dict[str, float] = {}
@@ -79,6 +84,15 @@ class ProgressEmitter:
     def emit(self, stage: str, message: Optional[str] = None) -> None:
         fraction = max(self._last, self.fraction_for(stage))
         self._last = fraction
+        self.events.append(
+            {
+                "seq": len(self.events),
+                "stage": stage,
+                "fraction": round(fraction, 4),
+                "message": message,
+                "ts": datetime.now(timezone.utc).isoformat(),
+            }
+        )
         if self._metadata is not None:
             label = message or stage
             self._metadata.add_processing_log(f"{stage}: {label} ({fraction:.2f})")

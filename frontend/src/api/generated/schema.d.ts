@@ -6371,6 +6371,10 @@ export interface components {
             manifest?: {
                 [key: string]: unknown;
             } | null;
+            /** Provenance */
+            provenance?: {
+                [key: string]: unknown;
+            } | null;
             /** Quality Report */
             quality_report?: {
                 [key: string]: unknown;
@@ -6479,6 +6483,10 @@ export interface components {
             manifest: {
                 [key: string]: unknown;
             };
+            /** Provenance */
+            provenance?: {
+                [key: string]: unknown;
+            } | null;
             /** Quality Report */
             quality_report?: {
                 [key: string]: unknown;

@@ -388,6 +388,10 @@ class ManifestGeneration:
     review_items: Dict[str, List[Any]] = field(default_factory=dict)
     # Keys rejected by LLM/human triage; suppress re-harvest on re-normalize
     materials_rejected_keys: set = field(default_factory=set)
+    # What ran, in order, from ProgressEmitter. Read by the provenance sidecar;
+    # never by to_okh_manifest — the manifest must not change because we
+    # recorded how it was made.
+    stage_events: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format"""
