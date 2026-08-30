@@ -713,6 +713,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/generate-from-url/jobs/{job_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a generate-from-url job's stage events
+         * @description Return the run's stage events in order, from ``since`` onward.
+         *
+         *     Job status reports the *current* stage, which a poll can only sample: a
+         *     stage shorter than the poll interval is never seen. This returns the log
+         *     instead, so a client at any interval receives every stage that ran.
+         */
+        get: operations["get_generate_from_url_job_events_api_okh_generate_from_url_jobs__job_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/generate-from-url/jobs/{job_id}/revoke": {
         parameters: {
             query?: never;
@@ -6281,6 +6305,40 @@ export interface components {
             manifest_id: string;
         };
         /**
+         * OKHGenerateJobEvent
+         * @description One stage transition in a generate-from-url run.
+         */
+        OKHGenerateJobEvent: {
+            /** Seq */
+            seq: number;
+            /** Stage */
+            stage: string;
+            /** Fraction */
+            fraction: number;
+            /** Message */
+            message?: string | null;
+            /** Ts */
+            ts?: string | null;
+        };
+        /**
+         * OKHGenerateJobEvents
+         * @description An ordered page of a run's stage events.
+         *
+         *     ``next_cursor`` is what to pass as ``since`` on the following poll. It is
+         *     the length of the whole log rather than of this page, so a caller that skips
+         *     ahead does not silently re-read events it already has.
+         */
+        OKHGenerateJobEvents: {
+            /** Job Id */
+            job_id: string;
+            /** State */
+            state: string;
+            /** Events */
+            events: components["schemas"]["OKHGenerateJobEvent"][];
+            /** Next Cursor */
+            next_cursor: number;
+        };
+        /**
          * OKHGenerateJobRef
          * @description One job within a submitted batch.
          */
@@ -11274,6 +11332,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OKHGenerateJobStatus"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_generate_from_url_job_events_api_okh_generate_from_url_jobs__job_id__events_get: {
+        parameters: {
+            query?: {
+                /** @description Return events after this offset; pass back next_cursor. */
+                since?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Celery task id */
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OKHGenerateJobEvents"];
                 };
             };
             /** @description Bad Request */

@@ -122,6 +122,45 @@ def get_job_status(job_id: str) -> Dict[str, Any]:
     return payload
 
 
+def get_job_events(job_id: str, since: int = 0) -> Dict[str, Any]:
+    """Return the run's stage events after ``since``, in order.
+
+    The log is cumulative in the task's own state (see ``tasks.py``), so a
+    caller polling at any interval receives every stage — including ones that
+    began and ended between two polls, which a snapshot of "current stage"
+    cannot express.
+
+    ``since`` is an offset, not a timestamp: pass back ``next_cursor`` from the
+    previous call and only new events arrive. ``next_cursor`` is the length of
+    the whole log, not of this page, so a caller that skipped ahead does not
+    re-read what it already has. Asking for more than exists is not an error,
+    it is an empty page.
+
+    The events live in the task meta while the job runs and in its result once
+    it finishes, because Celery replaces one with the other on success. Both are
+    read here so a caller does not have to care which side of completion it is
+    on.
+    """
+    result = AsyncResult(job_id, app=celery_app)
+    state = result.state or "PENDING"
+
+    events: List[Dict[str, Any]] = []
+    meta = result.info if isinstance(result.info, dict) else {}
+    if isinstance(meta.get("events"), list):
+        events = meta["events"]
+    if state == "SUCCESS" and isinstance(result.result, dict):
+        finished = result.result.get("events")
+        if isinstance(finished, list):
+            events = finished
+
+    return {
+        "job_id": job_id,
+        "state": state,
+        "events": events[max(0, since) :],
+        "next_cursor": len(events),
+    }
+
+
 def revoke_job(job_id: str) -> None:
     """Ask Celery to discard/stop a generate-from-url job."""
     celery_app.control.revoke(job_id, terminate=True, signal="SIGTERM")

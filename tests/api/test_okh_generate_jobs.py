@@ -261,3 +261,65 @@ async def test_revoke_job_returns_revoked_state(monkeypatch):
     assert resp.status_code == 200, resp.text
     assert resp.json()["state"] == "REVOKED"
     revoke.assert_called_once_with("job-111")
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_get_job_events_returns_the_ordered_log(monkeypatch):
+    """The route hands back the run log, not a snapshot of the current stage."""
+    monkeypatch.setenv("JOBS_ENABLED", "true")
+    monkeypatch.setenv("JOB_BROKER_URL", "redis://redis:6379/1")
+
+    with patch(
+        "src.core.jobs.generation_jobs.get_job_events",
+        return_value={
+            "job_id": "job-111",
+            "state": "PROGRESS",
+            "events": [
+                {
+                    "seq": 0,
+                    "stage": "clone",
+                    "fraction": 0.0,
+                    "message": "Cloning",
+                    "ts": "2026-08-29T00:00:00+00:00",
+                },
+                {
+                    "seq": 1,
+                    "stage": "direct",
+                    "fraction": 0.12,
+                    "message": None,
+                    "ts": "2026-08-29T00:00:01+00:00",
+                },
+            ],
+            "next_cursor": 2,
+        },
+    ) as reader:
+        app, _ = _get_app()
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.get(
+                "/v1/api/okh/generate-from-url/jobs/job-111/events?since=0"
+            )
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert [event["stage"] for event in body["events"]] == ["clone", "direct"]
+    assert body["next_cursor"] == 2
+    reader.assert_called_once_with("job-111", since=0)
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_get_job_events_503_when_jobs_are_disabled(monkeypatch):
+    monkeypatch.setenv("JOBS_ENABLED", "false")
+
+    app, _ = _get_app()
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.get("/v1/api/okh/generate-from-url/jobs/job-1/events")
+
+    assert resp.status_code == 503, resp.text

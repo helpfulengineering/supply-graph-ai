@@ -85,6 +85,7 @@ from ..models.okh.response import (
     OKHExtractResponse,
     OKHGenerateJobRef,
     OKHGenerateJobsResponse,
+    OKHGenerateJobEvents,
     OKHGenerateJobStatus,
     OKHGenerateResponse,
     OKHHarvestResponse,
@@ -1383,6 +1384,35 @@ async def get_generate_from_url_job(
             detail="Async generation jobs are not enabled on this node.",
         )
     return OKHGenerateJobStatus(**generation_jobs.get_job_status(job_id))
+
+
+@router.get(
+    "/generate-from-url/jobs/{job_id}/events",
+    response_model=OKHGenerateJobEvents,
+    summary="Read a generate-from-url job's stage events",
+)
+async def get_generate_from_url_job_events(
+    job_id: str = Path(..., description="Celery task id"),
+    since: int = Query(
+        0,
+        ge=0,
+        description="Return events after this offset; pass back next_cursor.",
+    ),
+) -> OKHGenerateJobEvents:
+    """Return the run's stage events in order, from ``since`` onward.
+
+    Job status reports the *current* stage, which a poll can only sample: a
+    stage shorter than the poll interval is never seen. This returns the log
+    instead, so a client at any interval receives every stage that ran.
+    """
+    from src.core.jobs import generation_jobs
+
+    if not generation_jobs.jobs_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Async generation jobs are not enabled on this node.",
+        )
+    return OKHGenerateJobEvents(**generation_jobs.get_job_events(job_id, since=since))
 
 
 @router.post(

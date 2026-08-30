@@ -1775,6 +1775,46 @@ async def generate_jobs_status(
     cli_ctx.end_command_tracking()
 
 
+@generate_jobs_group.command("events")
+@click.argument("job_id", type=str)
+@click.option(
+    "--since",
+    default=0,
+    show_default=True,
+    type=int,
+    help="Return events after this offset; pass back next_cursor to tail a run.",
+)
+@standard_cli_command(
+    help_text="List the stage events of an async generate-from-url job.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def generate_jobs_events(
+    ctx,
+    job_id: str,
+    since: int,
+    verbose: bool,
+    output_format: str,
+):
+    """Read the run's stage log.
+
+    `status` reports the stage a run is on now, which a poll can only sample —
+    a stage shorter than the interval between polls is never seen. This returns
+    every stage that ran, in order.
+    """
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-generate-jobs-events")
+    response = await cli_ctx.api_client.request(
+        "GET", f"/api/okh/generate-from-url/jobs/{job_id}/events?since={since}"
+    )
+    click.echo(json.dumps(response, indent=2, default=str))
+    cli_ctx.end_command_tracking()
+
+
 @generate_jobs_group.command("wait")
 @click.argument("job_id", type=str)
 @click.option(
