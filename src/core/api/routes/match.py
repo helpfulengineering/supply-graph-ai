@@ -46,7 +46,7 @@ from ...services.domain_service import DomainDetector
 from ...services.matching_service import MatchingService
 from ...models.auth import AuthenticatedUser
 from ..dependencies import created_by as owner_of
-from ..dependencies import get_viewer
+from ..dependencies import get_viewer, viewer_scope
 from ...services.okh_service import OKHService
 from ...services.okw_service import (
     OKWService,
@@ -1077,9 +1077,10 @@ async def match_designs_for_facility(
         manifests: List[OKHManifest] = []
         page = 1
         page_size = 200
+        scope = await viewer_scope(user)
         while True:
             summaries, _ = await okh_service.list(
-                page=page, page_size=page_size, include_private=user is not None
+                page=page, page_size=page_size, viewer=scope
             )
             if not summaries:
                 break

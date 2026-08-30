@@ -51,9 +51,25 @@ def test_reverse_match_payload_keeps_every_field_it_declares(client):
     # A design as well as a facility: an empty `designs` list would freeze the
     # envelope and say nothing about the item shape, which is what a client
     # ranks over.
-    okh = client.post("/api/okh/create", json={"content": okh_manifest_dict()})
+    #
+    # The records are created by a REGISTERED caller, and matched as that same
+    # caller. New records stamp `private`, and a private record is visible only
+    # to the identity that made it — so an anonymous fixture creates a design it
+    # then cannot see, and `designs` comes back empty. That is precisely the
+    # vacuous golden this test exists to avoid.
+    registration = client.post(
+        "/api/identity/register", json={"display_name": "Contract Fixture"}
+    )
+    assert registration.status_code == 201, registration.text
+    auth = {"Authorization": f"Bearer {registration.json()['key']['token']}"}
+
+    okh = client.post(
+        "/api/okh/create", json={"content": okh_manifest_dict()}, headers=auth
+    )
     assert okh.status_code == 201, okh.text
-    created = client.post("/api/okw/create", json={"content": okw_facility_dict()})
+    created = client.post(
+        "/api/okw/create", json={"content": okw_facility_dict()}, headers=auth
+    )
     assert created.status_code == 201, created.text
 
     response = client.post(
@@ -63,6 +79,7 @@ def test_reverse_match_payload_keeps_every_field_it_declares(client):
             "min_confidence": 0.0,
             "max_results": 5,
         },
+        headers=auth,
     )
     assert response.status_code == 200, response.text
     body = _structure(response.json())

@@ -47,10 +47,12 @@ from ..decorators import (
 )
 from ..dependencies import (
     created_by,
+    created_by_did,
     get_optional_user,
     get_viewer,
     require_write,
     resolve_provenance,
+    viewer_scope,
 )
 from ...models.auth import AuthenticatedUser
 from ...models.provenance import RecordProvenance
@@ -245,7 +247,7 @@ async def export_collection_endpoint(
     from ...packaging.collection import export_collection
 
     manifests, _ = await okh_service.list(
-        page=1, page_size=10_000, include_private=user is not None
+        page=1, page_size=10_000, viewer=await viewer_scope(user)
     )
     if not manifests:
         raise HTTPException(
@@ -281,7 +283,10 @@ async def create_okh_manifest(
     try:
         provenance = await resolve_provenance(user, author, on_behalf_of)
         manifest = await okh_service.create(
-            data, created_by=created_by(user), provenance=provenance
+            data,
+            created_by=created_by(user),
+            created_by_did=created_by_did(user),
+            provenance=provenance,
         )
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
@@ -647,7 +652,7 @@ async def list_okh(
             pagination.page,
             pagination.page_size,
             filter_params,
-            include_private=user is not None,
+            viewer=await viewer_scope(user),
         )
 
         # Convert OKHManifest objects to dict format
@@ -973,6 +978,7 @@ async def create_okh_manifest(
         result = await okh_service.create(
             okh_manifest.to_dict(),
             created_by=created_by(user),
+            created_by_did=created_by_did(user),
             provenance=provenance,
         )
         result_dict = result.to_dict()
@@ -1617,7 +1623,13 @@ async def import_collection_endpoint(
     archive_bytes = await file.read()
 
     try:
-        local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+        # Deliberately unscoped: this compares the archive against everything
+        # already here so an import does not duplicate a private record the
+        # caller cannot see. The manifests are never returned — only the
+        # classification derived from them.
+        local_manifests, _ = await okh_service.list(
+            page=1, page_size=10_000, viewer=None
+        )
         report, incoming = analyse_import(archive_bytes, local_manifests)
 
         imported = 0
@@ -1670,7 +1682,7 @@ async def diff_collection_endpoint(
 
     try:
         local_manifests, _ = await okh_service.list(
-            page=1, page_size=10_000, include_private=user is not None
+            page=1, page_size=10_000, viewer=await viewer_scope(user)
         )
         diff = diff_collection(archive_bytes, local_manifests)
         return {

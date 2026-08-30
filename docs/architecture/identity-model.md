@@ -146,6 +146,50 @@ projection with `GET /api/okw/{id}/disclosure/preview` (or the CLI above) before
 promoting visibility — `exported` is false while the facility remains `private`.
 See [federation-infra — OKW catalog](../ops/federation-infra.md).
 
+## Registering on a node
+
+A node operator is not the only way to become someone on a node. `POST
+/api/identity/register` is unauthenticated and mints an account, a person DID and
+a first key in one call:
+
+```bash
+ohm identity register --display-name "Ada Lovelace"
+```
+
+The issued key carries `read` and `write` and **never** `admin`. The token is
+returned once and is not recoverable. Shielded mode refuses registration
+(`open_registration=false`) — there, onboarding is a deliberate out-of-band act.
+
+This is what keeps a well-known node from being a structurally special one: any
+node that accepts registrations is as good a place to start as any other.
+
+## Who can see a record
+
+Record lists are scoped to the caller. Ownership keys on the creator's **subject
+DID** (`ohm_created_by_did` on the stored record), falling back to account
+attribution for environment-configured keys and for records written before
+per-viewer scoping existed.
+
+| Caller | Sees |
+|---|---|
+| anonymous | shareable only (`followers`, `public`) |
+| authenticated | shareable + their own, whatever its visibility |
+| **admin** | **exactly the same as any authenticated user** |
+
+`admin` deliberately buys nothing here. An operator enumerates and deletes
+records through the inventory surface without reading private ones, and in
+crisis mode may break glass on a single record, which is recorded as an
+attestation the record's owner can see.
+
+A key rotation does not cost you your records: the check walks the rotation
+chain, so a rotated identity still owns what the DID it superseded created.
+
+> **What this boundary is.** It is an *interface* boundary, not encryption at
+> rest. Manifests are stored as plaintext JSON, so anyone with access to the
+> object store can read them. It stops incidental browsing and means a leaked
+> admin key is no longer a whole-node content leak; it does not protect a user
+> from the operator of the node they chose.
+
 ## Relationship to API keys
 
 API keys are unchanged and still work: a key's permission list acts as an

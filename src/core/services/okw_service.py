@@ -6,7 +6,11 @@ from uuid import UUID, uuid5, NAMESPACE_URL
 
 from ..domains.cooking.models import KitchenCapability
 from ..models.okw import FacilityStatus, Location, ManufacturingFacility
-from ..models.provenance import RecordProvenance, apply_ohm_metadata
+from ..models.provenance import (
+    RecordProvenance,
+    apply_ohm_metadata,
+    record_attribution,
+)
 from ..models.disclosure import (
     DisclosureAudience,
     DisclosureProfile,
@@ -17,8 +21,9 @@ from ..models.disclosure import (
 from ..models.visibility import (
     DEFAULT_VISIBILITY,
     LEGACY_VISIBILITY,
+    ViewerScope,
     VisibilityLevel,
-    is_shareable,
+    visible_to,
 )
 from ..storage.disclosure_store import DisclosureStore
 from ..storage.provenance_store import ProvenanceStore
@@ -326,6 +331,7 @@ class OKWService(BaseService["OKWService"]):
         self,
         facility_data: Dict[str, Any],
         created_by: Optional[str] = None,
+        created_by_did: Optional[str] = None,
         provenance: Optional[RecordProvenance] = None,
     ) -> ManufacturingFacility:
         """Persist a facility JSON at ``okw/{facility_id}.json`` when storage is configured.
@@ -364,7 +370,7 @@ class OKWService(BaseService["OKWService"]):
                 # explicitly because to_dict() is a whitelist that drops ohm_* keys —
                 # this is what lets ohm_created_by survive a federation ingest.
                 payload = apply_ohm_metadata(
-                    facility.to_dict(), facility_data, created_by
+                    facility.to_dict(), facility_data, created_by, created_by_did
                 )
                 facility_json = json.dumps(
                     payload, indent=2, ensure_ascii=False, default=str
@@ -572,7 +578,7 @@ class OKWService(BaseService["OKWService"]):
         page_size: int = 100,
         filter_params: Optional[Dict[str, Any]] = None,
         *,
-        include_private: bool = True,
+        viewer: Optional[ViewerScope] = None,
     ) -> Tuple[List[ManufacturingFacility], int]:
         """List manufacturing facilities found under the ``okw/`` prefix.
 
@@ -589,10 +595,13 @@ class OKWService(BaseService["OKWService"]):
             page: 1-based page index.
             page_size: Page length.
             filter_params: Reserved for future server-side filtering.
-            include_private: When False, drop records whose visibility is not
-                shareable. Filtering happens before pagination so ``total`` and
-                the page contents agree; doing it in the caller would return
-                short pages against an inflated count.
+            viewer: Whose view this is. ``None`` means unscoped and is for
+                trusted internal callers only (the federation catalogue builder,
+                the CLI) — a request handler must always pass a scope, or it
+                serves every private facility on the node to anyone who asks.
+                Filtering happens before pagination so ``total`` and the page
+                contents agree; doing it in the caller would return short pages
+                against an inflated count.
         """
         await self.ensure_initialized()
         logger.info(
@@ -617,6 +626,7 @@ class OKWService(BaseService["OKWService"]):
         # Process files and deduplicate by facility ID
         facilities_by_id: Dict[UUID, ManufacturingFacility] = {}
         file_info_by_id: Dict[UUID, Any] = {}
+        attribution_by_id: Dict[UUID, Tuple[Optional[str], Optional[str]]] = {}
 
         for file_info in file_infos:
             try:
@@ -639,6 +649,9 @@ class OKWService(BaseService["OKWService"]):
                 if facility_id not in facilities_by_id:
                     facilities_by_id[facility_id] = facility
                     file_info_by_id[facility_id] = file_info
+                    # Captured here because from_dict/to_dict is a whitelist that
+                    # drops ohm_* keys — after this line the attribution is gone.
+                    attribution_by_id[facility_id] = record_attribution(okw_data)
                 else:
                     # Compare last_modified dates to keep the most recent
                     existing_modified = (
@@ -657,6 +670,7 @@ class OKWService(BaseService["OKWService"]):
                     ):
                         facilities_by_id[facility_id] = facility
                         file_info_by_id[facility_id] = file_info
+                        attribution_by_id[facility_id] = record_attribution(okw_data)
                         logger.debug(
                             f"Replacing facility {facility_id} with more recent version from {file_info.key}"
                         )
@@ -666,8 +680,10 @@ class OKWService(BaseService["OKWService"]):
 
         # Convert dict values to list and apply pagination
         unique_facilities = list(facilities_by_id.values())
-        if not include_private:
-            unique_facilities = await self.filter_shareable(unique_facilities)
+        if viewer is not None:
+            unique_facilities = await self._visible_facilities(
+                unique_facilities, attribution_by_id, viewer
+            )
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
         paginated_facilities = unique_facilities[start_idx:end_idx]
@@ -678,18 +694,24 @@ class OKWService(BaseService["OKWService"]):
 
         return paginated_facilities, len(unique_facilities)
 
-    async def filter_shareable(
-        self, facilities: List[ManufacturingFacility]
+    async def _visible_facilities(
+        self,
+        facilities: List[ManufacturingFacility],
+        attribution: Dict[UUID, Tuple[Optional[str], Optional[str]]],
+        viewer: ViewerScope,
     ) -> List[ManufacturingFacility]:
-        """Drop records that must not be served to an unauthenticated caller.
+        """Drop facilities ``viewer`` may not see.
 
         ``private`` is the create default, so this is the difference between a
         facility staying on the instance and its address being readable by
-        anyone who asks.
+        anyone who asks. Attribution is passed in because ``from_dict`` has
+        already dropped the ``ohm_*`` keys it comes from.
         """
         allowed: List[ManufacturingFacility] = []
         for facility in facilities:
-            if is_shareable(await self.get_visibility(facility.id)):
+            did, account = attribution.get(facility.id, (None, None))
+            level = await self.get_visibility(facility.id)
+            if visible_to(level, viewer, did, account):
                 allowed.append(facility)
         return allowed
 

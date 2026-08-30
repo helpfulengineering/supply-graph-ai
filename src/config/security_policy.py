@@ -44,6 +44,9 @@ class SecurityPolicy:
     registry_attestations: str  # "trust_on_follow" | "ca_pinned"
     # Reserved for Slice M.2 moderated push; shielded disables anonymous submit.
     anonymous_submission_allowed: bool = True
+    # Whether a visitor may mint their own account/DID/key without an operator.
+    # Off under shielded: onboarding is an out-of-band, hand-vetted act there.
+    open_registration: bool = True
 
     def to_public_dict(self) -> Dict[str, Any]:
         """JSON-serializable view of the active policy (for API/CLI status)."""
@@ -64,6 +67,7 @@ _PEACETIME = SecurityPolicy(
     metadata_logging="full",
     registry_attestations="trust_on_follow",
     anonymous_submission_allowed=True,
+    open_registration=True,
 )
 
 # Availability under degraded connectivity: long grants, TOFU-friendly, mDNS on.
@@ -78,6 +82,7 @@ _CRISIS = SecurityPolicy(
     metadata_logging="full",
     registry_attestations="trust_on_follow",
     anonymous_submission_allowed=True,
+    open_registration=True,
 )
 
 # Confidentiality under surveillance: short TTLs, no mDNS, minimal metadata.
@@ -92,6 +97,7 @@ _SHIELDED = SecurityPolicy(
     metadata_logging="minimal",
     registry_attestations="ca_pinned",
     anonymous_submission_allowed=False,
+    open_registration=False,
 )
 
 _PRESETS = {

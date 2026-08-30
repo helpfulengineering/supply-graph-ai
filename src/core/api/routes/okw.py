@@ -37,10 +37,12 @@ from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
 from ..dependencies import (
     created_by,
+    created_by_did,
     get_optional_user,
     get_viewer,
     require_write,
     resolve_provenance,
+    viewer_scope,
 )
 from ..constants.client_errors import (
     ERROR_NO_FILE_PROVIDED,
@@ -118,12 +120,13 @@ async def search_okw(
         facilities = []
         fetch_page = 1
         fetch_page_size = 500
+        scope = await viewer_scope(user)
         while True:
             batch, total = await okw_service.list(
                 page=fetch_page,
                 page_size=fetch_page_size,
                 filter_params=None,
-                include_private=user is not None,
+                viewer=scope,
             )
             facilities.extend(batch)
             if len(batch) < fetch_page_size or len(facilities) >= total:
@@ -765,7 +768,7 @@ async def list_okw(
             pagination.page,
             pagination.page_size,
             None,
-            include_private=user is not None,
+            viewer=await viewer_scope(user),
         )
 
         # Convert ManufacturingFacility objects to dict format
@@ -1246,7 +1249,10 @@ async def create_okw_facility(
 
         provenance = await resolve_provenance(user, author, on_behalf_of)
         result = await okw_service.create(
-            facility, created_by=created_by(user), provenance=provenance
+            facility,
+            created_by=created_by(user),
+            created_by_did=created_by_did(user),
+            provenance=provenance,
         )
         result_dict = result.to_dict() if hasattr(result, "to_dict") else result
         okw_response = OKWResponse(**result_dict)

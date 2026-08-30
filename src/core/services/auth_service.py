@@ -30,7 +30,13 @@ from ..federation.identity import (
     verify_payload,
 )
 from ..models.account import ROOT_ACCOUNT_ID, Account, AccountCreate
-from ..models.auth import APIKey, APIKeyCreate, APIKeyResponse, AuthenticatedUser
+from ..models.auth import (
+    APIKey,
+    APIKeyCreate,
+    APIKeyResponse,
+    AuthenticatedUser,
+    RegistrationResponse,
+)
 from ..models.capability import (
     KNOWN_SCOPE_KINDS,
     CapabilityGrant,
@@ -38,6 +44,7 @@ from ..models.capability import (
     is_known_verb,
 )
 from ..models.identity import Identity, IdentityKind, IdentityLink
+from ..models.visibility import ANONYMOUS_SCOPE, ViewerScope
 from ..models.provenance import RecordProvenance, sign_provenance
 from ..models.attestation import (
     KNOWN_ATTESTATION_TYPES,
@@ -259,6 +266,30 @@ class AuthenticationService:
             return self._identity_store.find_primary_did(str(account_id))
         return None
 
+    def viewer_scope(self, user: Optional[AuthenticatedUser]) -> ViewerScope:
+        """Resolve which records ``user`` may see in a list.
+
+        Walks the rotation chain: a rotated identity carries every DID it
+        supersedes, so ownership survives a key rotation. Without this, rotating
+        your key hides your own drafts from you.
+
+        ``admin`` is deliberately not consulted — an admin's record scope is
+        identical to any other authenticated user's (ADR §9).
+        """
+        if user is None:
+            return ANONYMOUS_SCOPE
+        dids: set[str] = set()
+        if user.subject_did:
+            dids.add(user.subject_did)
+            identity = (
+                self._identity_store.load_identity(user.subject_did)
+                if self._identity_store
+                else None
+            )
+            if identity:
+                dids.update(link.from_did for link in identity.links_in)
+        return ViewerScope(account_id=str(user.account_id), dids=frozenset(dids))
+
     async def check_permission(
         self,
         user: AuthenticatedUser,
@@ -453,6 +484,43 @@ class AuthenticationService:
         await self._account_storage.save_account(account)
         logger.info(f"Created account {account.id} ({account.kind.value})")
         return account
+
+    async def register(self, display_name: str) -> RegistrationResponse:
+        """Self-service onboarding: account + person DID + first key, in one call.
+
+        The permission floor is ``read``+``write`` and never ``admin`` — a node
+        must not hand out operator rights to anyone who can reach the endpoint.
+        Refused when the active mode closes registration (shielded), where
+        onboarding is deliberately an out-of-band, hand-vetted act.
+        """
+        policy = get_security_policy()
+        if not policy.open_registration:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Self-service registration is disabled in "
+                    f"{policy.mode.value} mode; ask an operator to mint an account"
+                ),
+            )
+        account = await self.create_account(AccountCreate(display_name=display_name))
+        identity = await self.create_identity(
+            account.id, IdentityKind.PERSON, display_name
+        )
+        key = await self.create_api_key(
+            APIKeyCreate(
+                name=f"{display_name} (first key)",
+                description="Issued by self-service registration",
+                permissions=["read", "write"],
+                account_id=account.id,
+            )
+        )
+        logger.info(f"Registered account {account.id} with identity {identity.did}")
+        return RegistrationResponse(
+            account_id=account.id,
+            display_name=account.display_name,
+            did=identity.did,
+            key=key,
+        )
 
     async def list_accounts(self) -> List[Account]:
         """List all accounts (empty when storage is unavailable)."""

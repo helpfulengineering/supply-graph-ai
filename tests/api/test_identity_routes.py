@@ -164,3 +164,48 @@ async def test_issue_grant(monkeypatch):
         assert resp.json()["subject_did"] == "did:key:zSubject"
     finally:
         api_v1.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_register_is_unauthenticated_and_returns_the_token_once(monkeypatch):
+    """Registration must not require a credential — that is the whole point."""
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
+    from src.core.api.routes.identity import get_auth_service
+    from src.core.models.auth import APIKeyResponse, RegistrationResponse
+
+    account_id = uuid4()
+    svc = MagicMock()
+    svc.register = AsyncMock(
+        return_value=RegistrationResponse(
+            account_id=account_id,
+            display_name="Ada",
+            did="did:key:zTest",
+            key=APIKeyResponse(
+                key_id=uuid4(),
+                name="Ada (first key)",
+                permissions=["read", "write"],
+                created_at=datetime.utcnow(),
+                token="one-time-token",
+            ),
+        )
+    )
+
+    app, api_v1 = _get_app()
+    api_v1.dependency_overrides[get_auth_service] = lambda: svc
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            # No Authorization header, and production environment: still allowed.
+            resp = await client.post(
+                "/v1/api/identity/register", json={"display_name": "Ada"}
+            )
+        assert resp.status_code == 201, resp.text
+        body = resp.json()
+        assert body["did"] == "did:key:zTest"
+        assert body["key"]["token"] == "one-time-token"
+        assert "admin" not in body["key"]["permissions"]
+    finally:
+        api_v1.dependency_overrides.clear()

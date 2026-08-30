@@ -65,3 +65,22 @@ class AuthenticatedUser(BaseModel):
     permissions: List[str]
     account_id: UUID = ROOT_ACCOUNT_ID
     subject_did: Optional[str] = None
+
+
+class RegistrationCreate(BaseModel):
+    """Request payload for self-service registration."""
+
+    display_name: str = Field(..., min_length=1, max_length=200)
+
+
+class RegistrationResponse(BaseModel):
+    """What a newly registered person needs to start using the node.
+
+    Flat rather than nesting the full ``Identity``: a registrant needs their DID,
+    not the rotation chain, and ``key.token`` is the only time the token exists.
+    """
+
+    account_id: UUID
+    display_name: str
+    did: str
+    key: APIKeyResponse

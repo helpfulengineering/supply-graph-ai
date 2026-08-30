@@ -13,6 +13,7 @@ from fastapi.security import APIKeyHeader
 from src.config import get_security_policy
 
 from ..models.auth import AuthenticatedUser
+from ..models.visibility import ViewerScope
 from ..services.auth_service import AuthenticationService
 
 # Define API key header dependency
@@ -173,6 +174,22 @@ async def require_admin_strict(
 def created_by(user: Optional[AuthenticatedUser]) -> Optional[str]:
     """Attribution helper: the owning account id for a resolved user, else ``None``."""
     return str(user.account_id) if user else None
+
+
+def created_by_did(user: Optional[AuthenticatedUser]) -> Optional[str]:
+    """Attribution helper: the creator's subject DID, else ``None``.
+
+    Stamped alongside the account id because record ownership keys on the DID
+    (#403). ``None`` for env-configured keys, which carry no DID — those fall
+    back to account attribution.
+    """
+    return user.subject_did if user else None
+
+
+async def viewer_scope(user: Optional[AuthenticatedUser]) -> ViewerScope:
+    """Which records ``user`` may see in a list (anonymous → shareable only)."""
+    svc = await AuthenticationService.get_instance()
+    return svc.viewer_scope(user)
 
 
 async def resolve_provenance(
