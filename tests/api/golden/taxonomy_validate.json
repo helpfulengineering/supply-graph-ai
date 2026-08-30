@@ -1,0 +1,11 @@
+{
+  "data": {
+    "errors": [],
+    "source": "<repo>/src/config/taxonomy/processes.yaml",
+    "total_processes": 51,
+    "valid": true
+  },
+  "message": "Taxonomy validation completed",
+  "metadata": {},
+  "status": "success"
+}

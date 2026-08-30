@@ -7917,6 +7917,26 @@ export interface components {
             records_synced: number;
         };
         /**
+         * ProcessDefinition
+         * @description One canonical process, with its aliases and place in the tree.
+         */
+        ProcessDefinition: {
+            /** Canonical Id */
+            canonical_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Tsdc Code */
+            tsdc_code?: string | null;
+            /** Parent */
+            parent?: string | null;
+            /** Aliases */
+            aliases: string[];
+            /** Children */
+            children: string[];
+            /** Wikidata Iri */
+            wikidata_iri?: string | null;
+        };
+        /**
          * ProcessRequirement
          * @description Model for extracted process requirements
          */
@@ -9521,6 +9541,168 @@ export interface components {
              * @default 0
              */
             total_pulled: number;
+        };
+        /** TaxonomyIndexData */
+        TaxonomyIndexData: {
+            /** Total */
+            total: number;
+            /** Source */
+            source: string;
+            /** Processes */
+            processes: components["schemas"]["ProcessDefinition"][];
+        };
+        /**
+         * TaxonomyIndexResponse
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        TaxonomyIndexResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["TaxonomyIndexData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * TaxonomyReloadData
+         * @description What the reload changed. Atomic: on failure the route raises instead.
+         */
+        TaxonomyReloadData: {
+            /** Added */
+            added: string[];
+            /** Removed */
+            removed: string[];
+            /** Total */
+            total: number;
+            /** Source */
+            source: string;
+            /** Version */
+            version?: string | null;
+        };
+        /**
+         * TaxonomyReloadResponse
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        TaxonomyReloadResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["TaxonomyReloadData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** TaxonomyValidationData */
+        TaxonomyValidationData: {
+            /** Valid */
+            valid: boolean;
+            /** Total Processes */
+            total_processes: number;
+            /** Errors */
+            errors: string[];
+            /** Source */
+            source: string;
+        };
+        /**
+         * TaxonomyValidationResponse
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        TaxonomyValidationResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["TaxonomyValidationData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** TriageItemResponse */
         TriageItemResponse: {
@@ -16713,7 +16895,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TaxonomyIndexResponse"];
                 };
             };
             /** @description Bad Request */
@@ -16747,7 +16929,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TaxonomyReloadResponse"];
                 };
             };
             /** @description Bad Request */
@@ -16781,7 +16963,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TaxonomyValidationResponse"];
                 };
             };
             /** @description Bad Request */

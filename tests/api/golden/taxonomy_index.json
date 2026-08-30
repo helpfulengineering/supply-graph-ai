@@ -1,0 +1,738 @@
+{
+  "data": {
+    "processes": [
+      {
+        "aliases": [
+          "3d print",
+          "3d printing",
+          "3d_printing",
+          "3dp",
+          "additive manufacturing",
+          "am",
+          "print",
+          "printing"
+        ],
+        "canonical_id": "3d_printing",
+        "children": [
+          "3d_printing_dlp",
+          "3d_printing_fdm",
+          "3d_printing_sla",
+          "3d_printing_sls"
+        ],
+        "display_name": "3D Printing",
+        "parent": null,
+        "tsdc_code": "3DP",
+        "wikidata_iri": "https://www.wikidata.org/entity/Q229367"
+      },
+      {
+        "aliases": [
+          "digital light processing",
+          "dlp",
+          "dlp printing"
+        ],
+        "canonical_id": "3d_printing_dlp",
+        "children": [],
+        "display_name": "DLP 3D Printing",
+        "parent": "3d_printing",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "fdm",
+          "fdm printing",
+          "fff",
+          "fused deposition modeling",
+          "fused deposition modelling",
+          "fused filament fabrication",
+          "fused_filament_fabrication"
+        ],
+        "canonical_id": "3d_printing_fdm",
+        "children": [],
+        "display_name": "FDM 3D Printing",
+        "parent": "3d_printing",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "sla",
+          "sla printer",
+          "sla printing",
+          "stereolithography"
+        ],
+        "canonical_id": "3d_printing_sla",
+        "children": [],
+        "display_name": "SLA 3D Printing",
+        "parent": "3d_printing",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "selective laser sintering",
+          "sls",
+          "sls printing"
+        ],
+        "canonical_id": "3d_printing_sls",
+        "children": [],
+        "display_name": "SLS 3D Printing",
+        "parent": "3d_printing",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "anneal",
+          "annealing"
+        ],
+        "canonical_id": "annealing",
+        "children": [],
+        "display_name": "Annealing",
+        "parent": "heat_treatment",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "anodising",
+          "anodize",
+          "anodizing"
+        ],
+        "canonical_id": "anodizing",
+        "children": [],
+        "display_name": "Anodizing",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "arc welding",
+          "arc_welding"
+        ],
+        "canonical_id": "arc_welding",
+        "children": [],
+        "display_name": "Arc Welding",
+        "parent": "welding",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "asm",
+          "assemble",
+          "assembling",
+          "assembly",
+          "assembly line",
+          "assembly_line",
+          "attach",
+          "attaching",
+          "component assembly",
+          "install",
+          "installing",
+          "mount",
+          "mounting"
+        ],
+        "canonical_id": "assembly",
+        "children": [
+          "electronics_assembly",
+          "mechanical_assembly",
+          "pcb_assembly"
+        ],
+        "display_name": "Assembly",
+        "parent": null,
+        "tsdc_code": "ASM",
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "bend",
+          "bending"
+        ],
+        "canonical_id": "bending",
+        "children": [],
+        "display_name": "Bending",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "braze",
+          "brazing",
+          "silver brazing",
+          "torch brazing"
+        ],
+        "canonical_id": "brazing",
+        "children": [],
+        "display_name": "Brazing",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "cast",
+          "casting"
+        ],
+        "canonical_id": "casting",
+        "children": [],
+        "display_name": "Casting",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "cnc",
+          "cnc machining",
+          "cnc_machining",
+          "computer numerical control",
+          "machining",
+          "subtractive manufacturing"
+        ],
+        "canonical_id": "cnc_machining",
+        "children": [
+          "cnc_milling",
+          "cnc_turning",
+          "precision_machining"
+        ],
+        "display_name": "CNC Machining",
+        "parent": null,
+        "tsdc_code": "CNC",
+        "wikidata_iri": "https://www.wikidata.org/entity/Q3689317"
+      },
+      {
+        "aliases": [
+          "cnc mill",
+          "cnc milling",
+          "cnc_mill",
+          "cnc_milling",
+          "milling"
+        ],
+        "canonical_id": "cnc_milling",
+        "children": [],
+        "display_name": "CNC Milling",
+        "parent": "cnc_machining",
+        "tsdc_code": null,
+        "wikidata_iri": "https://www.wikidata.org/entity/Q656950"
+      },
+      {
+        "aliases": [
+          "cnc lathe",
+          "cnc turning",
+          "cnc_lathe",
+          "cnc_turning",
+          "turning"
+        ],
+        "canonical_id": "cnc_turning",
+        "children": [],
+        "display_name": "CNC Turning",
+        "parent": "cnc_machining",
+        "tsdc_code": null,
+        "wikidata_iri": "https://www.wikidata.org/entity/Q258127"
+      },
+      {
+        "aliases": [
+          "coat",
+          "coating"
+        ],
+        "canonical_id": "coating",
+        "children": [],
+        "display_name": "Coating",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "cut",
+          "cutting"
+        ],
+        "canonical_id": "cutting",
+        "children": [
+          "sawing",
+          "shearing"
+        ],
+        "display_name": "Cutting",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "deburr",
+          "deburring"
+        ],
+        "canonical_id": "deburring",
+        "children": [],
+        "display_name": "Deburring",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "drill",
+          "drilling"
+        ],
+        "canonical_id": "drilling",
+        "children": [],
+        "display_name": "Drilling",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "cir",
+          "circuitry",
+          "electronic circuitry"
+        ],
+        "canonical_id": "electronic_circuitry",
+        "children": [],
+        "display_name": "Electronic Circuitry",
+        "parent": null,
+        "tsdc_code": "CIR",
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "electronics assembly",
+          "electronics manufacturing",
+          "electronics_assembly",
+          "electronics_manufacturing"
+        ],
+        "canonical_id": "electronics_assembly",
+        "children": [],
+        "display_name": "Electronics Assembly",
+        "parent": "assembly",
+        "tsdc_code": null,
+        "wikidata_iri": "https://www.wikidata.org/entity/Q11650"
+      },
+      {
+        "aliases": [
+          "chrome plating",
+          "electroplate",
+          "electroplating",
+          "nickel plating",
+          "plating",
+          "zinc plating"
+        ],
+        "canonical_id": "electroplating",
+        "children": [],
+        "display_name": "Electroplating",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "forge",
+          "forging"
+        ],
+        "canonical_id": "forging",
+        "children": [],
+        "display_name": "Forging",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "grind",
+          "grinding"
+        ],
+        "canonical_id": "grinding",
+        "children": [],
+        "display_name": "Grinding",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "heat treat",
+          "heat treatment",
+          "heat_treatment"
+        ],
+        "canonical_id": "heat_treatment",
+        "children": [
+          "annealing",
+          "quenching",
+          "tempering"
+        ],
+        "display_name": "Heat Treatment",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "injection molding",
+          "injection moulding",
+          "injection_molding"
+        ],
+        "canonical_id": "injection_molding",
+        "children": [],
+        "display_name": "Injection Molding",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "las",
+          "laser",
+          "laser cut",
+          "laser cutting",
+          "laser_cutting"
+        ],
+        "canonical_id": "laser_cutting",
+        "children": [],
+        "display_name": "Laser Cutting",
+        "parent": null,
+        "tsdc_code": "LAS",
+        "wikidata_iri": "https://www.wikidata.org/entity/Q593053"
+      },
+      {
+        "aliases": [
+          "mec",
+          "mechanical assembly",
+          "mechanical_assembly"
+        ],
+        "canonical_id": "mechanical_assembly",
+        "children": [],
+        "display_name": "Mechanical Assembly",
+        "parent": "assembly",
+        "tsdc_code": "MEC",
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "mig",
+          "mig welding",
+          "mig_welding"
+        ],
+        "canonical_id": "mig_welding",
+        "children": [],
+        "display_name": "MIG Welding",
+        "parent": "welding",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "packaging",
+          "packaging and labeling",
+          "packaging_and_labeling"
+        ],
+        "canonical_id": "packaging",
+        "children": [],
+        "display_name": "Packaging",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "paint",
+          "painting"
+        ],
+        "canonical_id": "painting",
+        "children": [],
+        "display_name": "Painting",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": "https://www.wikidata.org/entity/Q11629"
+      },
+      {
+        "aliases": [
+          "clean room assembly",
+          "clean_room_assembly",
+          "pcb assembly",
+          "pcb_assembly"
+        ],
+        "canonical_id": "pcb_assembly",
+        "children": [],
+        "display_name": "PCB Assembly",
+        "parent": "assembly",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "circuit board",
+          "pcb",
+          "pcb fabrication",
+          "pcb_fabrication",
+          "printed circuit board",
+          "printed_circuit_board"
+        ],
+        "canonical_id": "pcb_fabrication",
+        "children": [],
+        "display_name": "PCB Fabrication",
+        "parent": null,
+        "tsdc_code": "PCB",
+        "wikidata_iri": "https://www.wikidata.org/entity/Q173350"
+      },
+      {
+        "aliases": [
+          "cnc plasma",
+          "cnc plasma cutting",
+          "plasma cut",
+          "plasma cutting",
+          "plasma_cutting"
+        ],
+        "canonical_id": "plasma_cutting",
+        "children": [],
+        "display_name": "Plasma Cutting",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "polish",
+          "polishing"
+        ],
+        "canonical_id": "polishing",
+        "children": [],
+        "display_name": "Polishing",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "post",
+          "post processing",
+          "post-processing",
+          "post_processing",
+          "postprocessing"
+        ],
+        "canonical_id": "post_processing",
+        "children": [],
+        "display_name": "Post-Processing",
+        "parent": null,
+        "tsdc_code": "POST",
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "precision machining",
+          "precision_machining"
+        ],
+        "canonical_id": "precision_machining",
+        "children": [],
+        "display_name": "Precision Machining",
+        "parent": "cnc_machining",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "quench",
+          "quenching"
+        ],
+        "canonical_id": "quenching",
+        "children": [],
+        "display_name": "Quenching",
+        "parent": "heat_treatment",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "sand",
+          "sanding"
+        ],
+        "canonical_id": "sanding",
+        "children": [],
+        "display_name": "Sanding",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "saw",
+          "sawing"
+        ],
+        "canonical_id": "sawing",
+        "children": [],
+        "display_name": "Sawing",
+        "parent": "cutting",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "cut and sew",
+          "garment construction",
+          "sew",
+          "sewing",
+          "sewn",
+          "stitch",
+          "stitching",
+          "textile"
+        ],
+        "canonical_id": "sewing",
+        "children": [],
+        "display_name": "Sewing",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": "https://www.wikidata.org/entity/Q652122"
+      },
+      {
+        "aliases": [
+          "shear",
+          "shearing"
+        ],
+        "canonical_id": "shearing",
+        "children": [],
+        "display_name": "Shearing",
+        "parent": "cutting",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "sheet",
+          "sheet metal",
+          "sheet metal forming",
+          "sheet_metal",
+          "sheet_metal_forming"
+        ],
+        "canonical_id": "sheet_metal_forming",
+        "children": [],
+        "display_name": "Sheet Metal Forming",
+        "parent": null,
+        "tsdc_code": "SHEET",
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "solder",
+          "soldering"
+        ],
+        "canonical_id": "soldering",
+        "children": [],
+        "display_name": "Soldering",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "surface finish",
+          "surface finishing",
+          "surface treatment",
+          "surface_finish",
+          "surface_finishing",
+          "surface_treatment"
+        ],
+        "canonical_id": "surface_finishing",
+        "children": [],
+        "display_name": "Surface Finishing",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "temper",
+          "tempering"
+        ],
+        "canonical_id": "tempering",
+        "children": [],
+        "display_name": "Tempering",
+        "parent": "heat_treatment",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "quality control",
+          "quality_control",
+          "test equipment",
+          "test_equipment",
+          "testing"
+        ],
+        "canonical_id": "testing",
+        "children": [],
+        "display_name": "Testing",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "tig",
+          "tig welding",
+          "tig_welding"
+        ],
+        "canonical_id": "tig_welding",
+        "children": [],
+        "display_name": "TIG Welding",
+        "parent": "welding",
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "d\u00e9coupe vinyle",
+          "plotter",
+          "sticker cutting",
+          "vinyl cutter",
+          "vinyl cutting",
+          "vinyl_cutting"
+        ],
+        "canonical_id": "vinyl_cutting",
+        "children": [],
+        "display_name": "Vinyl Cutting",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": "https://www.wikidata.org/entity/Q12860083"
+      },
+      {
+        "aliases": [
+          "water jet",
+          "water jet cutting",
+          "water_jet_cutting",
+          "waterjet"
+        ],
+        "canonical_id": "water_jet_cutting",
+        "children": [],
+        "display_name": "Water Jet Cutting",
+        "parent": null,
+        "tsdc_code": null,
+        "wikidata_iri": null
+      },
+      {
+        "aliases": [
+          "wel",
+          "weld",
+          "welder",
+          "welding"
+        ],
+        "canonical_id": "welding",
+        "children": [
+          "arc_welding",
+          "mig_welding",
+          "tig_welding"
+        ],
+        "display_name": "Welding",
+        "parent": null,
+        "tsdc_code": "WEL",
+        "wikidata_iri": "https://www.wikidata.org/entity/Q131172"
+      }
+    ],
+    "source": "<repo>/src/config/taxonomy/processes.yaml",
+    "total": 51
+  },
+  "message": "Taxonomy retrieved successfully",
+  "metadata": {},
+  "status": "success"
+}

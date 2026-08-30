@@ -1,0 +1,12 @@
+{
+  "data": {
+    "added": [],
+    "removed": [],
+    "source": "<repo>/src/config/taxonomy/processes.yaml",
+    "total": 51,
+    "version": "1.0.0"
+  },
+  "message": "Taxonomy reloaded successfully",
+  "metadata": {},
+  "status": "success"
+}

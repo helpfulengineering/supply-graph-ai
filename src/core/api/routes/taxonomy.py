@@ -17,6 +17,11 @@ from ....core.taxonomy import (
 )
 from ..constants.openapi import RESPONSES_400_500
 from ..error_handlers import create_success_response
+from ..models.taxonomy.response import (
+    TaxonomyIndexResponse,
+    TaxonomyReloadResponse,
+    TaxonomyValidationResponse,
+)
 from ...utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -30,6 +35,7 @@ router = APIRouter(
 
 @router.get(
     "",
+    response_model=TaxonomyIndexResponse,
     summary="Get current taxonomy",
     description="Returns all processes in the current taxonomy with their definitions.",
 )
@@ -69,6 +75,7 @@ async def get_taxonomy(http_request: Request = None) -> Any:
 
 @router.post(
     "/reload",
+    response_model=TaxonomyReloadResponse,
     summary="Reload taxonomy from YAML",
     description=(
         "Reload the process taxonomy from the YAML configuration file. "
@@ -108,6 +115,7 @@ async def reload_taxonomy(http_request: Request = None) -> Any:
 
 @router.get(
     "/validate",
+    response_model=TaxonomyValidationResponse,
     summary="Validate taxonomy YAML",
     description="Validate the current taxonomy YAML file without applying changes.",
 )
