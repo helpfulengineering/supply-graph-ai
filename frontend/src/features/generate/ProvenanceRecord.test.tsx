@@ -101,3 +101,50 @@ describe("ProvenanceRecord — a run that recorded little", () => {
     expect(screen.getByRole("heading", { name: /What ran/ })).toBeInTheDocument();
   });
 });
+
+describe("ProvenanceRecord — watching a run", () => {
+  const live = {
+    ...record,
+    generated_at: null,
+    fields: {},
+  };
+
+  it("opens on the stages, because that is the view with anything in it", () => {
+    // Review would greet a watching reader with "no fields": they arrive only
+    // when the run finishes.
+    render(<ProvenanceRecord record={live} live />);
+    expect(screen.getByRole("heading", { name: /What ran/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Stages" })).toBeChecked();
+  });
+
+  it("says the run is still going", () => {
+    render(<ProvenanceRecord record={live} live />);
+    expect(
+      // Regex: SectionHeading appends an sr-only "— link to this section"
+      // to every heading's accessible name.
+      screen.getByRole("heading", { name: /How this design is being generated/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("marks the last stage as running, not finished", () => {
+    // Stages are emitted when they BEGIN, so the newest row is in flight.
+    render(<ProvenanceRecord record={live} live />);
+    expect(screen.getByText("running")).toBeInTheDocument();
+  });
+
+  it("claims nothing is running once the run is over", () => {
+    render(<ProvenanceRecord record={record} />);
+    expect(screen.queryByText("running")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /How this design was generated/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the stages a failed run got through", () => {
+    // The failure case: not live any more, but the log is the only account of
+    // how far it got.
+    render(<ProvenanceRecord record={live} />);
+    expect(screen.getByRole("radio", { name: "Review" })).toBeChecked();
+    expect(screen.getByText("This run recorded no fields.")).toBeInTheDocument();
+  });
+});

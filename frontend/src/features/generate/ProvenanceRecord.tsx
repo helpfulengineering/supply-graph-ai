@@ -156,7 +156,13 @@ function FieldsList({ record }: { record: GenerationProvenance }) {
   );
 }
 
-function StageList({ record }: { record: GenerationProvenance }) {
+function StageList({
+  record,
+  live,
+}: {
+  record: GenerationProvenance;
+  live: boolean;
+}) {
   const stages = stageDurations(record.stages);
   if (stages.length === 0) return <NothingRecorded what="stages" />;
   return (
@@ -165,7 +171,7 @@ function StageList({ record }: { record: GenerationProvenance }) {
         What ran — {stages.length} {stages.length === 1 ? "stage" : "stages"}
       </SectionHeading>
       <ol className="mt-1 divide-y divide-border">
-        {stages.map((stage) => (
+        {stages.map((stage, i) => (
           <li
             key={stage.seq}
             className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-2.5"
@@ -173,6 +179,11 @@ function StageList({ record }: { record: GenerationProvenance }) {
             <span className="font-mono text-small text-foreground">
               {stage.stage}
             </span>
+            {/* A stage is emitted when it BEGINS, so while a run is going the
+                last row is the one in flight rather than one that finished. */}
+            {live && i === stages.length - 1 ? (
+              <span className={CAPTION}>running</span>
+            ) : null}
             {stage.message ? (
               <span className={CAPTION}>{stage.message}</span>
             ) : null}
@@ -197,15 +208,31 @@ function StageList({ record }: { record: GenerationProvenance }) {
   );
 }
 
-export function ProvenanceRecord({ record }: { record: GenerationProvenance }) {
-  const [view, setView] = useState<View>("review");
+export function ProvenanceRecord({
+  record,
+  live = false,
+}: {
+  record: GenerationProvenance;
+  /**
+   * The run is still going: the record grows under the reader.
+   *
+   * Opens on Stages, because that is the view with anything in it — fields
+   * arrive only when the run finishes, so Review would greet a watching reader
+   * with "no fields". The chosen view is then theirs: this seeds the initial
+   * state and never yanks them elsewhere when the run ends.
+   */
+  live?: boolean;
+}) {
+  const [view, setView] = useState<View>(live ? "stages" : "review");
   const groups = groupForReview(record);
 
   return (
     <section aria-labelledby="provenance-record" className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <SectionHeading id="provenance-record" role="title">
-          How this design was generated
+          {live
+            ? "How this design is being generated"
+            : "How this design was generated"}
         </SectionHeading>
         {record.source_url ? (
           <span className={cn(CAPTION, "font-mono")}>{record.source_url}</span>
@@ -221,7 +248,7 @@ export function ProvenanceRecord({ record }: { record: GenerationProvenance }) {
 
       {view === "review" ? <ReviewList groups={groups} /> : null}
       {view === "fields" ? <FieldsList record={record} /> : null}
-      {view === "stages" ? <StageList record={record} /> : null}
+      {view === "stages" ? <StageList record={record} live={live} /> : null}
     </section>
   );
 }
