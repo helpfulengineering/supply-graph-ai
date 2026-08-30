@@ -245,7 +245,7 @@ AREAS: tuple[Area, ...] = (
         "registration at /register and the signed-in visitor's own page at "
         "/account — Settings stays admin-only, so a registered non-admin needs "
         "somewhere that is theirs.",
-        fe_routes=("/settings", "/register", "/account"),
+        fe_routes=("/settings", "/register", "/account", "/recover"),
         fe_api_prefixes=("/api/identity",),
     ),
     # --- Frontend-only surfaces: no service, no API, no CLI ---------------

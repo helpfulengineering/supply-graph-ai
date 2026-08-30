@@ -467,6 +467,13 @@ export const registrationFixture = {
     revoked: false,
     token: "ohm_registered_once",
   },
+  recovery_code: "ohm_recovery_once",
+};
+
+export const recoveredFixture = {
+  ...registrationFixture,
+  key: { ...registrationFixture.key, token: "ohm_recovered_token" },
+  recovery_code: "ohm_recovery_replacement",
 };
 
 export const apiKeysFixture = [

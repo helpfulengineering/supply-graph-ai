@@ -18,6 +18,7 @@ import {
   apiKeysFixture,
   accountsFixture,
   identityFixture,
+  recoveredFixture,
   registrationFixture,
   grantsFixture,
   spaceClaimsFixture,
@@ -278,6 +279,9 @@ export const handlers = [
   ),
   http.post("*/v1/api/identity/register", () =>
     HttpResponse.json(registrationFixture, { status: 201 }),
+  ),
+  http.post("*/v1/api/identity/recover", () =>
+    HttpResponse.json(recoveredFixture),
   ),
   http.get("*/v1/api/identity/keys", () => HttpResponse.json(apiKeysFixture)),
   http.get("*/v1/api/identity/accounts", () =>

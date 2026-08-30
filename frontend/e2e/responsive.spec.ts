@@ -56,6 +56,7 @@ const ROUTES = [
   "/settings",
   "/settings/keys",
   "/register",
+  "/recover",
   "/account",
   "/help",
   "/packages",

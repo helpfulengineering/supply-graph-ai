@@ -74,6 +74,13 @@ from ..storage.space_claim_store import SpaceClaimStore
 logger = logging.getLogger(__name__)
 
 
+#: What a self-service credential may ever carry. Registration and recovery both
+#: mint keys without an operator in the loop, so neither may hand out `admin` —
+#: recovery especially, since the account it restores might have held it. Stated
+#: once because two copies of a permission floor is one copy too many.
+SELF_SERVICE_PERMISSIONS = ["read", "write"]
+
+
 class AuthenticationService:
     """Service for authentication and authorization."""
 
@@ -568,16 +575,105 @@ class AuthenticationService:
             APIKeyCreate(
                 name=f"{display_name} (first key)",
                 description="Issued by self-service registration",
-                permissions=["read", "write"],
+                permissions=list(SELF_SERVICE_PERMISSIONS),
                 account_id=account.id,
             )
         )
+        recovery_code = await self._issue_recovery_code(account)
         logger.info(f"Registered account {account.id} with identity {identity.did}")
         return RegistrationResponse(
             account_id=account.id,
             display_name=account.display_name,
             did=identity.did,
             key=key,
+            recovery_code=recovery_code,
+        )
+
+    async def _issue_recovery_code(self, account: Account) -> str:
+        """Mint a fresh recovery code for ``account`` and return it once.
+
+        Same generator as an API token, so the same entropy argument holds: 256
+        bits of CSPRNG output has no brute-force surface, which is what makes a
+        plain digest a sound lookup key and means guessing is not the threat a
+        rate limit has to stop. Only the digest is persisted.
+        """
+        code = self._generate_token()
+        await self._account_storage.bind_recovery_digest(
+            account, self._token_digest(code)
+        )
+        return code
+
+    async def redeem_recovery_code(self, code: str) -> RegistrationResponse:
+        """Trade a recovery code for a working key on the same account and DID.
+
+        Serves two cases that want the same outcome — "I lost my token" and "my
+        token leaked" — so it revokes the account's existing keys rather than
+        adding to them, and replaces the code it consumed.
+        """
+        policy = get_security_policy()
+        if not policy.open_registration:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Self-service recovery is disabled in "
+                    f"{policy.mode.value} mode; ask an operator to reissue a key"
+                ),
+            )
+        if not self._account_storage or not self._auth_storage:
+            raise RuntimeError("Storage not available for recovery")
+
+        digest = self._token_digest(code)
+        account = await self._account_storage.find_by_recovery_digest(digest)
+        # Verified against the account's own stored digest, never against the
+        # index that found it: otherwise writing a pointer would be enough to
+        # take over an account without holding its code.
+        if (
+            account is None
+            or not account.recovery_digest
+            or not secrets.compare_digest(digest, account.recovery_digest)
+        ):
+            logger.warning("Recovery attempted with an unrecognised code")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="That recovery code is not valid",
+            )
+        if account.disabled:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="That account is disabled",
+            )
+
+        for existing in await self._auth_storage.list_keys():
+            if str(existing.created_by) == str(account.id) and not existing.revoked:
+                existing.revoked = True
+                await self._auth_storage.save_key(existing)
+
+        key = await self.create_api_key(
+            APIKeyCreate(
+                name=f"{account.display_name} (recovered)",
+                description="Issued by recovery-code redemption",
+                # Never inherits what the account held: a way back in, not a way up.
+                permissions=list(SELF_SERVICE_PERMISSIONS),
+                account_id=account.id,
+            )
+        )
+        replacement = await self._issue_recovery_code(account)
+        did = self._subject_did_for(account.id)
+        if not did:
+            # Recovery that cannot restore the identity binding is not recovery:
+            # the DID is what record ownership keys on, so returning a blank one
+            # would hand back a key that owns nothing the account made.
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="This node no longer holds the identity for that account",
+            )
+        logger.info(f"Recovered account {account.id}")
+        return RegistrationResponse(
+            account_id=account.id,
+            display_name=account.display_name,
+            did=did,
+            key=key,
+            recovery_code=replacement,
         )
 
     async def list_accounts(self) -> List[Account]:

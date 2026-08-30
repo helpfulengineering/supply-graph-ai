@@ -7,6 +7,7 @@ self-sovereign ``did:key`` via ``subject_did``.
 
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -33,6 +34,10 @@ class Account(BaseModel):
     kind: AccountKind = AccountKind.PERSON
     created_at: datetime = Field(default_factory=datetime.utcnow)
     disabled: bool = False
+    # SHA-256 of the account's current recovery code (#414). The code itself is
+    # never stored, and this is verified against directly rather than trusting
+    # the index that found the account — the same rule as API key digests.
+    recovery_digest: Optional[str] = None
 
 
 class AccountCreate(BaseModel):

@@ -3502,6 +3502,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/identity/recover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Redeem a recovery code
+         * @description Trade a recovery code for a working key — deliberately unauthenticated.
+         *
+         *     The credential this returns is the one the caller lost, so requiring a
+         *     credential to reach it would defeat the purpose. Redeeming revokes the
+         *     account's existing keys and issues a replacement code, which is what both
+         *     cases want: a lost token and a leaked one.
+         */
+        post: operations["recover_api_identity_recover_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/identity/identities": {
         parameters: {
             query?: never;
@@ -3913,6 +3938,8 @@ export interface components {
              * @default false
              */
             disabled: boolean;
+            /** Recovery Digest */
+            recovery_digest?: string | null;
         };
         /**
          * AccountCreate
@@ -8487,6 +8514,14 @@ export interface components {
             signature: string;
         };
         /**
+         * RecoveryRedeem
+         * @description Request payload for redeeming a recovery code.
+         */
+        RecoveryRedeem: {
+            /** Code */
+            code: string;
+        };
+        /**
          * RegistrationCreate
          * @description Request payload for self-service registration.
          */
@@ -8512,6 +8547,8 @@ export interface components {
             /** Did */
             did: string;
             key: components["schemas"]["APIKeyResponse"];
+            /** Recovery Code */
+            recovery_code?: string | null;
         };
         /**
          * RootComponentRef
@@ -18186,6 +18223,39 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recover_api_identity_recover_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecoveryRedeem"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

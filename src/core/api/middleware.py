@@ -251,6 +251,22 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+#: Paths where a burst of requests is an attack rather than a busy user, mapped
+#: to their own per-minute budget. Recovery redemption is the case that matters:
+#: it takes a bearer secret and hands back a working credential.
+#:
+#: Guessing is not what this defends against — a recovery code is 256 bits of
+#: CSPRNG output, so a rate limit is not what stands between an attacker and a
+#: correct guess, and saying otherwise would be security theatre. What this
+#: bounds is the cost of someone hammering the endpoint, and it makes a
+#: sustained attempt visible in the logs instead of lost inside a 100/min
+#: allowance shared with page loads.
+SENSITIVE_PATH_LIMITS = {
+    "/v1/api/identity/recover": 5,
+    "/v1/api/identity/register": 10,
+}
+
+
 class RateLimitingMiddleware(BaseHTTPMiddleware):
     """Middleware for basic rate limiting."""
 
@@ -281,6 +297,18 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         # this value was whatever the caller claimed, so a fresh address per
         # request bought an unlimited budget. See src/config/proxy_trust.py.
         client_ip = request.client.host if request.client else "unknown"
+
+        # Sensitive paths get their own, much smaller budget, counted in their
+        # own namespace so ordinary browsing cannot exhaust it and a burst of
+        # attempts cannot hide inside the generic allowance.
+        limit = self.requests_per_minute
+        bucket = client_ip
+        for prefix, sensitive_limit in SENSITIVE_PATH_LIMITS.items():
+            if request.url.path.startswith(prefix):
+                limit = sensitive_limit
+                bucket = f"{prefix}|{client_ip}"
+                break
+
         current_time = time.time()
 
         # Clean old entries (older than 1 minute)
@@ -291,14 +319,15 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         }
 
         # Check rate limit
-        if client_ip in self.request_counts:
-            if self.request_counts[client_ip]["count"] >= self.requests_per_minute:
+        if bucket in self.request_counts:
+            if self.request_counts[bucket]["count"] >= limit:
                 logger.warning(
                     f"Rate limit exceeded for IP: {client_ip}",
                     extra={
                         "client_ip": client_ip,
-                        "request_count": self.request_counts[client_ip]["count"],
-                        "limit": self.requests_per_minute,
+                        "request_count": self.request_counts[bucket]["count"],
+                        "limit": limit,
+                        "path": request.url.path,
                     },
                 )
 
@@ -311,9 +340,9 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
                     headers={"Retry-After": "60"},
                 )
 
-            self.request_counts[client_ip]["count"] += 1
+            self.request_counts[bucket]["count"] += 1
         else:
-            self.request_counts[client_ip] = {"count": 1, "last_reset": current_time}
+            self.request_counts[bucket] = {"count": 1, "last_reset": current_time}
 
         return await call_next(request)
 

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { PANEL_WARNING } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
 import { FIELD_SM } from "../../components/ui/field";
@@ -27,24 +27,31 @@ const TOKEN_HINT_FAILED =
 export function TokenOnce({
   token,
   description,
+  heading = "Copy this token now",
   onDismiss,
 }: {
   token: string;
-  /** Why this token matters here — the two callers mean different things by it. */
+  /** Why this token matters here — the callers mean different things by it. */
   description: ReactNode;
+  /** Overridden where the secret is not a token; the copy has to name it. */
+  heading?: string;
   /** Omitted where the panel is the end of a flow and has nothing to dismiss to. */
   onDismiss?: () => void;
 }) {
   const { showSuccess, showError } = useToast();
+  // Two of these can be on screen at once (token and recovery code), so the
+  // id that labels the dialog cannot be a constant — duplicate ids would point
+  // both at the same heading.
+  const headingId = useId();
 
   return (
     <div
       role="group"
-      aria-labelledby="token-once-heading"
+      aria-labelledby={headingId}
       className={PANEL_WARNING}
     >
-      <h2 id="token-once-heading" className={cn(SECTION_TITLE, "text-warning")}>
-        Copy this token now
+      <h2 id={headingId} className={cn(SECTION_TITLE, "text-warning")}>
+        {heading}
       </h2>
       <p className="mt-1 text-sm text-warning">{description}</p>
       <pre className="mt-3 overflow-x-auto rounded-md bg-card p-3 font-mono text-xs">

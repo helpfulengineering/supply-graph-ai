@@ -12,7 +12,11 @@ from uuid import UUID
 
 from ..models.account import Account
 from ..services.storage_service import StorageService
-from .constants import AUTH_ACCOUNTS_PREFIX, STORAGE_OBJECT_TYPE_ACCOUNT
+from .constants import (
+    AUTH_ACCOUNTS_PREFIX,
+    AUTH_RECOVERY_INDEX_PREFIX,
+    STORAGE_OBJECT_TYPE_ACCOUNT,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +27,51 @@ class AccountStorage:
     def __init__(self, storage_service: StorageService):
         self.storage_service = storage_service
         self._storage_prefix = AUTH_ACCOUNTS_PREFIX
+
+    @staticmethod
+    def _recovery_index_key(digest: str) -> str:
+        """Storage key for a recovery-digest pointer. The digest is hex."""
+        return f"{AUTH_RECOVERY_INDEX_PREFIX}/{digest}.json"
+
+    async def bind_recovery_digest(self, account: Account, digest: str) -> None:
+        """Point ``digest`` at ``account`` and drop the pointer it replaces.
+
+        The old pointer goes first: a crash between the two leaves a code that
+        resolves to nothing, which fails closed. Doing it the other way round
+        would leave a superseded code still resolving, which does not.
+        """
+        previous = account.recovery_digest
+        if previous and previous != digest:
+            try:
+                await self.storage_service.manager.delete_object(
+                    self._recovery_index_key(previous)
+                )
+            except Exception as exc:  # pragma: no cover - backend-specific
+                logger.warning(f"Could not remove superseded recovery pointer: {exc}")
+        account.recovery_digest = digest
+        await self.save_account(account)
+        await self.storage_service.manager.put_object(
+            key=self._recovery_index_key(digest),
+            data=json.dumps({"account_id": str(account.id)}).encode("utf-8"),
+            content_type="application/json",
+            metadata={"type": STORAGE_OBJECT_TYPE_ACCOUNT, "id": str(account.id)},
+        )
+
+    async def find_by_recovery_digest(self, digest: str) -> Optional[Account]:
+        """Resolve a recovery digest to its account in constant work, or None.
+
+        One point read then one load, rather than scanning every account — the
+        same shape as API key lookup (#409), and for the same reason: an
+        unknown code must not cost work proportional to the user count.
+        """
+        try:
+            data = await self.storage_service.manager.get_object(
+                self._recovery_index_key(digest)
+            )
+            account_id = json.loads(data.decode("utf-8"))["account_id"]
+        except Exception:
+            return None
+        return await self.load_account(UUID(account_id))
 
     async def save_account(self, account: Account) -> None:
         """Persist an account (create or update)."""

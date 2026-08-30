@@ -15,6 +15,7 @@ import {
   packageMetadataFixture,
   packageSignatureFixture,
   provenanceFixture,
+  recoveredFixture,
   registrationFixture,
   salvageMatchFixture,
   solutionHierarchyFixture,
@@ -336,6 +337,9 @@ export function resolveDemoRoute(method: string, pathname: string): DemoRoute {
   // can walk the whole join-a-node journey without hitting an error page.
   if (verb === "POST" && pathname === "/v1/api/identity/register") {
     return json(registrationFixture);
+  }
+  if (verb === "POST" && pathname === "/v1/api/identity/recover") {
+    return json(recoveredFixture);
   }
 
   // Submitting a generation batch is a write in name only — nothing persists,
