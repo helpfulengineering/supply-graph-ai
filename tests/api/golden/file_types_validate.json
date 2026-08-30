@@ -1,0 +1,13 @@
+{
+  "data": {
+    "errors": [],
+    "source": "<repo>/src/config/taxonomy/file_types.yaml",
+    "total_file_types": 32,
+    "valid": true
+  },
+  "message": "File type taxonomy validation completed",
+  "metadata": {},
+  "request_id": "<volatile>",
+  "status": "success",
+  "timestamp": "<volatile>"
+}

@@ -5143,6 +5143,18 @@ export interface components {
             disclosure: components["schemas"]["DisclosureProfile"];
         };
         /**
+         * Domain
+         * @description Model for domain information
+         */
+        Domain: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string;
+        };
+        /**
          * DomainBindRequest
          * @description Start a domain (``.well-known``) binding for a DID.
          */
@@ -5164,6 +5176,69 @@ export interface components {
             well_known_document: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * DomainListData
+         * @description The ``data`` payload of GET /api/utility/domains.
+         *
+         *     Derived from the payload captured in ``tests/api/golden/utility_domains.json``
+         *     before this model existed. Note the nesting: the route puts these under
+         *     ``data``, which is why ``DomainsResponse`` above — which declares them at
+         *     the top level — does not describe this route and is not used by it.
+         */
+        DomainListData: {
+            /** Default Domain */
+            default_domain: string;
+            /** Domains */
+            domains: components["schemas"]["Domain"][];
+            /** Validation Results */
+            validation_results: {
+                [key: string]: unknown;
+            }[];
+            /** Processing Time */
+            processing_time: number;
+        };
+        /**
+         * DomainListResponse
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        DomainListResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["DomainListData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * DomainVerifyRequest
@@ -5407,6 +5482,130 @@ export interface components {
             per_peer_pulled?: {
                 [key: string]: number;
             };
+        };
+        /**
+         * FileTypeDefinition
+         * @description One canonical file type and how it is recognised.
+         */
+        FileTypeDefinition: {
+            /** Canonical Id */
+            canonical_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Extensions */
+            extensions: string[];
+            /** Mime Types */
+            mime_types: string[];
+            /** Okh Role */
+            okh_role: string | null;
+            /** Parent */
+            parent: string | null;
+            /** Render Tier */
+            render_tier: string | null;
+        };
+        /** FileTypeIndexData */
+        FileTypeIndexData: {
+            /** Total */
+            total: number;
+            /** Source */
+            source: string;
+            /** File Types */
+            file_types: components["schemas"]["FileTypeDefinition"][];
+        };
+        /**
+         * FileTypeIndexResponse
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        FileTypeIndexResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["FileTypeIndexData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** FileTypeValidationData */
+        FileTypeValidationData: {
+            /** Valid */
+            valid: boolean;
+            /** Total File Types */
+            total_file_types: number;
+            /** Errors */
+            errors: string[];
+            /** Source */
+            source: string;
+        };
+        /**
+         * FileTypeValidationResponse
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        FileTypeValidationResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["FileTypeValidationData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** FollowResponse */
         FollowResponse: {
@@ -14937,9 +15136,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["DomainListResponse"];
                 };
             };
             /** @description Bad Request */
@@ -16997,7 +17194,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["FileTypeIndexResponse"];
                 };
             };
             /** @description Bad Request */
@@ -17031,7 +17228,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["FileTypeValidationResponse"];
                 };
             };
             /** @description Bad Request */

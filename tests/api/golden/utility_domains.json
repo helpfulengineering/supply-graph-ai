@@ -1,0 +1,36 @@
+{
+  "data": {
+    "default_domain": "manufacturing",
+    "domains": [
+      {
+        "description": "Domain for recipe and kitchen capability matching",
+        "id": "cooking",
+        "name": "Cooking & Food Preparation"
+      },
+      {
+        "description": "Domain for OKH/OKW manufacturing capability matching",
+        "id": "manufacturing",
+        "name": "Manufacturing & Hardware Production"
+      }
+    ],
+    "processing_time": "<volatile>",
+    "validation_results": [
+      {
+        "errors": [],
+        "is_valid": true,
+        "metadata": null,
+        "score": 1.0,
+        "suggestions": [],
+        "warnings": []
+      }
+    ]
+  },
+  "message": "Domains retrieved successfully",
+  "metadata": {
+    "processing_time": "<volatile>",
+    "timestamp": "<volatile>"
+  },
+  "request_id": "<volatile>",
+  "status": "success",
+  "timestamp": "<volatile>"
+}
