@@ -52,7 +52,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | --- | --- | --- |
 | `clear_storage` ✎ | Delete OKH and OKW files from configured storage — dev reset. | `uv run python scripts/clear_storage.py [options]` |
 | `copy_container_blobs` ✎ | Copy all blobs from one Azure container to another via OHM's storage provider (bypasses RBAC data-plane grant). | `uv run python scripts/copy_container_blobs.py <src-container> <dst-container>` |
-| `setup_storage` ✎ | Bootstrap storage for a new environment (create/verify container + credentials) before a deploy. | `uv run python scripts/setup_storage.py [options]` |
+| `setup_storage` ✎ | Bootstrap storage for a new environment: connect, verify with a real round trip, then create the top-level prefixes. | `uv run python scripts/setup_storage.py [options]` |
 
 ## Deployment pathways
 

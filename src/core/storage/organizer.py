@@ -88,6 +88,7 @@ class StorageOrganizer:
         }
 
         created_dirs = []
+        existing_dirs = []
 
         for directory, placeholder_file in directories.items():
             try:
@@ -105,6 +106,7 @@ class StorageOrganizer:
                 try:
                     await self.storage_manager.get_object(placeholder_key)
                     logger.debug(f"Directory already established: {directory}")
+                    existing_dirs.append(directory)
                     continue
                 except FileNotFoundError:
                     pass
@@ -141,6 +143,12 @@ class StorageOrganizer:
         return {
             "created_directories": created_dirs,
             "total_created": len(created_dirs),
+            # Reported alongside the created ones so a caller can tell an
+            # initialisation from a no-op re-run (#372). Every caller used to
+            # see only `created`, so a second run looked identical to a run
+            # that had silently failed to create anything.
+            "existing_directories": existing_dirs,
+            "total_existing": len(existing_dirs),
             "timestamp": datetime.now().isoformat(),
         }
 
