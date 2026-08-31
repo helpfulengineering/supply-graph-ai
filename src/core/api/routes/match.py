@@ -1754,8 +1754,6 @@ async def _format_nested_response(
     ``created_by`` is passed down rather than resolved here: this is a plain
     helper, not a route, so it has no request to read a credential from.
     """
-    from ..error_handlers import create_success_response
-
     # Apply tree filtering if any filters are specified
     filtered_trees = solution.all_trees if solution else []
     filters_applied = False
@@ -1958,11 +1956,15 @@ async def _format_nested_response(
             # Optionally add a warning to the response
             response_data["save_warning"] = f"Solution could not be saved: {str(e)}"
 
-    return create_success_response(
-        message="Nested matching completed successfully",
-        data=response_data,
-        request_id=request_id,
-    )
+    # A plain dict, as the annotation says and as the single-level branch does.
+    #
+    # This used to return ``create_success_response(...)``. ``@api_endpoint``
+    # passes a Pydantic model straight through instead of wrapping it, so the
+    # envelope was never built and the route — annotated ``-> dict[str, Any]``,
+    # which FastAPI uses as the response model when none is declared — failed
+    # response validation and returned a bare 500 for every nested request
+    # (#439). The whole payload was computed and then thrown away.
+    return response_data
 
 
 _COOKING_PROCESSES: frozenset = frozenset(

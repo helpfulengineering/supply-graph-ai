@@ -8,7 +8,7 @@
   },
   "licensor": "OHM Match Harness",
   "documentation_language": "en",
-  "function": "Simple single-process 3D-printed test part for matching harness",
+  "function": "Two-level 3D-printed assembly for exercising nested matching",
   "manufacturing_processes": [
     "3DP"
   ],
@@ -17,10 +17,22 @@
       "name": "Housing",
       "manufacturing_processes": [
         "3DP"
+      ]
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Housing",
+      "quantity": 1,
+      "unit": "pieces",
+      "manufacturing_processes": [
+        "3DP"
       ],
       "sub_parts": [
         {
           "name": "Clip",
+          "quantity": 4,
+          "unit": "pieces",
           "manufacturing_processes": [
             "3DP"
           ]
