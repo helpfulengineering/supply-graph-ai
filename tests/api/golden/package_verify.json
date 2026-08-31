@@ -1,0 +1,14 @@
+{
+  "data": {
+    "verification": {
+      "checked_files": "*",
+      "errors": [],
+      "valid": "*"
+    }
+  },
+  "message": "*",
+  "metadata": {},
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

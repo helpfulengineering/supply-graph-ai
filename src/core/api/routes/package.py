@@ -647,7 +647,7 @@ async def get_package_metadata(
             message="Package metadata retrieved successfully",
             data={"metadata": metadata.to_dict()},
             request_id=None,
-        )
+        ).model_dump(mode="json")
 
     except HTTPException:
         raise
@@ -694,7 +694,7 @@ async def verify_package(
             message="Package verification completed successfully",
             data={"verification": results},
             request_id=None,
-        )
+        ).model_dump(mode="json")
 
     except Exception as e:
         # Use standardized error handler
@@ -739,7 +739,7 @@ async def pin_package(
             message=f"Package {package_name}/{version} pinned",
             data={"pin_record": record},
             request_id=None,
-        )
+        ).model_dump(mode="json")
     except Exception as e:
         error_response = create_error_response(
             error=e,
@@ -781,7 +781,7 @@ async def verify_pin(
             ),
             data={"verified": ok, "changed_files": changed},
             request_id=None,
-        )
+        ).model_dump(mode="json")
     except FileNotFoundError:
         raise HTTPException(
             status_code=404,
@@ -837,7 +837,7 @@ async def verify_signature(
             ),
             data={"valid": valid, "signature_record": sig},
             request_id=None,
-        )
+        ).model_dump(mode="json")
     except Exception as e:
         error_response = create_error_response(
             error=e,
@@ -883,7 +883,7 @@ async def delete_package(
             message=f"Package {package_name}/{version} deleted successfully",
             data={},
             request_id=None,
-        )
+        ).model_dump(mode="json")
 
     except HTTPException:
         raise

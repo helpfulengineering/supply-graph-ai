@@ -1,0 +1,16 @@
+{
+  "data": {
+    "signature_record": {
+      "algorithm": "*",
+      "signature": "*",
+      "signed_at": "*",
+      "signed_by": "*"
+    },
+    "valid": "*"
+  },
+  "message": "*",
+  "metadata": {},
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

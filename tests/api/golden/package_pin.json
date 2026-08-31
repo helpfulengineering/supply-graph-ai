@@ -1,0 +1,18 @@
+{
+  "data": {
+    "pin_record": {
+      "file_hashes": {
+        "README.md": "*"
+      },
+      "manifest_content_hash": "*",
+      "note": "*",
+      "pinned_at": "*",
+      "pinned_by": "*"
+    }
+  },
+  "message": "*",
+  "metadata": {},
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}
