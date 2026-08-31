@@ -170,6 +170,47 @@ async def _display_retrieval_results(
 # Commands
 
 
+@okh_group.command(name="inventory")
+@standard_cli_command(
+    help_text="Enumerate every design without reading any of them.",
+    async_cmd=True,
+)
+@click.pass_context
+async def inventory_cmd(
+    ctx: click.Context,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Ids, owners, visibility, size and timestamps — no content.
+
+    What an operator needs for migration, cleanup, support and takedown, none
+    of which require reading a record.
+    """
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    service = await OKHService.get_instance()
+    rows = await service.inventory()
+
+    if output_format == "json":
+        click.echo(format_llm_output({"rows": rows, "total": len(rows)}, cli_ctx))
+        return
+    private = sum(1 for r in rows if r["visibility"] == "private")
+    for row in rows:
+        cli_ctx.log(
+            f"{row['id']}  {row['visibility']:<9} "
+            f"{(row['size_bytes'] or 0):>8}B  {row['created_by_did'] or '-'}",
+            "info",
+        )
+    cli_ctx.log(
+        f"{len(rows)} record(s), {private} visible only to their owner", "success"
+    )
+
+
 @okh_group.command()
 @click.argument("manifest_file", type=click.Path(exists=True))
 @click.option(
