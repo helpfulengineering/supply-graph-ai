@@ -26,6 +26,14 @@ failures that read as regressions and were not:
   this (`.claude/hooks/no-build-while-serving.sh`), but the shape generalises to
   anything that regenerates what a running process is reading.
 
+- **A dev server standing in for the build.** `frontend-ready` now serves the
+  artifact its own build stage produced (`next start`), not `next dev`. That
+  removes lazy per-route compilation, which under parallel workers put several
+  cold compiles inside one 30-second test and timed out specs that had nothing
+  to do with the change under test — it failed on `main`, and adding a route
+  made it worse. The gate refuses to attach to an already-running server for
+  the same reason; a hand-run `npx playwright test` still reuses one.
+
 - **Cold versus warm servers in a before/after comparison.** `next dev` compiles
   routes on first hit, so a cold server under parallel load times out across
   unrelated specs — 35 failures in one run here, none of them real. A

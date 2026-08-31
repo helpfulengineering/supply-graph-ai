@@ -38,7 +38,7 @@ OHM-specific values. Everything project-specific lives in
 
 | Key | Meaning |
 |-----|---------|
-| `appStartCommand` / `appUrl` | how Playwright boots and reaches the app |
+| `appStartCommand` / `appUrl` | how Playwright boots and reaches the app. Point it at a **production start**, not a dev server: lazy per-route compilation under parallel workers times out unrelated specs. The gate builds immediately before it runs. |
 | `apiBaseUrl` / `apiHealthUrl` / `apiPathPrefix` | backend location + API path prefix |
 | `openapiUrl` / `apiTypesOutput` | OpenAPI spec source + generated-types path |
 | `routesToScreenshot` | routes captured for async visual review |
