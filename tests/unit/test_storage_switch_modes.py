@@ -172,3 +172,43 @@ async def test_wipe_happens_only_after_the_switch_succeeds(tmp_path):
     # The new backend is set up and serving, not merely selected.
     assert service._configured is True
     assert await _object_count(tmp_path / "new") > 0
+
+
+async def test_a_fresh_process_adopts_the_instance_configuration(tmp_path):
+    """The gap that made migrate and wipe unusable from the CLI (#381).
+
+    A long-running API process configures storage at boot. A CLI process does
+    not: it starts, configures nothing, and both modes here act on the
+    *current* backend — so they reported that there was no storage to migrate
+    from, describing the process rather than the instance.
+    """
+    from src.core.services.storage_config_store import save_config
+    from src.core.services.storage_reconfigure import ensure_configured
+
+    await _seed(tmp_path / "persisted", 2)
+    save_config(
+        StorageConfig(provider="local", bucket_name=str(tmp_path / "persisted"))
+    )
+
+    # A service that has never been configured, as a fresh process has.
+    service = StorageService.__new__(StorageService)
+    service.manager = None
+    service._configured = False
+
+    await ensure_configured(service)
+
+    assert service.manager is not None
+    assert service.manager.config.bucket_name == str(tmp_path / "persisted")
+
+
+async def test_ensure_configured_leaves_a_configured_service_alone(tmp_path):
+    """It must not re-point a process that already connected at boot."""
+    from src.core.services.storage_config_store import save_config
+    from src.core.services.storage_reconfigure import ensure_configured
+
+    save_config(StorageConfig(provider="local", bucket_name=str(tmp_path / "other")))
+    service = await _service_on(tmp_path / "live")
+
+    await ensure_configured(service)
+
+    assert service.manager.config.bucket_name == str(tmp_path / "live")
