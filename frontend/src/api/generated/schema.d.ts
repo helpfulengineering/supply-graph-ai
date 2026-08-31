@@ -8122,6 +8122,81 @@ export interface components {
             validation_context?: string | null;
         };
         /**
+         * PackageBuildEnvelope
+         * @description Envelope for ``POST /api/package/build/{manifest_id}``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        PackageBuildEnvelope: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["PackageMetadataData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * PackageBuildOptions
+         * @description The switches a build was run with, echoed back on its metadata.
+         */
+        PackageBuildOptions: {
+            /** Include Design Files */
+            include_design_files: boolean;
+            /** Include Manufacturing Files */
+            include_manufacturing_files: boolean;
+            /** Include Making Instructions */
+            include_making_instructions: boolean;
+            /** Include Software */
+            include_software: boolean;
+            /** Include Parts */
+            include_parts: boolean;
+            /** Include Operating Instructions */
+            include_operating_instructions: boolean;
+            /** Include Quality Instructions */
+            include_quality_instructions: boolean;
+            /** Include Risk Assessment */
+            include_risk_assessment: boolean;
+            /** Include Schematics */
+            include_schematics: boolean;
+            /** Include Tool Settings */
+            include_tool_settings: boolean;
+            /** Verify Downloads */
+            verify_downloads: boolean;
+            /** Max Concurrent Downloads */
+            max_concurrent_downloads: number;
+            /** Output Dir */
+            output_dir?: string | null;
+        };
+        /**
          * PackageBuildRequest
          * @description Request model for building a package from manifest data
          * @example {
@@ -8215,6 +8290,55 @@ export interface components {
             } | null;
         };
         /**
+         * PackageDeleteEnvelope
+         * @description Envelope for ``DELETE /api/package/{org}/{project}/{version}``.
+         *
+         *     ``data`` is empty by design — the message carries the outcome — so this
+         *     declares the envelope and nothing more.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        PackageDeleteEnvelope: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            /** Data */
+            data?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
          * PackageDownloadZipRequest
          * @description Request body for POST /api/package/download-zip.
          * @example {
@@ -8275,6 +8399,125 @@ export interface components {
             status: string;
         };
         /**
+         * PackageFileInfo
+         * @description One file inside a package, as recorded at build time.
+         */
+        PackageFileInfo: {
+            /** Original Url */
+            original_url: string;
+            /** Local Path */
+            local_path: string;
+            /** Content Type */
+            content_type?: string | null;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Checksum Sha256 */
+            checksum_sha256: string;
+            /** Downloaded At */
+            downloaded_at?: string | null;
+            /** File Type */
+            file_type?: string | null;
+            /** Part Name */
+            part_name?: string | null;
+        };
+        /**
+         * PackageIntegrityResult
+         * @description What ``_verify_package_integrity`` reports about files on disk.
+         */
+        PackageIntegrityResult: {
+            /** Valid */
+            valid: boolean;
+            /** Package Name */
+            package_name: string;
+            /** Version */
+            version: string;
+            /** Total Files */
+            total_files: number;
+            /** Total Size Bytes */
+            total_size_bytes: number;
+            /** Missing Files */
+            missing_files: string[];
+            /** Corrupted Files */
+            corrupted_files: string[];
+            /** Extra Files */
+            extra_files: string[];
+        };
+        /**
+         * PackageMetadataData
+         * @description The ``data`` payload of the metadata and build routes.
+         */
+        PackageMetadataData: {
+            metadata: components["schemas"]["PackageMetadataPayload"];
+        };
+        /**
+         * PackageMetadataEnvelope
+         * @description Envelope for ``GET /api/package/{org}/{project}/{version}``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        PackageMetadataEnvelope: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["PackageMetadataData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * PackageMetadataPayload
+         * @description ``PackageMetadata.to_dict()`` — what build and metadata both return.
+         */
+        PackageMetadataPayload: {
+            /** Package Name */
+            package_name: string;
+            /** Version */
+            version: string;
+            /** Okh Manifest Id */
+            okh_manifest_id: string;
+            /** Build Timestamp */
+            build_timestamp: string;
+            /** Ohm Version */
+            ohm_version: string;
+            /** Total Files */
+            total_files: number;
+            /** Total Size Bytes */
+            total_size_bytes: number;
+            /** File Inventory */
+            file_inventory: components["schemas"]["PackageFileInfo"][];
+            build_options: components["schemas"]["PackageBuildOptions"];
+            /** Package Path */
+            package_path: string;
+        };
+        /**
          * PackageMetadataResponse
          * @description Response model for package metadata
          */
@@ -8295,6 +8538,56 @@ export interface components {
             metadata?: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * PackagePinData
+         * @description The ``data`` payload of the pin route.
+         */
+        PackagePinData: {
+            pin_record: components["schemas"]["PinRecord"];
+        };
+        /**
+         * PackagePinEnvelope
+         * @description Envelope for ``POST /api/package/{org}/{project}/{version}/pin``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        PackagePinEnvelope: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["PackagePinData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * PackagePointer
@@ -8384,6 +8677,59 @@ export interface components {
             metadata?: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * PackageRemoteData
+         * @description The ``data`` payload of the remote listing.
+         */
+        PackageRemoteData: {
+            /** Packages */
+            packages: components["schemas"]["RemotePackageEntry"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * PackageRemoteEnvelope
+         * @description Envelope for ``GET /api/package/remote``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        PackageRemoteEnvelope: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["PackageRemoteData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * PackageResponse
@@ -8483,6 +8829,161 @@ export interface components {
             processing_time: number;
             /** Validation Results */
             validation_results?: components["schemas"]["ValidationResult"][] | null;
+        };
+        /**
+         * PackageVerifyData
+         * @description The ``data`` payload of the verify route.
+         */
+        PackageVerifyData: {
+            verification: components["schemas"]["PackageIntegrityResult"];
+        };
+        /**
+         * PackageVerifyEnvelope
+         * @description Envelope for ``GET /api/package/{org}/{project}/{version}/verify``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        PackageVerifyEnvelope: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["PackageVerifyData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * PackageVerifyPinData
+         * @description Whether a pinned package still matches its pin, and what moved.
+         */
+        PackageVerifyPinData: {
+            /** Verified */
+            verified: boolean;
+            /** Changed Files */
+            changed_files: string[];
+        };
+        /**
+         * PackageVerifyPinEnvelope
+         * @description Envelope for ``GET /api/package/{org}/{project}/{version}/verify-pin``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        PackageVerifyPinEnvelope: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["PackageVerifyPinData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * PackageVerifySignatureData
+         * @description The ``data`` payload of the signature-verification route.
+         */
+        PackageVerifySignatureData: {
+            /** Valid */
+            valid: boolean;
+            signature_record: components["schemas"]["SignatureRecord"];
+        };
+        /**
+         * PackageVerifySignatureEnvelope
+         * @description Envelope for ``.../verify-signature``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        PackageVerifySignatureEnvelope: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["PackageVerifySignatureData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * PackageZipItem
@@ -8666,6 +9167,24 @@ export interface components {
              * @default 0
              */
             records_synced: number;
+        };
+        /**
+         * PinRecord
+         * @description A certified snapshot of a package version's content hashes.
+         */
+        PinRecord: {
+            /** Pinned At */
+            pinned_at: string;
+            /** Pinned By */
+            pinned_by: string;
+            /** Manifest Content Hash */
+            manifest_content_hash: string;
+            /** File Hashes */
+            file_hashes: {
+                [key: string]: string;
+            };
+            /** Note */
+            note?: string | null;
         };
         /**
          * ProcessDefinition
@@ -8895,6 +9414,27 @@ export interface components {
             key: components["schemas"]["APIKeyResponse"];
             /** Recovery Code */
             recovery_code?: string | null;
+        };
+        /**
+         * RemotePackageEntry
+         * @description One package version found in remote storage.
+         */
+        RemotePackageEntry: {
+            /** Package Name */
+            package_name: string;
+            /** Version */
+            version: string;
+            /** Org */
+            org: string;
+            /** Project */
+            project: string;
+            /** Last Modified */
+            last_modified?: string | null;
+            /**
+             * Size
+             * @default 0
+             */
+            size: number;
         };
         /**
          * RootComponentRef
@@ -9738,6 +10278,20 @@ export interface components {
             key_ttl_days: number;
             /** Admin Break Glass */
             admin_break_glass: boolean;
+        };
+        /**
+         * SignatureRecord
+         * @description The detached signature written beside a package's file manifest.
+         */
+        SignatureRecord: {
+            /** Signed By */
+            signed_by: string;
+            /** Signature */
+            signature: string;
+            /** Signed At */
+            signed_at: string;
+            /** Algorithm */
+            algorithm: string;
         };
         /**
          * SignedManifestRecordResponse
@@ -16785,9 +17339,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PackageBuildEnvelope"];
                 };
             };
             /** @description Bad Request */
@@ -17004,9 +17556,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PackageMetadataEnvelope"];
                 };
             };
             /** @description Bad Request */
@@ -17058,9 +17608,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PackageDeleteEnvelope"];
                 };
             };
             /** @description Bad Request */
@@ -17112,9 +17660,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PackageVerifyEnvelope"];
                 };
             };
             /** @description Bad Request */
@@ -17169,9 +17715,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PackagePinEnvelope"];
                 };
             };
             /** @description Bad Request */
@@ -17223,9 +17767,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PackageVerifyPinEnvelope"];
                 };
             };
             /** @description Bad Request */
@@ -17277,9 +17819,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PackageVerifySignatureEnvelope"];
                 };
             };
             /** @description Bad Request */
@@ -17431,9 +17971,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PackageRemoteEnvelope"];
                 };
             };
             /** @description Bad Request */

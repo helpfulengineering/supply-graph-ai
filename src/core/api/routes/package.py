@@ -42,10 +42,18 @@ from ..models.package.request import (
     PackagePushRequest,
 )
 from ..models.package.response import (
+    PackageBuildEnvelope,
+    PackageDeleteEnvelope,
+    PackageMetadataEnvelope,
     PackageMetadataResponse,
+    PackagePinEnvelope,
     PackagePullResponse,
     PackagePushResponse,
+    PackageRemoteEnvelope,
     PackageResponse,
+    PackageVerifyEnvelope,
+    PackageVerifyPinEnvelope,
+    PackageVerifySignatureEnvelope,
 )
 
 logger = get_logger(__name__)
@@ -321,7 +329,7 @@ async def build_package_from_manifest(
 
 @router.post(
     "/build/{manifest_id}",
-    response_model=Dict[str, Any],
+    response_model=PackageBuildEnvelope,
     status_code=status.HTTP_201_CREATED,
 )
 async def build_package_from_storage(
@@ -616,7 +624,7 @@ async def download_package(
         )
 
 
-@router.get("/{org}/{project}/{version}", response_model=Dict[str, Any])
+@router.get("/{org}/{project}/{version}", response_model=PackageMetadataEnvelope)
 async def get_package_metadata(
     org: str,
     project: str,
@@ -666,7 +674,7 @@ async def get_package_metadata(
         )
 
 
-@router.get("/{org}/{project}/{version}/verify", response_model=Dict[str, Any])
+@router.get("/{org}/{project}/{version}/verify", response_model=PackageVerifyEnvelope)
 async def verify_package(
     org: str,
     project: str,
@@ -711,7 +719,7 @@ async def verify_package(
         )
 
 
-@router.post("/{org}/{project}/{version}/pin", response_model=Dict[str, Any])
+@router.post("/{org}/{project}/{version}/pin", response_model=PackagePinEnvelope)
 async def pin_package(
     org: str,
     project: str,
@@ -754,7 +762,9 @@ async def pin_package(
         )
 
 
-@router.get("/{org}/{project}/{version}/verify-pin", response_model=Dict[str, Any])
+@router.get(
+    "/{org}/{project}/{version}/verify-pin", response_model=PackageVerifyPinEnvelope
+)
 async def verify_pin(
     org: str,
     project: str,
@@ -802,7 +812,8 @@ async def verify_pin(
 
 
 @router.get(
-    "/{org}/{project}/{version}/verify-signature", response_model=Dict[str, Any]
+    "/{org}/{project}/{version}/verify-signature",
+    response_model=PackageVerifySignatureEnvelope,
 )
 async def verify_signature(
     org: str,
@@ -852,7 +863,7 @@ async def verify_signature(
         )
 
 
-@router.delete("/{org}/{project}/{version}", response_model=Dict[str, Any])
+@router.delete("/{org}/{project}/{version}", response_model=PackageDeleteEnvelope)
 async def delete_package(
     org: str,
     project: str,
@@ -1079,7 +1090,7 @@ async def pull_package(
         )
 
 
-@router.get("/remote", response_model=Dict[str, Any])
+@router.get("/remote", response_model=PackageRemoteEnvelope)
 async def list_remote_packages(
     remote_storage: PackageRemoteStorage = Depends(get_remote_storage),
 ) -> Any:

@@ -97,6 +97,7 @@ def packaged(tmp_path):
     from src.core.main import api_v1
     from src.core.packaging.pin import create_pin_record
     from src.core.packaging.signing import sign_package
+    from src.core.services.package_service import PackageService
 
     package_path = tmp_path / "packages" / "test-org" / "test-project" / "1.0.0"
     package_path.mkdir(parents=True)
@@ -141,8 +142,13 @@ def packaged(tmp_path):
 
     service = MagicMock()
     service.get_package_metadata = AsyncMock(return_value=metadata)
+    # Delegate to the real implementation rather than inventing a return. A
+    # hand-written stub here froze `{valid, errors, checked_files}` into the
+    # golden — a shape the service has never produced — and the model derived
+    # from it would have filtered every field the route actually returns.
+    # `_verify_package_integrity` reads only `metadata`, never `self`.
     service.verify_package = AsyncMock(
-        return_value={"valid": True, "errors": [], "checked_files": 1}
+        return_value=PackageService._verify_package_integrity(None, metadata)
     )
     service.delete_package = AsyncMock(return_value=True)
     service.build_package_from_storage = AsyncMock(return_value=metadata)

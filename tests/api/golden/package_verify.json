@@ -1,9 +1,16 @@
 {
   "data": {
     "verification": {
-      "checked_files": "*",
-      "errors": [],
-      "valid": "*"
+      "corrupted_files": [],
+      "extra_files": [
+        "*"
+      ],
+      "missing_files": [],
+      "package_name": "*",
+      "total_files": "*",
+      "total_size_bytes": "*",
+      "valid": "*",
+      "version": "*"
     }
   },
   "message": "*",
