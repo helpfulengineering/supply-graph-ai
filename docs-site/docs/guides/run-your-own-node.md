@@ -84,12 +84,12 @@ authenticate with to create everything else — see
 [get a write key](get-a-write-key.md) for creating narrower, revocable keys from
 it, which is what you want for anything beyond the first few minutes.
 
-A node in `production` also refuses to start without `LLM_ENCRYPTION_SALT` and
-`LLM_ENCRYPTION_PASSWORD`, which protect stored language-model credentials:
+A node in `production` also refuses to start without `OHM_ENCRYPTION_SALT` and
+`OHM_ENCRYPTION_PASSWORD`, which protect stored language-model credentials:
 
 ```bash
-echo "LLM_ENCRYPTION_SALT=$(openssl rand -hex 16)" >> .env
-echo "LLM_ENCRYPTION_PASSWORD=$(openssl rand -hex 32)" >> .env
+echo "OHM_ENCRYPTION_SALT=$(openssl rand -hex 16)" >> .env
+echo "OHM_ENCRYPTION_PASSWORD=$(openssl rand -hex 32)" >> .env
 ```
 
 Redis is deliberately **not** published to your host — nothing outside the stack
@@ -140,9 +140,11 @@ providers** or `.env`, and it is used.
 ### Running in production
 
 Set `ENVIRONMENT=production` and the node requires two more values before it will
-start — `LLM_ENCRYPTION_SALT` and `LLM_ENCRYPTION_PASSWORD`, which encrypt stored
+start — `OHM_ENCRYPTION_SALT` and `OHM_ENCRYPTION_PASSWORD`, which encrypt stored
 provider credentials. They're required whether or not you use a language model.
 [Configure an LLM](configure-an-llm.md#running-in-production) explains why.
+
+If your node already sets `LLM_ENCRYPTION_SALT` and `LLM_ENCRYPTION_PASSWORD`, it keeps working — those names are read when the `OHM_` ones are unset, and the node logs a notice once. The prefix changed because the same encryption now protects more than LLM credentials.
 
 ## Running without the web interface
 

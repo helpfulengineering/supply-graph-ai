@@ -18,6 +18,8 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+from src.config.encryption_env import encryption_names, encryption_setting
+
 logger = logging.getLogger(__name__)
 
 # Default encryption credentials (only for development mode)
@@ -169,7 +171,7 @@ class CredentialManager:
             encryption_key: Optional encryption key. If not provided, will use environment variable
                           or generate a new one (not recommended for production)
         """
-        raw_key = encryption_key or os.getenv("LLM_ENCRYPTION_KEY")
+        raw_key = encryption_key or encryption_setting("KEY")
         if isinstance(raw_key, str):
             raw_key = raw_key.strip()
             if raw_key == "":
@@ -177,8 +179,9 @@ class CredentialManager:
             elif raw_key.startswith("#"):
                 # python-dotenv misparses `KEY=  # comment` as value "# comment"
                 logger.warning(
-                    "LLM_ENCRYPTION_KEY looks like a mis-parsed .env comment; "
-                    "ignoring. Put comments on their own line or use a valid Fernet key."
+                    "%s looks like a mis-parsed .env comment; ignoring. Put "
+                    "comments on their own line or use a valid Fernet key.",
+                    encryption_names("KEY")[0],
                 )
                 raw_key = None
         self.encryption_key = raw_key
@@ -220,23 +223,27 @@ class CredentialManager:
             is_production = get_settings().is_production_like
 
             # Get encryption credentials from environment
-            salt_env = os.getenv("LLM_ENCRYPTION_SALT")
-            password_env = os.getenv("LLM_ENCRYPTION_PASSWORD")
+            salt_env = encryption_setting("SALT")
+            password_env = encryption_setting("PASSWORD")
 
             # In production, require explicit configuration
             if is_production:
                 if not salt_env or not password_env:
                     raise ValueError(
-                        "LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD must be set in production. "
-                        "These are required for secure credential encryption."
+                        f"{encryption_names('SALT')[0]} and "
+                        f"{encryption_names('PASSWORD')[0]} must be set in "
+                        "production. These are required for secure credential "
+                        "encryption."
                     )
                 if (
                     salt_env == DEFAULT_ENCRYPTION_SALT
                     or password_env == DEFAULT_ENCRYPTION_PASSWORD
                 ):
                     raise ValueError(
-                        "Default encryption credentials cannot be used in production. "
-                        "Please set LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD to secure values."
+                        "Default encryption credentials cannot be used in "
+                        "production. Please set "
+                        f"{encryption_names('SALT')[0]} and "
+                        f"{encryption_names('PASSWORD')[0]} to secure values."
                     )
 
             # Use provided values or defaults (with warning in development)
@@ -253,7 +260,8 @@ class CredentialManager:
             if not is_production and self._uses_default_encryption:
                 logger.warning(
                     "Using default encryption credentials. This is insecure for production. "
-                    "Please set LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD environment variables."
+                    "Please set OHM_ENCRYPTION_SALT and "
+                    "OHM_ENCRYPTION_PASSWORD environment variables."
                 )
 
             kdf = PBKDF2HMAC(
@@ -290,8 +298,8 @@ class CredentialManager:
         if self.uses_default_encryption:
             raise ValueError(
                 "Refusing to store LLM credentials under default encryption keys. "
-                "Set LLM_ENCRYPTION_KEY or LLM_ENCRYPTION_SALT and "
-                "LLM_ENCRYPTION_PASSWORD to non-default values."
+                "Set OHM_ENCRYPTION_KEY, or OHM_ENCRYPTION_SALT and "
+                "OHM_ENCRYPTION_PASSWORD, to non-default values."
             )
         encrypted = self.encrypt_credential(credential)
         logger.info(

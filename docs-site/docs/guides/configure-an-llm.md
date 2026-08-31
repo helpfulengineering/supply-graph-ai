@@ -156,8 +156,8 @@ A node running with `ENVIRONMENT=production` — or any environment name other t
 `development` or `test` — requires two values before it will start:
 
 ```bash
-LLM_ENCRYPTION_SALT=...
-LLM_ENCRYPTION_PASSWORD=...
+OHM_ENCRYPTION_SALT=...
+OHM_ENCRYPTION_PASSWORD=...
 ```
 
 These encrypt stored provider credentials. They are required **whether or not you
@@ -186,4 +186,4 @@ them and cannot be recovered otherwise.
 | Key added in Settings but nothing changed | Check `LLM_ENABLED` is not `false`, and that `LLM_DEFAULT_PROVIDER` (if set) names the provider you added |
 | `llm_status: failed` | Key rejected, or provider unreachable. For ollama, check the base URL and that the model is pulled |
 | Generation returns 401 | `GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM` is on and a provider is configured — authenticate, or pass `no_llm=true` |
-| Node will not start in production | `LLM_ENCRYPTION_SALT` / `LLM_ENCRYPTION_PASSWORD` are missing |
+| Node will not start in production | `OHM_ENCRYPTION_SALT` / `OHM_ENCRYPTION_PASSWORD` are missing |

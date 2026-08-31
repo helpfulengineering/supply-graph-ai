@@ -53,8 +53,8 @@ class LLMCredentialStore:
         if self.credential_manager.uses_default_encryption:
             raise ValueError(
                 "Refusing to store LLM credentials under default encryption keys. "
-                "Set LLM_ENCRYPTION_KEY or LLM_ENCRYPTION_SALT and "
-                "LLM_ENCRYPTION_PASSWORD to non-default values."
+                "Set OHM_ENCRYPTION_KEY, or OHM_ENCRYPTION_SALT and "
+                "OHM_ENCRYPTION_PASSWORD, to non-default values."
             )
         encrypted = self.credential_manager.encrypt_credential(api_key)
         payload = {

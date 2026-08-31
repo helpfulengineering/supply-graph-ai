@@ -72,21 +72,30 @@ def test_settings_exposes_the_same_answer():
 def test_staging_now_demands_the_encryption_secrets_that_broke_v0_10_6(monkeypatch):
     """Regression: v0.10.6 crash-looped in production, staging booted clean.
 
-    The worker died at import with "LLM_ENCRYPTION_SALT and
-    LLM_ENCRYPTION_PASSWORD must be set in production". The staging rehearsal
+    The worker died at import with "…_ENCRYPTION_SALT and …_ENCRYPTION_PASSWORD
+    must be set in production" (the variables were LLM_-prefixed then; #371
+    renamed them to OHM_ and kept the old names working). The staging rehearsal
     built to catch exactly that ran the same image happily, because the guard
     compared the environment to "production" and staging's was "staging".
 
     Staging must now fail the same way production does — that is the whole point.
     """
     monkeypatch.setenv("ENVIRONMENT", "staging")
-    monkeypatch.delenv("LLM_ENCRYPTION_SALT", raising=False)
-    monkeypatch.delenv("LLM_ENCRYPTION_PASSWORD", raising=False)
-    monkeypatch.delenv("LLM_ENCRYPTION_KEY", raising=False)
+    # Both spellings, since either configures it (#371) — clearing only one
+    # would let the other satisfy the guard and the test would pass vacuously.
+    for name in (
+        "OHM_ENCRYPTION_SALT",
+        "OHM_ENCRYPTION_PASSWORD",
+        "OHM_ENCRYPTION_KEY",
+        "LLM_ENCRYPTION_SALT",
+        "LLM_ENCRYPTION_PASSWORD",
+        "LLM_ENCRYPTION_KEY",
+    ):
+        monkeypatch.delenv(name, raising=False)
 
     llm_config = importlib.import_module("src.config.llm_config")
 
-    with pytest.raises(ValueError, match="LLM_ENCRYPTION"):
+    with pytest.raises(ValueError, match="ENCRYPTION"):
         llm_config.CredentialManager()
 
 

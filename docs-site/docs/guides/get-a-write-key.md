@@ -50,13 +50,13 @@ says. See [Security Modes](https://github.com/helpfulengineering/supply-graph-ai
 
 !!! note "One more thing production needs"
 
-    A node in `production` refuses to start without `LLM_ENCRYPTION_SALT` and
-    `LLM_ENCRYPTION_PASSWORD`, which protect stored language-model credentials.
+    A node in `production` refuses to start without `OHM_ENCRYPTION_SALT` and
+    `OHM_ENCRYPTION_PASSWORD`, which protect stored language-model credentials.
     Generate them once:
 
     ```bash
-    echo "LLM_ENCRYPTION_SALT=$(openssl rand -hex 16)" >> .env
-    echo "LLM_ENCRYPTION_PASSWORD=$(openssl rand -hex 32)" >> .env
+    echo "OHM_ENCRYPTION_SALT=$(openssl rand -hex 16)" >> .env
+    echo "OHM_ENCRYPTION_PASSWORD=$(openssl rand -hex 32)" >> .env
     ```
 
     Without them the container exits on boot with a message naming both.
