@@ -50,6 +50,8 @@ import {
   rulesValidateFixture,
   taxonomyValidateFixture,
   llmCredentialsFixture,
+  storageConfigFixture,
+  storageConfigureFixture,
   llmHealthFixture,
   llmProvidersFixture,
   matchDomainsFixture,
@@ -146,6 +148,12 @@ export const handlers = [
   ),
   http.get("*/v1/api/llm/credentials", () =>
     HttpResponse.json(llmCredentialsFixture),
+  ),
+  http.get("*/v1/api/storage/config", () =>
+    HttpResponse.json(storageConfigFixture),
+  ),
+  http.post("*/v1/api/storage/config", () =>
+    HttpResponse.json(storageConfigureFixture),
   ),
   http.get("*/health", () => HttpResponse.json(healthFixture)),
   http.get("*/v1/api/utility/domains", () => HttpResponse.json(domainsFixture)),

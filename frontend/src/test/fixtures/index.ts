@@ -911,7 +911,6 @@ export const kitchensFixture = {
   pagination: { has_next: false, total_items: 2 },
 };
 
-
 /**
  * Assets.
  *
@@ -1409,10 +1408,64 @@ export const matchDomainsFixture = {
   },
 };
 
+/** Storage configuration as GET /api/storage/config returns it (#380). */
+export const storageConfigFixture = {
+  status: "success",
+  message: "Storage configuration retrieved",
+  timestamp: "2026-08-31T12:00:00Z",
+  request_id: "req_storage_config",
+  data: {
+    config: {
+      provider: "local",
+      bucket: "/var/ohm-data",
+      region: null,
+      endpoint_url: null,
+      // Names only. The API never returns a credential value, which is what
+      // makes credentials write-only from the UI's side.
+      credential_names: [],
+      persisted: true,
+      configured: true,
+      source: "live",
+    },
+    fingerprint: {
+      provider: "local",
+      account: null,
+      container: "/var/ohm-data",
+      okh_count: 12,
+      okw_count: 5,
+      error: null,
+    },
+  },
+  metadata: {},
+};
+
+/** A successful switch, as POST /api/storage/config returns it (#380). */
+export const storageConfigureFixture = {
+  status: "success",
+  message: "Storage reconfigured to azure_blob",
+  timestamp: "2026-08-31T12:00:00Z",
+  request_id: "req_storage_configure",
+  data: {
+    provider: "azure_blob",
+    bucket: "ohm-production",
+    region: "westeurope",
+    verified: true,
+    prefixes_found: [],
+    prefixes_created: ["okh/", "okw/", "packages/", "supply-trees/"],
+    previous_provider: "local",
+    previous_bucket: "/var/ohm-data",
+  },
+  metadata: {},
+};
+
 export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/match/domains": matchDomainsFixture,
   "/v1/api/okh/generate-from-url/jobs/job-1/events": generateJobEventsFixture,
   "/v1/api/package/remote": remotePackagesFixture,
+  // The demo world reads as an instance already pointed at real storage: a
+  // reader looking at the Storage panel should see what a configured node
+  // looks like, not an unconfigured one.
+  "/v1/api/storage/config": storageConfigFixture,
   "/v1/api/package/demo/widget/1.0.0/verify-signature": packageSignatureFixture,
   "/v1/api/supply-tree/solution/sol-1/staleness": solutionStalenessFixture,
   "/v1/api/supply-tree/solution/sol-1/hierarchy": solutionHierarchyFixture,

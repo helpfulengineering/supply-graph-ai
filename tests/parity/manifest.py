@@ -207,8 +207,13 @@ AREAS: tuple[Area, ...] = (
         "require_admin_strict, so the development-mode write-auth relaxation "
         "cannot reach them. Configuration persists to an encrypted file "
         "outside the object store, because credentials for a new provider "
-        "written into the old one would be orphaned by the switch. No frontend "
-        "route yet: the Settings panel is #380, migrate/wipe modes are #381.",
+        "written into the old one would be orphaned by the switch. The "
+        "Settings panel landed with #380; migrate and abandon-and-wipe modes "
+        "are #381.",
+        # No fe_routes: the panel lives at /settings/storage, and route
+        # parity collapses to the first segment, where /settings is already
+        # declared by the identity area that owns the page.
+        fe_api_prefixes=("/api/storage",),
     ),
     Area(
         "rfq",
@@ -623,16 +628,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/supply-tree/solution/{solution_id}/export",
     ),
     # --- Planned: the backlog, deleted by the commit that wires the call ---
-    *_decision(
-        "planned",
-        "backlog",
-        "Storage configuration, read and changed at runtime (#377). The "
-        "Settings panel that calls these is #380 — this slice is the service, "
-        "API and CLI, which had to exist before a panel could be built on "
-        "them. Both endpoints are require_admin_strict, so the panel will be "
-        "admin-only like the rest of Settings.",
-        "/api/storage/config",
-    ),
     *_decision(
         "planned",
         "backlog",
