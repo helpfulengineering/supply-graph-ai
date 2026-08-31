@@ -154,6 +154,14 @@ summary = "Delete OKH and OKW files from configured storage — dev reset."
 run = "uv run python scripts/clear_storage.py [options]"
 mutates = true
 
+[scripts.install]
+category = "deploy"
+summary = "Install and start a node on a host with Docker: mint secrets, resolve the latest release, start, wait for health, print the admin key."
+run = "curl -fsSL https://openhardwaremanager.org/install.sh | sh"
+mutates = true
+# Published as a release asset and behind a site redirect by #383.
+used_by = []
+
 [scripts.setup_storage]
 category = "storage"
 summary = "Bootstrap storage for a new environment: connect, verify with a real round trip, then create the top-level prefixes."

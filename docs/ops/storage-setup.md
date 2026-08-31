@@ -189,3 +189,24 @@ start is worse than one running on the settings it was deployed with.
 Move or erase data. Switching changes which backend is read and written;
 anything already in the old one stays there. Migration and abandon-and-wipe are
 tracked in #381.
+
+
+## A freshly installed node
+
+`scripts/install.sh` starts a node on local storage under one mounted volume,
+and mints the encryption secret without which the *first* configuration action
+would fail — credential storage refuses to operate under the built-in default
+keys, so a node installed without one starts, looks healthy, and cannot be
+given storage credentials.
+
+The volume covers both the object store and the configuration file, which is
+why an upgrade keeps them:
+
+```
+<data dir>/objects   LOCAL_STORAGE_PATH        the object store
+<data dir>/config    OHM_STORAGE_CONFIG_PATH   the configuration written here
+```
+
+The config file sits beside the object store rather than inside it. Inside, it
+would be an object in the bucket it configures — listed, served, and erased by
+a storage wipe.
