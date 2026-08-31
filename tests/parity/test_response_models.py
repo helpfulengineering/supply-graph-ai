@@ -46,10 +46,19 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         #
         # Unlike /api/utility/metrics this IS typable — matching_mode is a
         # literal discriminator, so a discriminated union fits — but it needs a
-        # golden for BOTH branches, and the route cannot produce one: it returns
-        # a bare 500 through the in-process client, on main, before any of this
-        # work (#432). #402 fixed the reason the *reverse* match had no golden
-        # and typed that one; this row waits on #432, not on appetite.
+        # golden for BOTH branches, and the route still cannot produce one.
+        #
+        # #432 (fixed in #434) cleared the single-level branch: it now returns
+        # 200 and a capturable payload. The nested branch does not. The handler
+        # is annotated ``-> dict[str, Any]``, which FastAPI uses as the response
+        # model when none is declared, and that branch returns the
+        # ``SuccessResponse`` object from ``create_success_response`` rather
+        # than a dict — so every nested call fails response validation and 500s.
+        # Found while capturing the supply-tree goldens (#373); the frontend
+        # never sends max_depth, which is why it has gone unnoticed. Filed as
+        # #439.
+        #
+        # So this row now waits on #439, not on #432 and not on appetite.
         ("POST", "/api/match"),
         # Streams a zip archive, not JSON. A response model describes a JSON
         # body and there is none to describe — the same kind of permanent
@@ -65,12 +74,6 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         ("GET", "/api/package/{org}/{project}/{version}/verify"),
         ("GET", "/api/package/{org}/{project}/{version}/verify-pin"),
         ("GET", "/api/package/{org}/{project}/{version}/verify-signature"),
-        ("GET", "/api/supply-tree/solution/{solution_id}"),
-        ("DELETE", "/api/supply-tree/solution/{solution_id}"),
-        ("POST", "/api/supply-tree/solution/{solution_id}/extend"),
-        ("GET", "/api/supply-tree/solution/{solution_id}/staleness"),
-        ("GET", "/api/supply-tree/solution/{solution_id}/visualization"),
-        ("GET", "/api/supply-tree/solutions"),
         # Cannot be typed as one model: /metrics returns four different shapes
         # depending on its parameters — a Prometheus text body, per-endpoint
         # metrics, a summary, or a detailed breakdown. A single response_model

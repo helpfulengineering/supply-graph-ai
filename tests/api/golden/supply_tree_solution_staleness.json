@@ -1,0 +1,16 @@
+{
+  "data": {
+    "age_days": "*",
+    "is_stale": "*",
+    "solution_id": "*",
+    "staleness_reason": "*"
+  },
+  "message": "*",
+  "metadata": {
+    "processing_time": "*",
+    "timestamp": "*"
+  },
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

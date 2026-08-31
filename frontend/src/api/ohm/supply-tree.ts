@@ -5,17 +5,7 @@ import type { components } from "../generated/schema";
 import type { VisualizationData } from "../../types/supply-tree";
 
 /** One row of the caller's saved supply-tree history. */
-export interface SolutionSummary {
-  id: string;
-  okh_id: string | null;
-  okh_title: string | null;
-  facility_name: string | null;
-  matching_mode: string | null;
-  tree_count: number;
-  facility_count: number;
-  score: number;
-  created_at: string | null;
-}
+export type SolutionSummary = components["schemas"]["SolutionListRow"];
 
 /**
  * List the caller's saved supply-tree solutions, most recent first.
@@ -38,9 +28,7 @@ export async function listSolutions(): Promise<SolutionSummary[]> {
       errorMessage(error, `Failed to load solutions (HTTP ${response.status})`),
     );
   }
-  const result =
-    (data as { data?: { result?: unknown[] } })?.data?.result ?? [];
-  return result as SolutionSummary[];
+  return data?.data?.result ?? [];
 }
 
 /** Fetch the visualization bundle for a saved supply-tree solution. */
@@ -61,16 +49,13 @@ export async function fetchVisualization(
     );
   }
   // Bundle is nested under the response envelope's `data`.
-  return ((data as { data?: VisualizationData })?.data ??
-    data) as VisualizationData;
+  if (!data?.data) {
+    throw new ApiError(response.status, "Visualization response had no body");
+  }
+  return data.data;
 }
 
-export interface SolutionStaleness {
-  solution_id: string;
-  is_stale: boolean;
-  staleness_reason: string | null;
-  age_days: number | null;
-}
+export type SolutionStaleness = components["schemas"]["SolutionStalenessData"];
 
 /**
  * Whether a saved solution has aged out.

@@ -5698,6 +5698,16 @@ export interface components {
             } | null;
         };
         /**
+         * FacilityDistributionEntry
+         * @description How many trees a given facility accounts for.
+         */
+        FacilityDistributionEntry: {
+            /** Facility Name */
+            facility_name: string;
+            /** Tree Count */
+            tree_count: number;
+        };
+        /**
          * FacilityMatchRequest
          * @description Reverse-match request: which designs can a given facility produce?
          * @example {
@@ -9865,6 +9875,219 @@ export interface components {
             };
         };
         /**
+         * SolutionDeleteData
+         * @description Result of deleting a saved solution.
+         */
+        SolutionDeleteData: {
+            /** Deleted */
+            deleted: boolean;
+            /** Solution Id */
+            solution_id: string;
+        };
+        /**
+         * SolutionDeleteResponse
+         * @description Envelope for ``DELETE /api/supply-tree/solution/{solution_id}``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        SolutionDeleteResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["SolutionDeleteData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * SolutionDetailData
+         * @description A stored solution, as ``SupplyTreeSolution.to_dict`` serialises it.
+         *
+         *     The optional fields are not stylistic: ``to_dict`` emits ``tree`` only when
+         *     the solution holds exactly one tree, and the nested block only when those
+         *     attributes are set. A model declaring them required would reject a
+         *     single-level solution; one omitting them would filter them off a nested
+         *     one. The contract test captures both branches for exactly this reason.
+         */
+        SolutionDetailData: {
+            /** All Trees */
+            all_trees: {
+                [key: string]: unknown;
+            }[];
+            /** Root Trees */
+            root_trees?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Tree */
+            tree?: {
+                [key: string]: unknown;
+            } | null;
+            /** Score */
+            score: number;
+            /**
+             * Metrics
+             * @default {}
+             */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /**
+             * Metadata
+             * @default {}
+             */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /**
+             * Is Nested
+             * @default false
+             */
+            is_nested: boolean;
+            /** Component Mapping */
+            component_mapping?: {
+                [key: string]: {
+                    [key: string]: unknown;
+                }[];
+            } | null;
+            /** Dependency Graph */
+            dependency_graph?: {
+                [key: string]: string[];
+            } | null;
+            /** Production Sequence */
+            production_sequence?: string[][] | null;
+            validation_result?: components["schemas"]["SolutionValidationResult"] | null;
+            /** Total Estimated Cost */
+            total_estimated_cost?: number | null;
+            /** Total Estimated Time */
+            total_estimated_time?: string | null;
+        };
+        /**
+         * SolutionDetailResponse
+         * @description Envelope for ``GET /api/supply-tree/solution/{solution_id}``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        SolutionDetailResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["SolutionDetailData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * SolutionExtendData
+         * @description Result of extending a solution's time-to-live.
+         */
+        SolutionExtendData: {
+            /** Extended */
+            extended: boolean;
+            /** Solution Id */
+            solution_id: string;
+            /** Additional Days */
+            additional_days: number;
+        };
+        /**
+         * SolutionExtendResponse
+         * @description Envelope for ``POST /api/supply-tree/solution/{id}/extend``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        SolutionExtendResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["SolutionExtendData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
          * SolutionHierarchyData
          * @description The ``data`` payload of the component-hierarchy route.
          */
@@ -9932,6 +10155,103 @@ export interface components {
             } | null;
         };
         /**
+         * SolutionListData
+         * @description The ``data`` payload of the solutions listing.
+         */
+        SolutionListData: {
+            /** Result */
+            result: components["schemas"]["SolutionListRow"][];
+        };
+        /**
+         * SolutionListResponse
+         * @description Envelope for ``GET /api/supply-tree/solutions``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        SolutionListResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["SolutionListData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * SolutionListRow
+         * @description One row of the solutions listing.
+         *
+         *     Every field is optional because every field is read with ``.get()`` from a
+         *     sidecar metadata object that predates most of them. A solution written
+         *     before ``okh_title`` existed has no ``okh_title``, and declaring it
+         *     required would turn one legacy row into a 500 for the whole listing.
+         */
+        SolutionListRow: {
+            /** Id */
+            id?: string | null;
+            /** Okh Id */
+            okh_id?: string | null;
+            /** Okh Title */
+            okh_title?: string | null;
+            /** Facility Name */
+            facility_name?: string | null;
+            /** Matching Mode */
+            matching_mode?: string | null;
+            /** Tree Count */
+            tree_count?: number | null;
+            /** Component Count */
+            component_count?: number | null;
+            /** Facility Count */
+            facility_count?: number | null;
+            /** Score */
+            score?: number | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Ttl Days */
+            ttl_days?: number | null;
+            /**
+             * Tags
+             * @default []
+             */
+            tags: string[];
+            /** Last Modified */
+            last_modified?: string | null;
+            /** Age Days */
+            age_days?: number | null;
+        };
+        /**
          * SolutionLoadRequest
          * @description Request model for loading a supply tree solution from multiple sources
          * @example {
@@ -9984,6 +10304,139 @@ export interface components {
              * @description Inline solution data (required if source='inline')
              */
             solution?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * SolutionStalenessData
+         * @description Whether a saved solution has gone stale, and how old it is.
+         */
+        SolutionStalenessData: {
+            /** Is Stale */
+            is_stale: boolean;
+            /** Staleness Reason */
+            staleness_reason?: string | null;
+            /** Age Days */
+            age_days?: number | null;
+            /** Solution Id */
+            solution_id: string;
+        };
+        /**
+         * SolutionStalenessResponse
+         * @description Envelope for ``GET /api/supply-tree/solution/{id}/staleness``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        SolutionStalenessResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["SolutionStalenessData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * SolutionValidationResult
+         * @description Validation attached to a nested solution.
+         */
+        SolutionValidationResult: {
+            /** Is Valid */
+            is_valid: boolean;
+            /**
+             * Errors
+             * @default []
+             */
+            errors: string[];
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+            /**
+             * Unmatched Components
+             * @default []
+             */
+            unmatched_components: string[];
+            /**
+             * Circular Dependencies
+             * @default []
+             */
+            circular_dependencies: string[][];
+            /**
+             * Missing Dependencies
+             * @default []
+             */
+            missing_dependencies: string[];
+        };
+        /**
+         * SolutionVisualizationResponse
+         * @description Envelope for ``GET /api/supply-tree/solution/{id}/visualization``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        SolutionVisualizationResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["VisualizationBundleData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
                 [key: string]: unknown;
             } | null;
         };
@@ -10730,6 +11183,163 @@ export interface components {
              */
             id: string;
             visibility: components["schemas"]["VisibilityLevel"];
+        };
+        /**
+         * VisualizationArtifacts
+         * @description What else can be fetched for this solution, and from where.
+         */
+        VisualizationArtifacts: {
+            /** Graphml Endpoint */
+            graphml_endpoint: string;
+            /** Json Bundle */
+            json_bundle: boolean;
+            /** Html Report */
+            html_report: boolean;
+        };
+        /**
+         * VisualizationBundleData
+         * @description The ``data`` payload of the visualization-bundle route.
+         */
+        VisualizationBundleData: {
+            /** Schema Version */
+            schema_version: string;
+            /** Source Type */
+            source_type: string;
+            /** Generated At */
+            generated_at: string;
+            matching: components["schemas"]["VisualizationMatching"];
+            supply_tree: components["schemas"]["VisualizationSupplyTree"];
+            network: components["schemas"]["VisualizationNetwork"];
+            dashboard: components["schemas"]["VisualizationDashboard"];
+            artifacts: components["schemas"]["VisualizationArtifacts"];
+        };
+        /**
+         * VisualizationDashboard
+         * @description Dashboard block of the bundle.
+         */
+        VisualizationDashboard: {
+            kpis: components["schemas"]["VisualizationKPIs"];
+        };
+        /**
+         * VisualizationEdge
+         * @description A relationship between two trees.
+         *
+         *     Only nested solutions produce these — an edge exists where a tree has a
+         *     parent or a dependency — so the golden for this shape comes from a nested
+         *     fixture rather than from a match.
+         */
+        VisualizationEdge: {
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+            /** Type */
+            type: string;
+        };
+        /**
+         * VisualizationKPIs
+         * @description The four counters the dashboard shows above the graph.
+         */
+        VisualizationKPIs: {
+            /** Tree Count */
+            tree_count: number;
+            /** Edge Count */
+            edge_count: number;
+            /** Stage Count */
+            stage_count: number;
+            /** Solution Score */
+            solution_score: number;
+        };
+        /**
+         * VisualizationMatching
+         * @description Matching context carried alongside the graph.
+         */
+        VisualizationMatching: {
+            overview: components["schemas"]["VisualizationMatchingOverview"];
+        };
+        /**
+         * VisualizationMatchingOverview
+         * @description How the solution was arrived at.
+         */
+        VisualizationMatchingOverview: {
+            /** Matching Mode */
+            matching_mode: string;
+            /** Score */
+            score: number;
+            /** Tree Count */
+            tree_count: number;
+        };
+        /**
+         * VisualizationNetwork
+         * @description Facility-level view of the solution.
+         */
+        VisualizationNetwork: {
+            /** Facility Distribution */
+            facility_distribution: components["schemas"]["FacilityDistributionEntry"][];
+            route_hints: components["schemas"]["VisualizationRouteHints"];
+        };
+        /**
+         * VisualizationNode
+         * @description One tree, as a node in the visualization graph.
+         */
+        VisualizationNode: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Component Id */
+            component_id?: string | null;
+            /** Facility Name */
+            facility_name?: string | null;
+            /** Depth */
+            depth: number;
+            /** Production Stage */
+            production_stage: string;
+            /** Confidence Score */
+            confidence_score: number;
+            /** Estimated Cost */
+            estimated_cost?: number | null;
+            /** Estimated Time */
+            estimated_time?: string | null;
+        };
+        /**
+         * VisualizationResourceCost
+         * @description Roll-up of cost and time across the solution.
+         */
+        VisualizationResourceCost: {
+            /** Total Estimated Cost */
+            total_estimated_cost?: number | null;
+            /** Total Estimated Time */
+            total_estimated_time?: string | null;
+        };
+        /**
+         * VisualizationRouteHints
+         * @description Placeholder for transport routing, which the contract does not carry.
+         */
+        VisualizationRouteHints: {
+            /** Status */
+            status: string;
+            /** Note */
+            note: string;
+        };
+        /**
+         * VisualizationSupplyTree
+         * @description The graph itself: nodes, edges and the orderings derived from them.
+         */
+        VisualizationSupplyTree: {
+            /** Solution Id */
+            solution_id: string;
+            /** Nodes */
+            nodes: components["schemas"]["VisualizationNode"][];
+            /** Edges */
+            edges: components["schemas"]["VisualizationEdge"][];
+            /** Dependency Graph */
+            dependency_graph: {
+                [key: string]: string[];
+            };
+            /** Production Sequence */
+            production_sequence: string[][];
+            resource_cost: components["schemas"]["VisualizationResourceCost"];
         };
     };
     responses: never;
@@ -14596,7 +15206,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SolutionListResponse"];
                 };
             };
             /** @description Bad Request */
@@ -14647,7 +15257,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SolutionDetailResponse"];
                 };
             };
             /** @description Bad Request */
@@ -14698,7 +15308,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SolutionDeleteResponse"];
                 };
             };
             /** @description Bad Request */
@@ -14752,7 +15362,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SolutionStalenessResponse"];
                 };
             };
             /** @description Bad Request */
@@ -14859,7 +15469,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SolutionExtendResponse"];
                 };
             };
             /** @description Bad Request */
@@ -15408,7 +16018,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SolutionVisualizationResponse"];
                 };
             };
             /** @description Bad Request */

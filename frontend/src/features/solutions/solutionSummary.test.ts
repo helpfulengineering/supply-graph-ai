@@ -13,6 +13,7 @@ function fixture(overrides: Partial<SolutionSummary> = {}): SolutionSummary {
     facility_count: 1,
     score: 0.95,
     created_at: "2026-01-01T00:00:00Z",
+    tags: [],
     ...overrides,
   };
 }
