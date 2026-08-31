@@ -124,9 +124,7 @@ def _no_ambient_llm_credentials(
 
 
 @pytest.fixture(autouse=True)
-def _block_external_network(
-    request: pytest.Request, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def _block_external_network(request: pytest.Request, monkeypatch: pytest.MonkeyPatch):
     """Block outbound network for contract + integration tests unless opted out.
 
     Integration tests run the app in-process and must stay hermetic (local
@@ -137,25 +135,50 @@ def _block_external_network(
     with @pytest.mark.allow_network to opt out.
     """
     if request.node.get_closest_marker("allow_network"):
+        yield
         return
     if not (
         request.node.get_closest_marker("contract")
         or request.node.get_closest_marker("integration")
     ):
+        yield
         return
 
     real_connect = socket.socket.connect
+    blocked: list[str] = []
 
     def guarded_connect(self, address):  # type: ignore[no-untyped-def]
         host = address[0] if isinstance(address, tuple) else address
         if host not in ("127.0.0.1", "::1", "localhost"):
-            pytest.fail(
+            blocked.append(str(host))
+            # A plain exception, not pytest.fail(). This runs on whatever thread
+            # opened the socket, and for an in-process ASGI test that is
+            # TestClient's worker thread, mid-request. pytest.fail raises
+            # `Failed`, which derives from BaseException, so no `except
+            # Exception` in the application catches it — the request produced no
+            # response at all and surfaced as a bare 500 with
+            # "No response returned", which reads as an application bug.
+            #
+            # Diagnosing that from the 500 cost hours (#432): the endpoint was
+            # fine, the guard was firing. ConnectionError is what a blocked
+            # connection actually looks like to the code under test, so the app
+            # handles it as it would any network failure, and the assertion
+            # below reports what was really blocked.
+            raise ConnectionError(
                 f"External network access blocked in {request.node.nodeid} "
-                f"(connect to {host!r}). Mark with @pytest.mark.allow_network if intentional."
+                f"(connect to {host!r}). Mark with @pytest.mark.allow_network "
+                "if intentional."
             )
         return real_connect(self, address)
 
     monkeypatch.setattr(socket.socket, "connect", guarded_connect)
+    yield
+    if blocked:
+        pytest.fail(
+            f"{request.node.nodeid} reached the network: {sorted(set(blocked))}. "
+            "Mark with @pytest.mark.allow_network if intentional, or point the "
+            "code under test at a local source."
+        )
 
 
 @pytest.hookimpl(hookwrapper=True)

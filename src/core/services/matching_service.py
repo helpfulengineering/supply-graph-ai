@@ -1345,12 +1345,20 @@ class MatchingService:
 
             import asyncio
 
+            # asyncio.timeout(), not wait_for(): when wait_for's budget expires
+            # it cancels the inner coroutine, and if that cancellation surfaces
+            # as CancelledError rather than TimeoutError it escapes both this
+            # handler and the `except Exception` below — CancelledError is a
+            # BaseException. That killed the whole request with no response
+            # (#432). asyncio.timeout does the uncancel bookkeeping and always
+            # raises TimeoutError, so a slow model degrades to "no NLP result"
+            # as intended instead of taking the endpoint down.
             try:
-                return await asyncio.wait_for(
-                    nlp_matcher.calculate_semantic_similarity(req_for_nlp, cap_for_nlp),
-                    timeout=0.5,
-                )
-            except asyncio.TimeoutError:
+                async with asyncio.timeout(0.5):
+                    return await nlp_matcher.calculate_semantic_similarity(
+                        req_for_nlp, cap_for_nlp
+                    )
+            except TimeoutError:
                 return None
 
         except Exception:
@@ -1505,13 +1513,14 @@ class MatchingService:
             # Add timeout to prevent slow NLP operations from blocking the API
             import asyncio
 
+            # See the note in the semantic-similarity path: wait_for's
+            # cancellation can escape as a BaseException and take the request
+            # with it. asyncio.timeout always raises TimeoutError (#432).
             try:
                 # Use extracted/normalized process names for NLP matching
-                results = await asyncio.wait_for(
-                    nlp_matcher.match([req_for_nlp], [cap_for_nlp]),
-                    timeout=0.5,  # 500ms timeout
-                )
-            except asyncio.TimeoutError:
+                async with asyncio.timeout(0.5):
+                    results = await nlp_matcher.match([req_for_nlp], [cap_for_nlp])
+            except TimeoutError:
                 logger.warning(
                     f"NLP matching timed out for '{req_process}' vs '{cap_process}'"
                 )
