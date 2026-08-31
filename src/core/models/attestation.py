@@ -26,6 +26,9 @@ KNOWN_ATTESTATION_TYPES = frozenset(
         "curated",
         "domain_bound",
         "oauth_bound",
+        # An admin read one private record, with a reason. Written by the node,
+        # subject is the record's owner, so they can find it (#406).
+        "admin_access",
     }
 )
 

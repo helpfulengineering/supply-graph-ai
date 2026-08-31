@@ -122,6 +122,12 @@ const WRITE_ONLY = [
   "/api/federation/sync/run",
   "/api/federation/okw/sync/run",
   "/api/okh/generate-from-url/jobs/{job_id}/revoke",
+  // Break-glass is answered, but with a refusal rather than data — and that is
+  // the correct demo. The demo world runs in peacetime, where an admin does not
+  // read private records; handing back a record would teach the opposite of
+  // what the surface exists to say.
+  "/api/okh/{record_id}/break-glass",
+  "/api/okw/{record_id}/break-glass",
 ];
 
 describe("the demo world answers every route", () => {

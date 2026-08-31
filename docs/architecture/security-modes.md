@@ -51,6 +51,8 @@ networks.
 | `registry_attestations` | `trust_on_follow` | `trust_on_follow` | `ca_pinned` |
 | `anonymous_submission_allowed` | yes | yes | **no** (Slice M.2) |
 | `open_registration` | yes | yes | **no** |
+| `key_ttl_days` | 180 | 365 (offline grace) | 30 |
+| `admin_break_glass` | **no** | yes (recorded) | **no** |
 
 ## Who may speak for the client
 

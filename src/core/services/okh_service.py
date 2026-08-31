@@ -574,6 +574,19 @@ class OKHService(BaseService["OKHService"]):
         rows.sort(key=lambda r: (r["modified_at"] or "", r["id"]), reverse=True)
         return rows
 
+    async def owner_did(self, record_id: str) -> Optional[str]:
+        """The DID that created ``record_id``, or None if unattributed.
+
+        Reads the inventory pass rather than re-deriving attribution, so there
+        is one place that knows how a record names its owner. Break-glass is a
+        rare, deliberate act, so a full pass is the right trade against a
+        second implementation of the same lookup.
+        """
+        for row in await self.inventory():
+            if row["id"] == str(record_id):
+                return row["created_by_did"]
+        return None
+
     async def _visible_entries(
         self, entries: List[Dict[str, Any]], viewer: ViewerScope
     ) -> List[Dict[str, Any]]:

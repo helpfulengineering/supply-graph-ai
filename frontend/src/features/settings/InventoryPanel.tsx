@@ -6,14 +6,17 @@ import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../../components/ui/ErrorMessage";
-import { FIELD, LABEL } from "../../components/ui/field";
+import { FIELD, FIELD_SM, LABEL } from "../../components/ui/field";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
 import {
+  breakGlass,
   fetchOkhInventory,
   fetchOkwInventory,
   type InventoryRow,
 } from "../../api/ohm/okh";
+import { fetchSecurityPolicy } from "../../api/ohm/identity";
+import { useToast } from "../../components/ui/Toast";
 
 type Kind = "designs" | "facilities";
 
@@ -37,9 +40,38 @@ function bytes(size: number | null | undefined): string {
  * meant to be reused rather than reinvented.
  */
 export function InventoryPanel() {
+  const { showSuccess, showError } = useToast();
   const [kind, setKind] = useState<Kind>("designs");
   const [onlyPrivate, setOnlyPrivate] = useState(false);
   const [owner, setOwner] = useState("");
+
+  // The affordance exists only where the posture allows it. Rendering a button
+  // that always refuses would teach an operator that the boundary is a
+  // formality.
+  const policy = useQuery({
+    queryKey: ["identity", "security-policy"],
+    queryFn: fetchSecurityPolicy,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const canBreakGlass = policy.data?.admin_break_glass === true;
+
+  async function onBreakGlass(row: InventoryRow) {
+    const reason = window.prompt(
+      "Why do you need to read this record?\n\n" +
+        "This access is recorded and shown to the person who created it, " +
+        "along with your name and this reason.",
+    );
+    if (!reason) return;
+    try {
+      await breakGlass(kind === "designs" ? "okh" : "okw", row.id, reason);
+      showSuccess("Record opened", {
+        description: "The access has been recorded against you.",
+      });
+    } catch (err) {
+      showError(err);
+    }
+  }
 
   const inventory = useQuery({
     queryKey: ["inventory", kind],
@@ -126,6 +158,11 @@ export function InventoryPanel() {
                   <th scope="col" className="py-2 pr-3 font-medium">Visibility</th>
                   <th scope="col" className="py-2 pr-3 font-medium">Size</th>
                   <th scope="col" className="py-2 font-medium">Last write</th>
+                  {canBreakGlass && (
+                    <th scope="col" className="py-2 pl-3 font-medium">
+                      Access
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -146,6 +183,19 @@ export function InventoryPanel() {
                     <td className="py-2 tabular-nums text-muted-foreground">
                       {row.modified_at ? row.modified_at.slice(0, 10) : "—"}
                     </td>
+                    {canBreakGlass && (
+                      <td className="py-2 pl-3">
+                        {row.visibility === "private" && (
+                          <button
+                            type="button"
+                            className={FIELD_SM}
+                            onClick={() => onBreakGlass(row)}
+                          >
+                            Break glass
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
