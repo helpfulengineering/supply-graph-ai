@@ -1,0 +1,15 @@
+{
+  "conflict": [],
+  "dry_run": "*",
+  "duplicate": [],
+  "imported": "*",
+  "new": [
+    {
+      "content_hash": "*",
+      "title": "*",
+      "version": "*"
+    }
+  ],
+  "request_id": "*",
+  "status": "*"
+}

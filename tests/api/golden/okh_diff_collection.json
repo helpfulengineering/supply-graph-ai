@@ -1,0 +1,12 @@
+{
+  "only_in_archive": [
+    {
+      "content_hash": "*",
+      "title": "*",
+      "version": "*"
+    }
+  ],
+  "only_local": [],
+  "request_id": "*",
+  "status": "*"
+}

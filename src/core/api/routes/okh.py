@@ -65,6 +65,11 @@ from ..models.inventory import (
     InventoryResponse,
     InventoryRow,
 )
+from ..models.okh.collection import (
+    CollectionDiffResponse,
+    CollectionImportResponse,
+    OKHTemplateResponse,
+)
 from ...models.provenance import RecordProvenance
 from ...models.visibility import VisibilityBody, VisibilityResponse, is_shareable
 from ..error_handlers import create_error_response
@@ -332,6 +337,7 @@ async def export_okh_schema(http_request: Request = None) -> Any:
 
 @router.get(
     "/template",
+    response_model=OKHTemplateResponse,
     summary="Get blank OKH manifest template",
     description="""
     Return a blank OKH manifest template as a JSON object.
@@ -1724,8 +1730,8 @@ async def cleanup_project(
 
 @router.post(
     "/import-collection",
+    response_model=CollectionImportResponse,
     summary="Import OKH manifests from a collection archive",
-    response_model=dict,
 )
 async def import_collection_endpoint(
     file: UploadFile = File(
@@ -1784,8 +1790,8 @@ async def import_collection_endpoint(
 
 @router.post(
     "/diff-collection",
+    response_model=CollectionDiffResponse,
     summary="Diff an archive against the local OKH collection",
-    response_model=dict,
 )
 async def diff_collection_endpoint(
     file: UploadFile = File(..., description="Collection zip archive to compare"),

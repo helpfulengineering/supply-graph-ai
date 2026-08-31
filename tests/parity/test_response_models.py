@@ -39,7 +39,6 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
     {
         ("DELETE", "/api/asset/{id}"),
         ("POST", "/api/convert/to-datasheet"),
-        ("GET", "/api/identity/security-policy"),
         # Two structurally different payloads, chosen by matching_mode:
         # single-level returns `solutions` (a list) with matching_metrics;
         # nested returns `solution` (one) with match_summary, coverage_gaps and
@@ -52,10 +51,10 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         # work (#432). #402 fixed the reason the *reverse* match had no golden
         # and typed that one; this row waits on #432, not on appetite.
         ("POST", "/api/match"),
-        ("POST", "/api/okh/diff-collection"),
+        # Streams a zip archive, not JSON. A response model describes a JSON
+        # body and there is none to describe — the same kind of permanent
+        # exception as /api/utility/metrics, not work left undone.
         ("GET", "/api/okh/export-collection"),
-        ("POST", "/api/okh/import-collection"),
-        ("GET", "/api/okh/template"),
         ("POST", "/api/package/build/{manifest_id}"),
         ("POST", "/api/package/download-zip"),
         ("GET", "/api/package/remote"),

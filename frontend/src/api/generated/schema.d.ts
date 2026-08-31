@@ -4924,6 +4924,58 @@ export interface components {
             before_date?: string | null;
         };
         /**
+         * CollectionDiffResponse
+         * @description ``POST /api/okh/diff-collection`` — what each side has that the other does not.
+         */
+        CollectionDiffResponse: {
+            /** Status */
+            status: string;
+            /** Only In Archive */
+            only_in_archive?: components["schemas"]["CollectionEntry"][];
+            /** Only Local */
+            only_local?: components["schemas"]["CollectionEntry"][];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /**
+         * CollectionEntry
+         * @description One manifest as a collection archive describes it.
+         *
+         *     Deliberately identity-only: a collection diff answers "which records differ",
+         *     and the content lives in the archive. Same shape in every bucket below.
+         */
+        CollectionEntry: {
+            /** Content Hash */
+            content_hash: string;
+            /** Title */
+            title?: string | null;
+            /** Version */
+            version?: string | null;
+        };
+        /**
+         * CollectionImportResponse
+         * @description ``POST /api/okh/import-collection`` — how each manifest was classified.
+         *
+         *     ``dry_run`` distinguishes a report from a write, and ``imported`` counts
+         *     what actually landed, which is zero on a dry run.
+         */
+        CollectionImportResponse: {
+            /** Status */
+            status: string;
+            /** Dry Run */
+            dry_run: boolean;
+            /** Imported */
+            imported: number;
+            /** New */
+            new?: components["schemas"]["CollectionEntry"][];
+            /** Duplicate */
+            duplicate?: components["schemas"]["CollectionEntry"][];
+            /** Conflict */
+            conflict?: components["schemas"]["CollectionEntry"][];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /**
          * ComponentDetail
          * @description Per-component summary, plus the serialised trees that produced it.
          */
@@ -7559,6 +7611,26 @@ export interface components {
             validation_results?: components["schemas"]["ValidationResult"][] | null;
         };
         /**
+         * OKHTemplateResponse
+         * @description ``GET /api/okh/template`` — a blank manifest to fill in.
+         *
+         *     ``template`` stays free-form on purpose. It is an instance of the OKH
+         *     manifest schema, which is already modelled in ``src/core/models/okh.py``;
+         *     restating its shape here would be a second copy that drifts from the first,
+         *     and the copy that filters is the one a client sees. The envelope around it
+         *     is what this route owns, so the envelope is what it declares.
+         */
+        OKHTemplateResponse: {
+            /** Success */
+            success: boolean;
+            /** Model Name */
+            model_name: string;
+            /** Template */
+            template: {
+                [key: string]: unknown;
+            };
+        };
+        /**
          * OKHUpdateRequest
          * @description Request model for updating an OKH manifest
          */
@@ -9626,6 +9698,38 @@ export interface components {
             v: number;
         };
         /**
+         * SecurityPolicyResponse
+         * @description The deployment's identity/trust posture. Knobs, not secrets.
+         */
+        SecurityPolicyResponse: {
+            /** Mode */
+            mode: string;
+            /** Require Auth For Writes */
+            require_auth_for_writes: boolean;
+            /** Custodial Keys Allowed */
+            custodial_keys_allowed: boolean;
+            /** Grant Ttl Days */
+            grant_ttl_days: number;
+            /** Recovery */
+            recovery: string;
+            /** Trust Bootstrap */
+            trust_bootstrap: string;
+            /** Mdns Advertise */
+            mdns_advertise: boolean;
+            /** Metadata Logging */
+            metadata_logging: string;
+            /** Registry Attestations */
+            registry_attestations: string;
+            /** Anonymous Submission Allowed */
+            anonymous_submission_allowed: boolean;
+            /** Open Registration */
+            open_registration: boolean;
+            /** Key Ttl Days */
+            key_ttl_days: number;
+            /** Admin Break Glass */
+            admin_break_glass: boolean;
+        };
+        /**
          * SignedManifestRecordResponse
          * @description API wrapper for GET /records/{content_hash}.
          */
@@ -11277,7 +11381,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["OKHTemplateResponse"];
                 };
             };
             /** @description Bad Request */
@@ -12591,9 +12695,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["CollectionImportResponse"];
                 };
             };
             /** @description Bad Request */
@@ -12645,9 +12747,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["CollectionDiffResponse"];
                 };
             };
             /** @description Bad Request */
@@ -18501,9 +18601,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SecurityPolicyResponse"];
                 };
             };
         };

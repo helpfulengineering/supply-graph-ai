@@ -1,0 +1,15 @@
+{
+  "admin_break_glass": "*",
+  "anonymous_submission_allowed": "*",
+  "custodial_keys_allowed": "*",
+  "grant_ttl_days": "*",
+  "key_ttl_days": "*",
+  "mdns_advertise": "*",
+  "metadata_logging": "*",
+  "mode": "*",
+  "open_registration": "*",
+  "recovery": "*",
+  "registry_attestations": "*",
+  "require_auth_for_writes": "*",
+  "trust_bootstrap": "*"
+}

@@ -1,0 +1,210 @@
+{
+  "model_name": "*",
+  "success": "*",
+  "template": {
+    "archive_download": "*",
+    "attestation": "*",
+    "bom": "*",
+    "compatible_manifest_ids": [],
+    "components": [
+      {
+        "consumable": "*",
+        "diagnostic_codes": [],
+        "failure_modes": [],
+        "name": "*",
+        "notes": "*",
+        "okh_ref": "*",
+        "part_number": "*",
+        "product_url": "*",
+        "quantity": "*",
+        "repair_notes": "*",
+        "replaceable": "*",
+        "salvageable": "*"
+      }
+    ],
+    "contact": {
+      "affiliation": "*",
+      "email": "*",
+      "name": "*",
+      "social": []
+    },
+    "contribution_guide": "*",
+    "contributors": [
+      {
+        "affiliation": "*",
+        "email": "*",
+        "name": "*",
+        "social": []
+      }
+    ],
+    "cpc_patent_class": "*",
+    "data_source": "*",
+    "derivative_of": {},
+    "description": "*",
+    "design_files": [
+      {
+        "metadata": {},
+        "path": "*",
+        "title": "*",
+        "type": "*"
+      }
+    ],
+    "development_stage": "*",
+    "disassembly_guides": [
+      {
+        "metadata": {},
+        "path": "*",
+        "title": "*",
+        "type": "*"
+      }
+    ],
+    "documentation_home": "*",
+    "documentation_language": "*",
+    "documentation_readiness_level": "*",
+    "domain": "*",
+    "function": "*",
+    "health_safety_notice": "*",
+    "id": "*",
+    "image": "*",
+    "intended_use": "*",
+    "keywords": [],
+    "license": {
+      "documentation": "*",
+      "hardware": "*",
+      "software": "*"
+    },
+    "licensor": {
+      "affiliation": "*",
+      "email": "*",
+      "name": "*",
+      "social": []
+    },
+    "making_instructions": [
+      {
+        "metadata": {},
+        "path": "*",
+        "title": "*",
+        "type": "*"
+      }
+    ],
+    "manufacturing_files": [
+      {
+        "metadata": {},
+        "path": "*",
+        "title": "*",
+        "type": "*"
+      }
+    ],
+    "manufacturing_processes": [],
+    "manufacturing_specs": {
+      "joining_processes": [],
+      "notes": "*",
+      "outer_dimensions": {},
+      "process_requirements": [
+        {
+          "notes": "*",
+          "parameters": {},
+          "process_name": "*",
+          "required_tools": [],
+          "validation_criteria": {}
+        }
+      ],
+      "quality_standards": []
+    },
+    "materials": [
+      {
+        "material_id": "*",
+        "name": "*",
+        "notes": "*",
+        "quantity": "*",
+        "unit": "*"
+      }
+    ],
+    "metadata": {},
+    "okhv": "*",
+    "operating_instructions": [
+      {
+        "metadata": {},
+        "path": "*",
+        "title": "*",
+        "type": "*"
+      }
+    ],
+    "organization": {
+      "email": "*",
+      "name": "*",
+      "url": "*"
+    },
+    "parts": [
+      {
+        "auxiliary": "*",
+        "export": "*",
+        "id": "*",
+        "image": "*",
+        "manufacturing_params": {},
+        "mass": "*",
+        "material": "*",
+        "name": "*",
+        "outer_dimensions": {},
+        "source": "*",
+        "tsdc": []
+      }
+    ],
+    "project_link": "*",
+    "publications": [
+      {
+        "metadata": {},
+        "path": "*",
+        "title": "*",
+        "type": "*"
+      }
+    ],
+    "readme": "*",
+    "repair_guides": [
+      {
+        "applies_to_components": [],
+        "applies_to_models": [],
+        "author": "*",
+        "estimated_time_minutes": "*",
+        "metadata": {},
+        "path": "*",
+        "safety_prerequisites": [],
+        "skill_level": "*",
+        "source": "*",
+        "title": "*",
+        "tools_required": []
+      }
+    ],
+    "repo": "*",
+    "software": [
+      {
+        "installation_guide": "*",
+        "release": "*"
+      }
+    ],
+    "standards_used": [
+      {
+        "certifications": [],
+        "publisher": "*",
+        "reference": "*",
+        "standard_title": "*"
+      }
+    ],
+    "sub_parts": [],
+    "technical_specifications": [
+      {
+        "metadata": {},
+        "path": "*",
+        "title": "*",
+        "type": "*"
+      }
+    ],
+    "technology_readiness_level": "*",
+    "title": "*",
+    "tool_list": [],
+    "tsdc": [],
+    "variant_of": {},
+    "version": "*",
+    "version_date": "*"
+  }
+}
