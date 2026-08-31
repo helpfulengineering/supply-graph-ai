@@ -189,6 +189,22 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # The Docker Hub overview is a documentation surface like the README, so
+      # it lives in the repo (DOCKERHUB.md) and is pushed from here rather than
+      # pasted into a web form and forgotten.
+      #
+      # continue-on-error on purpose: a description that failed to sync is a
+      # stale paragraph, while a release that failed to publish because of one
+      # is an outage. The step reports its own failure in the job summary.
+      - name: Sync the Docker Hub overview
+        continue-on-error: true
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.IMAGE }}
+          readme-filepath: ./DOCKERHUB.md
+
       - name: Publish summary
         run: |
           echo "Published multi-arch (${{ env.PLATFORMS }}):"
@@ -633,6 +649,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # The installer ships as a release asset so its integrity comes from the
+      # release process rather than a new one, and so the URL survives a
+      # frontend rebuild. openhardwaremanager.org/install.sh redirects to
+      # `releases/latest/download/install.sh`, which GitHub keeps pointed at
+      # the newest release — so a new release updates the published installer
+      # with no further step.
+      - name: Checksum the installer
+        run: |
+          mkdir -p /tmp/assets
+          cp scripts/install.sh /tmp/assets/install.sh
+          cd /tmp/assets
+          sha256sum install.sh > install.sh.sha256
+          cat install.sh.sha256
+
       - name: Build release notes
         run: |
           VERSION="${{ needs.validate.outputs.version }}"
@@ -640,6 +670,21 @@ jobs:
           {
             echo ""
             echo "---"
+            echo ""
+            echo "### Install"
+            echo ""
+            echo "Download, check it, run it:"
+            echo ""
+            echo '```bash'
+            echo "curl -fsSLO https://github.com/${{ github.repository }}/releases/download/v${VERSION}/install.sh"
+            echo "curl -fsSLO https://github.com/${{ github.repository }}/releases/download/v${VERSION}/install.sh.sha256"
+            echo "sha256sum -c install.sh.sha256"
+            echo "sh install.sh"
+            echo '```'
+            echo ""
+            echo "\`\`\`"
+            cat /tmp/assets/install.sh.sha256
+            echo "\`\`\`"
             echo ""
             echo "### Docker"
             echo ""
@@ -658,3 +703,6 @@ jobs:
           body_path: /tmp/release-notes.md
           generate_release_notes: false
           make_latest: true
+          files: |
+            /tmp/assets/install.sh
+            /tmp/assets/install.sh.sha256

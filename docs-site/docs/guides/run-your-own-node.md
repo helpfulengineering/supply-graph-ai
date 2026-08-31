@@ -13,27 +13,54 @@ through it.
 If you're here because your organisation can't put its data on infrastructure it
 doesn't control, this page is the answer to that.
 
-## Start it
+## Install it
 
-One command, if you have Docker:
+You need Docker. Everything else the installer does for you.
+
+```bash
+# Download it and its checksum
+curl -fsSLO https://openhardwaremanager.org/install.sh
+curl -fsSLO https://github.com/helpfulengineering/supply-graph-ai/releases/latest/download/install.sh.sha256
+
+# Check it is what we published
+sha256sum -c install.sh.sha256
+
+# Read it if you like, then run it
+sh install.sh
+```
+
+We show it this way round on purpose. OHM exists to make supply chains
+inspectable, and a project making that argument should not ask you to pipe a
+remote script into your shell without looking at it. The checksum is published
+with every release, the script is a few hundred lines, and reading it costs a
+minute.
+
+If you would rather have the one-liner, it is there:
 
 ```bash
 curl -fsSL https://openhardwaremanager.org/install.sh | sh
 ```
 
-It asks nothing. It mints the two secrets a node needs, starts on local
-storage, waits until the node is healthy, and prints the URL and an admin key.
-Configuration comes afterwards, through the running node — which is what lets
-the install itself be silent.
+Either form does the same thing, and asks nothing. On macOS, `shasum -a 256 -c`
+replaces `sha256sum -c`.
 
-**Save the admin key it prints.** It is shown once. Paste it into
-`/settings/session`, then point the node at real storage in
-`/settings/storage` when you want to; local storage works in the meantime.
+### Then configure it
+
+Installation and configuration are two steps, deliberately. The installer
+finishes at a healthy node running on local storage; everything that needs a
+decision happens afterwards, in the running node.
+
+It prints a URL and an admin key. **Save the key — it is shown once.**
+
+1. Open the URL, go to `/settings/session`, and paste the key.
+2. Go to `/settings/storage` to point the node at real storage, if you want to.
+   Local storage works in the meantime, and switching later can migrate what is
+   already there.
 
 Pin a version, or move the ports, with environment variables:
 
 ```bash
-OHM_VERSION=0.11.1 OHM_PORT=9080 curl -fsSL https://openhardwaremanager.org/install.sh | sh
+OHM_VERSION=0.11.1 OHM_PORT=9080 sh install.sh
 ```
 
 ### Or with Compose, from a clone

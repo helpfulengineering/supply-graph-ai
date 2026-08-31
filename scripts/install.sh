@@ -2,6 +2,16 @@
 #
 # Install and start an Open Hardware Manager node. No prompts, no arguments.
 #
+# Published as a release asset with a checksum, so the documented path is to
+# fetch it, check it, and read it before running it:
+#
+#   curl -fsSLO https://openhardwaremanager.org/install.sh
+#   curl -fsSLO https://github.com/helpfulengineering/supply-graph-ai/releases/latest/download/install.sh.sha256
+#   sha256sum -c install.sh.sha256
+#   sh install.sh
+#
+# The one-liner works too, for those who want it:
+#
 #   curl -fsSL https://openhardwaremanager.org/install.sh | sh
 #
 # Installation and configuration are deliberately separate. This script's job
