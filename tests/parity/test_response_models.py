@@ -37,29 +37,12 @@ HTTP_METHODS = {"get", "post", "put", "delete", "patch"}
 # Each row is a debt to be removed by #373, not a permanent exemption.
 ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
     {
-        ("DELETE", "/api/asset/{id}"),
-        ("POST", "/api/convert/to-datasheet"),
-        # Two structurally different payloads, chosen by matching_mode:
-        # single-level returns `solutions` (a list) with matching_metrics;
-        # nested returns `solution` (one) with match_summary, coverage_gaps and
-        # suggestions. One model would filter whichever branch it is not.
-        #
-        # Unlike /api/utility/metrics this IS typable — matching_mode is a
-        # literal discriminator, so a discriminated union fits — and as of #441
-        # it is finally capturable: both branches return 200. (#432, fixed in
-        # #434, cleared single-level; the nested branch 500'd until #439.)
-        #
-        # So this row is no longer blocked on anything. It is work not yet
-        # done: a discriminated union, and a golden for each branch.
-        ("POST", "/api/match"),
-        # Streams a zip archive, not JSON. A response model describes a JSON
-        # body and there is none to describe — the same kind of permanent
-        # exception as /api/utility/metrics, not work left undone.
+        # These four stream a file rather than a JSON body — a collection
+        # archive, a .docx datasheet, a zip of several packages, and one
+        # package's archive. A response model describes a JSON body and there
+        # is none to describe: permanent exceptions, not work left undone.
         ("GET", "/api/okh/export-collection"),
-        # Both stream a file rather than a JSON body — a zip of several
-        # packages, and one package's archive. A response model describes a
-        # JSON body and there is none to describe, the same permanent
-        # exception as /api/okh/export-collection, not work left undone.
+        ("POST", "/api/convert/to-datasheet"),
         ("POST", "/api/package/download-zip"),
         ("GET", "/api/package/{org}/{project}/{version}/download"),
         # Cannot be typed as one model: /metrics returns four different shapes

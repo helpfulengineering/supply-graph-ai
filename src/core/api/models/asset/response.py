@@ -152,3 +152,16 @@ class ClaimComponentResponse(BaseModel):
     claimed_by: str
     claimed_at: str
     message: str = ""
+
+
+class AssetDeleteResponse(BaseModel):
+    """Confirmation that an asset record was removed (#373).
+
+    Derived from the golden in
+    ``tests/integration/test_asset_delete_contract.py``. The route returned a
+    bare dict, so the generated schema said nothing about it and a client had
+    to guess at the field names.
+    """
+
+    success: bool
+    message: str

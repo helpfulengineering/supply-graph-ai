@@ -1,0 +1,95 @@
+{
+  "data": {
+    "applied_filters": {},
+    "coverage_gaps": [],
+    "match_summary": {
+      "combination_strategy": "*",
+      "coverage_gap_counts": {},
+      "coverage_ratio": "*",
+      "covered_process_count": "*",
+      "facility_combination_applied": "*",
+      "facility_combination_requested": "*",
+      "matching_mode": "*",
+      "max_facilities_per_solution": "*",
+      "required_process_count": "*",
+      "return_alternative_solutions": "*",
+      "solution_count": "*",
+      "warnings": []
+    },
+    "match_summary_text": "*",
+    "matching_metrics": {
+      "direct_matches": "*",
+      "heuristic_matches": "*",
+      "llm_matches": "*",
+      "nlp_matches": "*"
+    },
+    "matching_mode": "*",
+    "processing_time": "*",
+    "solution_id": "*",
+    "solutions": [
+      {
+        "confidence": "*",
+        "explanation": {
+          "facility_id": "*",
+          "facility_name": "*",
+          "matching_layers_used": [
+            "*"
+          ],
+          "missing_capabilities": [],
+          "overall_confidence": "*",
+          "overall_status": "*",
+          "requirement_matches": [
+            {
+              "confidence": "*",
+              "evidence": {},
+              "explanation": "*",
+              "matched_capability": "*",
+              "matching_layer": "*",
+              "requirement_source": "*",
+              "requirement_value": "*",
+              "rule_id": "*",
+              "status": "*"
+            }
+          ],
+          "why_matched": "*",
+          "why_not_matched": "*"
+        },
+        "explanation_human": "*",
+        "facility": "*",
+        "facility_id": "*",
+        "facility_name": "*",
+        "match_type": "*",
+        "metrics": {
+          "capability_count": "*",
+          "facility_count": "*",
+          "requirement_count": "*"
+        },
+        "processing_timestamp": "*",
+        "rank": "*",
+        "score": "*",
+        "tree": "*"
+      }
+    ],
+    "suggestion_codes": [],
+    "suggestions": [],
+    "total_solutions": "*",
+    "validation_results": [
+      {
+        "errors": [],
+        "is_valid": "*",
+        "metadata": "*",
+        "score": "*",
+        "suggestions": [],
+        "warnings": []
+      }
+    ]
+  },
+  "message": "*",
+  "metadata": {
+    "processing_time": "*",
+    "timestamp": "*"
+  },
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}
