@@ -407,8 +407,25 @@ def setup_api_middleware(app, metrics_tracker=None):
     # Security headers (first to execute)
     app.add_middleware(SecurityHeadersMiddleware)
 
-    # Rate limiting
-    app.add_middleware(RateLimitingMiddleware, requests_per_minute=100)
+    # Rate limiting — mounted only where it defends something.
+    #
+    # It is an abuse brake for a public deployment, and outside one it is a
+    # constraint the test suite has to fight: the integration suite registers
+    # more accounts in a minute than a real visitor ever would, from a single
+    # address, and tripped the tighter budget on /identity/register. Making
+    # every future test that registers ration itself against a production
+    # defence is the wrong trade.
+    #
+    # The switch is here rather than inside dispatch() on purpose, so a test
+    # that mounts the middleware itself still exercises it — which is how the
+    # budgets are actually covered (tests/unit/test_sensitive_rate_limits.py).
+    from src.config.schema import is_production_like
+    from src.config.settings import ENVIRONMENT
+
+    if is_production_like(ENVIRONMENT):
+        app.add_middleware(RateLimitingMiddleware, requests_per_minute=100)
+    else:
+        logger.info("Rate limiting disabled outside production-like environments")
 
     # Request logging (optional, for debugging)
     app.add_middleware(

@@ -34,7 +34,15 @@ from ...models.visibility import (
 )
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
-from ..models.inventory import InventoryData, InventoryResponse, InventoryRow
+from src.config.security_policy import get_security_policy
+from ...services.auth_service import AuthenticationService
+
+from ..models.inventory import (
+    BreakGlassRequest,
+    InventoryData,
+    InventoryResponse,
+    InventoryRow,
+)
 from ...utils.logging import get_logger
 from ..dependencies import (
     created_by,
@@ -103,6 +111,76 @@ async def get_okw_service() -> OKWService:
 # Declared before any /{id} route: FastAPI matches in declaration order,
 # so a literal path registered after a path-param one is swallowed by it —
 # /inventory arrived as id="inventory" and 422'd on UUID parsing.
+@router.post(
+    "/{record_id}/break-glass",
+    response_model=OKWResponse,
+    summary="Read one private facility, recorded against the reader",
+)
+async def okw_break_glass(
+    record_id: str,
+    payload: BreakGlassRequest,
+    user: AuthenticatedUser = Depends(require_admin),
+    okw_service: OKWService = Depends(get_okw_service),
+) -> Any:
+    """Read one private record, on the record, with a reason.
+
+    An admin's standing scope is unchanged: they still do not read private
+    records. This is the exception, and it is deliberately expensive to use
+    rather than impossible — crisis is when an operator may genuinely need to
+    recover someone's work for them.
+
+    The cost is the admin's anonymity, not the user's privacy. Every successful
+    access writes an ``admin_access`` attestation naming the admin, the record
+    and the reason, whose subject is the record's OWNER, so they can see it.
+    """
+    policy = get_security_policy()
+    if not policy.admin_break_glass:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Break-glass access is disabled in "
+                f"{policy.mode.value} mode; an admin does not read private records"
+            ),
+        )
+
+    # Checked before the read, not after: the accounting is the price of the
+    # access, so a node that cannot record it does not get to make it. Failing
+    # afterwards would mean the record had already been read.
+    svc = await AuthenticationService.get_instance()
+    if not svc.can_record_admin_access():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "This node holds no identity to sign the access record with, "
+                "so break-glass is unavailable — the record of the access is "
+                "the condition of making it"
+            ),
+        )
+
+    record = await okw_service.get(record_id)
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
+        )
+
+    owner_did = await okw_service.owner_did(record_id)
+
+    await svc.record_admin_access(
+        user=user,
+        record_id=str(record_id),
+        record_type="okw",
+        owner_did=owner_did,
+        reason=payload.reason,
+    )
+    return OKWResponse.model_validate(
+        {
+            **(record.to_dict() if hasattr(record, "to_dict") else record),
+            "status": APIStatus.SUCCESS,
+            "message": "OKW facility opened under break-glass",
+        }
+    )
+
+
 @router.get(
     "/inventory",
     response_model=InventoryResponse,

@@ -454,11 +454,17 @@ async def certify(
 async def list_attestations(
     subject_did: Optional[str] = Query(None, description="Filter by subject DID"),
     content_hash: Optional[str] = Query(None, description="Filter by content hash"),
-    _admin: object = Depends(require_admin),
+    user: AuthenticatedUser = Depends(get_current_user),
     svc: AuthenticationService = Depends(get_auth_service),
 ) -> List[Attestation]:
-    return await svc.list_attestations(
-        subject_did=subject_did, content_hash=content_hash
+    """Attestations about you, or all of them for an admin.
+
+    Scoped rather than admin-only (#406): break-glass records an
+    ``admin_access`` attestation whose subject is the record's owner, and an
+    accounting the subject cannot read is not an accounting.
+    """
+    return await svc.list_attestations_for(
+        user, subject_did=subject_did, content_hash=content_hash
     )
 
 

@@ -523,3 +523,33 @@ export function fetchOkhInventory(): Promise<InventoryResult> {
 export function fetchOkwInventory(): Promise<InventoryResult> {
   return fetchInventory("/api/okw/inventory");
 }
+
+
+/**
+ * Read one private record, on the record, with a reason.
+ *
+ * Crisis-mode only, and never a standing permission: the access is recorded as
+ * an attestation naming the reader, and the record's owner can see it. The
+ * caller is expected to have told the admin that before asking for a reason.
+ */
+export async function breakGlass(
+  kind: "okh" | "okw",
+  recordId: string,
+  reason: string,
+): Promise<unknown> {
+  const path =
+    kind === "okh"
+      ? "/api/okh/{record_id}/break-glass"
+      : "/api/okw/{record_id}/break-glass";
+  const { data, error, response } = await apiClient.POST(path, {
+    params: { path: { record_id: recordId } },
+    body: { reason },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Break-glass refused (HTTP ${response.status})`),
+    );
+  }
+  return data;
+}

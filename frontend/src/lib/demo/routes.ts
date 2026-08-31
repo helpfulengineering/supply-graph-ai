@@ -347,6 +347,21 @@ export function resolveDemoRoute(method: string, pathname: string): DemoRoute {
     });
   }
 
+  // Break-glass is refused in the demo world rather than answered.
+  //
+  // Everywhere else here a canned success keeps the tour moving, but this one
+  // is a boundary rather than a feature: the demo runs in peacetime, where an
+  // admin does not read private records, and pretending otherwise would teach
+  // the opposite of what the surface exists to say. The refusal IS the demo.
+  if (verb === "POST" && /\/break-glass$/.test(pathname)) {
+    return {
+      kind: "error",
+      status: 403,
+      detail:
+        "Break-glass access is disabled in peacetime mode; an admin does not read private records",
+    };
+  }
+
   // Registering in the demo world is a write in name only: the identity it
   // hands back is the same canned one every visitor gets, and the token it
   // carries authenticates nothing. Answered rather than refused so the tour

@@ -36,6 +36,10 @@ export interface SecurityPolicyPublic {
   anonymous_submission_allowed: boolean;
   /** Whether a visitor may mint their own account without an operator. */
   open_registration: boolean;
+  /** Whether an admin may read one private record at a time, on the record. */
+  admin_break_glass: boolean;
+  /** How long a self-service key lives before it must be renewed. */
+  key_ttl_days: number;
 }
 
 /** Space claim (not yet in committed OpenAPI). */

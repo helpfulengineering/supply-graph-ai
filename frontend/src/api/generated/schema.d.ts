@@ -251,6 +251,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/{record_id}/break-glass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read one private design, recorded against the reader
+         * @description Read one private record, on the record, with a reason.
+         *
+         *     An admin's standing scope is unchanged: they still do not read private
+         *     records. This is the exception, and it is deliberately expensive to use
+         *     rather than impossible — crisis is when an operator may genuinely need to
+         *     recover someone's work for them.
+         *
+         *     The cost is the admin's anonymity, not the user's privacy. Every successful
+         *     access writes an ``admin_access`` attestation naming the admin, the record
+         *     and the reason, whose subject is the record's OWNER, so they can see it.
+         */
+        post: operations["okh_break_glass_api_okh__record_id__break_glass_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/inventory": {
         parameters: {
             query?: never;
@@ -948,6 +977,35 @@ export interface paths {
          *         - **has_part_number** — components with a manufacturer/supplier part number
          */
         post: operations["harvest_parts_api_okh_harvest_parts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/{record_id}/break-glass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read one private facility, recorded against the reader
+         * @description Read one private record, on the record, with a reason.
+         *
+         *     An admin's standing scope is unchanged: they still do not read private
+         *     records. This is the exception, and it is deliberately expensive to use
+         *     rather than impossible — crisis is when an operator may genuinely need to
+         *     recover someone's work for them.
+         *
+         *     The cost is the admin's anonymity, not the user's privacy. Every successful
+         *     access writes an ``admin_access`` attestation naming the admin, the record
+         *     and the reason, whose subject is the record's OWNER, so they can see it.
+         */
+        post: operations["okw_break_glass_api_okw__record_id__break_glass_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3805,7 +3863,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List attestations */
+        /**
+         * List attestations
+         * @description Attestations about you, or all of them for an admin.
+         *
+         *     Scoped rather than admin-only (#406): break-glass records an
+         *     ``admin_access`` attestation whose subject is the record's owner, and an
+         *     accounting the subject cannot read is not an accounting.
+         */
         get: operations["list_attestations_api_identity_attestations_get"];
         put?: never;
         /**
@@ -4441,6 +4506,18 @@ export interface components {
              * @description Validation context (e.g., 'manufacturing', 'hobby')
              */
             validation_context?: string | null;
+        };
+        /**
+         * BreakGlassRequest
+         * @description Why an admin needs to read one private record.
+         *
+         *     Mandatory and non-empty: the reason is the whole point. An access with no
+         *     stated cause is a standing permission with extra steps, and the record this
+         *     writes is shown to the person whose record was read.
+         */
+        BreakGlassRequest: {
+            /** Reason */
+            reason: string;
         };
         /**
          * Capability
@@ -11023,6 +11100,60 @@ export interface operations {
             };
         };
     };
+    okh_break_glass_api_okh__record_id__break_glass_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BreakGlassRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OKHResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     okh_inventory_api_okh_inventory_get: {
         parameters: {
             query?: never;
@@ -12661,6 +12792,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OKHHarvestResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    okw_break_glass_api_okw__record_id__break_glass_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BreakGlassRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OKWResponse"];
                 };
             };
             /** @description Bad Request */

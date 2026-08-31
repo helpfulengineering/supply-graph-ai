@@ -267,6 +267,34 @@ needs an id and a delete. Moderating *submitted* records is a different plane
 > the operator of the node they chose, and it should not be described as if it
 > does.
 
+## Break glass
+
+An admin does not read private records. Crisis mode adds one exception, and it
+is deliberately expensive to use rather than impossible — that is when an
+operator may genuinely need to recover someone's work for them.
+
+```
+POST /api/okh|okw/{id}/break-glass   { "reason": "..." }
+```
+
+- **Crisis only.** Peacetime and shielded refuse and name the active mode.
+- **A reason is mandatory** and has to be a sentence. It is shown to the person
+  whose record was read, so a formality would insult them.
+- **Every access is recorded** as an `admin_access` attestation naming the
+  reader, the record and the reason. Its **subject is the record's owner**, so
+  it appears in their own attestation list — reading attestations is scoped to
+  their subject rather than admin-only, because an accounting the subject
+  cannot read is not an accounting.
+- **No accounting, no access.** A node with no signing identity cannot record
+  the access, so it refuses to make it. The record is the condition of the read,
+  not a side effect of it.
+- **Nothing standing is granted.** An admin's list scope is unchanged; this
+  reads one record, once, on the record.
+
+There is deliberately no `admin_reads_private` setting. A knob turns a norm into
+a setting, and settings drift to whatever is convenient. The cost of reading is
+the admin's anonymity, not the user's privacy.
+
 ## Who can see a record
 
 Record lists are scoped to the caller. Ownership keys on the creator's **subject

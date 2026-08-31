@@ -1267,6 +1267,77 @@ class AuthenticationService:
             return await self._attestation_store.list_for_content(content_hash)
         return await self._attestation_store.list_all()
 
+    async def list_attestations_for(
+        self,
+        user: AuthenticatedUser,
+        subject_did: Optional[str] = None,
+        content_hash: Optional[str] = None,
+    ) -> List[Attestation]:
+        """Attestations ``user`` may read: their own subject, or all for an admin.
+
+        Scoped for the same reason keys and records are (#403, #413), and with
+        one specific consequence: break-glass writes an ``admin_access``
+        attestation naming the record's owner as the subject, and an accounting
+        the subject cannot read is not an accounting. Before this the whole
+        surface was admin-only, so the person it was written for was the one
+        person who could not see it.
+        """
+        if "admin" in user.permissions:
+            return await self.list_attestations(subject_did, content_hash)
+        owned = self.viewer_scope(user).dids
+        if not owned:
+            return []
+        if subject_did and subject_did not in owned:
+            return []
+        results: List[Attestation] = []
+        for did in sorted(owned) if not subject_did else [subject_did]:
+            results.extend(await self.list_attestations(did, content_hash))
+        return results
+
+    def can_record_admin_access(self) -> bool:
+        """Whether this node can sign an access record at all.
+
+        Break-glass without an accounting is just an admin reading a private
+        record, which is the thing the boundary forbids — so a node with no
+        signing identity must refuse the access rather than make it silently
+        unaccountable.
+        """
+        return self._node_signing_identity() is not None
+
+    async def record_admin_access(
+        self,
+        user: AuthenticatedUser,
+        record_id: str,
+        record_type: str,
+        owner_did: Optional[str],
+        reason: str,
+    ) -> Attestation:
+        """Write the durable fact that an admin read one private record.
+
+        Subject is the record's **owner**, not the admin: that is who needs to
+        find it, and ``list_attestations_for`` scopes by subject. The admin is
+        named in the claim, which is what makes this an accounting rather than
+        a log nobody reads.
+
+        Issued and signed by the node, because the point is a fact the node
+        stands behind — an admin signing their own access would be a diary.
+        """
+        return await self.issue_attestation(
+            type="admin_access",
+            # Falls back to the node's own DID when the record predates DID
+            # attribution: an unattributable read is still worth recording, and
+            # dropping it would make the absence of a row meaningless.
+            subject_did=owner_did or self._node_signing_identity().did,
+            claim={
+                "record_id": record_id,
+                "record_type": record_type,
+                "accessed_by_did": user.subject_did,
+                "accessed_by_account": str(user.account_id),
+                "reason": reason,
+                "owner_attributed": bool(owner_did),
+            },
+        )
+
     async def list_attestations_for_catalog(
         self, manifest_content_hash: str
     ) -> List[Attestation]:

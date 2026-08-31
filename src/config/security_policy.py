@@ -53,6 +53,14 @@ class SecurityPolicy:
     # an abandoned key stops working on its own rather than staying valid for
     # ever. Crisis runs long for offline grace; shielded runs short.
     key_ttl_days: int = 180
+    # Whether an admin may read one private record at a time, with a reason,
+    # leaving a record of it the owner can see (#406). True in crisis only:
+    # that is when an operator may genuinely need to recover someone's work for
+    # them. This is not a standing permission and there is deliberately no
+    # `admin_reads_private` — a knob turns a norm into a setting, and settings
+    # drift to whatever is convenient. The cost of reading is the admin's
+    # anonymity, not the user's privacy.
+    admin_break_glass: bool = False
 
     def to_public_dict(self) -> Dict[str, Any]:
         """JSON-serializable view of the active policy (for API/CLI status)."""
@@ -75,6 +83,7 @@ _PEACETIME = SecurityPolicy(
     anonymous_submission_allowed=True,
     open_registration=True,
     key_ttl_days=180,
+    admin_break_glass=False,
 )
 
 # Availability under degraded connectivity: long grants, TOFU-friendly, mDNS on.
@@ -91,6 +100,7 @@ _CRISIS = SecurityPolicy(
     anonymous_submission_allowed=True,
     open_registration=True,
     key_ttl_days=365,
+    admin_break_glass=True,
 )
 
 # Confidentiality under surveillance: short TTLs, no mDNS, minimal metadata.
@@ -107,6 +117,7 @@ _SHIELDED = SecurityPolicy(
     anonymous_submission_allowed=False,
     open_registration=False,
     key_ttl_days=30,
+    admin_break_glass=False,
 )
 
 _PRESETS = {

@@ -453,6 +453,8 @@ export const securityPolicyFixture = {
   registry_attestations: "trust_on_follow",
   anonymous_submission_allowed: true,
   open_registration: true,
+  admin_break_glass: false,
+  key_ttl_days: 180,
 };
 
 export const registrationFixture = {
