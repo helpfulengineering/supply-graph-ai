@@ -29,6 +29,7 @@ from typing import Any, Dict, List, Optional
 
 from ...config import settings
 from ..storage.base import StorageConfig
+from ..storage.manager import StorageManager
 from ..utils.logging import get_logger
 from .storage_config_store import load_config, save_config
 from .storage_service import StorageService
@@ -100,6 +101,26 @@ def _validate_credentials(provider: str, credentials: Dict[str, str]) -> None:
             f"{', '.join(unexpected)}. "
             f"Accepted: {', '.join(sorted(allowed)) or 'none'}."
         )
+
+
+async def ensure_configured(service: StorageService) -> None:
+    """Configure the service from the instance's effective configuration.
+
+    A long-running API process has already done this at boot. A CLI process has
+    not: it starts, configures nothing, and would report that there is no
+    storage to migrate from — describing the process rather than the instance.
+
+    Uses the same precedence as boot, persisted over environment, so the CLI
+    acts on the backend the instance actually uses rather than on whatever the
+    shell happens to export.
+    """
+    if service.manager is not None:
+        return
+
+    config = load_config() or getattr(settings, "STORAGE_CONFIG", None)
+    if config is None:
+        return
+    await service.configure(config)
 
 
 async def current_config(service: StorageService) -> StorageConfigView:
@@ -211,3 +232,174 @@ async def reconfigure_storage(
         "previous_provider": previous.provider if previous else None,
         "previous_bucket": previous.bucket_name if previous else None,
     }
+
+
+# ---------------------------------------------------------------------------
+# Switch modes (#381)
+#
+# #377 shipped one answer to "what happens to the data already there": leave
+# it. These are the other two. The mode is the caller's explicit choice, and
+# the default stays `abandon` so nothing changes for an existing caller.
+# ---------------------------------------------------------------------------
+
+MODE_ABANDON = "abandon"
+MODE_MIGRATE = "migrate"
+MODE_ABANDON_AND_WIPE = "abandon_and_wipe"
+SWITCH_MODES = (MODE_ABANDON, MODE_MIGRATE, MODE_ABANDON_AND_WIPE)
+
+
+def build_candidate(
+    provider: str,
+    bucket: str,
+    region: Optional[str] = None,
+    endpoint_url: Optional[str] = None,
+    credentials: Optional[Dict[str, str]] = None,
+) -> StorageConfig:
+    """Validate the shape of a requested configuration and build it.
+
+    Separated from :func:`reconfigure_storage` so the migration job can reuse
+    exactly the same checks in the worker, rather than a second copy that
+    drifts.
+    """
+    credentials = {k: v for k, v in (credentials or {}).items() if v}
+    _validate_credentials(provider, credentials)
+    return StorageConfig(
+        provider=provider,
+        bucket_name=bucket,
+        region=region,
+        credentials=credentials,
+        endpoint_url=endpoint_url,
+    )
+
+
+async def switch_and_wipe(
+    service: StorageService,
+    candidate: StorageConfig,
+    wipe_confirm: str,
+    dry_run: bool = False,
+) -> Dict[str, Any]:
+    """Switch to ``candidate``, then erase what the instance was using.
+
+    The order matters and is not negotiable: the wipe happens **after** the
+    switch has succeeded. Erasing first would leave a window in which the old
+    data is gone and the new backend has not been proved — the one state from
+    which there is no recovery.
+
+    The echo guard is checked before anything happens, so a caller who names
+    the wrong bucket does not get a switch either. `dry_run` reports what would
+    be destroyed and performs no switch and no deletion.
+    """
+    from .storage_transfer import WipeGuardError, wipe_storage
+
+    previous = service.manager.config if service.manager else None
+    if previous is None:
+        raise StorageReconfigureError(
+            "There is no current storage configuration to wipe."
+        )
+
+    # Fail before the switch, not after it: a mismatched echo should leave the
+    # instance exactly as it was, not switched-but-not-wiped.
+    if wipe_confirm != previous.bucket_name:
+        raise StorageReconfigureError(
+            f"Refusing to wipe: the request named {wipe_confirm!r} but this "
+            f"instance's storage is {previous.bucket_name!r}. Nothing was "
+            "deleted and the configuration is unchanged."
+        )
+
+    old_manager = StorageManager(previous)
+    await old_manager.connect()
+
+    if dry_run:
+        try:
+            report = await wipe_storage(
+                old_manager, previous.bucket_name, wipe_confirm, dry_run=True
+            )
+        finally:
+            await old_manager.disconnect()
+        return {
+            "mode": MODE_ABANDON_AND_WIPE,
+            "dry_run": True,
+            "switched": False,
+            "wipe": report.to_dict(),
+        }
+
+    try:
+        result = await reconfigure_storage(
+            service,
+            provider=candidate.provider,
+            bucket=candidate.bucket_name,
+            region=candidate.region,
+            endpoint_url=candidate.endpoint_url,
+            credentials=candidate.credentials,
+        )
+
+        try:
+            report = await wipe_storage(old_manager, previous.bucket_name, wipe_confirm)
+        except WipeGuardError as exc:  # pragma: no cover — checked above
+            raise StorageReconfigureError(str(exc)) from exc
+    finally:
+        await old_manager.disconnect()
+
+    result["mode"] = MODE_ABANDON_AND_WIPE
+    result["dry_run"] = False
+    result["switched"] = True
+    result["wipe"] = report.to_dict()
+    return result
+
+
+async def migrate_and_switch(
+    service: StorageService,
+    candidate: StorageConfig,
+    progress: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Copy everything to ``candidate``, verify it, and only then switch.
+
+    The instance keeps serving from the old backend for the whole copy. A
+    migration that fails partway — or is abandoned — leaves a working instance
+    on its original storage and a partial copy on the destination, which is
+    recoverable; the reverse is not.
+    """
+    from .storage_setup import StorageSetupError, setup_storage
+    from .storage_transfer import copy_all_objects
+
+    previous = service.manager.config if service.manager else None
+    if previous is None:
+        raise StorageReconfigureError("There is no current storage to migrate from.")
+
+    # 1. Prove the destination before reading a single object.
+    try:
+        await setup_storage(candidate)
+    except StorageSetupError as exc:
+        raise StorageReconfigureError(str(exc)) from exc
+
+    source = StorageManager(previous)
+    destination = StorageManager(candidate)
+    await source.connect()
+    await destination.connect()
+
+    try:
+        report = await copy_all_objects(source, destination, progress=progress)
+    finally:
+        await source.disconnect()
+        await destination.disconnect()
+
+    if not report.ok:
+        raise StorageReconfigureError(
+            f"Migration did not complete: {len(report.failures)} object(s) "
+            f"failed. The instance is still serving from "
+            f"{previous.bucket_name!r} and nothing was switched. "
+            f"First failures: {'; '.join(report.failures[:3])}"
+        )
+
+    # 2. Only now, with a verified copy, is it safe to swap.
+    result = await reconfigure_storage(
+        service,
+        provider=candidate.provider,
+        bucket=candidate.bucket_name,
+        region=candidate.region,
+        endpoint_url=candidate.endpoint_url,
+        credentials=candidate.credentials,
+    )
+    result["mode"] = MODE_MIGRATE
+    result["migration"] = report.to_dict()
+    return result

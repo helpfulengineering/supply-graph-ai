@@ -4048,8 +4048,38 @@ export interface paths {
          *     reads and writes. A rejected configuration leaves the instance serving
          *     exactly as it was — the candidate is proved with a real write/read round
          *     trip before anything is persisted or swapped.
+         *
+         *     ``mode`` decides what happens to the data already in storage. ``migrate``
+         *     returns a job rather than a result: a copy of a populated backend runs far
+         *     longer than an ingress timeout allows, and a caller that cannot observe it
+         *     cannot tell a slow copy from a stalled one.
          */
         post: operations["configure_storage_api_storage_config_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/storage/migration/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Progress of a running storage migration
+         * @description Cumulative progress of a migration job.
+         *
+         *     ``since`` is an offset, not a timestamp: pass back ``next_cursor`` and only
+         *     new events arrive. The whole log is republished on every update, so a
+         *     caller polling at any interval sees every stage rather than sampling the
+         *     timeline.
+         */
+        get: operations["migration_status_api_storage_migration__job_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6984,6 +7014,103 @@ export interface components {
             nlp_matches: number;
             /** Llm Matches */
             llm_matches: number;
+        };
+        /**
+         * MigrationEvent
+         * @description One stage of a running migration.
+         */
+        MigrationEvent: {
+            /** Seq */
+            seq: number;
+            /** Stage */
+            stage: string;
+            /** Fraction */
+            fraction: number;
+            /** Message */
+            message?: string | null;
+            /** Ts */
+            ts: string;
+        };
+        /**
+         * MigrationReportData
+         * @description What a migration moved, and whether the destination agreed.
+         */
+        MigrationReportData: {
+            /** Objects Copied */
+            objects_copied: number;
+            /** Bytes Copied */
+            bytes_copied: number;
+            /** Objects Verified */
+            objects_verified: number;
+            /** Failures */
+            failures: string[];
+            /** Ok */
+            ok: boolean;
+        };
+        /**
+         * MigrationStatusData
+         * @description Cumulative progress of a migration job.
+         *
+         *     The whole log is republished on every update rather than only the current
+         *     stage, so a caller polling at any interval sees every stage — including
+         *     ones that began and ended between two polls.
+         */
+        MigrationStatusData: {
+            /** Job Id */
+            job_id: string;
+            /** State */
+            state: string;
+            /** Events */
+            events: components["schemas"]["MigrationEvent"][];
+            /** Next Cursor */
+            next_cursor: number;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * MigrationStatusResponse
+         * @description Envelope for ``GET /api/storage/migration/{job_id}``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        MigrationStatusResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["MigrationStatusData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * NestedMatchData
@@ -11392,6 +11519,23 @@ export interface components {
             previous_provider?: string | null;
             /** Previous Bucket */
             previous_bucket?: string | null;
+            /**
+             * Mode
+             * @default abandon
+             */
+            mode: string;
+            /**
+             * Dry Run
+             * @default false
+             */
+            dry_run: boolean;
+            /**
+             * Switched
+             * @default true
+             */
+            switched: boolean;
+            wipe?: components["schemas"]["WipeReportData"] | null;
+            migration?: components["schemas"]["MigrationReportData"] | null;
         };
         /**
          * StorageConfigureRequest
@@ -11427,6 +11571,21 @@ export interface components {
             credentials?: {
                 [key: string]: string;
             };
+            /**
+             * Mode
+             * @description What happens to the data already in storage. 'abandon' leaves it where it is and switches (the default, and #377's behaviour). 'migrate' copies and verifies it on the new backend before switching, and runs as a job. 'abandon_and_wipe' switches first, then erases the old backend.
+             */
+            mode?: ("abandon" | "migrate" | "abandon_and_wipe") | null;
+            /**
+             * Wipe Confirm
+             * @description Required for 'abandon_and_wipe': the exact bucket or path being erased. A mismatch deletes nothing and switches nothing. A boolean would be a checkbox; naming the target requires having read what is about to be destroyed.
+             */
+            wipe_confirm?: string | null;
+            /**
+             * Dry Run
+             * @description For 'abandon_and_wipe': report what would be destroyed, with counts, and change nothing.
+             */
+            dry_run?: boolean | null;
         };
         /**
          * StorageConfigureResponse
@@ -12314,6 +12473,24 @@ export interface components {
             /** Production Sequence */
             production_sequence: string[][];
             resource_cost: components["schemas"]["VisualizationResourceCost"];
+        };
+        /**
+         * WipeReportData
+         * @description What a wipe removed, or would remove on a dry run.
+         */
+        WipeReportData: {
+            /** Dry Run */
+            dry_run: boolean;
+            /** Objects */
+            objects: number;
+            /** Bytes */
+            bytes: number;
+            /** Keys */
+            keys: string[];
+            /** Keys Truncated */
+            keys_truncated: boolean;
+            /** Failures */
+            failures: string[];
         };
     };
     responses: never;
@@ -21119,6 +21296,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StorageConfigureResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    migration_status_api_storage_migration__job_id__get: {
+        parameters: {
+            query?: {
+                since?: number;
+            };
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MigrationStatusResponse"];
                 };
             };
             /** @description Validation Error */

@@ -668,6 +668,22 @@ async def config_show(
     metavar="NAME=VALUE",
     help="Provider credential, repeatable. Names are checked per provider.",
 )
+@click.option(
+    "--mode",
+    type=click.Choice(["abandon", "migrate", "abandon_and_wipe"]),
+    default="abandon",
+    help="What happens to the data already in storage. Default: leave it.",
+)
+@click.option(
+    "--wipe-confirm",
+    metavar="BUCKET",
+    help="Required for --mode abandon_and_wipe: the exact bucket being erased.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="For abandon_and_wipe: report what would be destroyed, change nothing.",
+)
 @standard_cli_command(
     help_text="""
     Switch this instance to a different storage backend.
@@ -702,14 +718,23 @@ async def config_set(
     region: Optional[str],
     endpoint_url: Optional[str],
     credentials: tuple,
+    mode: str,
+    wipe_confirm: Optional[str],
+    dry_run: bool,
     verbose: bool,
     output_format: str,
     **_kwargs,
 ):
     """Validate a new storage backend, then switch to it."""
     from ..core.services.storage_reconfigure import (
+        MODE_ABANDON_AND_WIPE,
+        MODE_MIGRATE,
         StorageReconfigureError,
+        build_candidate,
+        ensure_configured,
+        migrate_and_switch,
         reconfigure_storage,
+        switch_and_wipe,
     )
 
     cli_ctx = ctx.obj
@@ -727,15 +752,51 @@ async def config_set(
         parsed[name.strip()] = value
 
     storage_service = await StorageService.get_instance()
+    # migrate and abandon_and_wipe act on the CURRENT backend, which a
+    # freshly-started CLI process has not connected to yet.
+    await ensure_configured(storage_service)
     try:
-        result = await reconfigure_storage(
-            storage_service,
+        candidate = build_candidate(
             provider=provider,
             bucket=bucket,
             region=region,
             endpoint_url=endpoint_url,
             credentials=parsed,
         )
+
+        if mode == MODE_ABANDON_AND_WIPE:
+            if not wipe_confirm:
+                raise StorageReconfigureError(
+                    "--mode abandon_and_wipe requires --wipe-confirm naming "
+                    "the exact bucket to erase. Nothing was changed."
+                )
+            result = await switch_and_wipe(
+                storage_service,
+                candidate,
+                wipe_confirm=wipe_confirm,
+                dry_run=dry_run,
+            )
+        elif mode == MODE_MIGRATE:
+            # Inline here, unlike the API. A CLI invocation is already a
+            # long-running foreground process the operator is watching, so a
+            # job would add a broker dependency and a polling loop to buy
+            # nothing.
+            result = await migrate_and_switch(
+                storage_service,
+                candidate,
+                progress=lambda stage, fraction, message: cli_ctx.log(
+                    f"{stage}: {message or ''} ({fraction:.0%})", "info"
+                ),
+            )
+        else:
+            result = await reconfigure_storage(
+                storage_service,
+                provider=candidate.provider,
+                bucket=candidate.bucket_name,
+                region=candidate.region,
+                endpoint_url=candidate.endpoint_url,
+                credentials=candidate.credentials,
+            )
     except StorageReconfigureError as e:
         cli_ctx.log(
             f"{e} The instance is still serving from its previous configuration.",
@@ -745,18 +806,43 @@ async def config_set(
 
     if output_format == "json":
         click.echo(json.dumps(result, indent=2))
+    elif result.get("dry_run"):
+        wipe = result.get("wipe", {})
+        cli_ctx.log(
+            f"Dry run: would delete {wipe.get('objects', 0)} object(s), "
+            f"{wipe.get('bytes', 0)} bytes. Nothing was changed.",
+            "success",
+        )
+        for key in wipe.get("keys", [])[:20]:
+            click.echo(f"  - {key}")
+        if wipe.get("keys_truncated"):
+            click.echo("  … (truncated)")
     else:
+        # `.get` throughout: a dry run and a wipe carry different keys, and
+        # indexing would turn a mode that worked into a KeyError at the point
+        # of reporting it.
         cli_ctx.log(
             f"Storage is now {result['provider']}: {result['bucket']}", "success"
         )
-        if result["prefixes_created"]:
+        if result.get("migration"):
+            migration = result["migration"]
+            click.echo(
+                f"  migrated: {migration['objects_copied']} object(s), "
+                f"{migration['objects_verified']} verified"
+            )
+        if result.get("prefixes_created"):
             click.echo(f"  created:  {', '.join(result['prefixes_created'])}")
-        if result["prefixes_found"]:
+        if result.get("prefixes_found"):
             click.echo(f"  present:  {', '.join(result['prefixes_found'])}")
-        if result["previous_provider"]:
+        if result.get("wipe"):
+            click.echo(
+                f"  wiped:    {result['wipe']['objects']} object(s) from the "
+                "previous backend"
+            )
+        elif result.get("previous_provider"):
             click.echo(
                 f"  previous: {result['previous_provider']} "
-                f"({result['previous_bucket']})"
+                f"({result['previous_bucket']}) — data left in place"
             )
 
     cli_ctx.end_command_tracking()
