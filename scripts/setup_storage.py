@@ -8,82 +8,28 @@ does not depend on the full application stack.
 
 Usage:
     uv run python scripts/setup_storage.py --provider gcs --bucket my-bucket --region us-central1
+
+The work itself lives in ``src.core.services.storage_setup.setup_storage``,
+which the CLI and the app share (#372). This file is argument parsing and
+printing, and deliberately has no storage behaviour of its own — the copy it
+used to carry had drifted: it created three prefixes rather than four (never
+``packages/``), re-stamped placeholders that already existed, and skipped the
+metadata sanitisation blob backends need.
 """
 
 import argparse
 import asyncio
-import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Dict
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.config.storage_config import StorageConfig, create_storage_config
-from src.core.storage.manager import StorageManager
-
-
-async def create_simple_directory_structure(
-    storage_manager: StorageManager, directories: list[str]
-) -> Dict[str, Any]:
-    """Create top-level domain directories using placeholder files.
-
-    Args:
-        storage_manager: Configured storage manager
-        directories: List of directory paths to create (e.g., ['okh/', 'okw/', 'supply-trees/'])
-
-    Returns:
-        Dictionary with creation results
-    """
-    from datetime import datetime
-
-    created_dirs = []
-    errors = []
-
-    for directory in directories:
-        try:
-            # Ensure directory ends with /
-            if not directory.endswith("/"):
-                directory = directory + "/"
-
-            # Create a placeholder file to establish the directory
-            placeholder_file = f"{directory}.gitkeep"
-            placeholder_content = {
-                "type": "directory_placeholder",
-                "directory": directory,
-                "created_at": datetime.now().isoformat(),
-                "purpose": "Establishes directory structure in blob storage",
-            }
-
-            data = json.dumps(placeholder_content).encode("utf-8")
-
-            await storage_manager.put_object(
-                key=placeholder_file,
-                data=data,
-                content_type="application/json",
-                metadata={
-                    "file-type": "directory_placeholder",
-                    "directory": directory,
-                    "created_at": datetime.now().isoformat(),
-                },
-            )
-
-            created_dirs.append(directory)
-            print(f"✅ Created directory: {directory}")
-
-        except Exception as e:
-            error_msg = f"Failed to create directory {directory}: {e}"
-            errors.append(error_msg)
-            print(f"❌ {error_msg}")
-
-    return {
-        "created_directories": created_dirs,
-        "total_created": len(created_dirs),
-        "errors": errors,
-    }
+from src.core.services.storage_setup import StorageSetupError, setup_storage
 
 
 async def main():
@@ -135,43 +81,31 @@ async def main():
         print(f"❌ Failed to create storage config: {e}")
         sys.exit(1)
 
-    # Create storage manager and connect
+    # Connect, prove the connection with a real round trip, then establish the
+    # prefixes. This used to report success on a backend it had never reached.
     try:
-        storage_manager = StorageManager(storage_config)
-        await storage_manager.connect()
-        print(f"✅ Connected to {args.provider} storage: {storage_config.bucket_name}")
-    except Exception as e:
-        print(f"❌ Failed to connect to storage: {e}")
+        result = await setup_storage(storage_config)
+    except StorageSetupError as e:
+        print(f"❌ {e}")
         sys.exit(1)
 
-    # Bootstrap top-level domain directories only.
-    # OHM searches recursively from these roots; no subdirectory structure is
-    # enforced — users may organise files beneath these prefixes freely.
-    directories = ["okh/", "okw/", "supply-trees/"]
+    print("\n" + "=" * 50)
+    print("✅ Storage is ready.")
+    print(f"Provider: {result.provider}")
+    print(f"Bucket: {result.bucket}")
+    if result.provider == "local":
+        print(f"Location: {result.location}")
 
-    # Create directory structure
-    try:
-        result = await create_simple_directory_structure(storage_manager, directories)
-
-        print("\n" + "=" * 50)
-        print("✅ Storage directory structure created successfully!")
-        print(f"Provider: {args.provider}")
-        print(f"Bucket: {storage_config.bucket_name}")
-        print(f"Created {result['total_created']} directories:")
-        for directory in result["created_directories"]:
-            print(f"  - {directory}")
-
-        if result["errors"]:
-            print(f"\n⚠️  {len(result['errors'])} errors occurred:")
-            for error in result["errors"]:
-                print(f"  - {error}")
-            sys.exit(1)
-
-    except Exception as e:
-        print(f"❌ Failed to create directory structure: {e}")
-        sys.exit(1)
-    finally:
-        await storage_manager.disconnect()
+    if result.prefixes_created:
+        print(f"Created {len(result.prefixes_created)} prefixes:")
+        for prefix in result.prefixes_created:
+            print(f"  - {prefix}")
+    if result.prefixes_found:
+        print(f"Already present ({len(result.prefixes_found)}):")
+        for prefix in result.prefixes_found:
+            print(f"  - {prefix}")
+    if not result.initialized:
+        print("Nothing to do — storage was already set up.")
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ from ..config.storage_config import (
     create_storage_config,
 )
 from ..core.services.storage_service import StorageService
+from ..core.services.storage_setup import setup_storage
 from ..core.storage.organizer import StorageOrganizer
 from ..core.storage.smart_discovery import SmartFileDiscovery
 
@@ -32,14 +33,22 @@ async def setup_storage_structure(
 ):
     """Set up the organized directory structure in storage
 
+    A thin caller of the shared setup function (#372). It used to configure the
+    storage service and drive the organizer itself, which meant it inherited
+    ``StorageService.configure``'s swallowed connection failures: against an
+    unusable backend it printed "✅ Storage directory structure created
+    successfully!" and "Created 0 directories", and returned normally.
+
     Args:
         provider: Storage provider (local, gcs, azure_blob, aws_s3)
         bucket_name: Bucket/container name (required for cloud providers)
         region: Region/location for cloud providers
         credentials: Optional credentials dict (if not using env vars)
+
+    Raises:
+        StorageSetupError: the backend could not be reached or written to.
     """
     try:
-        # Create storage config
         if credentials:
             storage_config = StorageConfig(
                 provider=provider,
@@ -50,23 +59,21 @@ async def setup_storage_structure(
         else:
             storage_config = create_storage_config(provider, bucket_name, region)
 
-        storage_service = await StorageService.get_instance()
-        await storage_service.configure(storage_config)
+        result = await setup_storage(storage_config)
 
-        # Create organizer
-        organizer = StorageOrganizer(storage_service.manager)
+        print("✅ Storage is ready.")
+        print(f"Provider: {result.provider}")
+        print(f"Bucket: {result.bucket}")
+        if result.prefixes_created:
+            print(f"Created {len(result.prefixes_created)} prefixes:")
+            for prefix in result.prefixes_created:
+                print(f"  - {prefix}")
+        if result.prefixes_found:
+            print(f"Already present ({len(result.prefixes_found)}):")
+            for prefix in result.prefixes_found:
+                print(f"  - {prefix}")
 
-        # Create directory structure
-        result = await organizer.create_directory_structure()
-
-        print("✅ Storage directory structure created successfully!")
-        print(f"Provider: {provider}")
-        print(f"Bucket: {storage_config.bucket_name}")
-        print(f"Created {result['total_created']} directories:")
-        for directory in result["created_directories"]:
-            print(f"  - {directory}")
-
-        return result
+        return result.to_dict()
 
     except Exception as e:
         logger.error(f"Failed to setup storage structure: {e}")

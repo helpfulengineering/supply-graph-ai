@@ -156,10 +156,15 @@ mutates = true
 
 [scripts.setup_storage]
 category = "storage"
-summary = "Bootstrap storage for a new environment (create/verify container + credentials) before a deploy."
+summary = "Bootstrap storage for a new environment: connect, verify with a real round trip, then create the top-level prefixes."
 run = "uv run python scripts/setup_storage.py [options]"
 mutates = true
-used_by = ["deploy/providers/gcp/", "scripts/deploy_cloud_run.sh"]
+# `used_by` previously named deploy/providers/gcp/ and scripts/deploy_cloud_run.sh.
+# Neither references this script — not in the shell script, the provider
+# modules, the Makefile, CI, or the docs. The claim propagated into the #372
+# decision record as "load-bearing for the GCP deploy path", which it is not.
+# It is a manual entry point, so the list is empty rather than wrong.
+used_by = []
 
 [scripts.deploy_cloud_run]
 category = "deploy"

@@ -18,6 +18,7 @@ from ..config.storage_config import (
     create_storage_config,
 )
 from ..core.services.storage_service import StorageService
+from ..core.services.storage_setup import setup_storage
 from ..core.storage.organizer import StorageOrganizer
 from ..core.utils.logging import get_logger
 from .decorators import standard_cli_command
@@ -232,57 +233,53 @@ async def setup(
             index=2,
             total=3,
         )
-        storage_service = await StorageService.get_instance()
-        await storage_service.configure(storage_config)
-
-        # Create organizer and setup structure
+        # Connect, prove the connection with a real round trip, then establish
+        # the prefixes — all in the shared setup function (#372). This used to
+        # go through StorageService.configure, which swallows connection
+        # failures so the API can boot degraded; setup inherited that and
+        # reported success on a backend it had never reached.
         emit_status_line(
             output_format=output_format,
             step="Creating storage directory structure",
             index=3,
             total=3,
         )
-        organizer = StorageOrganizer(storage_service.manager)
-        result = await organizer.create_directory_structure()
+        result = await setup_storage(storage_config)
 
         if output_format == "json":
-            # Include absolute path for local storage
-            storage_location = storage_config.bucket_name
-            if provider == "local":
-                from pathlib import Path
-
-                storage_location = str(Path(storage_config.bucket_name).resolve())
-
             output_data = {
                 "status": "success",
-                "provider": provider,
-                "bucket": storage_config.bucket_name,
-                "storage_location": storage_location,
                 "region": region,
-                "directories_created": result["total_created"],
-                "directories": result["created_directories"],
+                # Kept under their old names: existing callers of
+                # `--format json` read these two.
+                "directories_created": len(result.prefixes_created),
+                "directories": result.prefixes_created,
+                **result.to_dict(),
             }
             click.echo(json.dumps(output_data, indent=2))
         else:
-            cli_ctx.log(
-                "✅ Storage directory structure created successfully!", "success"
-            )
+            # `log(..., "success")` adds its own ✅; the old line here carried a
+            # second one and printed "✅ ✅".
+            cli_ctx.log("Storage is ready.", "success")
             cli_ctx.log(f"Provider: {provider}", "info")
 
-            # Show full path for local storage
             if provider == "local":
-                from pathlib import Path
-
-                abs_path = Path(storage_config.bucket_name).resolve()
-                cli_ctx.log(f"Location: {abs_path}", "info")
+                cli_ctx.log(f"Location: {result.location}", "info")
             else:
-                cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
+                cli_ctx.log(f"Bucket: {result.bucket}", "info")
                 if region:
                     cli_ctx.log(f"Region: {region}", "info")
 
-            cli_ctx.log(f"Created {result['total_created']} directories:", "info")
-            for directory in result["created_directories"]:
-                click.echo(f"  - {directory}")
+            if result.prefixes_created:
+                cli_ctx.log(f"Created {len(result.prefixes_created)} prefixes:", "info")
+                for prefix in result.prefixes_created:
+                    click.echo(f"  - {prefix}")
+            if result.prefixes_found:
+                cli_ctx.log(f"Already present ({len(result.prefixes_found)}):", "info")
+                for prefix in result.prefixes_found:
+                    click.echo(f"  - {prefix}")
+            if not result.initialized:
+                cli_ctx.log("Nothing to do — storage was already set up.", "info")
 
         cli_ctx.end_command_tracking()
 
