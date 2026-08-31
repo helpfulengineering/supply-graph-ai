@@ -22,8 +22,11 @@ class StorageConfigData(BaseModel):
     bucket: str
     region: Optional[str] = None
     endpoint_url: Optional[str] = None
-    # Names only, never values.
-    credential_names: List[str] = Field(default_factory=list)
+    # Names only, never values. Required rather than defaulted: the service
+    # always builds this list, and a Pydantic default makes the field optional
+    # in the generated client, forcing callers to null-check something that is
+    # always there.
+    credential_names: List[str]
     #: True when a configuration file is on disk, as opposed to the instance
     #: running on its environment settings.
     persisted: bool
@@ -151,8 +154,9 @@ class StorageConfigureData(BaseModel):
     #: Always true on success — the backend was proved with a write/read round
     #: trip before anything was committed.
     verified: bool
-    prefixes_found: List[str] = Field(default_factory=list)
-    prefixes_created: List[str] = Field(default_factory=list)
+    # Always built by the setup result, so required for the same reason.
+    prefixes_found: List[str]
+    prefixes_created: List[str]
     previous_provider: Optional[str] = None
     previous_bucket: Optional[str] = None
 

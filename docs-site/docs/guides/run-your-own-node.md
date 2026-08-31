@@ -15,14 +15,40 @@ doesn't control, this page is the answer to that.
 
 ## Start it
 
+One command, if you have Docker:
+
+```bash
+curl -fsSL https://openhardwaremanager.org/install.sh | sh
+```
+
+It asks nothing. It mints the two secrets a node needs, starts on local
+storage, waits until the node is healthy, and prints the URL and an admin key.
+Configuration comes afterwards, through the running node — which is what lets
+the install itself be silent.
+
+**Save the admin key it prints.** It is shown once. Paste it into
+`/settings/session`, then point the node at real storage in
+`/settings/storage` when you want to; local storage works in the meantime.
+
+Pin a version, or move the ports, with environment variables:
+
+```bash
+OHM_VERSION=0.11.1 OHM_PORT=9080 curl -fsSL https://openhardwaremanager.org/install.sh | sh
+```
+
+### Or with Compose, from a clone
+
+If you would rather read the whole stack before running it, or you want the
+optional services:
+
 ```bash
 git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 docker compose up
 ```
 
-That's the whole thing. The web interface is at `http://localhost:8080`, and the
-API is at `http://localhost:8001`.
+Either way the web interface is at `http://localhost:8080`, and the API is at
+`http://localhost:8001`.
 
 No configuration file is needed to start. Published images are pulled rather than
 built, so the first run is a download rather than a compile, and they're built

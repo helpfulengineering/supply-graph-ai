@@ -11439,7 +11439,7 @@ export interface components {
             /** Endpoint Url */
             endpoint_url?: string | null;
             /** Credential Names */
-            credential_names?: string[];
+            credential_names: string[];
             /** Persisted */
             persisted: boolean;
             /** Configured */
@@ -11512,9 +11512,9 @@ export interface components {
             /** Verified */
             verified: boolean;
             /** Prefixes Found */
-            prefixes_found?: string[];
+            prefixes_found: string[];
             /** Prefixes Created */
-            prefixes_created?: string[];
+            prefixes_created: string[];
             /** Previous Provider */
             previous_provider?: string | null;
             /** Previous Bucket */
