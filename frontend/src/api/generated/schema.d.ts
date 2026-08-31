@@ -4022,6 +4022,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/storage/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the current storage configuration
+         * @description Report the configuration and what the app is actually connected to.
+         *
+         *     The two can disagree — the configuration is what was asked for, the
+         *     fingerprint is what answered — which is the first thing worth knowing when
+         *     storage is misbehaving. No credential value is returned, only which names
+         *     are set.
+         */
+        get: operations["read_storage_config_api_storage_config_get"];
+        put?: never;
+        /**
+         * Switch to a different storage backend
+         * @description Validate the new backend, then commit to it.
+         *
+         *     Existing data stays where it is; this changes which backend the instance
+         *     reads and writes. A rejected configuration leaves the instance serving
+         *     exactly as it was — the candidate is proved with a real write/read round
+         *     trip before anything is persisted or swapped.
+         */
+        post: operations["configure_storage_api_storage_config_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -11263,6 +11297,201 @@ export interface components {
             space_did: string;
             /** Admin Did */
             admin_did: string;
+        };
+        /**
+         * StorageConfigData
+         * @description The configuration the instance is running on.
+         */
+        StorageConfigData: {
+            /** Provider */
+            provider: string;
+            /** Bucket */
+            bucket: string;
+            /** Region */
+            region?: string | null;
+            /** Endpoint Url */
+            endpoint_url?: string | null;
+            /** Credential Names */
+            credential_names?: string[];
+            /** Persisted */
+            persisted: boolean;
+            /** Configured */
+            configured: boolean;
+            /** Source */
+            source: string;
+        };
+        /**
+         * StorageConfigResponse
+         * @description Envelope for ``GET /api/storage/config``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        StorageConfigResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["StorageConfigView"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * StorageConfigView
+         * @description ``data`` payload of the read endpoint.
+         */
+        StorageConfigView: {
+            config: components["schemas"]["StorageConfigData"];
+            fingerprint: components["schemas"]["StorageFingerprint"];
+        };
+        /**
+         * StorageConfigureData
+         * @description What the switch did.
+         */
+        StorageConfigureData: {
+            /** Provider */
+            provider: string;
+            /** Bucket */
+            bucket: string;
+            /** Region */
+            region?: string | null;
+            /** Verified */
+            verified: boolean;
+            /** Prefixes Found */
+            prefixes_found?: string[];
+            /** Prefixes Created */
+            prefixes_created?: string[];
+            /** Previous Provider */
+            previous_provider?: string | null;
+            /** Previous Bucket */
+            previous_bucket?: string | null;
+        };
+        /**
+         * StorageConfigureRequest
+         * @description A new backend to switch to.
+         *
+         *     Existing data is left where it is. Moving or erasing it is #381.
+         */
+        StorageConfigureRequest: {
+            /**
+             * Provider
+             * @description local, gcs, azure_blob or aws_s3
+             */
+            provider: string;
+            /**
+             * Bucket
+             * @description Bucket, container, or local path
+             */
+            bucket: string;
+            /**
+             * Region
+             * @description Region for cloud providers
+             */
+            region?: string | null;
+            /**
+             * Endpoint Url
+             * @description Override endpoint, for S3-compatible backends
+             */
+            endpoint_url?: string | null;
+            /**
+             * Credentials
+             * @description Provider credentials. Names are checked against the provider, so a misspelled key is rejected rather than silently ignored.
+             */
+            credentials?: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * StorageConfigureResponse
+         * @description Envelope for ``POST /api/storage/config``.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        StorageConfigureResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["StorageConfigureData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * StorageFingerprint
+         * @description What the running app is actually connected to, plus object counts.
+         *
+         *     Reported alongside the configuration because the two can disagree: the
+         *     configuration is what was asked for, the fingerprint is what answered.
+         *     Counts are ``None`` when storage could not be reached.
+         */
+        StorageFingerprint: {
+            /** Provider */
+            provider?: string | null;
+            /** Account */
+            account?: string | null;
+            /** Container */
+            container?: string | null;
+            /** Okh Count */
+            okh_count?: number | null;
+            /** Okw Count */
+            okw_count?: number | null;
+            /** Error */
+            error?: string | null;
         };
         /**
          * SuccessResponse
@@ -20837,6 +21066,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DirectoryEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_storage_config_api_storage_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageConfigResponse"];
+                };
+            };
+        };
+    };
+    configure_storage_api_storage_config_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StorageConfigureRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageConfigureResponse"];
                 };
             };
             /** @description Validation Error */

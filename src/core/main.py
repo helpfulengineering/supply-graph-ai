@@ -22,6 +22,7 @@ from src.core.api.middleware import setup_api_middleware
 from src.core.api.routes.convert import router as convert_router
 from src.core.api.routes.federation import router as federation_router
 from src.core.api.routes.identity import router as identity_router
+from src.core.api.routes.storage import router as storage_router
 from src.core.api.routes.llm import router as llm_router
 from src.core.api.routes.match import router as match_router
 from src.core.api.routes.asset import router as asset_router
@@ -88,8 +89,25 @@ async def lifespan(app: FastAPI):
         # Initialize storage
         logger.info("Initializing storage service")
         storage_service = await StorageService.get_instance()
+
+        # A configuration written by the storage-config API wins over the
+        # environment (#377). It is read here, before the storage service is
+        # configured, because it cannot live in the object store it configures:
+        # credentials for a new provider written into the old one would be
+        # orphaned by the switch. `load_config` never raises — a corrupt file
+        # falls back to the environment rather than stopping the process.
+        from .services.storage_config_store import load_config as _load_storage_config
+
+        persisted_storage_config = _load_storage_config()
+        active_storage_config = persisted_storage_config or settings.STORAGE_CONFIG
+        if persisted_storage_config is not None:
+            logger.info(
+                "Using persisted storage configuration (provider=%s)",
+                persisted_storage_config.provider,
+            )
+
         try:
-            await storage_service.configure(settings.STORAGE_CONFIG)
+            await storage_service.configure(active_storage_config)
         except Exception as e:
             # Storage connection failure shouldn't prevent app startup
             # Log error but continue - storage operations will fail gracefully
@@ -401,6 +419,7 @@ api_v1.include_router(
     federation_router, tags=["federation"]
 )  # Already has /api/federation prefix
 api_v1.include_router(identity_router, prefix="/api/identity", tags=["identity"])
+api_v1.include_router(storage_router, prefix="/api/storage", tags=["storage"])
 
 # Mount the versioned API
 app.mount("/v1", api_v1)
