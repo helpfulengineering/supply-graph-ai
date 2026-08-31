@@ -5,6 +5,7 @@ This module provides middleware components for consistent request handling,
 logging, and performance monitoring across all API endpoints.
 """
 
+import os
 import time
 import uuid
 
@@ -226,6 +227,31 @@ class LLMRequestMiddleware(BaseHTTPMiddleware):
         }
 
 
+#: One year, the value browsers require before a host is eligible for
+#: preloading. Not preloaded here: preload lists are effectively irreversible
+#: and removal takes months, so it is a decision an operator makes about their
+#: own domain rather than one a framework makes for them.
+HSTS_MAX_AGE_SECONDS = 31_536_000
+
+#: Who may read this API's responses from a browser.
+#:
+#: A wildcard is right for a public catalogue — the anonymous surface is a
+#: catalogue of open hardware designs, published so anyone can build on them,
+#: and refusing a browser the ability to read it would defeat the point. It is
+#: not a credential leak either: no Access-Control-Allow-Credentials is sent,
+#: so third-party script can neither read a viewer's sessionStorage nor make a
+#: request carrying their token.
+#:
+#: What was wrong was that nobody had decided it. A node that is not a public
+#: catalogue sets OHM_CORS_ALLOW_ORIGIN to its own origin.
+DEFAULT_CORS_ALLOW_ORIGIN = "*"
+
+
+def cors_allow_origin() -> str:
+    """The origin allowed to read responses, from config."""
+    return os.getenv("OHM_CORS_ALLOW_ORIGIN") or DEFAULT_CORS_ALLOW_ORIGIN
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Middleware for adding security headers to responses."""
 
@@ -244,9 +270,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "geolocation=(), microphone=(), camera=()"
         )
 
+        # HSTS on secure origins only. Sending it over plain HTTP is ignored by
+        # browsers, and sending it in local development would pin localhost to
+        # https for a year on the developer's own machine — a genuinely painful
+        # thing to undo, and the reason this is conditional rather than constant.
+        if request.url.scheme == "https":
+            response.headers["Strict-Transport-Security"] = (
+                f"max-age={HSTS_MAX_AGE_SECONDS}; includeSubDomains"
+            )
+
         # Add CORS headers if not already present
         if "Access-Control-Allow-Origin" not in response.headers:
-            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Origin"] = cors_allow_origin()
 
         return response
 

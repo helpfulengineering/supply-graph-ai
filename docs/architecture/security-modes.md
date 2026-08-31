@@ -54,6 +54,27 @@ networks.
 | `key_ttl_days` | 180 | 365 (offline grace) | 30 |
 | `admin_break_glass` | **no** | yes (recorded) | **no** |
 
+## Transport headers
+
+**HSTS** is sent on secure origins only, `max-age=31536000; includeSubDomains`.
+Not over plain HTTP, where browsers ignore it anyway and where sending it in
+local development would pin `localhost` to https for a year on a developer's
+own machine.
+
+**Not preloaded.** Preload lists are effectively irreversible and removal takes
+months, so submitting a domain is a decision its operator makes, not one a
+framework makes for them. Add `preload` and submit the domain yourself if you
+want it.
+
+**CORS** allows any origin to read responses by default, set by
+`OHM_CORS_ALLOW_ORIGIN`. That is right for a public catalogue: the anonymous
+surface is open hardware published so anyone can build on it, and refusing a
+browser the ability to read it would defeat the point. It is not a credential
+leak — no `Access-Control-Allow-Credentials` is sent, so third-party script can
+neither read a viewer's `sessionStorage` nor make a request carrying their
+token. A node that is not a public catalogue sets the variable to its own
+origin.
+
 ## Who may speak for the client
 
 Everything keyed on a caller's address — the rate limiter, request logs, metrics
