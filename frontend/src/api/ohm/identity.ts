@@ -1,7 +1,17 @@
 /**
  * Identity API wrappers (Track F — F0/F1/F3).
- * Prefer typed openapi-fetch where the path exists in schema.d.ts;
- * security-policy, spaces, and bootstrap-edge use raw fetch until regenerated.
+ *
+ * Every type here is generated from the API schema. The hand-written copies
+ * that used to live in this file were not merely duplication: each one had
+ * drifted, marking fields optional that the server always sends, so the UI was
+ * defensively null-checking values that cannot be null.
+ *
+ * The wrappers below still split between typed `apiClient` and raw
+ * `identityFetch`. That split no longer tracks anything real — every identity
+ * path is in schema.d.ts now — so the remaining `identityFetch` callers are a
+ * migration waiting to happen, not a category. Left alone here because
+ * swapping transports changes error handling, which is a change with its own
+ * tests to write.
  */
 import {
   apiClient,
@@ -35,14 +45,8 @@ export type GrantIssue = components["schemas"]["GrantIssue"];
 export type SecurityPolicyPublic =
   components["schemas"]["SecurityPolicyResponse"];
 
-/** Space claim (not yet in committed OpenAPI). */
-export interface SpaceClaim {
-  space_did: string;
-  admin_did: string;
-  claimed_at?: string;
-  claim_method?: string;
-  signature?: string;
-}
+/** A node's claim on its own space DID. */
+export type SpaceClaim = components["schemas"]["SpaceClaim"];
 
 async function identityFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${apiBaseUrl}${path}`, {
@@ -97,7 +101,8 @@ export async function fetchSecurityPolicy(): Promise<SecurityPolicyPublic> {
 }
 
 export type RegistrationCreate = components["schemas"]["RegistrationCreate"];
-export type RegistrationResponse = components["schemas"]["RegistrationResponse"];
+export type RegistrationResponse =
+  components["schemas"]["RegistrationResponse"];
 
 /**
  * Register a person on this node. Deliberately unauthenticated: a node operator
@@ -391,27 +396,11 @@ export async function claimSpace(
   });
 }
 
-/** Durable attestation (not yet in committed OpenAPI). */
-export interface Attestation {
-  attestation_id: string;
-  type: string;
-  issuer_did: string;
-  subject_did: string;
-  content_hash?: string | null;
-  claim?: Record<string, unknown>;
-  created_at?: string;
-  expires_at?: string | null;
-  signature?: string;
-}
+/** A durable, signed claim one DID makes about another. */
+export type Attestation = components["schemas"]["Attestation"];
 
-export interface CertifyRequest {
-  subject_did: string;
-  bundle_hash: string;
-  version: string;
-  issuer_did?: string | null;
-  manifest_content_hash?: string | null;
-  claim?: Record<string, unknown>;
-}
+/** Body for certifying a release. */
+export type CertifyRequest = components["schemas"]["CertifyRequest"];
 
 export async function listAttestations(opts: {
   subject_did?: string;
@@ -443,34 +432,15 @@ export async function listReputation(
   );
 }
 
-/** Identity binding (domain / oauth) — not yet in committed OpenAPI. */
-export interface IdentityBinding {
-  binding_id: string;
-  subject_did: string;
-  kind: string;
-  external_id: string;
-  evidence?: Record<string, unknown>;
-  challenge?: string | null;
-  verified: boolean;
-  verified_at?: string | null;
-  created_at?: string;
-  signature?: string;
-}
+/** A DID bound to an external identifier (domain / oauth). */
+export type IdentityBinding = components["schemas"]["IdentityBinding"];
 
-export interface DomainBindStartResponse {
-  binding: IdentityBinding;
-  well_known_url: string;
-  well_known_document: Record<string, unknown>;
-}
+/** Challenge to publish at .well-known to prove a domain. */
+export type DomainBindStartResponse =
+  components["schemas"]["DomainBindStartResponse"];
 
-export interface DirectoryEntry {
-  did: string;
-  display_name?: string;
-  base_url?: string | null;
-  domain?: string | null;
-  verified_bindings?: string[];
-  updated_at?: string;
-}
+/** A DID as it appears in the node's public directory. */
+export type DirectoryEntry = components["schemas"]["DirectoryEntry"];
 
 export async function startDomainBinding(
   subjectDid: string,

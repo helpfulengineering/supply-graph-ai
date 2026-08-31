@@ -23,40 +23,12 @@ from pathlib import Path
 
 import pytest
 
+from tests.contract_shape import assert_shape
 from tests.record_fixtures import okh_manifest_dict
 
 pytestmark = pytest.mark.integration
 
-GOLDEN_DIR = Path(__file__).resolve().parents[1] / "api" / "golden"
-
-
-def _structure(node):
-    if isinstance(node, dict):
-        return {k: _structure(v) for k, v in sorted(node.items())}
-    if isinstance(node, list):
-        merged: dict = {}
-        for item in node:
-            shaped = _structure(item)
-            if not isinstance(shaped, dict):
-                return ["*"]
-            for key, value in shaped.items():
-                merged.setdefault(key, value)
-        return [dict(sorted(merged.items()))] if merged else []
-    return "*"
-
-
-def _check(body, name: str) -> None:
-    golden = GOLDEN_DIR / f"{name}.json"
-    shape = _structure(body)
-    if os.getenv("BLESS_OKH_MISC"):
-        golden.parent.mkdir(parents=True, exist_ok=True)
-        golden.write_text(json.dumps(shape, indent=2, sort_keys=True) + "\n")
-        pytest.skip("golden re-blessed")
-    assert golden.exists(), f"No golden at {golden}. Capture with BLESS_OKH_MISC=1."
-    assert shape == json.loads(golden.read_text()), (
-        f"{name} changed shape. If a response_model was just added, it is "
-        "filtering a field the route used to return."
-    )
+BLESS = "BLESS_OKH_MISC"
 
 
 @pytest.fixture
@@ -84,13 +56,13 @@ def a_design(client):
 def test_security_policy_shape(client):
     resp = client.get("/api/identity/security-policy")
     assert resp.status_code == 200, resp.text
-    _check(resp.json(), "identity_security_policy")
+    assert_shape(resp.json(), "identity_security_policy", BLESS)
 
 
 def test_okh_template_shape(client):
     resp = client.get("/api/okh/template")
     assert resp.status_code == 200, resp.text
-    _check(resp.json(), "okh_template")
+    assert_shape(resp.json(), "okh_template", BLESS)
 
 
 def test_okh_export_collection_is_an_archive(client, a_design):
@@ -122,7 +94,7 @@ def test_okh_diff_collection_shape(client, a_design):
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["only_in_archive"], f"nothing to freeze an item shape from: {body}"
-    _check(body, "okh_diff_collection")
+    assert_shape(body, "okh_diff_collection", BLESS)
 
 
 def test_okh_import_collection_shape(client, a_design):
@@ -141,4 +113,4 @@ def test_okh_import_collection_shape(client, a_design):
     assert (
         body["new"] or body["duplicate"]
     ), f"no classified item to freeze a shape from: {body}"
-    _check(body, "okh_import_collection")
+    assert_shape(body, "okh_import_collection", BLESS)
