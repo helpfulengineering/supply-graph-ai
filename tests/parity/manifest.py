@@ -631,6 +631,16 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
+        "Progress of a running storage migration (#381). A migration runs as "
+        "a job and needs a polling surface; the Storage panel from #380 shows "
+        "the configuration and the modes that finish inline. The CLI runs "
+        "migration in the foreground instead, where the operator is already "
+        "watching, so nothing is unreachable in the meantime.",
+        "/api/storage/migration/{job_id}",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
         "Calls asset_service.salvage_match and enriches a design's components "
         "with fleet availability, so it belongs to the /assets section rather "
         "than to the design catalogue — the salvage surface is where a reader "

@@ -8,7 +8,7 @@ returns them.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -88,6 +88,61 @@ class StorageConfigureRequest(BaseModel):
             "a misspelled key is rejected rather than silently ignored."
         ),
     )
+    # Optional with a None default rather than a defaulted literal, and that
+    # is a compatibility decision: openapi-typescript renders a field with a
+    # server-side default as *required in the body*, so declaring
+    # `mode: Literal[...] = "abandon"` would make every existing caller of this
+    # endpoint fail to compile for a field they neither know nor need. None
+    # means abandon, which is what the endpoint did before this existed.
+    mode: Optional[Literal["abandon", "migrate", "abandon_and_wipe"]] = Field(
+        None,
+        description=(
+            "What happens to the data already in storage. 'abandon' leaves it "
+            "where it is and switches (the default, and #377's behaviour). "
+            "'migrate' copies and verifies it on the new backend before "
+            "switching, and runs as a job. 'abandon_and_wipe' switches first, "
+            "then erases the old backend."
+        ),
+    )
+    wipe_confirm: Optional[str] = Field(
+        None,
+        description=(
+            "Required for 'abandon_and_wipe': the exact bucket or path being "
+            "erased. A mismatch deletes nothing and switches nothing. A "
+            "boolean would be a checkbox; naming the target requires having "
+            "read what is about to be destroyed."
+        ),
+    )
+    dry_run: Optional[bool] = Field(
+        None,
+        description=(
+            "For 'abandon_and_wipe': report what would be destroyed, with "
+            "counts, and change nothing."
+        ),
+    )
+
+
+class WipeReportData(BaseModel):
+    """What a wipe removed, or would remove on a dry run."""
+
+    dry_run: bool
+    objects: int
+    bytes: int
+    #: Capped at 100 — a wipe report is for a human deciding whether to
+    #: proceed, and a hundred thousand keys in a response body helps nobody.
+    keys: List[str]
+    keys_truncated: bool
+    failures: List[str]
+
+
+class MigrationReportData(BaseModel):
+    """What a migration moved, and whether the destination agreed."""
+
+    objects_copied: int
+    bytes_copied: int
+    objects_verified: int
+    failures: List[str]
+    ok: bool
 
 
 class StorageConfigureData(BaseModel):
@@ -105,8 +160,63 @@ class StorageConfigureData(BaseModel):
     previous_provider: Optional[str] = None
     previous_bucket: Optional[str] = None
 
+    #: Which mode ran. Absent shapes below follow from it: `wipe` only for
+    #: abandon_and_wipe, `migration` only for migrate.
+    mode: str = "abandon"
+    dry_run: bool = False
+    #: False on a dry run, which reports without acting.
+    switched: bool = True
+    wipe: Optional[WipeReportData] = None
+    migration: Optional[MigrationReportData] = None
+
 
 class StorageConfigureResponse(SuccessResponse):
     """Envelope for ``POST /api/storage/config``."""
 
     data: StorageConfigureData
+
+
+class MigrationJobData(BaseModel):
+    """A migration accepted for background execution."""
+
+    job_id: str
+    state: str
+    #: Where to poll. The copy runs far longer than an ingress timeout allows.
+    events_url: str
+
+
+class MigrationJobResponse(SuccessResponse):
+    """Envelope for a migration accepted as a job."""
+
+    data: MigrationJobData
+
+
+class MigrationEvent(BaseModel):
+    """One stage of a running migration."""
+
+    seq: int
+    stage: str
+    fraction: float
+    message: Optional[str] = None
+    ts: str
+
+
+class MigrationStatusData(BaseModel):
+    """Cumulative progress of a migration job.
+
+    The whole log is republished on every update rather than only the current
+    stage, so a caller polling at any interval sees every stage — including
+    ones that began and ended between two polls.
+    """
+
+    job_id: str
+    state: str
+    events: List[MigrationEvent]
+    next_cursor: int
+    result: Optional[Dict[str, Any]] = None
+
+
+class MigrationStatusResponse(SuccessResponse):
+    """Envelope for ``GET /api/storage/migration/{job_id}``."""
+
+    data: MigrationStatusData

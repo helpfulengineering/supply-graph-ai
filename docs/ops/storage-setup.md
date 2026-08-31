@@ -184,12 +184,82 @@ with material that has since changed, it is ignored and the instance falls back
 to its environment configuration, with the reason logged. A node that will not
 start is worse than one running on the settings it was deployed with.
 
-### What this does not do
+## What happens to the data already there
 
-Move or erase data. Switching changes which backend is read and written;
-anything already in the old one stays there. Migration and abandon-and-wipe are
-tracked in #381.
+Switching points the instance at a new backend and leaves the old data where it
+is — invisible, but intact. That is one of three answers, and `--mode` picks
+which (#381).
 
+### abandon (the default)
+
+Leave it. Nothing is copied and nothing is erased.
+
+```bash
+ohm storage config set --provider local --bucket ~/ohm-data
+```
+
+### migrate
+
+Copy everything to the new backend, verify it, and only then switch.
+
+```bash
+ohm storage config set --provider azure_blob --bucket new-container \
+  --mode migrate --credential account_name=acct --credential account_key=secret
+```
+
+**The order is a safety property.** Validate the destination, copy, verify the
+copy, and only then swap. The instance keeps serving from the old backend for
+the whole copy, so a migration that fails partway — or that you abandon — leaves
+a working instance on its original storage and a partial copy on the
+destination. That is recoverable. Swapping first is not.
+
+Verification re-reads every object at the destination and compares its digest
+to the source. That doubles the reads, which is the right trade for a one-time
+move whose failure mode is silent data loss.
+
+The copy is provider-agnostic: it uses only list, get and put from the storage
+abstraction, so any supported provider can be migrated to any other.
+
+Migration does **not** erase the source. If you want the old backend emptied,
+switch with `--mode migrate` first, confirm the new one is serving, then wipe
+separately.
+
+**Over the API, migration runs as a job.** A copy of a populated backend takes
+far longer than an ingress timeout allows, and a caller that cannot observe it
+cannot tell a slow copy from a stalled one. `POST /api/storage/config` with
+`"mode": "migrate"` returns a job id, and `GET /api/storage/migration/{job_id}`
+reports cumulative progress — the same event log the generation timeline uses.
+Pass back `next_cursor` as `since` and only new events arrive.
+
+The CLI runs migration in the foreground instead, printing each stage. A CLI
+invocation is already a process the operator is watching, so a job would add a
+broker dependency and a polling loop to buy nothing.
+
+### abandon_and_wipe
+
+Switch, then erase the old backend.
+
+```bash
+# See what would go, first. Nothing is switched and nothing is deleted.
+ohm storage config set --provider local --bucket ~/new-data \
+  --mode abandon_and_wipe --wipe-confirm /old/path --dry-run
+
+# Then for real.
+ohm storage config set --provider local --bucket ~/new-data \
+  --mode abandon_and_wipe --wipe-confirm /old/path
+```
+
+**You must name the bucket being erased.** `scripts/clear_storage.py` protects
+itself with an interactive "type DELETE to confirm" prompt, which does not
+survive the trip to HTTP — and a boolean `confirm: true` is not a guard, it is
+a checkbox a client sets by default. Echoing the exact bucket requires having
+read what you are about to destroy. A mismatch deletes nothing **and switches
+nothing**: "switched but not wiped" is a state nobody asked for, so the check
+runs before anything happens.
+
+The wipe runs **after** the switch has succeeded, never before. Erasing first
+would open a window in which the old data is gone and the new backend has not
+been proved — the one state there is no recovery from.
 
 ## A freshly installed node
 
@@ -210,3 +280,4 @@ why an upgrade keeps them:
 The config file sits beside the object store rather than inside it. Inside, it
 would be an object in the bucket it configures — listed, served, and erased by
 a storage wipe.
+
