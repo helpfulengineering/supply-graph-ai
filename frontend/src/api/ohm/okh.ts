@@ -485,3 +485,41 @@ export async function fetchOkhTemplate(): Promise<Record<string, unknown>> {
   }
   return (data ?? {}) as Record<string, unknown>;
 }
+
+export type InventoryRow = components["schemas"]["InventoryRow"];
+
+export interface InventoryResult {
+  rows: InventoryRow[];
+  total: number;
+  privateTotal: number;
+}
+
+/**
+ * Every record on the node, described by metadata alone.
+ *
+ * Admin-only, and deliberately content-free: an admin's record scope is the
+ * same as anyone else's, so this is what lets an operator run the node —
+ * migration, cleanup, support, takedown — without reading private records.
+ */
+async function fetchInventory(path: "/api/okh/inventory" | "/api/okw/inventory") {
+  const { data, error, response } = await apiClient.GET(path);
+  if (error || !response.ok || !data?.data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to load inventory (HTTP ${response.status})`),
+    );
+  }
+  return {
+    rows: data.data.rows ?? [],
+    total: data.data.total ?? 0,
+    privateTotal: data.data.private_total ?? 0,
+  };
+}
+
+export function fetchOkhInventory(): Promise<InventoryResult> {
+  return fetchInventory("/api/okh/inventory");
+}
+
+export function fetchOkwInventory(): Promise<InventoryResult> {
+  return fetchInventory("/api/okw/inventory");
+}

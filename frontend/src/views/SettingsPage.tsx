@@ -15,6 +15,7 @@ import { DirectoryPanel } from "../features/settings/DirectoryPanel";
 import { FederationPanel } from "../features/settings/FederationPanel";
 import { LLMCredentialsPanel } from "../features/settings/LLMCredentialsPanel";
 import { MatchingRulesPanel } from "../features/settings/MatchingRulesPanel";
+import { InventoryPanel } from "../features/settings/InventoryPanel";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { useAuth } from "../context/AuthContext";
 import { SECTION_LABEL_SM } from "../components/ui/typography";
@@ -27,6 +28,7 @@ const sessionTabs = [
 
 const adminTabs = [
   { to: "/settings/keys", label: "Keys & accounts" },
+  { to: "/settings/inventory", label: "Inventory" },
   { to: "/settings/llm", label: "LLM providers" },
   { to: "/settings/matching", label: "Matching rules" },
   { to: "/settings/identities", label: "Identities" },
@@ -40,6 +42,7 @@ const adminTabs = [
 
 function panelFor(pathname: string) {
   if (pathname.includes("/domain")) return <DomainPanel />;
+  if (pathname.includes("/inventory")) return <InventoryPanel />;
   if (pathname.includes("/keys")) return <KeysAccountsPanel />;
   if (pathname.includes("/llm")) return <LLMCredentialsPanel />;
   if (pathname.includes("/matching")) return <MatchingRulesPanel />;

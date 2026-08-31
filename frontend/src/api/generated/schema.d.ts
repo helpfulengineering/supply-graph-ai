@@ -251,6 +251,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Enumerate every design without reading any
+         * @description What an operator may see: ids, owners, visibility, size, timestamps.
+         *
+         *     An admin's *record* scope is identical to any other user's — they do not
+         *     read private records. This is the replacement, and it is deliberately
+         *     enough: migration and cleanup need ids and sizes, support needs an owner
+         *     and a visibility, takedown needs an id and a delete. None of them need the
+         *     content, and no field here is derived from it — not even the title, which
+         *     states intent and is most of what a private draft is.
+         */
+        get: operations["okh_inventory_api_okh_inventory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/export": {
         parameters: {
             query?: never;
@@ -921,6 +948,26 @@ export interface paths {
          *         - **has_part_number** — components with a manufacturer/supplier part number
          */
         post: operations["harvest_parts_api_okh_harvest_parts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Enumerate every facility without reading any
+         * @description Metadata only — see the OKH inventory route for why that is enough.
+         */
+        get: operations["okw_inventory_api_okw_inventory_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5988,6 +6035,79 @@ export interface components {
             display_name: string;
         };
         /**
+         * InventoryData
+         * @description A page of rows, plus what the operator needs to reason about the whole.
+         */
+        InventoryData: {
+            /** Rows */
+            rows?: components["schemas"]["InventoryRow"][];
+            /** Total */
+            total: number;
+            /** Private Total */
+            private_total: number;
+        };
+        /**
+         * InventoryResponse
+         * @description Envelope for an inventory listing.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        InventoryResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            data: components["schemas"]["InventoryData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * InventoryRow
+         * @description One record, described by its metadata only.
+         */
+        InventoryRow: {
+            /** Id */
+            id: string;
+            /** Created By Did */
+            created_by_did?: string | null;
+            /** Created By Account */
+            created_by_account?: string | null;
+            /** Visibility */
+            visibility: string;
+            /** Size Bytes */
+            size_bytes?: number | null;
+            /** Modified At */
+            modified_at?: string | null;
+        };
+        /**
          * LLMCredentialListResponse
          * @description List of stored LLM credentials (masked).
          * @example {
@@ -10903,6 +11023,54 @@ export interface operations {
             };
         };
     };
+    okh_inventory_api_okh_inventory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     export_okh_schema_api_okh_export_get: {
         parameters: {
             query?: never;
@@ -12493,6 +12661,54 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OKHHarvestResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    okw_inventory_api_okw_inventory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryResponse"];
                 };
             };
             /** @description Bad Request */

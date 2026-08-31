@@ -548,6 +548,32 @@ class OKHService(BaseService["OKHService"]):
         logger.info(f"Found {len(recipes)} unique recipes")
         return recipes
 
+    async def inventory(self) -> List[Dict[str, Any]]:
+        """Every record on the node, described without reading any of it.
+
+        Reads the catalogue entries that are already assembled and cached, so
+        this costs no extra object reads beyond the visibility lookup each row
+        needs. Returns metadata only — no title, no description, nothing
+        derived from manifest content (#405).
+        """
+        rows: List[Dict[str, Any]] = []
+        for entry in await self._catalog_entries():
+            manifest = entry["manifest"]
+            did, account = record_attribution(manifest)
+            record_id = manifest.get("id")
+            rows.append(
+                {
+                    "id": str(record_id),
+                    "created_by_did": did,
+                    "created_by_account": account,
+                    "visibility": (await self.get_visibility(record_id)).value,
+                    "size_bytes": entry.get("size"),
+                    "modified_at": entry.get("modified"),
+                }
+            )
+        rows.sort(key=lambda r: (r["modified_at"] or "", r["id"]), reverse=True)
+        return rows
+
     async def _visible_entries(
         self, entries: List[Dict[str, Any]], viewer: ViewerScope
     ) -> List[Dict[str, Any]]:
@@ -640,7 +666,21 @@ class OKHService(BaseService["OKHService"]):
                 winners[manifest_id] = (file_info, raw)
 
         return [
-            {"key": file_info.key, "manifest": raw}
+            {
+                "key": file_info.key,
+                "manifest": raw,
+                # Object facts the inventory reports without reading content
+                # (#405). ISO strings rather than datetimes on purpose: the
+                # Redis backend serialises this with json.dumps(default=str),
+                # so a datetime would come back a string from cache and stay a
+                # datetime uncached — the exact drift the note above avoids.
+                "size": getattr(file_info, "size", None),
+                "modified": (
+                    file_info.last_modified.isoformat()
+                    if getattr(file_info, "last_modified", None)
+                    else None
+                ),
+            }
             for file_info, raw in winners.values()
         ]
 

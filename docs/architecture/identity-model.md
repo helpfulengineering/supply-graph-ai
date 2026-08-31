@@ -240,6 +240,33 @@ is 256 bits of CSPRNG output, the same generator as an API token. The limit
 bounds the cost of hammering the endpoint and makes a sustained attempt visible.
 
 
+## What an operator can see
+
+An admin's record scope is identical to any other user's: they do not read
+private records. The replacement is an **inventory** — ids, owning DID and
+account, visibility, size and last-write, for every record on the node:
+
+```bash
+ohm okh inventory
+ohm okw inventory
+```
+
+No field is derived from manifest content, and that includes the title: a title
+states intent, and intent is most of what a private draft is. Deletion works on
+an id, so takedown never requires reading.
+
+That is enough for every operator task. Storage migration and orphan cleanup
+need ids and sizes; support needs an owner and a visibility; abuse handling
+needs an id and a delete. Moderating *submitted* records is a different plane
+(Slice M) where reading is the point.
+
+> **This is an interface boundary, not encryption at rest.** Manifests are
+> stored as plaintext JSON, so anyone with access to the object store can read
+> them. What this stops is incidental browsing, and it means a leaked admin
+> *key* is no longer a whole-node content leak. It does not protect a user from
+> the operator of the node they chose, and it should not be described as if it
+> does.
+
 ## Who can see a record
 
 Record lists are scoped to the caller. Ownership keys on the creator's **subject

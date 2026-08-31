@@ -476,6 +476,33 @@ export const recoveredFixture = {
   recovery_code: "ohm_recovery_replacement",
 };
 
+export const inventoryFixture = {
+  status: "success",
+  message: "OKH inventory",
+  data: {
+    rows: [
+      {
+        id: "okh-0001",
+        created_by_did: "did:key:zAdaRegistered",
+        created_by_account: "00000000-0000-0000-0000-0000000000cc",
+        visibility: "private",
+        size_bytes: 4096,
+        modified_at: "2026-08-30T12:00:00Z",
+      },
+      {
+        id: "okh-0002",
+        created_by_did: null,
+        created_by_account: "00000000-0000-0000-0000-000000000001",
+        visibility: "public",
+        size_bytes: 20480,
+        modified_at: "2026-08-29T09:30:00Z",
+      },
+    ],
+    total: 2,
+    private_total: 1,
+  },
+};
+
 export const apiKeysFixture = [
   {
     key_id: "00000000-0000-0000-0000-0000000000aa",
@@ -1449,6 +1476,8 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okw/spaces": networkSpacesFixture,
   "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
+  "/v1/api/okh/inventory": inventoryFixture,
+  "/v1/api/okw/inventory": inventoryFixture,
   "/v1/api/identity/whoami": whoamiAdminFixture,
   "/v1/api/identity/security-policy": securityPolicyFixture,
   "/v1/api/identity/keys": apiKeysFixture,

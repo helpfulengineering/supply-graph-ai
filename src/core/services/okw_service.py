@@ -694,6 +694,47 @@ class OKWService(BaseService["OKWService"]):
 
         return paginated_facilities, len(unique_facilities)
 
+    async def inventory(self) -> List[Dict[str, Any]]:
+        """Every facility on the node, described without reading any of it.
+
+        Its own discovery pass rather than list()'s, because that one parses
+        each file into a ManufacturingFacility and this needs none of that —
+        only the id, the attribution and the object's own facts.
+        """
+        if not self.storage or not self.storage.manager:
+            return []
+        discovery = SmartFileDiscovery(self.storage.manager)
+        rows: Dict[str, Dict[str, Any]] = {}
+        for file_info in await discovery.discover_files("okw"):
+            try:
+                raw = json.loads(
+                    (await self.storage.manager.get_object(file_info.key)).decode(
+                        "utf-8"
+                    )
+                )
+            except Exception as exc:
+                logger.warning(f"Inventory skipped unreadable {file_info.key}: {exc}")
+                continue
+            if KitchenCapability.is_cooking_capability(raw):
+                continue
+            record_id = raw.get("id")
+            if not record_id:
+                continue
+            did, account = record_attribution(raw)
+            modified = getattr(file_info, "last_modified", None)
+            rows[str(record_id)] = {
+                "id": str(record_id),
+                "created_by_did": did,
+                "created_by_account": account,
+                "visibility": (await self.get_visibility(record_id)).value,
+                "size_bytes": getattr(file_info, "size", None),
+                "modified_at": modified.isoformat() if modified else None,
+            }
+        ordered = sorted(
+            rows.values(), key=lambda r: (r["modified_at"] or "", r["id"]), reverse=True
+        )
+        return ordered
+
     async def _visible_facilities(
         self,
         facilities: List[ManufacturingFacility],

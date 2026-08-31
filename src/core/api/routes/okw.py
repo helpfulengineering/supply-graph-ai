@@ -34,9 +34,11 @@ from ...models.visibility import (
 )
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
+from ..models.inventory import InventoryData, InventoryResponse, InventoryRow
 from ...utils.logging import get_logger
 from ..dependencies import (
     created_by,
+    require_admin,
     created_by_did,
     get_optional_user,
     get_viewer,
@@ -96,6 +98,31 @@ async def get_storage_service() -> StorageService:
 async def get_okw_service() -> OKWService:
     """Get OKW service instance."""
     return await OKWService.get_instance()
+
+
+# Declared before any /{id} route: FastAPI matches in declaration order,
+# so a literal path registered after a path-param one is swallowed by it —
+# /inventory arrived as id="inventory" and 422'd on UUID parsing.
+@router.get(
+    "/inventory",
+    response_model=InventoryResponse,
+    summary="Enumerate every facility without reading any",
+)
+async def okw_inventory(
+    _admin: object = Depends(require_admin),
+    okw_service: OKWService = Depends(get_okw_service),
+) -> InventoryResponse:
+    """Metadata only — see the OKH inventory route for why that is enough."""
+    rows = await okw_service.inventory()
+    return InventoryResponse(
+        status=APIStatus.SUCCESS,
+        message="OKW inventory",
+        data=InventoryData(
+            rows=[InventoryRow(**row) for row in rows],
+            total=len(rows),
+            private_total=sum(1 for r in rows if r["visibility"] == "private"),
+        ),
+    )
 
 
 @router.get("/search", response_model=OKWListResponse)

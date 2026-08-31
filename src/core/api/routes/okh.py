@@ -47,6 +47,7 @@ from ..decorators import (
 )
 from ..dependencies import (
     created_by,
+    require_admin,
     created_by_did,
     get_optional_user,
     get_viewer,
@@ -55,6 +56,7 @@ from ..dependencies import (
     viewer_scope,
 )
 from ...models.auth import AuthenticatedUser
+from ..models.inventory import InventoryData, InventoryResponse, InventoryRow
 from ...models.provenance import RecordProvenance
 from ...models.visibility import VisibilityBody, VisibilityResponse, is_shareable
 from ..error_handlers import create_error_response
@@ -144,6 +146,39 @@ async def get_asset_service() -> AssetService:
 async def get_storage_service() -> StorageService:
     """Get storage service instance."""
     return await StorageService.get_instance()
+
+
+# Declared before any /{id} route: FastAPI matches in declaration order,
+# so a literal path registered after a path-param one is swallowed by it —
+# /inventory arrived as id="inventory" and 422'd on UUID parsing.
+@router.get(
+    "/inventory",
+    response_model=InventoryResponse,
+    summary="Enumerate every design without reading any",
+)
+async def okh_inventory(
+    _admin: object = Depends(require_admin),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> InventoryResponse:
+    """What an operator may see: ids, owners, visibility, size, timestamps.
+
+    An admin's *record* scope is identical to any other user's — they do not
+    read private records. This is the replacement, and it is deliberately
+    enough: migration and cleanup need ids and sizes, support needs an owner
+    and a visibility, takedown needs an id and a delete. None of them need the
+    content, and no field here is derived from it — not even the title, which
+    states intent and is most of what a private draft is.
+    """
+    rows = await okh_service.inventory()
+    return InventoryResponse(
+        status=APIStatus.SUCCESS,
+        message="OKH inventory",
+        data=InventoryData(
+            rows=[InventoryRow(**row) for row in rows],
+            total=len(rows),
+            private_total=sum(1 for r in rows if r["visibility"] == "private"),
+        ),
+    )
 
 
 @router.get(
