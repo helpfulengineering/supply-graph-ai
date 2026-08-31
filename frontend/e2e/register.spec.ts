@@ -30,18 +30,63 @@ test("a visitor registers and lands signed in", async ({ page }, testInfo) => {
   // paste step.
   await expect(page.getByText("ohm_registered_once")).toBeVisible();
   await expect(page.getByRole("heading", { name: "You are signed in" })).toBeVisible();
+  // A session the app minted persists (#415), so it is in localStorage and not
+  // in sessionStorage — never both, or signing out of one would leave the
+  // other holding a live credential.
+  expect(
+    await page.evaluate(() => localStorage.getItem("ohm_api_key")),
+  ).toBe("ohm_registered_once");
   expect(
     await page.evaluate(() => sessionStorage.getItem("ohm_api_key")),
-  ).toBe("ohm_registered_once");
-  // The app does use localStorage — theme, domain preference — so the check is
-  // that the credential specifically never reaches it, not that it is empty.
-  const persisted = await page.evaluate(() =>
-    Object.entries({ ...localStorage }).map(([k, v]) => `${k}=${v}`).join("\n"),
-  );
-  expect(persisted).not.toContain("ohm_registered_once");
-  expect(persisted).not.toContain("ohm_api_key");
+  ).toBeNull();
 
   await expectNoA11yViolations(page);
+});
+
+test("a registered visitor is still signed in after reopening the tab", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "mocked identity APIs only");
+  await page.route("**/v1/api/identity/whoami", (route) =>
+    route.fulfill({ json: NON_ADMIN_WHOAMI }),
+  );
+  await page.goto("/register");
+  await page.getByLabel("Display name").fill("Ada Lovelace");
+  await page.getByRole("button", { name: "Register" }).click();
+  await expect(page.getByText("ohm_registered_once")).toBeVisible();
+
+  // A new page in the same context is a new tab: sessionStorage does not carry
+  // over, localStorage does. This is the whole point of the change.
+  const reopened = await page.context().newPage();
+  await reopened.route("**/v1/api/identity/whoami", (route) =>
+    route.fulfill({ json: NON_ADMIN_WHOAMI }),
+  );
+  await reopened.goto("/account");
+
+  await expect(
+    reopened.getByRole("link", { name: "Ada Lovelace" }),
+  ).toBeVisible();
+  await expect(
+    reopened.getByText(/stay signed in on this device/),
+  ).toBeVisible();
+  await reopened.close();
+});
+
+test("a pasted key is still gone when the tab closes", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "mocked identity APIs only");
+  await page.addInitScript(() => {
+    sessionStorage.setItem("ohm_api_key", "pasted-admin-token");
+  });
+  await page.goto("/account");
+
+  // The posture chosen for an operator pasting an admin key is unchanged: it
+  // must never reach persistent storage.
+  expect(
+    await page.evaluate(() => localStorage.getItem("ohm_api_key")),
+  ).toBeNull();
+  await expect(page.getByText(/signed in for this tab only/)).toBeVisible();
 });
 
 test("registration is not offered when the node has it closed", async ({

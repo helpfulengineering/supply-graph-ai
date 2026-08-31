@@ -33,8 +33,9 @@ export function SessionPanel() {
           API key
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste a Bearer token for this browser tab (stored in sessionStorage
-          only).
+          Paste a Bearer token for this browser tab. A key you paste is kept
+          for this tab only and is gone when you close it — a session the app
+          issued you at registration persists instead.
         </p>
 
         <form onSubmit={onSave} className="mt-4 space-y-3">

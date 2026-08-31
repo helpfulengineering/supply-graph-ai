@@ -30,7 +30,7 @@ import { searchOkw } from "../../api/ohm/okw";
  * to be all of yours would quietly be missing half.
  */
 export function AccountView() {
-  const { token, user, isLoading, clear } = useAuth();
+  const { token, user, isLoading, clear, sessionOrigin } = useAuth();
 
   const designs = useQuery({
     queryKey: ["okh-list", "account"],
@@ -122,10 +122,18 @@ export function AccountView() {
               Signed in, but this node did not return an identity.
             </p>
           )}
+          {/* Both "why am I still signed in" and "why am I not" need a visible
+              answer, or persistence reads as a bug in whichever direction
+              surprises you. */}
+          <p className="mt-4 text-sm text-muted-foreground">
+            {sessionOrigin === "minted"
+              ? "You stay signed in on this device until you sign out or the key expires."
+              : "You are signed in for this tab only, because this key was pasted in. Close the tab and it is gone."}
+          </p>
           <button
             type="button"
             onClick={clear}
-            className={`${FIELD_SM} mt-4 font-medium hover:bg-background dark:hover:bg-muted`}
+            className={`${FIELD_SM} mt-3 font-medium hover:bg-background dark:hover:bg-muted`}
           >
             Sign out
           </button>

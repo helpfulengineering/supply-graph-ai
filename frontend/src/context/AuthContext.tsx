@@ -10,9 +10,11 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   clearToken,
+  getSessionOrigin,
   getToken,
   seedTokenFromEnv,
   setToken as persistToken,
+  type SessionOrigin,
 } from "../features/auth/tokenStorage";
 import { fetchWhoami, type AuthenticatedUser } from "../api/ohm/identity";
 import { ApiError } from "../api/ohm/client";
@@ -24,7 +26,10 @@ export type AuthContextValue = {
   hasWrite: boolean;
   isLoading: boolean;
   authError: Error | null;
-  setToken: (token: string) => Promise<void>;
+  /** `origin` decides whether the session outlives the tab — see tokenStorage. */
+  setToken: (token: string, origin?: SessionOrigin) => Promise<void>;
+  /** How the active session began, so the UI can say why it persists. */
+  sessionOrigin: SessionOrigin | null;
   clear: () => void;
   /** Last 401/403 from a mutation or whoami — drives AuthBanner. */
   reportAuthFailure: (err: unknown) => void;
@@ -41,6 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return getToken();
   });
   const [authFailure, setAuthFailure] = useState<string | null>(null);
+  const [sessionOrigin, setSessionOrigin] = useState<SessionOrigin | null>(() =>
+    getSessionOrigin(),
+  );
 
   const whoami = useQuery({
     queryKey: ["identity", "whoami", token],
@@ -52,16 +60,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (whoami.error instanceof ApiError && whoami.error.status === 401) {
+      // A persisted session that has simply aged out is the common case now
+      // that self-service keys expire, and "rejected" reads as "something is
+      // wrong with you" for what is really "this ran out, as designed".
+      const expired = /expired/i.test(whoami.error.message);
       clearToken();
       setTokenState(null);
-      setAuthFailure("API key rejected. Paste a valid key in Settings.");
+      setSessionOrigin(null);
+      setAuthFailure(
+        expired
+          ? "Your key expired, so you have been signed out. Sign in again, or recover your account if you no longer have it."
+          : "API key rejected. Paste a valid key in Settings.",
+      );
     }
   }, [whoami.error]);
 
   const setToken = useCallback(
-    async (next: string) => {
-      persistToken(next);
+    async (next: string, origin: SessionOrigin = "pasted") => {
+      persistToken(next, origin);
       setTokenState(getToken());
+      setSessionOrigin(getSessionOrigin());
       setAuthFailure(null);
       await queryClient.invalidateQueries({ queryKey: ["identity", "whoami"] });
     },
@@ -71,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clear = useCallback(() => {
     clearToken();
     setTokenState(null);
+    setSessionOrigin(null);
     setAuthFailure(null);
     queryClient.removeQueries({ queryKey: ["identity", "whoami"] });
   }, [queryClient]);
@@ -103,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       reportAuthFailure,
       clearAuthFailure: () => setAuthFailure(null),
       authFailure,
+      sessionOrigin,
     }),
     [
       token,
@@ -116,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clear,
       reportAuthFailure,
       authFailure,
+      sessionOrigin,
     ],
   );
 

@@ -52,7 +52,7 @@ export function RecoverView() {
       const result = await redeemRecoveryCode(value);
       setRecovered(result);
       setCode("");
-      if (result.key.token) await setToken(result.key.token);
+      if (result.key.token) await setToken(result.key.token, "minted");
       showSuccess("Account recovered", {
         description: `Signed in as ${result.display_name}.`,
       });
