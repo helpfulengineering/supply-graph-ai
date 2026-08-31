@@ -20,7 +20,15 @@ const stages = [
 const t0 = Date.now();
 for (const [name, cmd, args] of stages) {
   process.stdout.write(`\n→ frontend-ready: ${name}\n`);
-  const res = spawnSync(cmd, args, { stdio: "inherit", shell: process.platform === "win32" });
+  const res = spawnSync(cmd, args, {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+    // Marks these stages as "the gate is running", which the Playwright config
+    // reads to refuse an already-running server. Attaching to one would make
+    // the e2e stage measure whatever happens to be on the port instead of the
+    // build the stage before it just produced.
+    env: { ...process.env, OHM_GATE: "1" },
+  });
   if (res.status !== 0) {
     process.stderr.write(`\n✗ frontend-ready FAILED at: ${name}\n`);
     process.exit(res.status ?? 1);

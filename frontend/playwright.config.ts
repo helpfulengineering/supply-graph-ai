@@ -84,7 +84,12 @@ export default defineConfig({
   webServer: {
     command: harness.appStartCommand,
     url: harness.appUrl,
-    reuseExistingServer: !process.env.CI,
+    // Reuse a running server for hand-run specs — it is the fast path while
+    // iterating — but never inside `frontend-ready`. The gate builds and then
+    // serves that build; silently attaching to a stray `next dev` would put
+    // lazy per-route compilation back under parallel load, which is what made
+    // unrelated specs time out, and would test code the build never saw.
+    reuseExistingServer: !process.env.CI && !process.env.OHM_GATE,
     timeout: 120_000,
   },
 });
