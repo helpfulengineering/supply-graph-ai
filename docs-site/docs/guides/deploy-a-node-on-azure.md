@@ -36,7 +36,7 @@ and a published OHM container image.
 | Container Apps environment | Runs the API (and optional worker) |
 | API Container App | The OHM service, with a random admin `API_KEYS` value |
 | Redis + worker *(optional)* | Celery broker and background worker for async generate-from-url |
-| Encryption secrets *(production)* | `LLM_ENCRYPTION_SALT` / `LLM_ENCRYPTION_PASSWORD` so admins can store LLM keys in Settings |
+| Encryption secrets *(production)* | `OHM_ENCRYPTION_SALT` / `OHM_ENCRYPTION_PASSWORD` so admins can store LLM keys in Settings |
 
 ## Prerequisites
 

@@ -164,10 +164,10 @@ Provider-specific secrets (ask immediately after provider selection):
 - Ask: "Are you setting this up for production?"
   - Dev: warn that defaults are used (not secure for production), skip encryption params
   - Prod: encryption credentials are **required**:
-    - **`LLM_ENCRYPTION_SALT`** — required for prod; is_secret: true; warn: must not be a default value
-    - **`LLM_ENCRYPTION_PASSWORD`** — required for prod; is_secret: true; warn: must not be a default value
-    - Alternatively, **`LLM_ENCRYPTION_KEY`** — a pre-generated Fernet key (32 url-safe base64 bytes); leave empty if using salt/password approach
-    - Note: do not add inline comments on the same line as an empty `LLM_ENCRYPTION_KEY=` value — python-dotenv will treat the comment as the value
+    - **`OHM_ENCRYPTION_SALT`** — required for prod; is_secret: true; warn: must not be a default value
+    - **`OHM_ENCRYPTION_PASSWORD`** — required for prod; is_secret: true; warn: must not be a default value
+    - Alternatively, **`OHM_ENCRYPTION_KEY`** — a pre-generated Fernet key (32 url-safe base64 bytes); leave empty if using salt/password approach
+    - Note: do not add inline comments on the same line as an empty `OHM_ENCRYPTION_KEY=` value — python-dotenv will treat the comment as the value
 
 ### 3e: Optional Features
 
@@ -214,8 +214,6 @@ Present as a menu — user can skip all:
 - `MAX_DEPTH` — BOM explosion depth; default: 5; range 1–10; only ask if user has performance concerns
 
 **Domain toggles:**
-- `COOKING_DOMAIN_ENABLED` — default: true
-- `MANUFACTURING_DOMAIN_ENABLED` — default: true
 
 **Developer/testing:**
 - `DEV_MODE` — default: false
@@ -251,7 +249,7 @@ overrides both the generated defaults and the per-environment TOML files.
 Rules:
 - Only write params relevant to the chosen storage provider and enabled features
 - Do not write cloud provider params for providers that are not selected
-- Write secret params without quoting and without inline comments (especially for empty LLM_ENCRYPTION_KEY)
+- Write secret params without quoting and without inline comments (especially for empty OHM_ENCRYPTION_KEY)
 - Never overwrite params already present in `.env` unless user explicitly confirmed replacement
 - Add a comment block before each logical section (storage, LLM, federation)
 
@@ -656,6 +654,6 @@ Run this skill with `--regenerate-docs-index`.
 - Don't skip the health check — a broken setup is worse than a slow one
 - Don't store secret values in conversation history; handle them write-only
 - If a step fails, stop and report the error — don't continue to the next step
-- Don't set LLM_ENCRYPTION_KEY with an inline comment on the same line when the value is empty — python-dotenv will treat the comment as the value
+- Don't set OHM_ENCRYPTION_KEY with an inline comment on the same line when the value is empty — python-dotenv will treat the comment as the value
 - Don't enable federation unless the user explicitly wants multi-node peer sync; it adds complexity with no benefit for single-node setups
 - For cloud storage, don't write both canonical and legacy Azure env var names unless the user's toolchain requires the legacy names

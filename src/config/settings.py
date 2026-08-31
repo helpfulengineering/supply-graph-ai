@@ -62,6 +62,13 @@ def _get_secret_or_env(key: str, default: str = None) -> str:
             "AWS_SECRET_ACCESS_KEY",
             "AZURE_STORAGE_KEY",
             "GCP_CREDENTIALS_JSON",
+            # Both spellings: the OHM_ names are preferred and the LLM_ ones
+            # are the deprecated fallback (#371). Listing only one would mean
+            # the other is not fetched from the secrets manager, which is a
+            # silent difference in where a credential may live.
+            "OHM_ENCRYPTION_KEY",
+            "OHM_ENCRYPTION_SALT",
+            "OHM_ENCRYPTION_PASSWORD",
             "LLM_ENCRYPTION_KEY",
             "LLM_ENCRYPTION_SALT",
             "LLM_ENCRYPTION_PASSWORD",
