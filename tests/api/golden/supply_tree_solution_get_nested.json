@@ -1,0 +1,145 @@
+{
+  "data": {
+    "all_trees": [
+      {
+        "assembly_location": "*",
+        "capabilities_used": [],
+        "child_tree_ids": [
+          "*"
+        ],
+        "component_id": "*",
+        "component_name": "*",
+        "component_path": [],
+        "component_quantity": "*",
+        "component_unit": "*",
+        "confidence_score": "*",
+        "creation_time": "*",
+        "depends_on": [
+          "*"
+        ],
+        "depth": "*",
+        "estimated_cost": "*",
+        "estimated_time": "*",
+        "facility_name": "*",
+        "id": "*",
+        "match_type": "*",
+        "materials_required": [],
+        "metadata": {},
+        "okh_reference": "*",
+        "okw_reference": "*",
+        "parent_tree_id": "*",
+        "production_stage": "*",
+        "required_by": []
+      }
+    ],
+    "component_mapping": {
+      "bracket": [
+        {
+          "assembly_location": "*",
+          "capabilities_used": [],
+          "child_tree_ids": [],
+          "component_id": "*",
+          "component_name": "*",
+          "component_path": [
+            "*"
+          ],
+          "component_quantity": "*",
+          "component_unit": "*",
+          "confidence_score": "*",
+          "creation_time": "*",
+          "depends_on": [],
+          "depth": "*",
+          "estimated_cost": "*",
+          "estimated_time": "*",
+          "facility_name": "*",
+          "id": "*",
+          "match_type": "*",
+          "materials_required": [],
+          "metadata": {},
+          "okh_reference": "*",
+          "okw_reference": "*",
+          "parent_tree_id": "*",
+          "production_stage": "*",
+          "required_by": []
+        }
+      ]
+    },
+    "dependency_graph": {
+      "<id>": [
+        "*"
+      ]
+    },
+    "is_nested": "*",
+    "metadata": {
+      "matching_mode": "*",
+      "okh_id": "*"
+    },
+    "metrics": {
+      "direct_matches": "*"
+    },
+    "production_sequence": [
+      "*"
+    ],
+    "root_trees": [
+      {
+        "assembly_location": "*",
+        "capabilities_used": [],
+        "child_tree_ids": [
+          "*"
+        ],
+        "component_id": "*",
+        "component_name": "*",
+        "component_path": [],
+        "component_quantity": "*",
+        "component_unit": "*",
+        "confidence_score": "*",
+        "creation_time": "*",
+        "depends_on": [
+          "*"
+        ],
+        "depth": "*",
+        "estimated_cost": "*",
+        "estimated_time": "*",
+        "facility_name": "*",
+        "id": "*",
+        "match_type": "*",
+        "materials_required": [],
+        "metadata": {},
+        "okh_reference": "*",
+        "okw_reference": "*",
+        "parent_tree_id": "*",
+        "production_stage": "*",
+        "required_by": []
+      }
+    ],
+    "score": "*",
+    "total_estimated_cost": "*",
+    "total_estimated_time": "*",
+    "validation_result": {
+      "circular_dependencies": [
+        "*"
+      ],
+      "errors": [
+        "*"
+      ],
+      "is_valid": "*",
+      "missing_dependencies": [
+        "*"
+      ],
+      "unmatched_components": [
+        "*"
+      ],
+      "warnings": [
+        "*"
+      ]
+    }
+  },
+  "message": "*",
+  "metadata": {
+    "processing_time": "*",
+    "timestamp": "*"
+  },
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

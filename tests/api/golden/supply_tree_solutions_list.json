@@ -1,0 +1,34 @@
+{
+  "data": {
+    "result": [
+      {
+        "age_days": "*",
+        "component_count": "*",
+        "created_at": "*",
+        "expires_at": "*",
+        "facility_count": "*",
+        "facility_name": "*",
+        "id": "*",
+        "last_modified": "*",
+        "matching_mode": "*",
+        "okh_id": "*",
+        "okh_title": "*",
+        "score": "*",
+        "tags": [
+          "*"
+        ],
+        "tree_count": "*",
+        "ttl_days": "*",
+        "updated_at": "*"
+      }
+    ]
+  },
+  "message": "*",
+  "metadata": {
+    "processing_time": "*",
+    "timestamp": "*"
+  },
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

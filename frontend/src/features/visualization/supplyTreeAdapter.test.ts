@@ -45,7 +45,11 @@ describe("supplyTreeAdapter", () => {
     const withCost = bundle({
       supply_tree: {
         ...bundle().supply_tree,
-        resource_cost: { total_estimated_cost: 42, total_estimated_time: 7 },
+        // A duration, not a quantity: the API sends "7 days", not 7.
+        resource_cost: {
+          total_estimated_cost: 42,
+          total_estimated_time: "7 days",
+        },
       },
     });
     const labels = deriveKpis(withCost).map((k) => k.label);

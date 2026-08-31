@@ -1,0 +1,82 @@
+{
+  "data": {
+    "artifacts": {
+      "graphml_endpoint": "*",
+      "html_report": "*",
+      "json_bundle": "*"
+    },
+    "dashboard": {
+      "kpis": {
+        "edge_count": "*",
+        "solution_score": "*",
+        "stage_count": "*",
+        "tree_count": "*"
+      }
+    },
+    "generated_at": "*",
+    "matching": {
+      "overview": {
+        "matching_mode": "*",
+        "score": "*",
+        "tree_count": "*"
+      }
+    },
+    "network": {
+      "facility_distribution": [
+        {
+          "facility_name": "*",
+          "tree_count": "*"
+        }
+      ],
+      "route_hints": {
+        "note": "*",
+        "status": "*"
+      }
+    },
+    "schema_version": "*",
+    "source_type": "*",
+    "supply_tree": {
+      "dependency_graph": {
+        "<id>": [
+          "*"
+        ]
+      },
+      "edges": [
+        {
+          "source": "*",
+          "target": "*",
+          "type": "*"
+        }
+      ],
+      "nodes": [
+        {
+          "component_id": "*",
+          "confidence_score": "*",
+          "depth": "*",
+          "estimated_cost": "*",
+          "estimated_time": "*",
+          "facility_name": "*",
+          "id": "*",
+          "label": "*",
+          "production_stage": "*"
+        }
+      ],
+      "production_sequence": [
+        "*"
+      ],
+      "resource_cost": {
+        "total_estimated_cost": "*",
+        "total_estimated_time": "*"
+      },
+      "solution_id": "*"
+    }
+  },
+  "message": "*",
+  "metadata": {
+    "processing_time": "*",
+    "timestamp": "*"
+  },
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

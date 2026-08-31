@@ -1,88 +1,22 @@
-/** Supply tree / visualization types derived from fixture contract (schema 3.2.0). */
+/**
+ * Supply tree / visualization types.
+ *
+ * Generated from the API schema (#373). These were hand-written against a
+ * fixture, and had drifted: `estimated_time` and `total_estimated_time` were
+ * declared `number | null`, but the API returns a string — "3 days", a critical
+ * path duration, not a quantity. Anything doing arithmetic on them was working
+ * from a type the server never honoured.
+ *
+ * The names are kept as they were so callers do not churn; only the
+ * definitions moved to the schema.
+ */
+import type { components } from "../api/generated/schema";
 
-export interface VisualizationNode {
-  id: string;
-  label: string;
-  component_id: string | null;
-  facility_name: string;
-  depth: number;
-  production_stage: string;
-  confidence_score: number;
-  estimated_cost: number | null;
-  estimated_time: number | null;
-}
-
-export interface VisualizationEdge {
-  source: string;
-  target: string;
-  type: string;
-}
-
-export interface SupplyTree {
-  solution_id: string;
-  nodes: VisualizationNode[];
-  edges: VisualizationEdge[];
-  dependency_graph: Record<string, string[]>;
-  production_sequence: string[][];
-  resource_cost: {
-    total_estimated_cost: number | null;
-    total_estimated_time: number | null;
-  };
-}
-
-export interface VisualizationData {
-  schema_version: string;
-  source_type: string;
-  generated_at: string;
-  matching: {
-    overview: {
-      matching_mode: string;
-      score: number;
-      tree_count: number;
-    };
-  };
-  supply_tree: SupplyTree;
-  network: {
-    facility_distribution: { facility_name: string; tree_count: number }[];
-    route_hints: { status: string; note: string };
-  };
-  dashboard: {
-    kpis: {
-      tree_count: number;
-      edge_count: number;
-      stage_count: number;
-      solution_score: number;
-    };
-  };
-  artifacts: {
-    graphml_endpoint?: string;
-    json_bundle?: boolean | string;
-    html_report?: boolean | string;
-  };
-}
-
-export interface VisualizationResponse {
-  status: string;
-  message: string;
-  timestamp: string;
-  request_id: string;
-  data: VisualizationData;
-  metadata: Record<string, unknown>;
-}
-
-export interface SolutionListItem {
-  id: string;
-  okh_id: string;
-  okh_title: string | null;
-  matching_mode: string;
-  tree_count: number;
-  component_count: number;
-  facility_count: number;
-  score: number;
-  created_at: string;
-  updated_at: string;
-  expires_at: string | null;
-  ttl_days: number | null;
-  tags: string[];
-  age_days: number | null;
-}
+export type VisualizationNode = components["schemas"]["VisualizationNode"];
+export type VisualizationEdge = components["schemas"]["VisualizationEdge"];
+export type SupplyTree = components["schemas"]["VisualizationSupplyTree"];
+export type VisualizationData =
+  components["schemas"]["VisualizationBundleData"];
+export type VisualizationResponse =
+  components["schemas"]["SolutionVisualizationResponse"];
+export type SolutionListItem = components["schemas"]["SolutionListRow"];

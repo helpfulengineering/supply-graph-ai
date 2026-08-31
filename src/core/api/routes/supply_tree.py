@@ -44,7 +44,15 @@ from ..models.supply_tree.request import (
     SupplyTreeOptimizeRequest,
     SupplyTreeValidateRequest,
 )
-from ..models.supply_tree.response import SolutionHierarchyResponse
+from ..models.supply_tree.response import (
+    SolutionDeleteResponse,
+    SolutionDetailResponse,
+    SolutionExtendResponse,
+    SolutionHierarchyResponse,
+    SolutionListResponse,
+    SolutionStalenessResponse,
+    SolutionVisualizationResponse,
+)
 
 logger = get_logger(__name__)
 
@@ -267,6 +275,7 @@ async def create_supply_tree(
 @router.get(
     "/solutions",
     status_code=status.HTTP_200_OK,
+    response_model=SolutionListResponse,
     summary="List Supply Tree Solutions",
     description="""
     List the calling account's saved supply tree solutions.
@@ -377,6 +386,14 @@ async def list_supply_tree_solutions(
 @router.get(
     "/solution/{solution_id}",
     status_code=status.HTTP_200_OK,
+    response_model=SolutionDetailResponse,
+    # ``to_dict`` omits keys rather than nulling them: `tree` only when there
+    # is one tree, the nested block only when it applies. Without this, the
+    # model would helpfully add every absent key back as null, so a
+    # single-level solution would grow a `component_mapping: null` it never
+    # had. Declaring the fields optional types them; this keeps the payload
+    # byte-for-byte what the route returned before.
+    response_model_exclude_unset=True,
     summary="Get Supply Tree Solution",
     description="""
     Get a supply tree solution by ID.
@@ -455,6 +472,7 @@ async def get_supply_tree_solution(
 @router.delete(
     "/solution/{solution_id}",
     status_code=status.HTTP_200_OK,
+    response_model=SolutionDeleteResponse,
     summary="Delete Supply Tree Solution",
     description="""
     Delete a supply tree solution by ID.
@@ -534,6 +552,7 @@ async def delete_supply_tree_solution(
 @router.get(
     "/solution/{solution_id}/staleness",
     status_code=status.HTTP_200_OK,
+    response_model=SolutionStalenessResponse,
     summary="Check Solution Staleness",
     description="""
     Check if a supply tree solution is stale.
@@ -698,6 +717,7 @@ async def cleanup_stale_solutions(
 @router.post(
     "/solution/{solution_id}/extend",
     status_code=status.HTTP_200_OK,
+    response_model=SolutionExtendResponse,
     summary="Extend Solution TTL",
     description="""
     Extend the expiration time (TTL) of a solution.
@@ -1961,6 +1981,7 @@ async def get_solution_production_sequence(
 @router.get(
     "/solution/{solution_id}/visualization",
     status_code=status.HTTP_200_OK,
+    response_model=SolutionVisualizationResponse,
     summary="Get Visualization Bundle",
     description="""
     Build a canonical JSON visualization bundle for a stored supply tree solution.

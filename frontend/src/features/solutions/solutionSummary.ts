@@ -34,7 +34,7 @@ export function scorePercent(score: number | null | undefined): number | null {
 }
 
 /** Locale date, or "" when the timestamp is absent or unparseable. */
-export function formatSaved(created_at: string | null): string {
+export function formatSaved(created_at: string | null | undefined): string {
   if (!created_at) return "";
   const date = new Date(created_at);
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString();
