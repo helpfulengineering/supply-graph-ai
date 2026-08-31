@@ -4142,6 +4142,21 @@ export interface components {
              */
             location?: string | null;
         };
+        /**
+         * AssetDeleteResponse
+         * @description Confirmation that an asset record was removed (#373).
+         *
+         *     Derived from the golden in
+         *     ``tests/integration/test_asset_delete_contract.py``. The route returned a
+         *     bare dict, so the generated schema said nothing about it and a client had
+         *     to guess at the field names.
+         */
+        AssetDeleteResponse: {
+            /** Success */
+            success: boolean;
+            /** Message */
+            message: string;
+        };
         /** AssetListResponse */
         AssetListResponse: {
             /** Assets */
@@ -6840,6 +6855,137 @@ export interface components {
              * @description Match against the unified network surface (local OKW ∪ Maps of Making) narrowed by these filters — same keys as GET /api/okw/spaces (include_mom, country, city, process, source, status, region, access_type). When set, it supersedes the storage/okw_ids candidate pool so a design can be matched against exactly the filtered set the network browse view shows.
              */
             network_filter?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * MatchRunResponse
+         * @description Envelope for ``POST /api/match``.
+         *
+         *     ``data`` is the discriminated union, so the branch a caller got is a typed
+         *     fact rather than something to infer from which keys happen to be present.
+         * @example {
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        MatchRunResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            /** Data */
+            data: components["schemas"]["SingleLevelMatchData"] | components["schemas"]["NestedMatchData"];
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * MatchSummary
+         * @description Process coverage for a match, the same shape in both branches.
+         */
+        MatchSummary: {
+            /** Matching Mode */
+            matching_mode: string;
+            /** Solution Count */
+            solution_count: number;
+            /** Required Process Count */
+            required_process_count: number;
+            /** Covered Process Count */
+            covered_process_count: number;
+            /** Coverage Ratio */
+            coverage_ratio: number;
+            /** Coverage Gap Counts */
+            coverage_gap_counts?: {
+                [key: string]: number;
+            };
+            /** Facility Combination Requested */
+            facility_combination_requested: boolean;
+            /** Facility Combination Applied */
+            facility_combination_applied: boolean;
+            /** Max Facilities Per Solution */
+            max_facilities_per_solution: number;
+            /** Return Alternative Solutions */
+            return_alternative_solutions: boolean;
+            /** Combination Strategy */
+            combination_strategy: string;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * MatchingMetrics
+         * @description Which matching layer produced the results.
+         */
+        MatchingMetrics: {
+            /** Direct Matches */
+            direct_matches: number;
+            /** Heuristic Matches */
+            heuristic_matches: number;
+            /** Nlp Matches */
+            nlp_matches: number;
+            /** Llm Matches */
+            llm_matches: number;
+        };
+        /**
+         * NestedMatchData
+         * @description One solution spanning several facilities, with a component hierarchy.
+         */
+        NestedMatchData: {
+            /** Processing Time */
+            processing_time: number;
+            match_summary: components["schemas"]["MatchSummary"];
+            /** Match Summary Text */
+            match_summary_text: string;
+            /** Coverage Gaps */
+            coverage_gaps?: string[];
+            /** Suggestions */
+            suggestions?: string[];
+            /** Suggestion Codes */
+            suggestion_codes?: string[];
+            /** Solution Id */
+            solution_id?: string | null;
+            /** Human Summary */
+            human_summary?: {
+                [key: string]: unknown;
+            } | null;
+            /** Save Warning */
+            save_warning?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            matching_mode: "nested";
+            /** Solution */
+            solution?: {
+                [key: string]: unknown;
+            };
+            /** Validation Result */
+            validation_result?: {
                 [key: string]: unknown;
             } | null;
         };
@@ -10429,6 +10575,51 @@ export interface components {
             };
         };
         /**
+         * SingleLevelMatchData
+         * @description One facility per solution, ranked. The default branch.
+         */
+        SingleLevelMatchData: {
+            /** Processing Time */
+            processing_time: number;
+            match_summary: components["schemas"]["MatchSummary"];
+            /** Match Summary Text */
+            match_summary_text: string;
+            /** Coverage Gaps */
+            coverage_gaps?: string[];
+            /** Suggestions */
+            suggestions?: string[];
+            /** Suggestion Codes */
+            suggestion_codes?: string[];
+            /** Solution Id */
+            solution_id?: string | null;
+            /** Human Summary */
+            human_summary?: {
+                [key: string]: unknown;
+            } | null;
+            /** Save Warning */
+            save_warning?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            matching_mode: "single-level";
+            /** Total Solutions */
+            total_solutions: number;
+            matching_metrics: components["schemas"]["MatchingMetrics"];
+            /** Applied Filters */
+            applied_filters?: {
+                [key: string]: unknown;
+            };
+            /** Validation Results */
+            validation_results?: {
+                [key: string]: unknown;
+            }[];
+            /** Solutions */
+            solutions?: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
          * SolutionDeleteData
          * @description Result of deleting a saved solution.
          */
@@ -11923,9 +12114,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["MatchRunResponse"];
                 };
             };
             /** @description Bad Request */
@@ -15462,7 +15651,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AssetDeleteResponse"];
                 };
             };
             /** @description Validation Error */

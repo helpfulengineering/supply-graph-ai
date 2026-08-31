@@ -89,7 +89,11 @@ from ..models.match.request import (
     SimulateRequest,
     ValidateMatchRequest,
 )
-from ..models.match.response import FacilityDesignsResponse, SimulateResponse
+from ..models.match.response import (
+    FacilityDesignsResponse,
+    MatchRunResponse,
+    SimulateResponse,
+)
 from ..models.match.suggestion_codes import MATCH_SUGGESTION_CODES
 
 # Create consolidated router
@@ -146,6 +150,12 @@ async def get_okw_service() -> OKWService:
 @router.post(
     "",
     status_code=status.HTTP_200_OK,
+    response_model=MatchRunResponse,
+    # solution_id, human_summary and save_warning are written only when the
+    # request asked for them or a save failed. Declaring them optional types
+    # them; without this the model would add each one back as null, and the
+    # payload would no longer be what the route returned.
+    response_model_exclude_unset=True,
     summary="Enhanced Requirements Matching (Domain-Aware)",
     description="""
     Enhanced endpoint for matching requirements with capabilities across multiple domains.

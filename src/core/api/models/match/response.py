@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -202,3 +202,108 @@ class FacilityDesignsData(BaseModel):
 
 class FacilityDesignsResponse(SuccessResponse):
     data: FacilityDesignsData
+
+
+# ---------------------------------------------------------------------------
+# POST /api/match — the two branches (#373)
+#
+# Derived from the four goldens in
+# ``tests/integration/test_match_contract.py``. The endpoint answers with two
+# structurally different payloads chosen by ``matching_mode``, so this is a
+# union discriminated on that field: one flat model would filter whichever
+# branch it is not.
+# ---------------------------------------------------------------------------
+
+
+class MatchSummary(BaseModel):
+    """Process coverage for a match, the same shape in both branches."""
+
+    matching_mode: str
+    solution_count: int
+    required_process_count: int
+    covered_process_count: int
+    coverage_ratio: float
+    # Keyed by process name, so a map rather than a fixed shape.
+    coverage_gap_counts: Dict[str, int] = Field(default_factory=dict)
+    facility_combination_requested: bool
+    facility_combination_applied: bool
+    max_facilities_per_solution: int
+    return_alternative_solutions: bool
+    combination_strategy: str
+    warnings: List[str] = Field(default_factory=list)
+
+
+class MatchingMetrics(BaseModel):
+    """Which matching layer produced the results."""
+
+    direct_matches: int
+    heuristic_matches: int
+    nlp_matches: int
+    llm_matches: int
+
+
+class _MatchDataBase(BaseModel):
+    """What both branches carry.
+
+    The three optional fields are conditional on the request, not on the
+    branch: ``solution_id`` is written only when ``save_solution`` was asked
+    for — and it is the only way a caller learns where its result went, so
+    omitting it here would silently lose it — while ``human_summary`` and
+    ``save_warning`` appear only when generated or when a save failed.
+    """
+
+    processing_time: float
+    match_summary: MatchSummary
+    match_summary_text: str
+    coverage_gaps: List[str] = Field(default_factory=list)
+    suggestions: List[str] = Field(default_factory=list)
+    suggestion_codes: List[str] = Field(default_factory=list)
+
+    solution_id: Optional[str] = None
+    human_summary: Optional[Dict[str, Any]] = None
+    save_warning: Optional[str] = None
+
+
+class SingleLevelMatchData(_MatchDataBase):
+    """One facility per solution, ranked. The default branch."""
+
+    matching_mode: Literal["single-level"]
+    total_solutions: int
+    matching_metrics: MatchingMetrics
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
+    validation_results: List[Dict[str, Any]] = Field(default_factory=list)
+
+    # Free-form on purpose. Each item carries a facility projection, a
+    # SupplyTree.to_dict() and — only when include_explanation was requested —
+    # `explanation` and `explanation_human`, which the UI reads. A strict model
+    # would filter whichever of those the request did not ask for, which is the
+    # drift this convention exists to prevent, one level down.
+    solutions: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class NestedMatchData(_MatchDataBase):
+    """One solution spanning several facilities, with a component hierarchy."""
+
+    matching_mode: Literal["nested"]
+
+    # Free-form for the same reason as `solutions` above: this is a
+    # SupplyTreeSolution.to_dict(), whose optional keys come and go with how
+    # the solution was built.
+    solution: Dict[str, Any] = Field(default_factory=dict)
+    validation_result: Optional[Dict[str, Any]] = None
+
+
+MatchData = Annotated[
+    Union[SingleLevelMatchData, NestedMatchData],
+    Field(discriminator="matching_mode"),
+]
+
+
+class MatchRunResponse(SuccessResponse):
+    """Envelope for ``POST /api/match``.
+
+    ``data`` is the discriminated union, so the branch a caller got is a typed
+    fact rather than something to infer from which keys happen to be present.
+    """
+
+    data: MatchData

@@ -37,6 +37,22 @@ export interface RunMatchParams {
   networkFilter?: Record<string, string | boolean>;
 }
 
+/**
+ * Kept hand-written on purpose (#373).
+ *
+ * `POST /api/match` now declares a response model — a union discriminated on
+ * `matching_mode` — but the *items* of `solutions` are typed `Dict[str, Any]`
+ * there, deliberately: each carries a facility projection, a
+ * `SupplyTree.to_dict()`, and `explanation` / `explanation_human` only when
+ * `include_explanation` was requested. Freezing that server-side would filter
+ * whichever part the request did not ask for.
+ *
+ * So there is no generated type to adopt here, and this stays the description
+ * of what the UI reads. `RawMatchData` likewise stays a permissive superset of
+ * both branches rather than the generated union: narrowing it would push a
+ * discriminant check into every call site of the view model, which is a
+ * refactor with its own tests to write, not a type swap.
+ */
 export interface RawSolution {
   facility_id?: string | null;
   facility_name?: string | null;

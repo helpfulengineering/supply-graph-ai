@@ -18,6 +18,7 @@ from ..models.asset.request import (
     SalvageMatchRequest,
 )
 from ..models.asset.response import (
+    AssetDeleteResponse,
     AssetListResponse,
     AssetResponse,
     ChecklistItemResponse,
@@ -200,6 +201,7 @@ async def update_asset(
 @router.delete(
     "/{id}",
     status_code=status.HTTP_200_OK,
+    response_model=AssetDeleteResponse,
     summary="Delete an asset record",
 )
 async def delete_asset(
