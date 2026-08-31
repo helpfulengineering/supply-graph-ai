@@ -16,7 +16,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from tests.record_fixtures import okw_facility_dict
+from tests.record_fixtures import okh_manifest_dict, okw_facility_dict
 
 pytestmark = pytest.mark.integration
 
@@ -26,7 +26,16 @@ def test_reverse_match_unknown_facility_returns_404(client):
     assert resp.status_code == 404, resp.text
 
 
-def test_reverse_match_returns_ranked_envelope(client):
+def test_reverse_match_returns_ranked_envelope(client, matchable_design):
+    """The design has to be one matching can see, or this asserts nothing.
+
+    It used to create no design at all, so the loop below ran zero times and
+    the endpoint's item shape was never checked — the test passed for years
+    without exercising the thing it names. Records are created ``private`` and
+    an anonymous list returns only shareable ones, which is why the fixture
+    shares it first.
+    """
+    matchable_design(okh_manifest_dict())
     created = client.post("/api/okw/create", json={"content": okw_facility_dict()})
     assert created.status_code == 201, created.text
     okw_id = created.json()["okw"]["id"]
@@ -39,9 +48,11 @@ def test_reverse_match_returns_ranked_envelope(client):
     data = resp.json()["data"]
 
     assert data["okw_id"] == okw_id
-    assert isinstance(data["designs"], list)
     assert data["total_designs"] == len(data["designs"])
-    assert "designs_considered" in data
+    assert (
+        data["designs_considered"] >= 1
+    ), "matching examined no designs, so the assertions below check nothing"
+    assert data["designs"], "no design matched, so the item shape is unchecked"
     # Each returned design carries a friendly identity + ranking.
     for d in data["designs"]:
         assert {"okh_id", "okh_title", "confidence", "rank"} <= set(d)

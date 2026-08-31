@@ -59,3 +59,35 @@ def client():
 
     shutil.rmtree(_STORAGE_DIR, ignore_errors=True)
     BaseService._instances.clear()
+
+
+@pytest.fixture
+def matchable_design(client):
+    """Create a design that matching will actually consider, and clean it up.
+
+    Records are created ``private`` and an anonymous list returns only
+    shareable ones, so a design created in-process is invisible to an anonymous
+    match — which is how three separate tests came to assert against a list
+    that was always empty. Making the intent explicit here beats leaving each
+    test to rediscover it.
+
+    Cleans up because the integration client and its storage are session-scoped:
+    records left behind change what every later test sees.
+    """
+    created: list[str] = []
+
+    def make(content: dict) -> str:
+        resp = client.post("/api/okh/create", json={"content": content})
+        assert resp.status_code == 201, resp.text
+        record_id = resp.json()["okh"]["id"]
+        created.append(record_id)
+        shared = client.put(
+            f"/api/okh/{record_id}/visibility", json={"visibility": "public"}
+        )
+        assert shared.status_code == 200, shared.text
+        return record_id
+
+    yield make
+
+    for record_id in created:
+        client.delete(f"/api/okh/{record_id}")
