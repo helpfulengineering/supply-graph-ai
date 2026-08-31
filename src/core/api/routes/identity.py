@@ -33,6 +33,7 @@ from ...models.binding import (
     IdentityBinding,
     OAuthBindRequest,
 )
+from ..models.identity.policy import SecurityPolicyResponse
 from ...models.capability import CapabilityGrant, GrantIssue
 from ...models.identity import Identity, IdentityMint
 from ...models.space import SpaceClaim, SpaceClaimRequest
@@ -60,6 +61,7 @@ async def whoami(
 
 @router.get(
     "/security-policy",
+    response_model=SecurityPolicyResponse,
     summary="Active security mode policy",
 )
 async def show_security_policy() -> Dict[str, Any]:

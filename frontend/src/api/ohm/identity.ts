@@ -23,24 +23,17 @@ export type IdentityMint = components["schemas"]["IdentityMint"];
 export type CapabilityGrant = components["schemas"]["CapabilityGrant"];
 export type GrantIssue = components["schemas"]["GrantIssue"];
 
-export interface SecurityPolicyPublic {
-  mode: string;
-  require_auth_for_writes: boolean;
-  custodial_keys_allowed: boolean;
-  grant_ttl_days: number;
-  recovery: string;
-  trust_bootstrap: string;
-  mdns_advertise: boolean;
-  metadata_logging: string;
-  registry_attestations: string;
-  anonymous_submission_allowed: boolean;
-  /** Whether a visitor may mint their own account without an operator. */
-  open_registration: boolean;
-  /** Whether an admin may read one private record at a time, on the record. */
-  admin_break_glass: boolean;
-  /** How long a self-service key lives before it must be renewed. */
-  key_ttl_days: number;
-}
+/**
+ * The node's identity/trust posture.
+ *
+ * Generated from the API schema now that the route declares a response model
+ * (#373). It used to be hand-written, which meant a knob added on the server
+ * reached the UI only if someone remembered to restate it here — and three of
+ * them (open_registration, admin_break_glass, key_ttl_days) were added by hand
+ * in exactly that way over the last few changes.
+ */
+export type SecurityPolicyPublic =
+  components["schemas"]["SecurityPolicyResponse"];
 
 /** Space claim (not yet in committed OpenAPI). */
 export interface SpaceClaim {
@@ -90,7 +83,17 @@ export async function fetchWhoami(): Promise<AuthenticatedUser> {
 }
 
 export async function fetchSecurityPolicy(): Promise<SecurityPolicyPublic> {
-  return identityFetch<SecurityPolicyPublic>("/api/identity/security-policy");
+  const { data, error, response } = await apiClient.GET(
+    "/api/identity/security-policy",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to load security policy"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
 }
 
 export type RegistrationCreate = components["schemas"]["RegistrationCreate"];
