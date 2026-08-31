@@ -1,0 +1,46 @@
+{
+  "data": {
+    "metadata": {
+      "build_options": {
+        "include_design_files": "*",
+        "include_making_instructions": "*",
+        "include_manufacturing_files": "*",
+        "include_operating_instructions": "*",
+        "include_parts": "*",
+        "include_quality_instructions": "*",
+        "include_risk_assessment": "*",
+        "include_schematics": "*",
+        "include_software": "*",
+        "include_tool_settings": "*",
+        "max_concurrent_downloads": "*",
+        "output_dir": "*",
+        "verify_downloads": "*"
+      },
+      "build_timestamp": "*",
+      "file_inventory": [
+        {
+          "checksum_sha256": "*",
+          "content_type": "*",
+          "downloaded_at": "*",
+          "file_type": "*",
+          "local_path": "*",
+          "original_url": "*",
+          "part_name": "*",
+          "size_bytes": "*"
+        }
+      ],
+      "ohm_version": "*",
+      "okh_manifest_id": "*",
+      "package_name": "*",
+      "package_path": "*",
+      "total_files": "*",
+      "total_size_bytes": "*",
+      "version": "*"
+    }
+  },
+  "message": "*",
+  "metadata": {},
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

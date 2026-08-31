@@ -993,22 +993,23 @@ async def match_requirements_from_file(
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
 
-        return create_success_response(
-            message="Matching completed successfully",
-            data={
-                "solutions": results,
-                "total_solutions": len(results),
-                "processing_time": processing_time,
-                "matching_metrics": {
-                    "direct_matches": len(results),
-                    "heuristic_matches": 0,
-                    "nlp_matches": 0,
-                    "llm_matches": 0,
-                },
-                "validation_results": [],
+        # A plain dict: @api_endpoint builds the envelope, exactly as it does
+        # for the other branches here. Returning the envelope object instead
+        # made this route 500 for every caller (#439's defect, third instance;
+        # found by tests/parity/test_envelope_return_ratchet.py on its first
+        # run).
+        return {
+            "solutions": results,
+            "total_solutions": len(results),
+            "processing_time": processing_time,
+            "matching_metrics": {
+                "direct_matches": len(results),
+                "heuristic_matches": 0,
+                "nlp_matches": 0,
+                "llm_matches": 0,
             },
-            request_id=request_id,
-        )
+            "validation_results": [],
+        }
 
     except HTTPException:
         raise

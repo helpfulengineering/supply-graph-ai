@@ -22,9 +22,6 @@ created.
 from __future__ import annotations
 
 import json
-import os
-import re
-from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -34,52 +31,12 @@ from src.core.models.supply_trees import (
     SupplyTreeSolution,
     ValidationResult,
 )
+from tests.contract_shape import assert_shape
 from tests.record_fixtures import okh_manifest_dict, okw_facility_dict
 
 pytestmark = pytest.mark.integration
 
-GOLDEN_DIR = Path(__file__).resolve().parents[1] / "api" / "golden"
 BLESS = "BLESS_SUPPLY_TREE"
-
-
-_UUID_KEY = re.compile(
-    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I
-)
-
-
-def _structure(node):
-    if isinstance(node, dict):
-        # A dict keyed by generated ids is a map: the keys are data, not shape.
-        # `dependency_graph` is keyed by tree UUID, so keeping the keys would
-        # re-freeze a fresh id on every run and fail the comparison forever.
-        # Values are homogeneous by construction, so one stands for all.
-        if node and all(_UUID_KEY.match(str(k)) for k in node):
-            return {"<id>": _structure(next(iter(node.values())))}
-        return {k: _structure(v) for k, v in sorted(node.items())}
-    if isinstance(node, list):
-        merged: dict = {}
-        for item in node:
-            shaped = _structure(item)
-            if not isinstance(shaped, dict):
-                return ["*"]
-            for key, value in shaped.items():
-                merged.setdefault(key, value)
-        return [dict(sorted(merged.items()))] if merged else []
-    return "*"
-
-
-def _check(body, name: str) -> None:
-    golden = GOLDEN_DIR / f"{name}.json"
-    shape = _structure(body)
-    if os.getenv(BLESS):
-        golden.parent.mkdir(parents=True, exist_ok=True)
-        golden.write_text(json.dumps(shape, indent=2, sort_keys=True) + "\n")
-        pytest.skip("golden re-blessed")
-    assert golden.exists(), f"No golden at {golden}. Capture with {BLESS}=1."
-    assert shape == json.loads(golden.read_text()), (
-        f"{name} changed shape. If a response_model was just added, it is "
-        "filtering a field the route used to return."
-    )
 
 
 def _register(client, display_name: str) -> dict:
@@ -169,14 +126,14 @@ def test_solutions_list_shape(client, saved_solution):
     auth, _ = saved_solution
     response = client.get("/api/supply-tree/solutions", headers=auth)
     assert response.status_code == 200, response.text
-    _check(response.json(), "supply_tree_solutions_list")
+    assert_shape(response.json(), "supply_tree_solutions_list", BLESS)
 
 
 def test_solution_get_shape(client, single_tree_solution):
     auth, solution_id = single_tree_solution
     response = client.get(f"/api/supply-tree/solution/{solution_id}", headers=auth)
     assert response.status_code == 200, response.text
-    _check(response.json(), "supply_tree_solution_get")
+    assert_shape(response.json(), "supply_tree_solution_get", BLESS)
 
 
 def test_solution_staleness_shape(client, saved_solution):
@@ -185,7 +142,7 @@ def test_solution_staleness_shape(client, saved_solution):
         f"/api/supply-tree/solution/{solution_id}/staleness", headers=auth
     )
     assert response.status_code == 200, response.text
-    _check(response.json(), "supply_tree_solution_staleness")
+    assert_shape(response.json(), "supply_tree_solution_staleness", BLESS)
 
 
 def test_solution_visualization_shape(client, saved_solution):
@@ -194,7 +151,7 @@ def test_solution_visualization_shape(client, saved_solution):
         f"/api/supply-tree/solution/{solution_id}/visualization", headers=auth
     )
     assert response.status_code == 200, response.text
-    _check(response.json(), "supply_tree_solution_visualization")
+    assert_shape(response.json(), "supply_tree_solution_visualization", BLESS)
 
 
 def test_solution_extend_shape(client, saved_solution):
@@ -205,14 +162,14 @@ def test_solution_extend_shape(client, saved_solution):
         headers=auth,
     )
     assert response.status_code == 200, response.text
-    _check(response.json(), "supply_tree_solution_extend")
+    assert_shape(response.json(), "supply_tree_solution_extend", BLESS)
 
 
 def test_solution_delete_shape(client, saved_solution):
     auth, solution_id = saved_solution
     response = client.delete(f"/api/supply-tree/solution/{solution_id}", headers=auth)
     assert response.status_code == 200, response.text
-    _check(response.json(), "supply_tree_solution_delete")
+    assert_shape(response.json(), "supply_tree_solution_delete", BLESS)
 
 
 @pytest.fixture
@@ -307,7 +264,7 @@ def test_nested_solution_visualization_has_edges(client, nested_solution):
     assert response.status_code == 200, response.text
     edges = response.json()["data"]["supply_tree"]["edges"]
     assert edges, "fixture produced no edges; the edge model would be vacuous"
-    _check(response.json(), "supply_tree_solution_visualization_nested")
+    assert_shape(response.json(), "supply_tree_solution_visualization_nested", BLESS)
 
 
 def test_nested_solution_get_shape(client, nested_solution):
@@ -322,4 +279,4 @@ def test_nested_solution_get_shape(client, nested_solution):
     auth, solution_id = nested_solution
     response = client.get(f"/api/supply-tree/solution/{solution_id}", headers=auth)
     assert response.status_code == 200, response.text
-    _check(response.json(), "supply_tree_solution_get_nested")
+    assert_shape(response.json(), "supply_tree_solution_get_nested", BLESS)

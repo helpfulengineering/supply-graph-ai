@@ -4,8 +4,8 @@ import type {
   PackageListResponse,
   PackageBuildResponse,
   PackageBuildMetadata,
-  PackageListItem,
 } from "../types/package";
+import type { components } from "./generated/schema";
 
 export function splitPackageName(packageName: string): { org: string; project: string } {
   const [org, project] = packageName.split("/");
@@ -42,12 +42,20 @@ export function packageDetailPath(packageName: string, version: string): string 
   return `/packages/${encodeURIComponent(org)}/${encodeURIComponent(project)}/${encodeURIComponent(version)}`;
 }
 
+/**
+ * The metadata route's own payload — not `PackageListItem`, which this used to
+ * claim. That is the *list* route's row: it has no `file_inventory` and no
+ * `ohm_version`, so the detail response was being described by a type that
+ * could not hold it (#373).
+ */
+export type PackageMetadata = components["schemas"]["PackageMetadataPayload"];
+
 export async function fetchPackageMetadata(
   org: string,
   project: string,
   version: string,
-): Promise<PackageListItem> {
-  const res = await get<{ data?: { metadata?: PackageListItem } }>(
+): Promise<PackageMetadata> {
+  const res = await get<{ data?: { metadata?: PackageMetadata } }>(
     `/package/${encodeURIComponent(org)}/${encodeURIComponent(project)}/${encodeURIComponent(version)}`,
   );
   const meta = res.data?.metadata;
@@ -55,14 +63,8 @@ export async function fetchPackageMetadata(
   return meta;
 }
 
-/** Pin record written by POST …/pin (subset used for certification). */
-export type PinRecord = {
-  pinned_at?: string;
-  pinned_by?: string;
-  manifest_content_hash: string;
-  file_hashes: Record<string, string>;
-  note?: string | null;
-};
+/** Pin record written by POST …/pin. Generated from the route's model (#373). */
+export type PinRecord = components["schemas"]["PinRecord"];
 
 async function sha256Hex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));

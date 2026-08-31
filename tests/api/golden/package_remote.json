@@ -1,0 +1,20 @@
+{
+  "data": {
+    "packages": [
+      {
+        "last_modified": "*",
+        "org": "*",
+        "package_name": "*",
+        "project": "*",
+        "size": "*",
+        "version": "*"
+      }
+    ],
+    "total": "*"
+  },
+  "message": "*",
+  "metadata": {},
+  "request_id": "*",
+  "status": "*",
+  "timestamp": "*"
+}

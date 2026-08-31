@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -29,13 +30,26 @@ import pytest
 GOLDEN_DIR = Path(__file__).resolve().parent / "api" / "golden"
 
 
+_UUID_KEY = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I
+)
+
+
 def structure(node: Any) -> Any:
     """Every key kept, every leaf reduced to a mark; lists merged to one item.
 
     Merging list items into one is what lets a populated list freeze an item
     *shape* without freezing how many came back.
+
+    A dict whose keys are all generated ids is treated as a map instead: the
+    keys there are data, not shape. ``dependency_graph`` is keyed by tree UUID,
+    so keeping the keys would freeze a fresh id into the golden and fail the
+    comparison on the very next run. Values are homogeneous by construction, so
+    one stands for all.
     """
     if isinstance(node, dict):
+        if node and all(_UUID_KEY.match(str(k)) for k in node):
+            return {"<id>": structure(next(iter(node.values())))}
         return {k: structure(v) for k, v in sorted(node.items())}
     if isinstance(node, list):
         merged: dict = {}
