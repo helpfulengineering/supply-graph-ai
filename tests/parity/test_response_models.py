@@ -47,8 +47,10 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         #
         # Unlike /api/utility/metrics this IS typable — matching_mode is a
         # literal discriminator, so a discriminated union fits — but it needs a
-        # golden for BOTH branches, and no in-process test exercises this route
-        # today. Deferred as its own change rather than guessed at here.
+        # golden for BOTH branches, and the route cannot produce one: it returns
+        # a bare 500 through the in-process client, on main, before any of this
+        # work (#432). #402 fixed the reason the *reverse* match had no golden
+        # and typed that one; this row waits on #432, not on appetite.
         ("POST", "/api/match"),
         ("POST", "/api/okh/diff-collection"),
         ("GET", "/api/okh/export-collection"),

@@ -5562,18 +5562,32 @@ export interface components {
             additional_days: number;
         };
         /**
+         * FacilityDesignMatch
+         * @description One design a facility could make, as the reverse matcher ranks them.
+         *
+         *     Frozen from a populated payload rather than from reading the code: the
+         *     golden in ``tests/api/golden/match_facility_shape.json`` captured an empty
+         *     list for as long as the fixture design was invisible to matching, so this
+         *     model could not honestly be written until that was fixed (#402). Declaring
+         *     it from the source would have risked filtering a field never seen on the
+         *     wire, which is the failure the whole convention exists to prevent.
+         */
+        FacilityDesignMatch: {
+            /** Okh Id */
+            okh_id: string;
+            /** Okh Title */
+            okh_title?: string | null;
+            /** Confidence */
+            confidence: number;
+            /** Rank */
+            rank: number;
+        };
+        /**
          * FacilityDesignsData
          * @description The ``data`` payload of POST /api/match/facility — reverse matching.
          *
          *     Derived from the payload captured in
          *     ``tests/api/golden/match_facility_shape.json`` before this model existed.
-         *
-         *     ``designs`` is deliberately left free-form. The committed fixtures produce
-         *     no matches, so no golden of a populated list exists, and constraining the
-         *     item shape from reading the code would risk filtering a field never
-         *     observed on the wire — the exact failure this whole exercise exists to
-         *     prevent. The frontend narrows the item for its own use. Tighten this when
-         *     a fixture that actually matches exists, and freeze the item shape first.
          */
         FacilityDesignsData: {
             /** Okw Id */
@@ -5581,9 +5595,7 @@ export interface components {
             /** Facility Name */
             facility_name: string | null;
             /** Designs */
-            designs: {
-                [key: string]: unknown;
-            }[];
+            designs: components["schemas"]["FacilityDesignMatch"][];
             /** Total Designs */
             total_designs: number;
             /** Designs Considered */

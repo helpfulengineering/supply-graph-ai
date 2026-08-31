@@ -165,23 +165,35 @@ class SimulationResult(BaseModel):
     resource_utilization: Dict[str, Any] = {}
 
 
+class FacilityDesignMatch(BaseModel):
+    """One design a facility could make, as the reverse matcher ranks them.
+
+    Frozen from a populated payload rather than from reading the code: the
+    golden in ``tests/api/golden/match_facility_shape.json`` captured an empty
+    list for as long as the fixture design was invisible to matching, so this
+    model could not honestly be written until that was fixed (#402). Declaring
+    it from the source would have risked filtering a field never seen on the
+    wire, which is the failure the whole convention exists to prevent.
+    """
+
+    okh_id: str
+    okh_title: Optional[str] = None
+    #: 0..1, the matcher's own score.
+    confidence: float
+    #: 1-based position in the returned ordering.
+    rank: int
+
+
 class FacilityDesignsData(BaseModel):
     """The ``data`` payload of POST /api/match/facility — reverse matching.
 
     Derived from the payload captured in
     ``tests/api/golden/match_facility_shape.json`` before this model existed.
-
-    ``designs`` is deliberately left free-form. The committed fixtures produce
-    no matches, so no golden of a populated list exists, and constraining the
-    item shape from reading the code would risk filtering a field never
-    observed on the wire — the exact failure this whole exercise exists to
-    prevent. The frontend narrows the item for its own use. Tighten this when
-    a fixture that actually matches exists, and freeze the item shape first.
     """
 
     okw_id: str
     facility_name: Optional[str]
-    designs: List[Dict[str, Any]]
+    designs: List[FacilityDesignMatch]
     total_designs: int
     #: How many manifests were examined to produce `designs`.
     designs_considered: int
