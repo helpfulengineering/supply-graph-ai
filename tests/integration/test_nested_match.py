@@ -16,6 +16,8 @@ things a "just make it return a dict" fix could get wrong.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from tests.record_fixtures import okh_nested_assembly_dict, okw_facility_dict
@@ -140,3 +142,27 @@ def test_single_level_is_unchanged(client, nested_design):
     # that difference is the other way to "fix" this endpoint wrongly.
     assert "solutions" in body["data"]
     assert "solution" not in body["data"]
+
+
+def test_file_upload_matching_succeeds(client, nested_design):
+    """``POST /api/match/upload`` had the same defect (#439, third instance).
+
+    Annotated ``-> dict[str, Any]`` and returning the envelope object, so it
+    500'd for every caller. Nothing exercised it, and it was found by
+    ``tests/parity/test_envelope_return_ratchet.py`` on the ratchet's first
+    run rather than by anyone calling the route.
+    """
+    auth, _ = nested_design
+
+    payload = json.dumps(okh_nested_assembly_dict()).encode()
+    response = client.post(
+        "/api/match/upload",
+        files={"okh_file": ("design.json", payload, "application/json")},
+        data={"min_confidence": "0.0"},
+        headers=auth,
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert ENVELOPE_KEYS <= set(body), "upload matching lost its envelope"
+    assert "solutions" in body["data"]
