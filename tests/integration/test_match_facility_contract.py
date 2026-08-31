@@ -22,29 +22,12 @@ from pathlib import Path
 
 import pytest
 
+from tests.contract_shape import assert_shape
 from tests.record_fixtures import okh_manifest_dict, okw_facility_dict
 
 pytestmark = pytest.mark.integration
 
-GOLDEN = (
-    Path(__file__).resolve().parents[1] / "api" / "golden" / "match_facility_shape.json"
-)
-
-
-def _structure(node):
-    """Every key kept, every leaf reduced to a mark; lists merged to one item."""
-    if isinstance(node, dict):
-        return {k: _structure(v) for k, v in sorted(node.items())}
-    if isinstance(node, list):
-        merged: dict = {}
-        for item in node:
-            shaped = _structure(item)
-            if not isinstance(shaped, dict):
-                return ["*"]
-            for key, value in shaped.items():
-                merged.setdefault(key, value)
-        return [dict(sorted(merged.items()))] if merged else []
-    return "*"
+BLESS = "BLESS_MATCH_CONTRACT"
 
 
 def test_reverse_match_payload_keeps_every_field_it_declares(client):
@@ -82,18 +65,4 @@ def test_reverse_match_payload_keeps_every_field_it_declares(client):
         headers=auth,
     )
     assert response.status_code == 200, response.text
-    body = _structure(response.json())
-
-    if os.getenv("BLESS_MATCH_CONTRACT"):
-        GOLDEN.parent.mkdir(parents=True, exist_ok=True)
-        GOLDEN.write_text(json.dumps(body, indent=2, sort_keys=True) + "\n")
-        pytest.skip("golden re-blessed")
-
-    assert GOLDEN.exists(), (
-        f"No golden at {GOLDEN}. Capture one with BLESS_MATCH_CONTRACT=1 BEFORE "
-        "adding a response_model."
-    )
-    assert body == json.loads(GOLDEN.read_text()), (
-        "POST /api/match/facility changed shape. If a response_model was just "
-        "added, it is filtering a field the route used to return."
-    )
+    assert_shape(response.json(), "match_facility_shape", BLESS)

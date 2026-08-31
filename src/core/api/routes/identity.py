@@ -33,7 +33,6 @@ from ...models.binding import (
     IdentityBinding,
     OAuthBindRequest,
 )
-from ..models.identity.policy import SecurityPolicyResponse
 from ...models.capability import CapabilityGrant, GrantIssue
 from ...models.identity import Identity, IdentityMint
 from ...models.space import SpaceClaim, SpaceClaimRequest
@@ -43,6 +42,7 @@ from ...services.auth_service import (
 )
 from ..dependencies import get_current_user, require_admin
 from ..models.base import SuccessResponse
+from ..models.identity.policy import SecurityPolicyResponse
 
 router = APIRouter()
 
