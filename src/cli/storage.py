@@ -577,3 +577,186 @@ async def populate(
     finally:
         if storage_service is not None:
             await storage_service.cleanup()
+
+
+@storage_group.group("config")
+def config_group() -> None:
+    """Read and change the storage backend of a running instance (#377).
+
+    Storage used to be readable only from the environment the container
+    started with. These commands act on the same persisted configuration the
+    API writes, so an instance can be repointed after it is installed.
+    """
+
+
+@config_group.command("show")
+@standard_cli_command(
+    help_text="""
+    Show the current storage configuration.
+
+    Reports the configuration and, separately, what the app is actually
+    connected to. The two can disagree — the configuration is what was asked
+    for, the fingerprint is what answered — which is the first thing worth
+    knowing when storage is misbehaving.
+
+    Credential values are never printed; only which names are set.
+    """,
+    async_cmd=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def config_show(
+    ctx,
+    verbose: bool,
+    output_format: str,
+    **_kwargs,
+):
+    """Show the storage configuration this instance is running on."""
+    from ..core.services.storage_reconfigure import current_config
+
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+    cli_ctx.start_command_tracking("storage-config-show")
+
+    storage_service = await StorageService.get_instance()
+    view = await current_config(storage_service)
+    fingerprint = await storage_service.get_config_fingerprint()
+
+    if output_format == "json":
+        click.echo(
+            json.dumps({"config": view.to_dict(), "fingerprint": fingerprint}, indent=2)
+        )
+    else:
+        cli_ctx.log("Storage configuration", "success")
+        click.echo(f"  provider:    {view.provider}")
+        click.echo(f"  bucket:      {view.bucket}")
+        if view.region:
+            click.echo(f"  region:      {view.region}")
+        if view.endpoint_url:
+            click.echo(f"  endpoint:    {view.endpoint_url}")
+        click.echo(f"  credentials: {', '.join(view.credential_names) or 'none'}")
+        click.echo(f"  source:      {view.source}")
+        click.echo(f"  persisted:   {view.persisted}")
+        click.echo(f"  connected:   {view.configured}")
+        if fingerprint.get("error"):
+            click.echo(f"  fingerprint: {fingerprint['error']}")
+        else:
+            click.echo(
+                f"  contents:    {fingerprint.get('okh_count')} OKH, "
+                f"{fingerprint.get('okw_count')} OKW"
+            )
+
+    cli_ctx.end_command_tracking()
+
+
+@config_group.command("set")
+@click.option(
+    "--provider",
+    type=click.Choice(["local", "gcs", "azure_blob", "aws_s3"]),
+    required=True,
+    help="Storage provider to switch to",
+)
+@click.option("--bucket", required=True, help="Bucket, container, or local path")
+@click.option("--region", help="Region for cloud providers")
+@click.option("--endpoint-url", help="Override endpoint, for S3-compatible backends")
+@click.option(
+    "--credential",
+    "credentials",
+    multiple=True,
+    metavar="NAME=VALUE",
+    help="Provider credential, repeatable. Names are checked per provider.",
+)
+@standard_cli_command(
+    help_text="""
+    Switch this instance to a different storage backend.
+
+    The new backend is validated before anything is committed: connect, write
+    a probe object, read it back, then validate or initialize the directory
+    structure. Only then is the configuration persisted and the running
+    service swapped.
+
+    A rejected configuration leaves the instance serving exactly as it was.
+
+    Existing data is left where it is — this changes which backend is read and
+    written, it does not move anything.
+    """,
+    epilog="""
+    Examples:
+      ohm storage config set --provider local --bucket ~/ohm-data
+
+      ohm storage config set --provider azure_blob --bucket my-container \\
+        --credential account_name=myaccount --credential account_key=secret
+    """,
+    async_cmd=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def config_set(
+    ctx,
+    provider: str,
+    bucket: str,
+    region: Optional[str],
+    endpoint_url: Optional[str],
+    credentials: tuple,
+    verbose: bool,
+    output_format: str,
+    **_kwargs,
+):
+    """Validate a new storage backend, then switch to it."""
+    from ..core.services.storage_reconfigure import (
+        StorageReconfigureError,
+        reconfigure_storage,
+    )
+
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+    cli_ctx.start_command_tracking("storage-config-set")
+
+    parsed: Dict[str, str] = {}
+    for item in credentials:
+        name, sep, value = item.partition("=")
+        if not sep or not name.strip():
+            raise click.BadParameter(
+                f"--credential expects NAME=VALUE, got {item!r}",
+                param_hint="--credential",
+            )
+        parsed[name.strip()] = value
+
+    storage_service = await StorageService.get_instance()
+    try:
+        result = await reconfigure_storage(
+            storage_service,
+            provider=provider,
+            bucket=bucket,
+            region=region,
+            endpoint_url=endpoint_url,
+            credentials=parsed,
+        )
+    except StorageReconfigureError as e:
+        cli_ctx.log(
+            f"{e} The instance is still serving from its previous configuration.",
+            "error",
+        )
+        raise SystemExit(1) from e
+
+    if output_format == "json":
+        click.echo(json.dumps(result, indent=2))
+    else:
+        cli_ctx.log(
+            f"Storage is now {result['provider']}: {result['bucket']}", "success"
+        )
+        if result["prefixes_created"]:
+            click.echo(f"  created:  {', '.join(result['prefixes_created'])}")
+        if result["prefixes_found"]:
+            click.echo(f"  present:  {', '.join(result['prefixes_found'])}")
+        if result["previous_provider"]:
+            click.echo(
+                f"  previous: {result['previous_provider']} "
+                f"({result['previous_bucket']})"
+            )
+
+    cli_ctx.end_command_tracking()

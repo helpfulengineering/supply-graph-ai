@@ -112,3 +112,80 @@ callers with no storage behaviour of their own. They used to each carry a copy,
 and the copies had drifted: one created three prefixes rather than four, one
 restamped placeholders on every run, and two reported success on backends they
 had never reached.
+
+
+## Changing the backend after installation
+
+Setup establishes a backend. Changing which backend an instance uses, while it
+is running, is the storage-configuration API (#377).
+
+This exists because installation and configuration are separate. A hands-off
+installer cannot ask for storage credentials before the instance is up, so
+storage has to be configurable once it already is.
+
+```bash
+# What am I running on?
+ohm storage config show
+
+# Switch. Existing data stays where it is.
+ohm storage config set --provider local --bucket ~/ohm-data
+
+ohm storage config set --provider azure_blob --bucket my-container \
+  --credential account_name=myaccount --credential account_key=secret
+```
+
+Over the API, admin only:
+
+```
+GET  /v1/api/storage/config
+POST /v1/api/storage/config
+```
+
+### Validate first, commit second
+
+A new backend is proved before anything is committed: connect, write a probe
+object, read it back, then validate or initialize the directory structure.
+Only then is the configuration persisted and the running service swapped.
+
+**A rejected configuration changes nothing.** This is the point of the
+ordering rather than a nicety. `StorageService.configure` swallows connection
+failures so the app can boot degraded, and it replaces the active manager
+before connecting — so a mistyped credential, applied directly, would leave an
+instance with no working storage *and no route back*, because the endpoint that
+would fix it needs storage-backed admin credentials to authenticate.
+
+A misspelled credential name is rejected too, rather than dropped, so the
+failure arrives at the point of the typo instead of as an authentication error
+later.
+
+### Where the configuration lives
+
+An encrypted file, by default `~/.ohm/storage-config.json`, overridable with
+`OHM_STORAGE_CONFIG_PATH`. It is read at boot **before** the storage service is
+configured, and takes precedence over the environment.
+
+It cannot live in the object store like every other credential OHM holds:
+credentials for the new provider would be written into the old one and orphaned
+the moment the switch took effect, leaving an instance that can neither reach
+its backend nor read the configuration that would explain why. Mount the
+directory as a volume and configuration survives a container replacement.
+
+The file is `0600` inside a `0700` directory, and credential values are
+encrypted with the same `OHM_ENCRYPTION_*` material as LLM provider keys.
+**Persisting credentials under the built-in default encryption keys is
+refused** — that key ships in the source tree, so encrypting with it is
+obfuscation rather than protection. A configuration carrying no credentials
+(`local`, or a cloud provider using ambient instance credentials) has nothing
+to protect and is allowed either way, which keeps a development instance
+workable before a secret has been minted.
+
+If the file is unreadable, carries an unknown schema version, or was encrypted
+with material that has since changed, it is ignored and the instance falls back
+to its environment configuration, with the reason logged. A node that will not
+start is worse than one running on the settings it was deployed with.
+
+### What this does not do
+
+Move or erase data. Switching changes which backend is read and written;
+anything already in the old one stays there. Migration and abandon-and-wipe are
+tracked in #381.

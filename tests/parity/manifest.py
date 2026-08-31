@@ -196,11 +196,19 @@ AREAS: tuple[Area, ...] = (
     Area(
         "storage",
         "storage",
-        None,
         "storage",
-        "partial",
-        note="Service + CLI for storage management; no public API surface "
-        "(intentional — internal/admin operation).",
+        "storage",
+        "aligned",
+        note="Storage setup and configuration across service, API and CLI. The "
+        "API arrived with #377: storage was the last setting with no runtime "
+        "path — provider and credentials were read from the environment at "
+        "container start and could not be changed without a redeploy, which is "
+        "what made a hands-off installer impossible. Both endpoints are "
+        "require_admin_strict, so the development-mode write-auth relaxation "
+        "cannot reach them. Configuration persists to an encrypted file "
+        "outside the object store, because credentials for a new provider "
+        "written into the old one would be orphaned by the switch. No frontend "
+        "route yet: the Settings panel is #380, migrate/wipe modes are #381.",
     ),
     Area(
         "rfq",
@@ -615,6 +623,16 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/supply-tree/solution/{solution_id}/export",
     ),
     # --- Planned: the backlog, deleted by the commit that wires the call ---
+    *_decision(
+        "planned",
+        "backlog",
+        "Storage configuration, read and changed at runtime (#377). The "
+        "Settings panel that calls these is #380 — this slice is the service, "
+        "API and CLI, which had to exist before a panel could be built on "
+        "them. Both endpoints are require_admin_strict, so the panel will be "
+        "admin-only like the rest of Settings.",
+        "/api/storage/config",
+    ),
     *_decision(
         "planned",
         "backlog",
