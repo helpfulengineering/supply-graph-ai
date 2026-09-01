@@ -72,11 +72,13 @@ async def activate_stored_credentials(
     the node still said "unavailable". The save had worked; the activation had
     not survived.
 
-    Which provider ends up active, when several are stored: the configured
-    default if it is one of them, otherwise the first in a stable order. There
-    is no stored "this one is active" marker, so this is a choice rather than a
-    recovered fact — deterministic, and stated here rather than left to
-    whichever key happened to be listed first.
+    Which provider ends up active is a **recorded fact**, not a guess: the
+    store keeps an explicit active-provider record, written whenever a
+    credential is saved with ``activate`` or a provider is made active. Only
+    when there is no record — a node that predates it, or one whose recorded
+    provider has since been deleted — does this fall back to the configured
+    default, then to the first in a stable order, so two workers reading the
+    same store still agree.
 
     Returns the provider names activated. Never raises: an LLM is optional, and
     a node that will not start because a stored key has expired is worse than
@@ -126,12 +128,22 @@ async def activate_stored_credentials(
     if not activated:
         return activated
 
-    preferred = llm_service.config.default_provider
-    chosen = (
-        preferred.value
-        if preferred is not None and preferred.value in activated
-        else activated[0]
-    )
+    recorded = await store.get_active()
+    if recorded is not None and recorded.value in activated:
+        chosen = recorded.value
+    else:
+        if recorded is not None:
+            logger.warning(
+                "Recorded active LLM provider %r is not among the stored "
+                "credentials; falling back.",
+                recorded.value,
+            )
+        preferred = llm_service.config.default_provider
+        chosen = (
+            preferred.value
+            if preferred is not None and preferred.value in activated
+            else activated[0]
+        )
     await llm_service.set_active_provider(_to_provider_type(LLMProvider(chosen)))
     logger.info(
         "Activated stored LLM credential(s): %s (active: %s)",

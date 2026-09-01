@@ -827,8 +827,15 @@ export const llmCredentialsFixture = {
       model: "claude-sonnet-5",
       masked_key: "sk-ant-…demo",
       configured: true,
+      is_active: true,
     },
-    { provider: "openai", model: null, masked_key: "", configured: false },
+    {
+      provider: "openai",
+      model: null,
+      masked_key: "",
+      configured: false,
+      is_active: false,
+    },
   ],
 };
 
@@ -1544,6 +1551,8 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/identity/directory": directoryFixture,
   "/v1/api/identity/identities": identitiesFixture,
   "/v1/api/llm/credentials": llmCredentialsFixture,
+  // Making a provider active returns that provider's row.
+  "/v1/api/llm/active/{provider}": llmCredentialsFixture.credentials[0],
   "/v1/api/llm/health": llmHealthFixture,
   "/v1/api/llm/providers": llmProvidersFixture,
   "/v1/api/federation/status": federationStatusFixture,

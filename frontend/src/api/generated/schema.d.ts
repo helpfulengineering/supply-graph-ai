@@ -2806,6 +2806,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/llm/active/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Choose which stored provider the node uses
+         * @description Make a stored provider the active one, without re-entering its key.
+         *
+         *     The choice is recorded in the store as well as applied here, so it survives
+         *     a restart and is the same answer in every worker. Activation used to be
+         *     process-local: which provider a node used depended on which worker had last
+         *     handled a save.
+         */
+        put: operations["set_active_llm_provider_api_llm_active__provider__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/llm/credentials/{provider}/test": {
         parameters: {
             query?: never;
@@ -6430,6 +6455,12 @@ export interface components {
              * @default true
              */
             configured: boolean;
+            /**
+             * Is Active
+             * @description Whether this is the provider the node uses. Recorded durably, so it survives a restart and is the same answer in every worker.
+             * @default false
+             */
+            is_active: boolean;
         };
         /**
          * LLMCredentialUpsert
@@ -18798,6 +18829,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_active_llm_provider_api_llm_active__provider__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Provider name, e.g. anthropic */
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMCredentialStatus"];
                 };
             };
             /** @description Bad Request */

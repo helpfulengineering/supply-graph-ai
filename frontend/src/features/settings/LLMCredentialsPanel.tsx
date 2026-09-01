@@ -4,12 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteLLMCredential,
   listLLMCredentials,
+  setActiveLLMProvider,
   testLLMCredential,
   upsertLLMCredential,
   LLM_PROVIDERS,
 } from "../../api/ohm/llm";
 import { LLMRuntimePanel } from "./LLMRuntimePanel";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL, PANEL_INSET } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
@@ -62,6 +64,22 @@ export function LLMCredentialsPanel() {
       invalidate();
     },
     onError: reportAuthFailure,
+  });
+
+  const activate = useMutation({
+    mutationFn: (name: string) => setActiveLLMProvider(name),
+    onSuccess: (status) => {
+      setMessage(`${status.provider} is now the active provider.`);
+      invalidate();
+    },
+    onError: (err) => {
+      reportAuthFailure(err);
+      setMessage(
+        err instanceof Error
+          ? err.message
+          : "Failed to set the active provider",
+      );
+    },
   });
 
   const test = useMutation({
@@ -168,13 +186,32 @@ export function LLMCredentialsPanel() {
                 className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
               >
                 <div>
-                  <p className="font-medium text-foreground">{c.provider}</p>
+                  <p className="font-medium text-foreground">
+                    {c.provider}
+                    {c.is_active && (
+                      <Badge variant="green" className="ml-2">
+                        active
+                      </Badge>
+                    )}
+                  </p>
                   <p className="font-mono text-xs text-muted-foreground">
                     {c.masked_key}
                     {c.model ? ` · ${c.model}` : ""}
                   </p>
                 </div>
                 <div className="flex gap-2">
+                  {/* Which provider a node uses is now a recorded choice, so
+                      it can be changed without re-entering a key. */}
+                  {!c.is_active && (
+                    <button
+                      type="button"
+                      onClick={() => activate.mutate(c.provider)}
+                      disabled={activate.isPending}
+                      className={FIELD_SM}
+                    >
+                      Make active
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => test.mutate(c.provider)}

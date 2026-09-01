@@ -36,10 +36,14 @@ def _service(default_provider=None):
     return service
 
 
-def _store(statuses, key="sk-stored"):
+def _store(statuses, key="sk-stored", active=None):
     store = MagicMock()
     store.list_status = AsyncMock(return_value=statuses)
     store.load = AsyncMock(return_value=key)
+    # `active` is the recorded choice; None means a node that has never made
+    # one, which is a real state rather than an error.
+    store.get_active = AsyncMock(return_value=active)
+    store.set_active = AsyncMock()
     return store
 
 
@@ -63,8 +67,38 @@ async def test_nothing_stored_activates_nothing_and_does_not_raise():
     service.set_active_provider.assert_not_awaited()
 
 
-async def test_the_configured_default_wins_when_several_are_stored():
-    """Which one is active is a choice, so it is a stated and tested one."""
+async def test_the_recorded_active_provider_wins():
+    """The point of recording it: the node uses what was chosen, not a guess."""
+    service = _service(default_provider=LLMProvider.ANTHROPIC)
+    store = _store(
+        [
+            {"provider": "anthropic", "model": None},
+            {"provider": "openai", "model": None},
+        ],
+        active=LLMProvider.OPENAI,
+    )
+
+    await activate_stored_credentials(service, store)
+
+    # Chosen over the configured default, because someone chose it.
+    assert service.set_active_provider.await_args.args[0].value == "openai"
+
+
+async def test_a_recorded_provider_that_is_gone_falls_back():
+    """Deleting the active credential must not leave the node with none."""
+    service = _service(default_provider=None)
+    store = _store(
+        [{"provider": "anthropic", "model": None}], active=LLMProvider.OPENAI
+    )
+
+    activated = await activate_stored_credentials(service, store)
+
+    assert activated == ["anthropic"]
+    assert service.set_active_provider.await_args.args[0].value == "anthropic"
+
+
+async def test_the_configured_default_wins_when_nothing_was_recorded():
+    """Only when there is no record does the configured preference decide."""
     service = _service(default_provider=LLMProvider.OPENAI)
     store = _store(
         [

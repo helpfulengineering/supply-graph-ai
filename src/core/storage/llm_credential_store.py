@@ -41,6 +41,58 @@ class LLMCredentialStore:
     def _storage_key(self, provider: LLMProvider) -> str:
         return f"{self._storage_prefix}/{provider.value}.json"
 
+    @property
+    def _active_key(self) -> str:
+        """Where the active provider is recorded.
+
+        A separate object rather than a flag on each credential: with a flag,
+        two payloads can both claim to be active and nothing decides between
+        them. One object has one answer.
+        """
+        return f"{self._storage_prefix}/_active.json"
+
+    async def set_active(self, provider: LLMProvider) -> None:
+        """Record which stored provider a node should use.
+
+        Durable on purpose. Activation used to live only in the process that
+        received the request, so which provider was active depended on which
+        worker answered — and after a restart, on nothing at all.
+        """
+        await self.storage_service.manager.put_object(
+            key=self._active_key,
+            data=json.dumps({"provider": provider.value}).encode("utf-8"),
+            content_type="application/json",
+        )
+        logger.info("Active LLM provider set to %s", provider.value)
+
+    async def get_active(self) -> Optional[LLMProvider]:
+        """The recorded active provider, or None if none was ever chosen.
+
+        None is a real answer, not an error: nodes that predate this, and nodes
+        that have never had a credential, both legitimately have no record.
+        """
+        try:
+            data = await self.storage_service.manager.get_object(self._active_key)
+        except Exception:
+            return None
+        try:
+            name = json.loads(data.decode("utf-8")).get("provider")
+        except (UnicodeDecodeError, json.JSONDecodeError, AttributeError):
+            logger.warning("Active LLM provider record is unreadable; ignoring it")
+            return None
+        try:
+            return LLMProvider(name) if name else None
+        except ValueError:
+            logger.warning("Active LLM provider record names unknown %r", name)
+            return None
+
+    async def clear_active(self) -> None:
+        """Forget the active provider, without touching any credential."""
+        try:
+            await self.storage_service.manager.delete_object(self._active_key)
+        except Exception:
+            pass
+
     async def save(
         self,
         provider: LLMProvider,
@@ -111,7 +163,13 @@ class LLMCredentialStore:
             return False
 
     async def list_status(self) -> List[Dict[str, Any]]:
-        """List stored credentials with masked keys only (never plaintext)."""
+        """List stored credentials with masked keys only (never plaintext).
+
+        Each row carries ``is_active``, so a reader can see which provider the
+        node will actually use rather than inferring it from the order rows
+        happen to come back in.
+        """
+        active = await self.get_active()
         statuses: List[Dict[str, Any]] = []
         async for obj in self.storage_service.manager.list_objects(
             prefix=self._storage_prefix
@@ -136,6 +194,7 @@ class LLMCredentialStore:
                     "model": payload.get("model"),
                     "masked_key": masked,
                     "configured": True,
+                    "is_active": active is not None and active.value == provider,
                 }
             )
         return statuses

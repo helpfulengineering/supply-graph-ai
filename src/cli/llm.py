@@ -20,7 +20,7 @@ from ..core.llm.provider_selection import (
     get_provider_selector,
 )
 from ..core.llm.service import LLMService
-from .decorators import standard_cli_command
+from .decorators import async_command, standard_cli_command
 
 
 @click.group()
@@ -889,19 +889,55 @@ async def status_providers(ctx, provider: Optional[str]):
     "provider", type=click.Choice(["anthropic", "openai", "google", "azure", "local"])
 )
 @click.option("--model", type=str, help="Set specific model for provider")
+@async_command
 @click.pass_context
-def set_provider(ctx, provider: str, model: Optional[str]):
-    """Set active provider."""
-    click.echo(f"Setting active provider to: {provider}")
+async def set_provider(ctx, provider: str, model: Optional[str]):
+    """Set the active provider for this node.
+
+    This used to print "Provider configuration updated" and do nothing at all
+    — a command that reported success and changed no state. It now records the
+    choice in the credential store, which is what makes it survive a restart
+    and mean the same thing in every worker.
+    """
+    from src.config.llm_config import CredentialManager, LLMProvider
+    from src.core.llm.credentials import apply_stored_credential
+    from src.core.llm.service import LLMService
+    from src.core.services.storage_service import StorageService
+    from src.core.storage.llm_credential_store import LLMCredentialStore
+
+    try:
+        provider_enum = LLMProvider(provider)
+    except ValueError:
+        click.echo(f"❌ Unknown provider: {provider}", err=True)
+        raise SystemExit(1) from None
+
+    storage = await StorageService.get_instance()
+    store = LLMCredentialStore(storage, CredentialManager())
+
+    if not await store.load(provider_enum):
+        click.echo(
+            f"❌ No stored credential for {provider}. Save one first:\n"
+            f"     ohm llm credentials set {provider} --api-key ...",
+            err=True,
+        )
+        raise SystemExit(1)
+
+    service = await LLMService.get_instance()
+    if not await apply_stored_credential(service, store, provider_enum, model=model):
+        click.echo(f"❌ Could not activate {provider}.", err=True)
+        raise SystemExit(1)
+
+    await store.set_active(provider_enum)
+    click.echo(f"✅ Active provider is now {provider}")
     if model:
-        click.echo(f"Setting model to: {model}")
-    click.echo("Provider configuration updated")
+        click.echo(f"   model: {model}")
 
 
 @providers.command("test")
 @click.argument(
     "provider", type=click.Choice(["anthropic", "openai", "google", "azure", "local"])
 )
+@async_command
 @click.pass_context
 async def test_provider(ctx, provider: str):
     """Test provider connection."""
@@ -909,13 +945,24 @@ async def test_provider(ctx, provider: str):
 
     try:
         service = await _create_llm_service(provider)
-        health = await service.health_check()
+        # `service.health_check()` does not exist and never did — the command
+        # was never awaited, so the AttributeError was never reached. Status is
+        # per provider, which is also the more useful answer.
+        from src.core.llm.providers.base import LLMProviderType
+
+        status = await service.get_provider_status(LLMProviderType(provider))
         await service.shutdown()
 
-        if health:
+        if status.get("status") == "healthy":
             click.echo(f"✅ {provider} connection successful")
+            if status.get("model"):
+                click.echo(f"   model: {status['model']}")
         else:
-            click.echo(f"❌ {provider} connection failed")
+            click.echo(
+                f"❌ {provider} connection failed: "
+                f"{status.get('error') or status.get('status')}"
+            )
+            raise SystemExit(1)
     except Exception as e:
         click.echo(f"❌ {provider} connection failed: {e}")
 

@@ -76,6 +76,25 @@ export async function upsertLLMCredential(
   return data;
 }
 
+/**
+ * Make a stored provider the active one, without re-entering its key.
+ *
+ * The node records the choice, so it survives a restart and is the same answer
+ * in every worker — activation used to live only in the process that handled
+ * the save.
+ */
+export async function setActiveLLMProvider(
+  provider: string,
+): Promise<LLMCredentialStatus> {
+  const { data, error, response } = await apiClient.PUT(
+    "/api/llm/active/{provider}",
+    { params: { path: { provider } } },
+  );
+  if (error || !response.ok || !data)
+    fail(error, response, "Failed to set the active provider");
+  return data;
+}
+
 export async function deleteLLMCredential(provider: string): Promise<void> {
   const { error, response } = await apiClient.DELETE(
     "/api/llm/credentials/{provider}",
