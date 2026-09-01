@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A credential the node cannot decrypt is no longer reported as working.**
+  Everything the Settings panel showed about a stored key — provider, model,
+  masked key, `configured`, `is_active` — is plaintext metadata stored beside
+  the key, so all of it survived a change of encryption material that the key
+  itself did not. A node that came back with a different
+  `OHM_ENCRYPTION_SALT`/`OHM_ENCRYPTION_PASSWORD` listed the credential as
+  stored and active while the runtime could load nothing, which is exactly the
+  contradiction an operator hit: `anthropic [active]` beside "No LLM provider
+  is active". The credential list now carries `readable`, proved by actually
+  decrypting, and Settings marks such a row **unreadable**, explains that the
+  key must be saved again, and does not offer to activate it.
+- **The one log line that explained an activation failure printed nothing.**
+  `InvalidToken` carries an empty message, so a failed decrypt logged
+  `Stored anthropic credential could not be activated: ` and stopped. Loading
+  an undecryptable credential now raises a `CredentialUnreadableError` that
+  names the cause and the fix, and the log line records the exception type.
+- **An unreadable credential is distinct from a missing one.** Both were
+  reported as `None`, which made "cannot decrypt" indistinguishable from "never
+  saved" and sent operators to fix the wrong problem. `POST
+  /api/llm/credentials/{provider}/test` answers `409` with the reason instead
+  of a 500, and `ohm llm providers set` prints it rather than failing with a
+  stack trace.
+- **`ohm llm providers set` pointed at a command that does not exist.** With no
+  credential stored it advised running `ohm llm credentials set`, which has
+  never been a command — credentials are written through Settings or the API,
+  and the CLI only reads them. It now says so.
+
+
 ## [0.12.1] - 2026-09-01
 
 An LLM key saved in Settings now stays working. It did not: the key

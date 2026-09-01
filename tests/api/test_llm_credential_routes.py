@@ -62,6 +62,8 @@ async def test_put_credential_stores_and_returns_masked_status(monkeypatch):
                 "model": "claude-test",
                 "masked_key": "****1234",
                 "configured": True,
+                "is_active": True,
+                "readable": True,
             }
         ]
     )

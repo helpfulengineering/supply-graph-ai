@@ -27,6 +27,9 @@ pytestmark = pytest.mark.asyncio
 def _service(default_provider=None):
     service = MagicMock()
     service._providers = {}
+    # Explicit, because MagicMock auto-creates attributes as truthy — leaving
+    # this to getattr() would make every "has it loaded yet" check say yes.
+    service._stored_credentials_loaded = False
     service.config = MagicMock(
         default_model="a-model", default_provider=default_provider
     )
@@ -159,3 +162,74 @@ async def test_an_unknown_provider_name_is_skipped():
     store = _store([{"provider": "a-provider-from-the-future", "model": None}])
 
     assert await activate_stored_credentials(service, store) == []
+
+
+# --- Recovery from a failed startup load ---------------------------------
+#
+# Startup activation ends in `provider.connect()`, a network call. A worker
+# that starts before egress is ready gets False back, logs it, and — before
+# this — never tried again: the node reported "unavailable" for a credential
+# sitting valid in storage, and only re-saving the key fixed it, for one
+# worker.
+
+
+async def test_a_failed_startup_load_is_retried_on_the_next_request():
+    """The regression: a transient boot failure used to be permanent."""
+    from src.core.llm.credentials import ensure_stored_credentials_loaded
+
+    service = _service()
+    store = _store([{"provider": "anthropic", "model": None}])
+    service.add_provider = AsyncMock(return_value=False)
+
+    await activate_stored_credentials(service, store)
+    assert service._providers == {}
+
+    # Network is fine now, as it is by the time a request arrives.
+    async def _adds(config):
+        service._providers[config.provider_type] = object()
+        return True
+
+    service.add_provider = AsyncMock(side_effect=_adds)
+    await ensure_stored_credentials_loaded(service, store)
+
+    assert service._providers != {}
+
+
+async def test_a_service_that_already_has_providers_does_not_touch_storage():
+    """The common path is a flag check, not a read."""
+    from src.core.llm.credentials import ensure_stored_credentials_loaded
+
+    service = _service()
+    service._providers = {"anthropic": object()}
+    store = _store([{"provider": "anthropic", "model": None}])
+
+    await ensure_stored_credentials_loaded(service, store)
+
+    store.list_status.assert_not_awaited()
+
+
+async def test_nothing_stored_is_a_settled_answer_not_a_retry():
+    """A node with no credential must not read storage on every request."""
+    from src.core.llm.credentials import ensure_stored_credentials_loaded
+
+    service = _service()
+    store = _store([])
+
+    await ensure_stored_credentials_loaded(service, store)
+    await ensure_stored_credentials_loaded(service, store)
+
+    assert store.list_status.await_count == 1
+
+
+async def test_a_failed_load_keeps_retrying():
+    """Not setting the flag on failure is the point: that case is retryable."""
+    from src.core.llm.credentials import ensure_stored_credentials_loaded
+
+    service = _service()
+    store = _store([{"provider": "anthropic", "model": None}])
+    service.add_provider = AsyncMock(return_value=False)
+
+    await ensure_stored_credentials_loaded(service, store)
+    await ensure_stored_credentials_loaded(service, store)
+
+    assert store.list_status.await_count == 2

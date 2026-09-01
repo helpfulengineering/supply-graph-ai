@@ -828,6 +828,7 @@ export const llmCredentialsFixture = {
       masked_key: "sk-ant-…demo",
       configured: true,
       is_active: true,
+      readable: true,
     },
     {
       provider: "openai",
@@ -835,6 +836,7 @@ export const llmCredentialsFixture = {
       masked_key: "",
       configured: false,
       is_active: false,
+      readable: false,
     },
   ],
 };

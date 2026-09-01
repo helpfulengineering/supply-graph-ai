@@ -60,6 +60,7 @@ async def apply_stored_credential(
 async def activate_stored_credentials(
     llm_service: LLMService,
     store: LLMCredentialStore,
+    statuses: Optional[List[dict]] = None,
 ) -> List[str]:
     """Load every stored provider credential into ``llm_service``.
 
@@ -80,17 +81,21 @@ async def activate_stored_credentials(
     default, then to the first in a stable order, so two workers reading the
     same store still agree.
 
+    ``statuses`` lets a caller that has already listed the store pass the result
+    in rather than paying for a second read.
+
     Returns the provider names activated. Never raises: an LLM is optional, and
     a node that will not start because a stored key has expired is worse than
     one that logs it and falls back to heuristic extraction.
     """
     activated: List[str] = []
 
-    try:
-        statuses = await store.list_status()
-    except Exception as exc:  # noqa: BLE001 — startup must not depend on this
-        logger.warning("Could not read stored LLM credentials: %s", exc)
-        return activated
+    if statuses is None:
+        try:
+            statuses = await store.list_status()
+        except Exception as exc:  # noqa: BLE001 — startup must not depend on this
+            logger.warning("Could not read stored LLM credentials: %s", exc)
+            return activated
 
     for row in sorted(statuses, key=lambda r: str(r.get("provider") or "")):
         name = row.get("provider")
@@ -113,7 +118,15 @@ async def activate_stored_credentials(
                 set_active=False,
             )
         except Exception as exc:  # noqa: BLE001 — one bad key must not stop the rest
-            logger.warning("Stored %s credential could not be activated: %s", name, exc)
+            # The exception type is logged alongside the message because the
+            # message can be empty — InvalidToken carries none, and this line
+            # once read "could not be activated: " with nothing after it.
+            logger.warning(
+                "Stored %s credential could not be activated: %s: %s",
+                name,
+                type(exc).__name__,
+                exc,
+            )
             continue
 
         if added:
@@ -151,3 +164,59 @@ async def activate_stored_credentials(
         chosen,
     )
     return activated
+
+
+async def ensure_stored_credentials_loaded(
+    llm_service: LLMService,
+    store: LLMCredentialStore,
+) -> None:
+    """Load stored credentials if this process has not managed to yet.
+
+    Startup already tries. This is what makes a failed attempt recoverable
+    instead of permanent.
+
+    ``add_provider`` ends in ``provider.connect()`` — a network call. A worker
+    that starts before egress is ready, or that hits a transient error, gets
+    ``False`` back, logs it, and then never tries again: the node reports
+    "unavailable" for a credential sitting valid in storage, and no amount of
+    waiting fixes it. Only re-saving the key did, and only for the one worker
+    that handled the request.
+
+    Called from the request path, so the retry happens when something actually
+    needs an LLM.
+
+    The flag is set on success, or when there is nothing stored to load. It is
+    deliberately *not* set on failure: that is the case worth retrying, and it
+    is bounded by there being credentials to retry for.
+    """
+    if getattr(llm_service, "_stored_credentials_loaded", False):
+        return
+
+    # Already serving providers — from the environment, or from a startup load
+    # that worked. Nothing to do, and no reason to ask storage.
+    if llm_service._providers:
+        llm_service._stored_credentials_loaded = True
+        return
+
+    try:
+        stored = await store.list_status()
+    except Exception as exc:  # noqa: BLE001 — a read failure is retryable
+        logger.warning("Could not read stored LLM credentials: %s", exc)
+        return
+
+    if not stored:
+        # No credentials is a settled answer, not a failure to retry.
+        llm_service._stored_credentials_loaded = True
+        return
+
+    # `stored` is passed through rather than re-read: this function has already
+    # paid for the listing, and reading storage twice per attempt is a cost the
+    # retry path would repeat on every request while it keeps failing.
+    activated = await activate_stored_credentials(llm_service, store, statuses=stored)
+    if activated:
+        llm_service._stored_credentials_loaded = True
+        logger.info(
+            "Recovered stored LLM credential(s) on demand after an earlier "
+            "attempt found none: %s",
+            ", ".join(activated),
+        )

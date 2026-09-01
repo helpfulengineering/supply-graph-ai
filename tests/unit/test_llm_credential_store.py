@@ -4,7 +4,10 @@ import pytest
 from cryptography.fernet import Fernet
 
 from src.config.llm_config import CredentialManager, LLMProvider
-from src.core.storage.llm_credential_store import LLMCredentialStore
+from src.core.storage.llm_credential_store import (
+    CredentialUnreadableError,
+    LLMCredentialStore,
+)
 
 
 class _InMemoryManager:
@@ -84,3 +87,46 @@ async def test_status_never_exposes_full_key(store: LLMCredentialStore):
     assert secret not in status["masked_key"]
     assert "encrypted" not in status
     assert "api_key" not in status
+
+
+@pytest.mark.asyncio
+async def test_status_reports_a_readable_credential(store: LLMCredentialStore):
+    await store.save(LLMProvider.ANTHROPIC, "sk-readable")
+    assert (await store.list_status())[0]["readable"] is True
+
+
+@pytest.mark.asyncio
+async def test_status_reports_unreadable_after_encryption_material_changes():
+    """A key saved under one Fernet key, read back under another.
+
+    This is the production failure: the node still lists the credential as
+    configured — and, holding the active record, as active — because every
+    field driving that display is plaintext metadata stored beside the key.
+    Only decrypting reveals that the runtime can never load it.
+    """
+    shared_storage = _FakeStorageService()
+    original = LLMCredentialStore(
+        shared_storage, CredentialManager(encryption_key=Fernet.generate_key().decode())
+    )
+    await original.save(LLMProvider.ANTHROPIC, "sk-written-under-the-old-key")
+    await original.set_active(LLMProvider.ANTHROPIC)
+    assert (await original.list_status())[0]["readable"] is True
+
+    rotated = LLMCredentialStore(
+        shared_storage, CredentialManager(encryption_key=Fernet.generate_key().decode())
+    )
+    row = (await rotated.list_status())[0]
+
+    assert row["configured"] is True, "metadata still says a credential is stored"
+    assert row["is_active"] is True, "the active record is plaintext and survives"
+    assert row["readable"] is False, "but the key itself can no longer be decrypted"
+
+    # Unreadable is reported as its own failure, never as absence: returning
+    # None here would make "cannot decrypt" look identical to "never saved".
+    with pytest.raises(CredentialUnreadableError, match="cannot be decrypted"):
+        await rotated.load(LLMProvider.ANTHROPIC)
+
+
+@pytest.mark.asyncio
+async def test_absent_credential_is_none_not_an_error(store: LLMCredentialStore):
+    assert await store.load(LLMProvider.ANTHROPIC) is None
