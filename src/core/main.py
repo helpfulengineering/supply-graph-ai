@@ -145,6 +145,36 @@ async def lifespan(app: FastAPI):
         logger.info("Initializing authentication service")
         await AuthenticationService.get_instance()
 
+        # Activate any LLM credential that was saved through the API.
+        #
+        # Saving a credential and activating it had different lifetimes: the
+        # key persisted to storage, but the activation only ever touched the
+        # in-process LLM service — so a key saved through Settings was live in
+        # the one worker that handled the request, and /api/llm/health, which
+        # reports in-process state, said "unavailable" everywhere else. This
+        # runs after storage is configured, because that is where the
+        # credentials live.
+        #
+        # Never fatal: an LLM is optional, and generation degrades to heuristic
+        # extraction without one. A node that refuses to start because a stored
+        # key expired would be a worse failure than the one this fixes.
+        try:
+            from .llm.credentials import activate_stored_credentials
+            from .llm.service import LLMService
+            from .storage.llm_credential_store import LLMCredentialStore
+            from src.config.llm_config import CredentialManager
+
+            await activate_stored_credentials(
+                await LLMService.get_instance(),
+                LLMCredentialStore(storage_service, CredentialManager()),
+            )
+        except Exception as e:  # noqa: BLE001 — LLM is optional
+            logger.warning(
+                "Could not activate stored LLM credentials: %s. "
+                "Generation will fall back to heuristic extraction.",
+                e,
+            )
+
         # Register domain components
         logger.info("Registering domain components")
         await register_domain_components()
