@@ -295,6 +295,30 @@ async def import_rules(
                 detail="file_format is required when file_content is provided",
             )
 
+        # Applying an import is refused, deliberately (#457).
+        #
+        # `import_rule_set` ends in `rule_manager.rule_sets[domain] = rule_set`
+        # — an in-memory dict assignment with nothing behind it. The rules a
+        # node matches with are the ones shipped in its image and loaded at
+        # boot, so an applied import lived only in the worker that answered the
+        # request, was invisible to the others, and vanished on the next
+        # restart. It reported success throughout.
+        #
+        # A dry run is a comparison and stays: authoring a rule set against a
+        # running node, then putting it in the image, is the supported path.
+        if not request.dry_run:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail=(
+                    "Applying an imported rule set is not supported. Matching "
+                    "rules are shipped with the image and loaded at startup; "
+                    "an import would live only in the process that received it "
+                    "and would be lost on the next restart. Use dry_run=true "
+                    "to check a rule set against this node, then ship it in "
+                    "src/config/rules."
+                ),
+            )
+
         result = await import_export_service.import_rules(
             file_content=request.file_content,
             file_format=request.file_format,
@@ -450,23 +474,24 @@ async def compare_rules(
 @track_performance("rules_reset")
 async def reset_rules(
     confirm: bool = Query(False, description="Confirmation flag"),
-    service: RulesService = Depends(get_rules_service),
 ) -> SuccessResponse:
-    """Reset all rules (clear all rule sets)"""
-    try:
-        if not confirm:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Confirmation required. Set 'confirm=true' to reset all rules.",
-            )
+    """Refused: rules are shipped with the image, so there is nothing to reset.
 
-        await service.reset_rules()
-        return create_success_response(message="Rules reset successfully")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("Error resetting rules")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to reset rules: {str(e)}",
-        )
+    Refused for the same reason as applying an import (#457), and this one was
+    worse. ``reset_rules`` cleared the in-memory rule sets outright, so the
+    worker that answered was left matching with NO rules at all until it
+    restarted, while its siblings carried on with a full set. Nothing was reset
+    in any durable sense, and the caller was told it had been.
+
+    Kept as a route rather than deleted so the refusal is legible: a removed
+    endpoint 404s, which reads as a wrong URL rather than a decision.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail=(
+            "Resetting rules is not supported. Matching rules are shipped with "
+            "the image and loaded at startup, so there is nothing to reset to "
+            "— this only emptied one process until it restarted. Restart the "
+            "node to return to the rules it ships with."
+        ),
+    )

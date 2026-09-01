@@ -13,7 +13,7 @@
   "e2e/okw-detail.spec.ts": "84672b2fa941991a5ca8b9d955b78a4fb965765b4670a84d0636b36023c78611",
   "e2e/packages.spec.ts": "699c2925d6fe9d7c92d3953d01c60fe14413f492bdf8d91d98d6deaf1826d3c2",
   "e2e/screenshots.spec.ts": "eb4008838981492fb137297ed9d19d8963d749ec70be8e36d740d49368819fe6",
-  "e2e/settings.spec.ts": "0b7c44c1fc789635b8bc04f52f608c442e522cd3df4bcfa7484227df736f4310",
+  "e2e/settings.spec.ts": "ba4d56c6f2eb5203fddc37158facf99b0ce702fdfe9d1d49d3e8f158cbdf14bc",
   "e2e/smoke.spec.ts": "1cb24ba4497809473f8fc6f20e8e3ba95f1e17c65a9072b4e2eada0cab04fce8",
   "e2e/visualization.spec.ts": "c77b98b75805bc08c941f7039a4666525c055938c669d54413f5a6fde2b36128"
 }

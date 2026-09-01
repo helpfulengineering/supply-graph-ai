@@ -324,15 +324,6 @@ class RulesService:
             logger.error(f"Import failed, rolled back: {e}")
             raise ValueError(f"Import failed: {str(e)}") from e
 
-    async def reset_rules(self) -> None:
-        """
-        Reset all rules (clear all rule sets).
-
-        This operation cannot be rolled back.
-        """
-        self.rule_manager.rule_sets.clear()
-        logger.warning("All rules have been reset")
-
     async def reload_rules(self, domain: Optional[str] = None) -> Dict[str, Any]:
         """
         Reload rules from the filesystem.
