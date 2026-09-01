@@ -17,8 +17,13 @@ This page is about getting that key on a node you run.
 Two very different situations, and the difference matters more than anything
 else on this page.
 
-**Someone else's node** — you need a key from whoever runs it. There is no
-self-service signup; a node operator issues credentials. Ask them.
+**Someone else's node** — register yourself, if the node lets you. Most do:
+open registration is on in both `peacetime` and `crisis` postures, and off only
+in `shielded`. Go to `/register`, pick a display name, and the node mints you an
+account and a key on the spot. See [Join a node](join-a-node.md).
+
+If registration is closed, the node's operator issues credentials instead. Ask
+them.
 
 **Your own node** — you already have everything you need. The rest of this page
 is for you.
