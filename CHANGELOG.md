@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-09-01
+
+An LLM key saved in Settings now stays working. It did not: the key
+persisted, the *activation* did not, so a node reported "unavailable" with a
+perfectly good credential in storage.
+
+### Fixed
+
+- **A stored LLM credential is activated at startup.** Saving and activating
+  had different lifetimes: the key was written to storage, while activation
+  hot-swapped it into the **in-process** LLM service — and `/api/llm/health`
+  reports in-process state. So the credential was live only in the worker that
+  handled the request. Every other gunicorn worker, every other replica, and
+  every process after a restart reported "unavailable". Nothing loaded stored
+  credentials at boot; now the lifespan does, and never fatally — an LLM is
+  optional, and generation still degrades to heuristic extraction without one.
+- **`ohm llm providers set` did nothing at all.** It printed "Provider
+  configuration updated" and changed no state.
+- **Two CLI commands were never awaited.** `ohm llm providers set` and
+  `ohm llm providers test` were `async def` under a plain click decorator, so
+  click never ran them: they warned "coroutine was never awaited" and exited 0.
+- **`ohm llm providers test` called a method that does not exist.** Awaiting it
+  surfaced `service.health_check()`, which the never-awaited bug had hidden. It
+  reads provider status now, and reports the model on success.
+- **Importing or resetting matching rules no longer reports a success that did
+  not happen.** Both mutated an in-memory dict: an imported rule set lived only
+  in the worker that answered and vanished on the next restart, and a reset
+  left that worker matching with *no rules at all* until it restarted. Rules
+  ship with the image and load at startup, so both now refuse with the reason.
+  Checking a rule set against a running node — validate, compare, export, and a
+  dry-run import — is unchanged, and is the supported path before shipping one.
+
+### Added
+
+- **An explicit, durable active provider.** Which provider a node uses was
+  decided by whichever worker last handled a save, and after a restart by a
+  fallback rule. It is now recorded in the credential store:
+  `PUT /api/llm/active/{provider}` makes a stored provider active without
+  re-entering its key, the credential list reports `is_active`, and Settings
+  badges the active one and offers **Make active** on the others. At boot the
+  recorded choice wins.
+
+### Notes
+
+Storage configuration never had this problem — it persists to a file read at
+boot rather than hot-swapping a singleton — and
+`tests/integration/test_configuration_survives_restart.py` now pins both, so
+the two surfaces cannot drift into one durable and one not.
+
 ## [0.12.0] - 2026-09-01
 
 Anyone can now join a node, and an operator can point one at storage without a
