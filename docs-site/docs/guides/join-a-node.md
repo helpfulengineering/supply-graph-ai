@@ -42,7 +42,7 @@ That is the node's choice: open registration is on in the `peacetime` and
 It shows who you are — display name, account id, your DID — and what your key
 can do. From here you can:
 
-- **See your keys**, when each was last used, and when each expires.
+- **See your keys**, when each was created, and how long each has left.
 - **Renew** one before it expires.
 - **Revoke** one you no longer want, or **revoke every other key** if you think
   one has leaked.
