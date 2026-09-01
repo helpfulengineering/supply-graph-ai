@@ -61,7 +61,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | `complete_deployment` ✎ | Finish a Cloud Run deployment after the image build completes. | `./scripts/complete_deployment.sh` |
 | `deploy_cloud_run` ✎ | Build, push, and deploy the API to Google Cloud Run (non-Azure deployment pathway). | `./scripts/deploy_cloud_run.sh` |
 | `extract_package_from_container` | Extract a built package artifact from a Docker container onto the host. | `./scripts/extract_package_from_container.sh` |
-| `install` ✎ | Install and start a node on a host with Docker: mint secrets, resolve the latest release, start, wait for health, print the admin key. | `curl -fsSL https://openhardwaremanager.org/install.sh \| sh` |
+| `install` ✎ | Install and start a node on a host with Docker: mint secrets, resolve the latest release, start, wait for health, print the admin key. | `curl -fsSLO https://openhardwaremanager.org/install.sh && sha256sum -c install.sh.sha256 && sh install.sh` |
 
 ## Federation testing
 

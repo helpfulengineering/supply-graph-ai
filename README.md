@@ -269,7 +269,33 @@ or deployed using the configurations in `deploy/`. A reference frontend ships in
 
 After installing, open a new terminal so the tools are on your PATH.
 
-### Option A: Published Docker image (fastest — no clone required)
+### Option A: The installer (fastest — one command, no clone)
+
+Needs Docker, nothing else. Download it, check it, run it:
+
+```bash
+curl -fsSLO https://openhardwaremanager.org/install.sh
+curl -fsSLO https://github.com/helpfulengineering/supply-graph-ai/releases/latest/download/install.sh.sha256
+sha256sum -c install.sh.sha256
+sh install.sh
+```
+
+The one-liner is available too, if you would rather:
+
+```bash
+curl -fsSL https://openhardwaremanager.org/install.sh | sh
+```
+
+We lead with the checked form deliberately: OHM is about making supply chains
+inspectable, and it would be odd to ask you to pipe a remote script to your
+shell unread. On macOS use `shasum -a 256 -c`.
+
+**Install and configure are two steps.** The installer finishes at a healthy
+node on local storage and prints a URL and an admin key — save the key, it is
+shown once. Then paste it into `/settings/session` and, if you want storage
+other than local, configure it at `/settings/storage`.
+
+### Option B: Published Docker image (the container by hand)
 
 **Local storage (no credentials needed):**
 
@@ -316,7 +342,7 @@ The API is at `http://localhost:8001`. Docs: `http://localhost:8001/v1/docs`. Ch
 
 Images support **linux/amd64** and **linux/arm64** (Apple Silicon and x86-64). Federation is **disabled by default**. Enable with `-e OHM_FEDERATION_ENABLED=true` only when you intend to run peer sync (see [federation infra](docs/ops/federation-infra.md)).
 
-### Option B: API server from source (Docker Compose)
+### Option C: API server from source (Docker Compose)
 
 ```bash
 # 1. Clone
@@ -332,7 +358,7 @@ docker compose up ohm-api
 
 The API is now available at `http://localhost:8001`. Interactive API docs are at `http://localhost:8001/v1/docs`.
 
-### Option C: Local development with uv (CLI + tests + scripts)
+### Option D: Local development with uv (CLI + tests + scripts)
 
 `uv` manages both the Python version and the virtual environment — no separate Python installation or conda is needed.
 
@@ -505,7 +531,7 @@ docker compose up --build ohm-api
 # Interactive docs:  http://localhost:8001/v1/docs
 ```
 
-### CLI commands (requires uv setup from Option C above)
+### CLI commands (requires uv setup from Option D above)
 
 ```bash
 # Health check
