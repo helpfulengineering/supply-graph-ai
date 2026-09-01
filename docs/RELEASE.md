@@ -51,6 +51,43 @@ Federation is **off by default**. To enable it, set `OHM_FEDERATION_ENABLED=true
 8. Push the tag — the **Release** workflow validates the tag, runs tests, builds from `uv.lock`, and pushes a **multi-arch** manifest (`linux/amd64`, `linux/arm64`) to Docker Hub.
 9. Push the git tag — the **Release** workflow creates the [GitHub Release](https://github.com/helpfulengineering/supply-graph-ai/releases) automatically after Docker publish (notes from `CHANGELOG.md` via `scripts/extract_changelog_section.py`).
 10. Smoke-test the pulled image (see below).
+11. **Deploy, deliberately.** Publishing is not deploying — see below.
+
+## Deploying to production
+
+**A tag does not deploy.** Pushing `vX.Y.Z` builds, publishes the images, and
+creates the GitHub Release with the checksummed installer. It stops there.
+
+Deploying is a separate act: run the **Release** workflow from the Actions tab
+with
+
+| input | value |
+|---|---|
+| `dry_run` | `false` |
+| `deploy` | `true` |
+
+which rolls the worker, then the API, then the frontend.
+
+### Why it is not automatic
+
+It used to be. `deploy-worker`, `deploy-azure` and `deploy-frontend-azure` all
+ran on `github.event_name == 'push'`, so tagging went to production with
+nothing in between — while a *manual* run already had to ask for `deploy: true`.
+Tags were the unguarded path, which is the wrong way round: a tag is a routine
+act and a deploy is not.
+
+The GitHub-native form of this rule is **required reviewers on the `production`
+environment**, which produces an approval prompt in the Actions UI. That needs
+repo **admin** rights to configure, so it is not set. Anyone with admin can add
+it:
+
+```bash
+gh api -X PUT repos/helpfulengineering/supply-graph-ai/environments/production \
+  -f 'reviewers[][type]=User' -F 'reviewers[][id]=<numeric-user-id>'
+```
+
+Until then, the workflow condition is the mechanism, and it is the thing to
+preserve: **no deploy job may key on `github.event_name == 'push'`.**
 
 ## Git tags vs GitHub Releases
 
