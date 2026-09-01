@@ -88,6 +88,13 @@ class LLMCredentialStatus(BaseModel):
     model: Optional[str] = Field(None, description="Configured default model")
     masked_key: str = Field(..., description="Masked API key suffix")
     configured: bool = Field(True, description="Whether a credential is stored")
+    is_active: bool = Field(
+        False,
+        description=(
+            "Whether this is the provider the node uses. Recorded durably, so "
+            "it survives a restart and is the same answer in every worker."
+        ),
+    )
 
 
 class LLMCredentialListResponse(SuccessResponse):

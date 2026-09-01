@@ -352,6 +352,10 @@ async def upsert_llm_credential(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Credential stored but failed to activate in LLM service",
             )
+        # Record the choice as well as applying it. Hot-swapping alone lasted
+        # only as long as this process: another worker, or this one after a
+        # restart, had no idea which provider had been chosen.
+        await store.set_active(provider_enum)
 
     statuses = await store.list_status()
     for status_row in statuses:
@@ -360,6 +364,47 @@ async def upsert_llm_credential(
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Credential stored but status could not be read back",
+    )
+
+
+@router.put(
+    "/active/{provider}",
+    response_model=LLMCredentialStatus,
+    summary="Choose which stored provider the node uses",
+)
+async def set_active_llm_provider(
+    provider: str = Path(..., description="Provider name, e.g. anthropic"),
+    _admin: AuthenticatedUser = Depends(require_admin_strict),
+    store: LLMCredentialStore = Depends(get_llm_credential_store),
+    llm_service: LLMService = Depends(get_llm_service),
+) -> LLMCredentialStatus:
+    """Make a stored provider the active one, without re-entering its key.
+
+    The choice is recorded in the store as well as applied here, so it survives
+    a restart and is the same answer in every worker. Activation used to be
+    process-local: which provider a node used depended on which worker had last
+    handled a save.
+    """
+    provider_enum = _parse_provider(provider)
+
+    applied = await apply_stored_credential(llm_service, store, provider_enum)
+    if not applied:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=(
+                f"No stored credential for {provider_enum.value}. Save one "
+                "before making it active."
+            ),
+        )
+
+    await store.set_active(provider_enum)
+
+    for status_row in await store.list_status():
+        if status_row["provider"] == provider_enum.value:
+            return LLMCredentialStatus(**status_row)
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Provider activated but status could not be read back",
     )
 
 

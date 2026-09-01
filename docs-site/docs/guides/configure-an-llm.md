@@ -82,18 +82,34 @@ A stored credential wins over an environment variable for the same provider, so
 rotating a key in **Settings** takes effect even if an old one is still in the
 environment.
 
-To choose between *different* providers, name one:
+To choose between *different* providers, pick one in **Settings → LLM
+providers**: each stored credential shows a **Make active** button, and the
+active one is badged. The choice is recorded on the node, so it survives a
+restart and means the same thing in every worker.
+
+From the command line:
+
+```bash
+ohm llm providers set openai
+```
+
+An environment variable does the same for a node you configure by deployment
+rather than through the app:
 
 ```bash
 LLM_DEFAULT_PROVIDER=openai
 ```
+
+A recorded choice wins over the environment variable, because someone made it
+deliberately and more recently.
 
 An explicit choice is used **on its own**. If you name `openai` and no OpenAI
 credential is configured, generation runs without an LLM rather than quietly
 falling back to a different provider — being silently billed for a provider you
 did not choose is worse than getting no LLM.
 
-Leave it unset and OHM picks whichever provider is configured. With more than
+With no recorded choice and no variable set, OHM picks whichever provider is
+configured. With more than
 one, it uses a fixed preference order and **logs which it chose**, so the
 decision is never invisible. Ollama is only ever considered here if you have set
 its base URL, and it is tried last — a node with both a cloud key and a local
