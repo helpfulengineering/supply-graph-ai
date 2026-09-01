@@ -5,10 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   compareRules,
   exportRules,
-  importRules,
   listRules,
   reloadRules,
-  resetRules,
   validateRules,
 } from "@/api/ohm/rules";
 import type { RuleComparison, RuleValidation } from "@/api/ohm/rules";
@@ -22,15 +20,9 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FIELD, HINT, LABEL } from "@/components/ui/field";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/states";
-import {
-  PANEL,
-  PANEL_BODY,
-  PANEL_DANGER,
-  PANEL_INSET,
-} from "@/components/ui/surface";
+import { PANEL, PANEL_BODY, PANEL_INSET } from "@/components/ui/surface";
 import { BODY_MUTED, CAPTION } from "@/components/ui/typography";
 import { useToast } from "@/components/ui/Toast";
-import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   groupRulesByDomain,
@@ -81,15 +73,6 @@ export function MatchingRulesPanel() {
     },
   });
 
-  const applyImport = useMutation({
-    mutationFn: () => importRules(draft, guessRuleFormat(draft)),
-    onSuccess: (result) => {
-      showSuccess(`Imported ${result.imported} rule(s)`);
-      setDraft("");
-      invalidate();
-    },
-  });
-
   const reload = useMutation({
     mutationFn: reloadRules,
     onSuccess: (result) => {
@@ -109,14 +92,6 @@ export function MatchingRulesPanel() {
       link.download = "capability-rules.yaml";
       link.click();
       URL.revokeObjectURL(url);
-    },
-  });
-
-  const reset = useMutation({
-    mutationFn: resetRules,
-    onSuccess: () => {
-      showSuccess("Rules reset to the built-in set");
-      invalidate();
     },
   });
 
@@ -199,16 +174,6 @@ export function MatchingRulesPanel() {
             onClick={() => check.mutate()}
           >
             {check.isPending ? "Checking…" : "Check"}
-          </Button>
-          <Button
-            size="sm"
-            // Import is reachable only through a clean compare: the point of
-            // the step is that nobody writes a file they have not seen the
-            // effect of.
-            disabled={!validation?.valid || !summary || applyImport.isPending}
-            onClick={() => applyImport.mutate()}
-          >
-            {applyImport.isPending ? "Importing…" : "Import"}
           </Button>
           {summary && <span className={CAPTION}>{summary.label}</span>}
         </div>
@@ -355,56 +320,6 @@ export function MatchingRulesPanel() {
           </p>
         )}
       </section>
-
-      <ResetSection onReset={() => reset.mutate()} pending={reset.isPending} />
     </div>
-  );
-}
-
-/** Reset behind a typed confirmation, because it discards every loaded rule. */
-function ResetSection({
-  onReset,
-  pending,
-}: {
-  onReset: () => void;
-  pending: boolean;
-}) {
-  const { isAdmin } = useAuth();
-  const [typed, setTyped] = useState("");
-  if (!isAdmin) return null;
-
-  return (
-    <section
-      aria-labelledby="rules-reset"
-      className={cn(PANEL_DANGER, PANEL_BODY)}
-    >
-      <SectionHeading id="rules-reset" role="card">
-        Reset rules
-      </SectionHeading>
-      <p className={cn(CAPTION, "mt-1")}>
-        Discards every loaded rule and returns to the built-in set. Every match
-        on this node is affected. Type <code>reset</code> to confirm.
-      </p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <label className="sr-only" htmlFor="rules-reset-confirm">
-          Type reset to confirm
-        </label>
-        <input
-          id="rules-reset-confirm"
-          value={typed}
-          onChange={(e) => setTyped(e.target.value)}
-          placeholder="reset"
-          className={FIELD}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={typed !== "reset" || pending}
-          onClick={onReset}
-        >
-          {pending ? "Resetting…" : "Reset rules"}
-        </Button>
-      </div>
-    </section>
   );
 }

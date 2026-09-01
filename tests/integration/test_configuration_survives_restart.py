@@ -112,3 +112,57 @@ async def test_storage_configuration_survives_a_restart(client, tmp_path, monkey
 
     assert reloaded is not None
     assert reloaded.bucket_name == str(tmp_path / "chosen")
+
+
+async def test_applying_an_imported_rule_set_is_refused(client):
+    """Rules ship with the image; an applied import could not survive (#457).
+
+    `import_rule_set` ended in an in-memory dict assignment, so an applied
+    import lived only in the worker that answered, was invisible to the others,
+    and vanished on the next restart — while reporting success throughout.
+    Refusing is the honest answer until rules have somewhere durable to live.
+    """
+    response = client.post(
+        "/api/match/rules/import",
+        json={
+            "file_content": "domain: manufacturing\nrules: []\n",
+            "file_format": "yaml",
+            "dry_run": False,
+        },
+    )
+
+    assert response.status_code == 501, response.text
+    assert "shipped with the image" in response.json()["detail"]
+
+
+async def test_a_dry_run_import_still_works(client):
+    """Checking a rule set against a running node is the supported path."""
+    response = client.post(
+        "/api/match/rules/import",
+        json={
+            "file_content": "domain: manufacturing\nrules: []\n",
+            "file_format": "yaml",
+            "dry_run": True,
+        },
+    )
+
+    # Whatever it concludes about the content, it must not be the refusal.
+    assert response.status_code != 501, response.text
+
+
+async def test_resetting_rules_is_refused(client):
+    """It emptied one worker and told the caller everything was reset."""
+    response = client.post("/api/match/rules/reset?confirm=true")
+
+    assert response.status_code == 501, response.text
+    assert "nothing to reset" in response.json()["detail"]
+
+
+async def test_a_refused_reset_leaves_the_rules_loaded(client):
+    """The failure mode being closed: no rules at all, in one process."""
+    client.post("/api/match/rules/reset?confirm=true")
+
+    listing = client.get("/api/match/rules/")
+
+    assert listing.status_code == 200, listing.text
+    assert listing.json()["data"]["total"] > 0

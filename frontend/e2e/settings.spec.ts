@@ -127,7 +127,9 @@ test("settings identities / grants / spaces tabs (F3)", async ({
   await expectNoA11yViolations(page);
 });
 
-test("matching rules: compare before import", async ({ page }, testInfo) => {
+test("matching rules: check a file against the loaded set", async ({
+  page,
+}, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "mocked whoami only");
   await page.addInitScript(() => {
     sessionStorage.setItem("ohm_api_key", "test-admin-token");
@@ -142,11 +144,11 @@ test("matching rules: compare before import", async ({ page }, testInfo) => {
     page.getByText("cnc_milling satisfies machining, milling"),
   ).toBeVisible();
 
-  // Import is unreachable until the file has been checked: the whole point of
-  // the step is that nobody writes a file they have not seen the effect of.
-  const importButton = page.getByRole("button", { name: "Import" });
-  await expect(importButton).toBeDisabled();
-
+  // Checking is the whole operation now. Applying an import was removed
+  // because it could not work: it mutated an in-memory dict, so it applied to
+  // one worker and vanished on the next restart while reporting success
+  // (#457). What survives is the useful half — seeing what a rules file would
+  // do to this node, before shipping it in the image.
   await page
     .getByLabel("Check a rules file")
     .fill("domain: manufacturing\nrules: []\n");
@@ -156,12 +158,11 @@ test("matching rules: compare before import", async ({ page }, testInfo) => {
   // Twice on the page by design: the terse summary beside the button, and the
   // sentence that spells out which domains it lands in.
   await expect(page.getByText("1 new · 1 changed").first()).toBeVisible();
-  await expect(importButton).toBeEnabled();
 
   await expectNoA11yViolations(page);
 });
 
-test("matching rules: reset is behind a typed confirmation", async ({
+test("matching rules: the panel offers no way to change them", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "mocked whoami only");
@@ -170,8 +171,19 @@ test("matching rules: reset is behind a typed confirmation", async ({
   });
   await page.goto("/settings/matching");
 
-  const resetButton = page.getByRole("button", { name: "Reset rules" });
-  await expect(resetButton).toBeDisabled();
-  await page.getByLabel("Type reset to confirm").fill("reset");
-  await expect(resetButton).toBeEnabled();
+  // Rules ship with the image and load at startup (#457). Import and reset
+  // used to be offered here and could not work: both mutated an in-memory
+  // dict, so they applied to one worker and vanished on the next restart while
+  // reporting success. The API refuses them now, and the panel must not offer
+  // what the API will refuse.
+  await expect(page.getByRole("button", { name: "Reset rules" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole("button", { name: "Import" })).toHaveCount(0);
+
+  // Checking a rule set against the running node is still the supported path.
+  // exact, or "Check" also matches "Check processes" and "Check file types".
+  await expect(
+    page.getByRole("button", { name: "Check", exact: true }),
+  ).toBeVisible();
 });

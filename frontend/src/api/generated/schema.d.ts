@@ -2998,7 +2998,16 @@ export interface paths {
         put?: never;
         /**
          * Reset all rules
-         * @description Reset all rules (clear all rule sets)
+         * @description Refused: rules are shipped with the image, so there is nothing to reset.
+         *
+         *     Refused for the same reason as applying an import (#457), and this one was
+         *     worse. ``reset_rules`` cleared the in-memory rule sets outright, so the
+         *     worker that answered was left matching with NO rules at all until it
+         *     restarted, while its siblings carried on with a full set. Nothing was reset
+         *     in any durable sense, and the caller was told it had been.
+         *
+         *     Kept as a route rather than deleted so the refusal is legible: a removed
+         *     endpoint 404s, which reads as a wrong URL rather than a decision.
          */
         post: operations["reset_rules_api_match_rules_reset_post"];
         delete?: never;
