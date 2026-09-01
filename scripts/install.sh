@@ -164,6 +164,16 @@ say "Ports ${PORT} and ${API_PORT}: free"
 # keys, so a node installed without a minted secret is one whose FIRST
 # configuration action fails — it starts, it looks healthy, and it cannot be
 # given storage credentials.
+# Both spellings, deliberately. OHM_ENCRYPTION_* is the current name; images
+# published before that rename (#371, which landed after v0.11.1) read only
+# LLM_ENCRYPTION_*, ignore the new names, and then refuse to start in
+# production because they see no encryption configured. Since this script
+# installs the LATEST RELEASE by default, it has to work with the images that
+# actually exist, not only with the ones the current source would produce.
+#
+# Harmless on newer images: the resolver prefers OHM_ and only warns when it
+# falls back, which it will not do while both are set. Remove the LLM_ pair
+# once the oldest supported release understands OHM_.
 ADMIN_KEY="ohm_$(mint)"
 ENCRYPTION_SALT=$(mint)
 ENCRYPTION_PASSWORD=$(mint)
@@ -210,6 +220,8 @@ docker run -d \
     -e "API_KEYS=${ADMIN_KEY}" \
     -e "OHM_ENCRYPTION_SALT=${ENCRYPTION_SALT}" \
     -e "OHM_ENCRYPTION_PASSWORD=${ENCRYPTION_PASSWORD}" \
+    -e "LLM_ENCRYPTION_SALT=${ENCRYPTION_SALT}" \
+    -e "LLM_ENCRYPTION_PASSWORD=${ENCRYPTION_PASSWORD}" \
     -e "STORAGE_PROVIDER=local" \
     -e "LOCAL_STORAGE_PATH=${CONTAINER_OBJECTS}" \
     -e "OHM_STORAGE_CONFIG_PATH=${CONTAINER_CONFIG}" \
