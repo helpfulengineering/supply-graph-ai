@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Generation now uses the provider chosen in Settings.** The active-provider
+  record added in 0.12.1 was read by the credential listing and by startup
+  activation — but not by the code that decides whether an LLM runs. That path
+  resolved `LLM_DEFAULT_PROVIDER` instead, and an explicitly named provider is
+  tried **alone**, without fallback. So a node with a stale
+  `LLM_DEFAULT_PROVIDER` naming a provider it had no key for showed
+  "anthropic [active]" in Settings and reported `not_configured` on every
+  generated design. Precedence is now the request, then the recorded choice,
+  then the environment — which is what the guide has always described.
+
 - **A credential the node cannot decrypt is no longer reported as working.**
   Everything the Settings panel showed about a stored key — provider, model,
   masked key, `configured`, `is_active` — is plaintext metadata stored beside

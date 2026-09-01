@@ -109,6 +109,29 @@ def _ollama_base_url(*, explicitly_chosen: bool) -> Optional[str]:
     )
 
 
+async def _recorded_active_provider() -> Optional[str]:
+    """The provider an operator chose in Settings, or None.
+
+    Read here because generation is the path that matters: the recorded choice
+    was durable and visible in the credential listing, but nothing asked for it
+    when deciding whether an LLM would run. A node could show "anthropic
+    [active]" and generate without an LLM, which is what it did.
+    """
+    try:
+        from src.config.llm_config import CredentialManager
+
+        from ..services.storage_service import StorageService
+        from ..storage.llm_credential_store import LLMCredentialStore
+
+        storage = await StorageService.get_instance()
+        store = LLMCredentialStore(storage, CredentialManager())
+        recorded = await store.get_active()
+        return recorded.value if recorded else None
+    except Exception as exc:  # storage down or unreadable — fall back, never fail
+        logger.debug("No recorded active LLM provider: %s", exc)
+        return None
+
+
 def _env_key(provider: str) -> Optional[str]:
     name = PROVIDER_ENV_KEYS.get(provider)
     value = os.getenv(name, "").strip() if name else ""
@@ -141,8 +164,22 @@ async def resolve_llm_availability(
         logger.info("LLM disabled by configuration (LLM_ENABLED=false)")
         return LLMAvailability.unavailable(LLMUnavailableReason.DISABLED)
 
-    chosen = preferred_provider or settings.llm_default_provider
+    # Precedence: what this request asked for, then what an operator chose in
+    # Settings, then what the deployment configured. The recorded choice
+    # outranks the environment because someone made it deliberately and more
+    # recently — which is what the guide has always said, and what generation
+    # did not do.
+    chosen = preferred_provider
+    chosen_from = "request"
+    if not chosen:
+        chosen = await _recorded_active_provider()
+        chosen_from = "recorded active provider"
+    if not chosen:
+        chosen = settings.llm_default_provider
+        chosen_from = "LLM_DEFAULT_PROVIDER"
+
     if chosen:
+        logger.info("LLM provider %r chosen from the %s", chosen, chosen_from)
         # An explicit choice is tried ALONE. Falling back would silently serve a
         # different provider than the one asked for, which is worse than failing.
         candidates = [chosen]

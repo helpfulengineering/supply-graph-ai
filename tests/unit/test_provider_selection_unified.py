@@ -54,6 +54,31 @@ def _no_real_service():
         yield
 
 
+@pytest.fixture(autouse=True)
+def _no_recorded_provider():
+    """No provider chosen in Settings unless a test says so.
+
+    Resolution consults the credential store for the recorded active provider,
+    which on a developer machine is a real directory (``LOCAL_STORAGE_PATH``
+    from ``.env``). Left alone, these tests read whatever that node happens to
+    have chosen — and a recorded choice is tried ALONE, so one stray record
+    changes what every test here resolves.
+    """
+    with patch(
+        "src.core.llm.availability._recorded_active_provider",
+        AsyncMock(return_value=None),
+    ):
+        yield
+
+
+def _recorded(provider):
+    """Patch the provider an operator chose in Settings."""
+    return patch(
+        "src.core.llm.availability._recorded_active_provider",
+        AsyncMock(return_value=provider),
+    )
+
+
 # --- The CLI now sees what generation sees -----------------------------------
 
 
@@ -154,3 +179,17 @@ def test_the_listing_never_opens_a_network_connection(monkeypatch):
     selector = get_provider_selector()
     selector.invalidate_availability_cache()
     selector._is_provider_available(LLMProviderType.LOCAL)
+
+
+@pytest.mark.asyncio
+async def test_the_cli_uses_the_provider_chosen_in_settings():
+    """The recorded choice reaches the CLI, not just the web app.
+
+    Records openai while both credentials exist, because preference order
+    would pick anthropic on its own — so passing this cannot be explained by
+    the fallback path.
+    """
+    with _recorded("openai"), _stored({"anthropic": "sk-a", "openai": "sk-o"}):
+        service = await create_llm_service_with_selection(verbose=False)
+
+    assert service.config.default_provider is LLMProviderType.OPENAI
