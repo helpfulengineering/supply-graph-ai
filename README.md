@@ -37,9 +37,9 @@ yourself.
 
 ## The interface
 
-**Live demo: [supply-graph-ai.thetechmargin.com](https://supply-graph-ai.thetechmargin.com/)**
-
 ![The dashboard — network map, live counts, and system status](docs/assets/ux/dashboard-warm-light.png)
+
+The User Interface was helpfully redesigned (and much improved) by Sonia from the-tech-margin.com, and now includes multiple color pallette options, keyboard shortcuts, and an improved logo design. 
 
 A Next.js App Router application, served by the API. Ten themes in light and
 dark, drivable by keyboard, and laid out down to 360px. Those three are enforced
