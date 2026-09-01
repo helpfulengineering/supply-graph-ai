@@ -188,21 +188,39 @@ export function LLMCredentialsPanel() {
                 <div>
                   <p className="font-medium text-foreground">
                     {c.provider}
-                    {c.is_active && (
-                      <Badge variant="green" className="ml-2">
-                        active
+                    {/* Unreadable outranks active. A key stored under
+                        encryption material this node no longer has is still
+                        recorded as the active provider, and showing only that
+                        badge is what told an operator the LLM was configured
+                        while the runtime had no provider at all. */}
+                    {!c.readable ? (
+                      <Badge variant="red" className="ml-2">
+                        unreadable
                       </Badge>
+                    ) : (
+                      c.is_active && (
+                        <Badge variant="green" className="ml-2">
+                          active
+                        </Badge>
+                      )
                     )}
                   </p>
                   <p className="font-mono text-xs text-muted-foreground">
                     {c.masked_key}
                     {c.model ? ` · ${c.model}` : ""}
                   </p>
+                  {!c.readable && (
+                    <p className="mt-1 max-w-prose text-xs text-destructive-ink">
+                      This key cannot be decrypted with the node&apos;s current
+                      encryption settings, so it cannot be used. Save the key
+                      again to store it under the current keys.
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   {/* Which provider a node uses is now a recorded choice, so
                       it can be changed without re-entering a key. */}
-                  {!c.is_active && (
+                  {!c.is_active && c.readable && (
                     <button
                       type="button"
                       onClick={() => activate.mutate(c.provider)}

@@ -19,7 +19,10 @@ from ...llm.credentials import (
 from ...llm.service import LLMService
 from ...models.auth import AuthenticatedUser
 from ...services.storage_service import StorageService
-from ...storage.llm_credential_store import LLMCredentialStore
+from ...storage.llm_credential_store import (
+    CredentialUnreadableError,
+    LLMCredentialStore,
+)
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_500
 from ..decorators import api_endpoint
@@ -468,7 +471,16 @@ async def test_llm_credential(
     from ...llm.providers.base import LLMProviderType
 
     provider_enum = _parse_provider(provider)
-    if not await store.load(provider_enum):
+    try:
+        stored = await store.load(provider_enum)
+    except CredentialUnreadableError as exc:
+        # 409, not 500: the request is well-formed and the credential is
+        # there. The node's encryption material changed under it, and only
+        # re-saving the key fixes that — so say so instead of raising.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
+    if not stored:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No stored credential for provider {provider}",

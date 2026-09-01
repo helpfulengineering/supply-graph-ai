@@ -19,6 +19,16 @@ from .constants import LLM_CREDENTIALS_PREFIX, STORAGE_OBJECT_TYPE_LLM_CREDENTIA
 logger = logging.getLogger(__name__)
 
 
+class CredentialUnreadableError(RuntimeError):
+    """A stored credential exists but cannot be decrypted.
+
+    Distinct from absence on purpose. Both were once reported as ``None``,
+    which made an unusable key indistinguishable from no key at all — the node
+    listed a credential as configured and active while the runtime had no
+    provider, and nothing in the logs said why.
+    """
+
+
 def mask_api_key(api_key: str) -> str:
     """Return a display form that never includes enough of the key to reuse it."""
     if len(api_key) <= 4:
@@ -132,7 +142,11 @@ class LLMCredentialStore:
         *,
         credential_type: str = "api_key",
     ) -> Optional[str]:
-        """Return decrypted plaintext, or None if absent."""
+        """Return decrypted plaintext, or None if absent.
+
+        Raises :class:`CredentialUnreadableError` when a credential is present
+        but the current encryption material cannot decrypt it.
+        """
         try:
             data = await self.storage_service.manager.get_object(
                 self._storage_key(provider)
@@ -149,7 +163,15 @@ class LLMCredentialStore:
         encrypted = payload.get("encrypted")
         if not encrypted:
             return None
-        return self.credential_manager.decrypt_credential(encrypted)
+        try:
+            return self.credential_manager.decrypt_credential(encrypted)
+        except Exception as exc:  # noqa: BLE001 — surfaced as a domain error
+            raise CredentialUnreadableError(
+                f"Stored {provider.value} credential cannot be decrypted — "
+                "OHM_ENCRYPTION_SALT/OHM_ENCRYPTION_PASSWORD no longer match "
+                "the material it was saved under. Re-save the credential to "
+                "store it under the current keys."
+            ) from exc
 
     async def delete(self, provider: LLMProvider) -> bool:
         """Remove a stored credential. Returns True if an object was deleted."""
@@ -195,6 +217,26 @@ class LLMCredentialStore:
                     "masked_key": masked,
                     "configured": True,
                     "is_active": active is not None and active.value == provider,
+                    "readable": self._is_readable(payload),
                 }
             )
         return statuses
+
+    def _is_readable(self, payload: Dict[str, Any]) -> bool:
+        """Whether the stored ciphertext can actually be decrypted right now.
+
+        Presence is not usability. Every other field here is metadata written
+        in plaintext beside the key, so a credential saved under encryption
+        material that has since changed still lists as configured — and, if it
+        holds the active record, as active — while the runtime cannot load it
+        and reports no provider at all. That contradiction is what this
+        answers; it costs one decrypt per stored provider.
+        """
+        encrypted = payload.get("encrypted")
+        if not encrypted:
+            return False
+        try:
+            self.credential_manager.decrypt_credential(encrypted)
+        except Exception:  # noqa: BLE001 — any failure to decrypt means unusable
+            return False
+        return True

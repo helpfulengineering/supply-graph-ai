@@ -118,7 +118,15 @@ async def activate_stored_credentials(
                 set_active=False,
             )
         except Exception as exc:  # noqa: BLE001 — one bad key must not stop the rest
-            logger.warning("Stored %s credential could not be activated: %s", name, exc)
+            # The exception type is logged alongside the message because the
+            # message can be empty — InvalidToken carries none, and this line
+            # once read "could not be activated: " with nothing after it.
+            logger.warning(
+                "Stored %s credential could not be activated: %s: %s",
+                name,
+                type(exc).__name__,
+                exc,
+            )
             continue
 
         if added:
