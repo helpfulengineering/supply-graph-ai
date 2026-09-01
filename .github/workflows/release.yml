@@ -229,11 +229,22 @@ jobs:
     name: Deploy Celery worker
     runs-on: ubuntu-latest
     needs: [validate, publish]
+    # Deploys are NEVER automatic. A tag push builds, publishes and releases;
+    # putting that on production is a separate, deliberate act.
+    #
+    # This used to include `github.event_name == 'push'`, so tagging deployed
+    # straight to production with nothing in between — and the `production`
+    # environment has no required reviewers, so there was no prompt either.
+    # Manual runs already demanded `deploy: true`; tags did not, which is the
+    # asymmetry this closes.
+    #
+    # The GitHub-native form of this rule is required reviewers on the
+    # `production` environment, which needs repo *admin* to configure. Until an
+    # admin sets it, this is the mechanism.
     if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' &&
-       inputs.dry_run == false &&
-       inputs.deploy == true)
+      github.event_name == 'workflow_dispatch' &&
+      inputs.dry_run == false &&
+      inputs.deploy == true
     environment: production
     permissions:
       id-token: write
@@ -312,11 +323,22 @@ jobs:
     runs-on: ubuntu-latest
     # deploy-worker first: consumer before producer, and both on the same digest.
     needs: [validate, publish, deploy-worker]
+    # Deploys are NEVER automatic. A tag push builds, publishes and releases;
+    # putting that on production is a separate, deliberate act.
+    #
+    # This used to include `github.event_name == 'push'`, so tagging deployed
+    # straight to production with nothing in between — and the `production`
+    # environment has no required reviewers, so there was no prompt either.
+    # Manual runs already demanded `deploy: true`; tags did not, which is the
+    # asymmetry this closes.
+    #
+    # The GitHub-native form of this rule is required reviewers on the
+    # `production` environment, which needs repo *admin* to configure. Until an
+    # admin sets it, this is the mechanism.
     if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' &&
-       inputs.dry_run == false &&
-       inputs.deploy == true)
+      github.event_name == 'workflow_dispatch' &&
+      inputs.dry_run == false &&
+      inputs.deploy == true
     environment: production
     permissions:
       id-token: write
@@ -537,11 +559,22 @@ jobs:
     name: Deploy frontend to Azure Container Apps
     runs-on: ubuntu-latest
     needs: [validate, publish, publish-frontend]
+    # Deploys are NEVER automatic. A tag push builds, publishes and releases;
+    # putting that on production is a separate, deliberate act.
+    #
+    # This used to include `github.event_name == 'push'`, so tagging deployed
+    # straight to production with nothing in between — and the `production`
+    # environment has no required reviewers, so there was no prompt either.
+    # Manual runs already demanded `deploy: true`; tags did not, which is the
+    # asymmetry this closes.
+    #
+    # The GitHub-native form of this rule is required reviewers on the
+    # `production` environment, which needs repo *admin* to configure. Until an
+    # admin sets it, this is the mechanism.
     if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' &&
-       inputs.dry_run == false &&
-       inputs.deploy == true)
+      github.event_name == 'workflow_dispatch' &&
+      inputs.dry_run == false &&
+      inputs.deploy == true
     environment: production
     permissions:
       id-token: write
@@ -706,3 +739,27 @@ jobs:
           files: |
             /tmp/assets/install.sh
             /tmp/assets/install.sh.sha256
+
+      # Say plainly that nothing was deployed. Someone who tags a release and
+      # assumes production followed is the failure this gate would otherwise
+      # introduce — a quieter one than the accidental deploy it prevents, but
+      # a failure all the same.
+      - name: Say what happens next
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          {
+            echo "## Released ${VERSION}"
+            echo ""
+            echo "Images are on Docker Hub and the GitHub Release is published,"
+            echo "including the checksummed installer."
+            echo ""
+            echo "**Nothing has been deployed to production.** That is deliberate:"
+            echo "deploys require a deliberate act, not a tag."
+            echo ""
+            echo "To deploy, run this workflow again from the Actions tab with:"
+            echo ""
+            echo "| input | value |"
+            echo "|---|---|"
+            echo "| \`dry_run\` | false |"
+            echo "| \`deploy\` | true |"
+          } >> "$GITHUB_STEP_SUMMARY"
