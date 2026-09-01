@@ -210,9 +210,12 @@ AREAS: tuple[Area, ...] = (
         "written into the old one would be orphaned by the switch. The "
         "Settings panel landed with #380; migrate and abandon-and-wipe modes "
         "are #381.",
-        # No fe_routes: the panel lives at /settings/storage, and route
-        # parity collapses to the first segment, where /settings is already
-        # declared by the identity area that owns the page.
+        # No fe_routes, following llm and federation: an area whose only
+        # frontend presence is a panel inside /settings does not claim that
+        # route, because identity owns the page and the manifest forbids two
+        # areas declaring one. The guide is `surface: selfhost` for the same
+        # reason configure-an-llm.md is — it is an operator task documented
+        # across the panel and the CLI, not a visitor-facing page.
         fe_api_prefixes=("/api/storage",),
     ),
     Area(
@@ -869,6 +872,23 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "Deploy a cooking-domain instance",
         "deployed",
         path="guides/deploy-a-cooking-domain-instance.md",
+    ),
+    SiteDoc(
+        "identity",
+        "Join a node: register, recover, manage your keys",
+        "deployed",
+        path="guides/join-a-node.md",
+        # /register is the capability the page leads with, and the one that
+        # made "there is no self-service signup" false everywhere it was
+        # written down.
+        requires_fe_call="/api/identity/register",
+    ),
+    SiteDoc(
+        "storage",
+        "Configure where a node keeps its data",
+        "deployed",
+        path="guides/configure-storage.md",
+        requires_fe_call="/api/storage/config",
     ),
     SiteDoc(
         "identity",
