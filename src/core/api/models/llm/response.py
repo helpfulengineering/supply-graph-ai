@@ -95,6 +95,17 @@ class LLMCredentialStatus(BaseModel):
             "it survives a restart and is the same answer in every worker."
         ),
     )
+    readable: bool = Field(
+        ...,
+        description=(
+            "Whether the stored key can actually be decrypted with this node's "
+            "current encryption material. False means the credential is present "
+            "but unusable — it was saved under different "
+            "OHM_ENCRYPTION_SALT/OHM_ENCRYPTION_PASSWORD values — and must be "
+            "re-saved. Without this, a node reports a credential as configured "
+            "and active while the runtime has no provider at all."
+        ),
+    )
 
 
 class LLMCredentialListResponse(SuccessResponse):
@@ -108,20 +119,18 @@ class LLMCredentialListResponse(SuccessResponse):
         json_schema_extra={
             "example": {
                 "status": "success",
-                "message": "Providers retrieved successfully",
+                "message": "Credentials retrieved successfully",
                 "timestamp": "2024-01-01T12:00:00Z",
-                "providers": [
+                "credentials": [
                     {
-                        "name": "anthropic",
-                        "type": "anthropic",
-                        "status": "healthy",
+                        "provider": "anthropic",
                         "model": "claude-sonnet-4-5-20250929",
-                        "is_connected": True,
-                        "available_models": ["claude-sonnet-4-5-20250929"],
+                        "masked_key": "****1234",
+                        "configured": True,
+                        "is_active": True,
+                        "readable": True,
                     }
                 ],
-                "default_provider": "anthropic",
-                "available_providers": ["anthropic"],
             }
         }
     )

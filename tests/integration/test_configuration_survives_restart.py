@@ -51,6 +51,19 @@ async def _store() -> LLMCredentialStore:
     return LLMCredentialStore(await StorageService.get_instance(), CredentialManager())
 
 
+async def _row_for(store: LLMCredentialStore, provider: LLMProvider) -> dict:
+    """The status row for one provider.
+
+    Never index ``list_status()`` by position. Storage is shared across this
+    session, so which row lands at ``[0]`` depends on what other tests saved —
+    an ordering dependency that passes locally and fails in CI, where the lane
+    stops at the first failure and reaches this file earlier.
+    """
+    rows = [r for r in await store.list_status() if r["provider"] == provider.value]
+    assert rows, f"no stored credential for {provider.value}"
+    return rows[0]
+
+
 async def test_a_stored_llm_credential_is_live_in_a_fresh_process(client):
     """The production report: saved through Settings, still "unavailable"."""
     store = await _store()
@@ -91,6 +104,47 @@ async def test_the_listing_says_which_provider_is_active(client):
 
     assert rows["anthropic"] is True
     assert rows["openai"] is False
+
+
+async def test_a_credential_saved_under_other_encryption_reads_as_unusable(
+    client, monkeypatch
+):
+    """The second production report: "anthropic [active]" beside "unavailable".
+
+    Every field the Settings panel shows — provider, model, masked key,
+    configured, is_active — is plaintext metadata stored beside the key, so all
+    of it survives an encryption-material change that the key itself does not.
+    The node then reports a credential as stored and active while the runtime
+    can load nothing, and says so in neither the UI nor the logs.
+
+    ``readable`` is the field that resolves the contradiction, and it is worth
+    its decrypt because nothing cheaper can tell the two states apart.
+    """
+    store = await _store()
+    await store.save(LLMProvider.ANTHROPIC, "sk-ant-under-the-old-key")
+    await store.set_active(LLMProvider.ANTHROPIC)
+    assert (await _row_for(store, LLMProvider.ANTHROPIC))["readable"] is True
+
+    # The node comes back with different encryption material: a redeploy that
+    # regenerated the secret, or a restore onto a host holding another one.
+    monkeypatch.setenv("OHM_ENCRYPTION_SALT", "a-different-salt")
+    monkeypatch.setenv("OHM_ENCRYPTION_PASSWORD", "a-different-password")
+    rotated = LLMCredentialStore(
+        await StorageService.get_instance(), CredentialManager()
+    )
+
+    row = await _row_for(rotated, LLMProvider.ANTHROPIC)
+    assert row["configured"] is True
+    assert row["is_active"] is True
+    assert row["readable"] is False, (
+        "the panel must not be able to call a credential active without also "
+        "saying it cannot be read"
+    )
+
+    # And the runtime genuinely has nothing, which is the half the operator saw.
+    fresh = LLMService()
+    await activate_stored_credentials(fresh, rotated)
+    assert [p.value for p in await fresh.get_available_providers()] == []
 
 
 async def test_storage_configuration_survives_a_restart(client, tmp_path, monkeypatch):

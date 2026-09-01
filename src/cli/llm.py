@@ -903,7 +903,10 @@ async def set_provider(ctx, provider: str, model: Optional[str]):
     from src.core.llm.credentials import apply_stored_credential
     from src.core.llm.service import LLMService
     from src.core.services.storage_service import StorageService
-    from src.core.storage.llm_credential_store import LLMCredentialStore
+    from src.core.storage.llm_credential_store import (
+        CredentialUnreadableError,
+        LLMCredentialStore,
+    )
 
     try:
         provider_enum = LLMProvider(provider)
@@ -914,10 +917,19 @@ async def set_provider(ctx, provider: str, model: Optional[str]):
     storage = await StorageService.get_instance()
     store = LLMCredentialStore(storage, CredentialManager())
 
-    if not await store.load(provider_enum):
+    try:
+        stored = await store.load(provider_enum)
+    except CredentialUnreadableError as exc:
+        click.echo(f"❌ {exc}", err=True)
+        raise SystemExit(1) from None
+    if not stored:
+        # There is no CLI command that saves a credential — the store is
+        # written through the API only. This line used to name
+        # "ohm llm credentials set", which has never existed.
         click.echo(
-            f"❌ No stored credential for {provider}. Save one first:\n"
-            f"     ohm llm credentials set {provider} --api-key ...",
+            f"❌ No stored credential for {provider}. Save one first, in "
+            f"Settings → LLM providers, or:\n"
+            f"     PUT /v1/api/llm/credentials/{provider}",
             err=True,
         )
         raise SystemExit(1)

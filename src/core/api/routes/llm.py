@@ -12,11 +12,17 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
 from src.config.llm_config import CredentialManager, LLMProvider
 
-from ...llm.credentials import apply_stored_credential
+from ...llm.credentials import (
+    apply_stored_credential,
+    ensure_stored_credentials_loaded,
+)
 from ...llm.service import LLMService
 from ...models.auth import AuthenticatedUser
 from ...services.storage_service import StorageService
-from ...storage.llm_credential_store import LLMCredentialStore
+from ...storage.llm_credential_store import (
+    CredentialUnreadableError,
+    LLMCredentialStore,
+)
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_500
 from ..decorators import api_endpoint
@@ -44,8 +50,22 @@ router = APIRouter(
 
 
 async def get_llm_service() -> LLMService:
-    """Get LLM service instance."""
-    return await LLMService.get_instance()
+    """Get LLM service instance, loading stored credentials if it has none.
+
+    Startup loads them, but that attempt can fail — `add_provider` ends in a
+    network call, and a worker starting before egress is ready gets nothing and
+    never retries. Doing it here as well means the recovery happens when
+    something actually needs an LLM, rather than requiring a restart or a
+    re-save. It is a flag check once the load has succeeded.
+    """
+    service = await LLMService.get_instance()
+    try:
+        await ensure_stored_credentials_loaded(
+            service, await get_llm_credential_store()
+        )
+    except Exception as e:  # noqa: BLE001 — an LLM is optional
+        logger.warning("Could not load stored LLM credentials on demand: %s", e)
+    return service
 
 
 async def get_llm_credential_store() -> LLMCredentialStore:
@@ -451,7 +471,16 @@ async def test_llm_credential(
     from ...llm.providers.base import LLMProviderType
 
     provider_enum = _parse_provider(provider)
-    if not await store.load(provider_enum):
+    try:
+        stored = await store.load(provider_enum)
+    except CredentialUnreadableError as exc:
+        # 409, not 500: the request is well-formed and the credential is
+        # there. The node's encryption material changed under it, and only
+        # re-saving the key fixes that — so say so instead of raising.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
+    if not stored:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No stored credential for provider {provider}",

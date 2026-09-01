@@ -185,6 +185,33 @@ Generate them as long random strings, keep them out of version control, and do
 not change them once credentials are stored — the stored keys are encrypted with
 them and cannot be recovered otherwise.
 
+`LLM_ENCRYPTION_SALT` and `LLM_ENCRYPTION_PASSWORD` are the former names and
+still work. They are deprecated because this encryption now protects more than
+LLM credentials; set the `OHM_` names on new nodes. Do not set both to different
+values.
+
+### If those values do change
+
+A credential is encrypted with them, but everything *about* it — the provider,
+the model, the masked key, which provider is active — is stored in plain text
+beside it. So a node that comes back with different encryption material still
+lists the credential, and can still show it as active, while being unable to
+decrypt the key itself.
+
+**Settings marks such a credential `unreadable`** and offers no way to activate
+it, because activating it cannot work. The fix is to save the key again in
+**Settings → LLM providers**, which re-encrypts it under the current values.
+Deleting it first is unnecessary; saving over it is enough.
+
+Over the API, admin only:
+
+```
+PUT /v1/api/llm/credentials/anthropic
+```
+
+Saving a credential has no command-line equivalent: keys are written through
+the app or the API, and `ohm llm providers` reads what they wrote.
+
 ## Cost and quality notes
 
 - Generation sends repository documentation to your provider. Do not point a
@@ -200,6 +227,7 @@ them and cannot be recovered otherwise.
 |---|---|
 | Every design needs `function` typed in | No LLM configured — check the quality report's `llm_status` |
 | Key added in Settings but nothing changed | Check `LLM_ENABLED` is not `false`, and that `LLM_DEFAULT_PROVIDER` (if set) names the provider you added |
+| Settings shows a credential as active while the runtime says no provider is available | The key was saved under different encryption material and is marked `unreadable`. Save it again |
 | `llm_status: failed` | Key rejected, or provider unreachable. For ollama, check the base URL and that the model is pulled |
 | Generation returns 401 | `GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM` is on and a provider is configured — authenticate, or pass `no_llm=true` |
 | Node will not start in production | `OHM_ENCRYPTION_SALT` / `OHM_ENCRYPTION_PASSWORD` are missing |

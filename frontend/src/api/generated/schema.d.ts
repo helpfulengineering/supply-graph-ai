@@ -6375,23 +6375,17 @@ export interface components {
          * LLMCredentialListResponse
          * @description List of stored LLM credentials (masked).
          * @example {
-         *       "available_providers": [
-         *         "anthropic"
-         *       ],
-         *       "default_provider": "anthropic",
-         *       "message": "Providers retrieved successfully",
-         *       "providers": [
+         *       "credentials": [
          *         {
-         *           "available_models": [
-         *             "claude-sonnet-4-5-20250929"
-         *           ],
-         *           "is_connected": true,
+         *           "configured": true,
+         *           "is_active": true,
+         *           "masked_key": "****1234",
          *           "model": "claude-sonnet-4-5-20250929",
-         *           "name": "anthropic",
-         *           "status": "healthy",
-         *           "type": "anthropic"
+         *           "provider": "anthropic",
+         *           "readable": true
          *         }
          *       ],
+         *       "message": "Credentials retrieved successfully",
          *       "status": "success",
          *       "timestamp": "2024-01-01T12:00:00Z"
          *     }
@@ -6470,6 +6464,11 @@ export interface components {
              * @default false
              */
             is_active: boolean;
+            /**
+             * Readable
+             * @description Whether the stored key can actually be decrypted with this node's current encryption material. False means the credential is present but unusable — it was saved under different OHM_ENCRYPTION_SALT/OHM_ENCRYPTION_PASSWORD values — and must be re-saved. Without this, a node reports a credential as configured and active while the runtime has no provider at all.
+             */
+            readable: boolean;
         };
         /**
          * LLMCredentialUpsert
