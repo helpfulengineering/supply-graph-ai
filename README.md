@@ -37,7 +37,7 @@ yourself.
 
 ## The interface
 
-**Live demo: [supply-graph-ai.thetechmargin.com](https://supply-graph-ai.thetechmargin.com/)**
+The UI has helpfull been redesigned (and much improved) by Sonia from the-tech-margin.com, and now includes color theme picker, keyboard shortcuts, and brand new logo, to name a few.
 
 ![The dashboard — network map, live counts, and system status](docs/assets/ux/dashboard-warm-light.png)
 
