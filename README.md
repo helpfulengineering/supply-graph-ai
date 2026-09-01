@@ -252,7 +252,7 @@ OHM exposes a FastAPI HTTP API that can be run locally via Docker Compose, from 
 or deployed using the configurations in `deploy/`. A reference frontend ships in
 `frontend/`.
 
-**Current release:** `0.11.1` — see [CHANGELOG.md](CHANGELOG.md) and [Release process](docs/RELEASE.md).
+**Current release:** `0.12.0` — see [CHANGELOG.md](CHANGELOG.md) and [Release process](docs/RELEASE.md).
 
 ## Quick Start for New Users
 
@@ -300,11 +300,11 @@ other than local, configure it at `/settings/storage`.
 **Local storage (no credentials needed):**
 
 ```bash
-docker pull touchthesun/openhardwaremanager:0.11.1
+docker pull touchthesun/openhardwaremanager:0.12.0
 docker run -p 8001:8001 \
   -e STORAGE_PROVIDER=local \
   -e LLM_ENABLED=false \
-  touchthesun/openhardwaremanager:0.11.1
+  touchthesun/openhardwaremanager:0.12.0
 ```
 
 **Remote storage (Azure Blob, AWS S3, or GCS):**
@@ -315,7 +315,7 @@ The published image does not include a `.env` file — you must pass your storag
 # Copy the template, fill in your provider and credentials, then:
 docker run -p 8001:8001 \
   --env-file .env \
-  touchthesun/openhardwaremanager:0.11.1
+  touchthesun/openhardwaremanager:0.12.0
 ```
 
 The minimum `.env` keys for Azure Blob are:
@@ -332,7 +332,12 @@ See [Container / self-host guide](docs-site/docs/guides/run-your-own-node.md) an
 > **How configuration resolves.** Non-secret defaults (storage provider / account
 > / container, `OKW_SOURCE`, CORS) are checked in per environment under
 > `config/environments/<ENVIRONMENT>.toml` and selected by `ENVIRONMENT`; anything
-> you pass as an env var (or in `.env`) overrides them. Secrets — `AZURE_STORAGE_KEY`,
+> you pass as an env var (or in `.env`) overrides them. **Storage has one more
+> source that outranks both:** a configuration written through
+> `/settings/storage` or `ohm storage config set` persists to an encrypted file
+> and is read at boot, so a node repointed at runtime stays repointed across a
+> restart. It lives outside the object store it configures, because credentials
+> for a new provider written into the old one would be orphaned by the switch. Secrets — `AZURE_STORAGE_KEY`,
 > `API_KEYS`, `LLM_*` — are never in those files (use `.env` or an Azure `secretRef`).
 > In `production` the app hard-fails on missing/invalid storage config, and `/health`
 > reports the resolved storage target + object counts. See `.env.example` and

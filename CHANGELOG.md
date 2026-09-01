@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-09-01
+
+Anyone can now join a node, and an operator can point one at storage without a
+redeploy. Plus a one-command installer, and the response-model work that closed
+a class of silent API drift.
+
+### Added
+
+- **Self-service registration.** `/register` mints an account, an identity and
+  a first key, and signs you in with it — no email, nothing to verify, nothing
+  to leak. `/account` is the registered visitor's own page: their keys, what
+  each can do, when each expires, and renew/revoke without finding an operator.
+  Settings stays admin-only.
+- **A way back in without email.** Registration issues a one-time recovery
+  code; `/recover` redeems it for a fresh key and issues a replacement code.
+  Nodes in `shielded` posture do not offer recovery.
+- **Sessions that persist when they should.** A session you got by registering
+  survives closing the tab; a key you pasted into Settings does not. The
+  distinction is how the session began, not what it can do.
+- **Storage configurable at runtime.** `GET`/`POST /api/storage/config`, a
+  Settings panel, and `ohm storage config show|set`. Storage was the last
+  setting with no runtime path, which is what made a hands-off installer
+  impossible. A new backend is proved end to end — connect, write, read back,
+  check the structure — before anything is committed, so a bad credential
+  costs an error message rather than a working node.
+- **Switch modes for existing data.** Leave it (the default), **migrate** it,
+  or **move and erase**. Migrate copies and verifies before switching, so a
+  failure leaves a working node on the original storage; it runs as a job over
+  the API and in the foreground from the CLI. Wipe erases only after the switch
+  succeeds, and only when the request echoes the exact bucket name.
+- **A hands-off installer.** `curl -fsSLO https://openhardwaremanager.org/install.sh`
+  — check the published checksum, then run it. Mints the admin key and the
+  encryption secret, resolves the latest release, starts on local storage under
+  one mounted volume, waits for health, and prints the URL and key. Shipped as
+  a checksummed release asset.
+- **Admin inventory** (`/settings/inventory`) — enumerate and delete records
+  without reading their contents.
+- **Crisis break-glass**, recorded against the reader who used it.
+- **Generation provenance and a stage log** for generate-from-url runs, with a
+  dedicated interface that fills in while the run happens.
+
+### Changed
+
+- **Every route the frontend calls now declares a response model.** A
+  `response_model` silently filters undeclared fields, so each was derived from
+  a captured response and test-locked against it rather than written from the
+  handler. The remaining allowlist rows are permanent exceptions — four stream
+  files, one returns four shapes by parameter — with no backlog left.
+- **Storage setup is one function.** It was implemented three times and the
+  copies had drifted: one created three prefixes rather than four, one
+  restamped placeholders on every run, and two reported success on backends
+  they had never reached. Setup now verifies with a real write/read round trip
+  and fails loudly.
+- **Encryption settings are `OHM_ENCRYPTION_*`.** The `LLM_` names still work.
+- **A tag no longer deploys to production.** Pushing `vX.Y.Z` builds, publishes
+  and releases; deploying is a deliberate dispatch.
+- Authentication verifies by digest, keeping bcrypt only for legacy keys.
+
+### Fixed
+
+- **`POST /api/match` returned 500 for every nested request.** The handler is
+  annotated `-> dict[str, Any]`, which FastAPI uses as the response model, and
+  the nested branch returned a `SuccessResponse` object — so the whole payload
+  was computed and thrown away. Nothing exercised that branch.
+- **Six `/api/package` routes returned 500 for every caller**, three of them
+  called by the UI, from the same defect. Two routes in the same file already
+  carried the fix.
+- **`POST /api/match/upload` returned 500**, found by the ratchet added for the
+  two above on its first run.
+- **`POST /api/match` with `max_depth > 0` now explores the BOM**, rather than
+  failing before it starts.
+- Private keys are written `0600` rather than world-readable.
+- Paths derived from manifest content are contained.
+- Proxy headers are trusted by decision rather than by default.
+- 21 Dependabot alerts cleared; `npm audit` reports zero.
+
+### Documentation
+
+- New guides for joining a node and configuring storage.
+- `get-a-write-key.md` said "There is no self-service signup". That became
+  false with this release, and is corrected.
+
 ## [0.11.1] - 2026-08-29
 
 Ships the 0.11.0 frontend, which 0.11.0 itself could not.
