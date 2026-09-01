@@ -100,8 +100,18 @@ rather than through the app:
 LLM_DEFAULT_PROVIDER=openai
 ```
 
-A recorded choice wins over the environment variable, because someone made it
-deliberately and more recently.
+Precedence, most specific first:
+
+1. a provider named on the request itself
+2. **the choice recorded in Settings** — someone made it deliberately, and more
+   recently than the deployment was configured
+3. `LLM_DEFAULT_PROVIDER`
+4. otherwise, the preference order below
+
+This ordering applies to *generation*, not only to the Settings screen. That is
+worth stating because it did not always: generation read `LLM_DEFAULT_PROVIDER`
+and never the recorded choice, so a node could show a provider as active and
+still generate without an LLM.
 
 An explicit choice is used **on its own**. If you name `openai` and no OpenAI
 credential is configured, generation runs without an LLM rather than quietly
@@ -228,6 +238,7 @@ the app or the API, and `ohm llm providers` reads what they wrote.
 | Every design needs `function` typed in | No LLM configured — check the quality report's `llm_status` |
 | Key added in Settings but nothing changed | Check `LLM_ENABLED` is not `false`, and that `LLM_DEFAULT_PROVIDER` (if set) names the provider you added |
 | Settings shows a credential as active while the runtime says no provider is available | The key was saved under different encryption material and is marked `unreadable`. Save it again |
+| Settings shows a provider as active, but generated designs still say "generated without an LLM" | A stale `LLM_DEFAULT_PROVIDER` naming a provider you have no key for. An explicit choice is tried alone, so it does not fall back. Clear the variable, or make the same provider active in Settings |
 | `llm_status: failed` | Key rejected, or provider unreachable. For ollama, check the base URL and that the model is pulled |
 | Generation returns 401 | `GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM` is on and a provider is configured — authenticate, or pass `no_llm=true` |
 | Node will not start in production | `OHM_ENCRYPTION_SALT` / `OHM_ENCRYPTION_PASSWORD` are missing |

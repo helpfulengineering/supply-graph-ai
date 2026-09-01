@@ -147,6 +147,42 @@ async def test_a_credential_saved_under_other_encryption_reads_as_unusable(
     assert [p.value for p in await fresh.get_available_providers()] == []
 
 
+async def test_the_provider_chosen_in_settings_is_the_one_generation_uses(
+    client, monkeypatch
+):
+    """The third report of one bug: Settings said active, generation did not.
+
+    Settings and generation answer "which LLM?" through different code. The
+    panel reads the credential store; generation resolves availability from an
+    explicitly chosen provider, tried alone. Nothing connected the recorded
+    choice to the second one, so a node could show "anthropic [active]" and
+    generate heuristically because the deployment still named a provider it had
+    no key for.
+
+    Asserted end to end because a unit test of either half passes while the two
+    disagree — which is exactly what shipped.
+    """
+    from src.core.llm.availability import resolve_llm_availability
+
+    store = await _store()
+    await store.save(LLMProvider.ANTHROPIC, "sk-ant-chosen-in-settings")
+    await store.set_active(LLMProvider.ANTHROPIC)
+
+    # The deployment still names a provider this node has no credential for.
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "openai")
+    for name in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY"):
+        monkeypatch.setenv(name, "")
+
+    availability = await resolve_llm_availability()
+
+    assert availability.available is True, (
+        "generation must honour the provider chosen in Settings, not fall back "
+        "to a stale LLM_DEFAULT_PROVIDER and report no LLM at all"
+    )
+    assert availability.provider == "anthropic"
+    assert availability.source == "credential_store"
+
+
 async def test_storage_configuration_survives_a_restart(client, tmp_path, monkeypatch):
     """The same property for storage, which gets it right by a different route.
 

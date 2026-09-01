@@ -29,6 +29,9 @@ from src.core.llm.availability import (
     LLMUnavailableReason,
     resolve_llm_availability,
 )
+from src.core.llm.availability import (
+    _recorded_active_provider as _real_recorded_active_provider,  # noqa: E402
+)
 
 pytestmark = pytest.mark.unit
 
@@ -50,6 +53,21 @@ def _no_ambient_keys(monkeypatch):
     ):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("LLM_ENABLED", "true")
+    # No recorded active provider unless a test sets one. Without this the
+    # lookup reaches real storage, and these tests would pass only because it
+    # happens to be unconfigured on this machine.
+    monkeypatch.setattr(
+        "src.core.llm.availability._recorded_active_provider",
+        AsyncMock(return_value=None),
+    )
+
+
+def _recorded(provider):
+    """Patch the provider an operator chose in Settings."""
+    return patch(
+        "src.core.llm.availability._recorded_active_provider",
+        AsyncMock(return_value=provider),
+    )
 
 
 def _stored(mapping):
@@ -365,3 +383,72 @@ async def test_a_cloud_credential_still_wins_over_an_available_ollama(monkeypatc
         availability = await resolve_llm_availability()
 
     assert availability.provider == "anthropic"
+
+
+# --- The recorded active provider must reach generation ----------------------
+
+
+@pytest.mark.asyncio
+async def test_the_recorded_choice_beats_a_stale_default_provider(monkeypatch):
+    """The third report of one bug: Settings said active, generation did not.
+
+    An operator picked anthropic in Settings while the deployment still set
+    LLM_DEFAULT_PROVIDER=openai. Because an explicit choice is tried alone and
+    generation never read the recorded choice, it looked for an openai key it
+    did not have and reported `not_configured` — beside a panel correctly
+    showing anthropic as the active provider.
+    """
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "openai")
+
+    with _recorded("anthropic"), _stored({"anthropic": "sk-anthropic"}):
+        availability = await resolve_llm_availability()
+
+    assert availability.available is True
+    assert availability.provider == "anthropic"
+    assert availability.source == "credential_store"
+
+
+@pytest.mark.asyncio
+async def test_the_environment_still_decides_when_nothing_is_recorded(monkeypatch):
+    """LLM_DEFAULT_PROVIDER keeps working for deployment-configured nodes."""
+    monkeypatch.setenv("LLM_DEFAULT_PROVIDER", "openai")
+
+    with _stored({"openai": "sk-openai", "anthropic": "sk-anthropic"}):
+        availability = await resolve_llm_availability()
+
+    assert availability.provider == "openai"
+
+
+@pytest.mark.asyncio
+async def test_an_explicit_request_still_outranks_the_recorded_choice():
+    """A per-request provider is the most specific intent there is."""
+    with _recorded("anthropic"), _stored({"openai": "sk-openai"}):
+        availability = await resolve_llm_availability(preferred_provider="openai")
+
+    assert availability.provider == "openai"
+
+
+@pytest.mark.asyncio
+async def test_a_recorded_choice_is_tried_alone():
+    """It is an explicit choice, so it gets explicit-choice semantics.
+
+    Silently generating with a provider the operator did not pick — and billing
+    them for it — is worse than reporting that the one they did pick is unusable.
+    """
+    with _recorded("openai"), _stored({"anthropic": "sk-anthropic"}):
+        availability = await resolve_llm_availability()
+
+    assert availability.available is False
+    assert availability.reason == LLMUnavailableReason.NOT_CONFIGURED
+
+
+@pytest.mark.asyncio
+async def test_unreachable_storage_yields_no_recorded_choice():
+    """The lookup is best-effort, so a node with no storage still generates.
+
+    Patching the lookup itself would replace the very try/except under test, so
+    the failure has to come from storage.
+    """
+    broken = AsyncMock(side_effect=RuntimeError("storage down"))
+    with patch("src.core.services.storage_service.StorageService.get_instance", broken):
+        assert await _real_recorded_active_provider() is None
