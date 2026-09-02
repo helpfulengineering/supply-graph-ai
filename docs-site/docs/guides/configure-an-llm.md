@@ -222,6 +222,41 @@ PUT /v1/api/llm/credentials/anthropic
 Saving a credential has no command-line equivalent: keys are written through
 the app or the API, and `ohm llm providers` reads what they wrote.
 
+## Asking a deployed node what it thinks
+
+When Settings shows a provider as active and generated designs still say
+"generated without an LLM", the two halves are reading different state. This
+prints both, from inside the node:
+
+```bash
+python scripts/diagnose_llm.py
+```
+
+It reports the stored credentials, whether each one actually **decrypts**, and
+the availability answer generation itself uses — so a disagreement names its own
+cause rather than having to be inferred.
+
+On Azure Container Apps, run it from your own terminal rather than the Cloud
+Shell (which mangles long quoted commands):
+
+```bash
+az containerapp exec -n <app> -g <resource-group> \
+  --command "python scripts/diagnose_llm.py"
+```
+
+**Run it in every container that generates.** With `JOBS_ENABLED=true`,
+generation happens in the **Celery worker**, which is a separate container app
+with its own environment — the API's answer does not describe it. A node whose
+API and worker disagree is exactly the case this catches:
+
+```bash
+az containerapp exec -n ohm-api    -g <rg> --command "python scripts/diagnose_llm.py"
+az containerapp exec -n ohm-worker -g <rg> --command "python scripts/diagnose_llm.py"
+```
+
+The script is read-only and prints no secret: keys appear masked, as they do in
+Settings.
+
 ## Cost and quality notes
 
 - Generation sends repository documentation to your provider. Do not point a

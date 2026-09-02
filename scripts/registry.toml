@@ -82,6 +82,13 @@ run = "uv run python scripts/generate_scripts_index.py [--check]"
 mutates = true
 used_by = ["make ready (scripts-check)", "ci: quality"]
 
+[scripts.diagnose_llm]
+category = "verify"
+summary = "Report why a node will or will not use an LLM: stored credentials, whether each decrypts, and the availability answer generation actually uses. Run it inside a deployed container (API and worker separately) when Settings and generation disagree."
+run = "python scripts/diagnose_llm.py"
+mutates = false
+used_by = ["docs-site/docs/guides/configure-an-llm.md", "az containerapp exec"]
+
 [scripts.verify_dev_env]
 category = "verify"
 summary = "Verify the local dev environment is fully provisioned (historically fragile deps load)."
