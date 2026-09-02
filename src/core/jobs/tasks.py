@@ -29,8 +29,12 @@ def reset_loop_bound_singletons() -> None:
     The signature in production was exact: the first generation after a worker
     start used the LLM, and every generation after it did not.
 
-    ``_initialization_locks`` holds ``asyncio.Lock`` objects, which are bound to
-    a loop the same way, so they go too.
+    ``_initialization_locks`` is cleared alongside them, defensively rather than
+    out of necessity: measured on Python 3.12, an uncontended ``asyncio.Lock`` binds
+    lazily on first await and is reused across loops without error. It is
+    dropped because a lock whose waiter queue referenced a dead loop would be a
+    much harder failure, and the locks guard construction that is being redone
+    anyway.
 
     Safe because a prefork worker runs one task at a time per child process. A
     threaded or gevent pool would need a different approach — there, concurrent
