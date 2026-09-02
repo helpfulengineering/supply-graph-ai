@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.2] - 2026-09-01
+
+The LLM layer now actually runs in production. It had not been, and three
+separate causes were hiding behind one symptom — a node reporting "no provider
+is configured" while holding a valid, readable credential.
+
 ### Fixed
 
 - **Only the first generation after a worker restart used the LLM.** Every job
   after it reported "no provider is configured" while a valid, readable
-  credential sat in storage — the reason three rounds of fixes to the credential
-  path changed nothing. The cause is the worker's process model, not the
+  credential sat in storage — the reason the earlier fixes below changed nothing
+  on a deployed node. The cause is the worker's process model, not the
   credential logic. Each Celery task calls `asyncio.run`, which closes its event
   loop on return, while the services are process-wide singletons that outlive
   it, holding aiohttp clients bound to that dead loop.
@@ -20,12 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   already configured, so the second task inherits a service that reports itself
   ready and can read nothing. The read that failed was the LLM credential
   lookup, and `_stored_key` swallows its exception at `DEBUG`, a level
-  production never emits — so the node reported the credential as absent.
-  Tasks now rebuild those singletons on their own loop.
-
-
-### Fixed
-
+  production never emits — so the node reported the credential as absent. Tasks
+  now rebuild those singletons on their own loop.
 - **Generation now uses the provider chosen in Settings.** The active-provider
   record added in 0.12.1 was read by the credential listing and by startup
   activation — but not by the code that decides whether an LLM runs. That path
@@ -35,18 +37,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "anthropic [active]" in Settings and reported `not_configured` on every
   generated design. Precedence is now the request, then the recorded choice,
   then the environment — which is what the guide has always described.
-
+- **A failed startup credential load is retried.** Activating a stored
+  credential ends in `provider.connect()`, a network call. If it failed at boot,
+  nothing tried again for the life of the process. Stored credentials are now
+  loaded on demand, once per process, and never fatally: an LLM is optional and
+  generation still degrades to heuristic extraction without one.
 - **A credential the node cannot decrypt is no longer reported as working.**
   Everything the Settings panel showed about a stored key — provider, model,
   masked key, `configured`, `is_active` — is plaintext metadata stored beside
   the key, so all of it survived a change of encryption material that the key
   itself did not. A node that came back with a different
   `OHM_ENCRYPTION_SALT`/`OHM_ENCRYPTION_PASSWORD` listed the credential as
-  stored and active while the runtime could load nothing, which is exactly the
-  contradiction an operator hit: `anthropic [active]` beside "No LLM provider
-  is active". The credential list now carries `readable`, proved by actually
-  decrypting, and Settings marks such a row **unreadable**, explains that the
-  key must be saved again, and does not offer to activate it.
+  stored and active while the runtime could load nothing. The credential list
+  now carries `readable`, proved by actually decrypting, and Settings marks such
+  a row **unreadable**, explains that the key must be saved again, and does not
+  offer to activate it.
 - **The one log line that explained an activation failure printed nothing.**
   `InvalidToken` carries an empty message, so a failed decrypt logged
   `Stored anthropic credential could not be activated: ` and stopped. Loading
@@ -63,6 +68,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never been a command — credentials are written through Settings or the API,
   and the CLI only reads them. It now says so.
 
+### Added
+
+- **`scripts/diagnose_llm.py`** — a read-only, in-container report of why a node
+  will or will not use an LLM: the stored credentials, whether each one actually
+  decrypts, and the availability answer generation itself uses. Keys stay
+  masked. It exists because answering that question previously meant pasting a
+  long `python -c` one-liner into a container console, and consoles mangle
+  quoting. Run it in **every** container that generates: with `JOBS_ENABLED=true`
+  the work happens in the Celery worker, whose answer the API's does not
+  describe.
+
+### Security
+
+- **`tornado>=6.5.8`** for GHSA-wwv5-g3v4-889x and GHSA-8423-8fgw-73vq.
+- **`pypdf>=6.16.1`** for CVE-2026-84309, CVE-2026-84310 and CVE-2026-84311,
+  found by running `pip-audit` locally rather than waiting for the CI gate to
+  report them separately.
+
+### Notes
+
+- The interface tour — themes, keyboard model, accessibility, responsive
+  behaviour and the route table — moves from `README.md` to
+  [The web interface](docs-site/docs/guides/frontend.md), taking its screenshots
+  with it. Those images now sit inside the docs tree, so they reach the
+  published site for the first time.
+- `configure-an-llm.md` gains the precedence order, what to do when a credential
+  reads as `unreadable`, how to ask a deployed node what it thinks, and what
+  that diagnostic **cannot** see — it runs in a fresh process, so it is blind to
+  faults that only exist in a long-lived worker.
 
 ## [0.12.1] - 2026-09-01
 
