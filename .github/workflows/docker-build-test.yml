@@ -65,7 +65,11 @@ jobs:
             elapsed=$((elapsed + 2))
           done
           echo "Container failed to start within $timeout seconds"
-          docker logs test-container
+          # Guarded for the same reason as the diagnostic step below: if the
+          # container is absent, an unguarded `docker logs` aborts the step on
+          # its own exit code and the deliberate `exit 1` — and the reason for
+          # it — never runs.
+          docker logs test-container 2>&1 || echo "(no container to log)"
           exit 1
 
       - name: Run health checks
@@ -87,10 +91,18 @@ jobs:
       - name: Check container logs
         if: failure()
         run: |
+          # Diagnostic only: it must never decide the job's outcome, and must
+          # never stop before printing everything it can. `docker logs` exits
+          # non-zero when the container does not exist, which happens whenever
+          # the build failed earlier — and without these guards this step then
+          # replaced the real error (a Docker Hub pull timeout) with
+          # "No such container: test-container", and skipped `docker ps -a`
+          # on the way out. The Cleanup step below already guards the same way.
           echo "=== Container Logs ==="
-          docker logs test-container
+          docker logs test-container 2>&1 \
+            || echo "(no container — it never started; the real failure is above)"
           echo "=== Container Status ==="
-          docker ps -a
+          docker ps -a || true
 
       - name: Cleanup
         if: always()
