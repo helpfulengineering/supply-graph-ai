@@ -2099,10 +2099,13 @@ class LayerConfig:
             "fallback_to_nlp": True,  # Fallback to NLP if LLM fails
             "cost_tracking": True,
             "max_cost_per_request": 0.10,  # $0.10 max per request
-            # Default on for quality-first flows (large prompts use map-reduce).
-            # Set False to force a single LLM request (may truncate).
-            "chunked_mode_enabled": True,
-            "chunk_max_tokens": 4000,  # Payload budget per chunk; also the auto-detect threshold
+            # Absent by default: chunk only when the prompt does not fit the
+            # model's context window. Set True to force map-reduce, False to
+            # force a single request (may truncate).
+            "chunked_mode_enabled": None,
+            # Absent by default: the budget is derived from the model's context
+            # window. Set an integer to override.
+            "chunk_max_tokens": None,
             "chunk_overlap_tokens": 256,  # Overlap for chunk continuity
             "prompt_templates": {
                 "field_extraction": "Extract {field} from the following project information:",
