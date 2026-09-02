@@ -102,6 +102,21 @@ These are load-bearing, non-obvious, and each has already caused a real defect.
   Anything that migrates, copies or wipes storage is moving or destroying keys
   too.
 
+- **Process-scoped state must not cache loop-bound resources.**
+  `StorageService._instance` and `BaseService._instances` live for the life of
+  the process; the clients they hold (aiohttp sessions and connectors under the
+  Azure SDK) belong to the event loop that created them. One loop per process is
+  fine — more than one is not. Each Celery task calls `asyncio.run`, so the
+  second job in a worker inherited a service that reported itself ready and
+  could read nothing: `OKHService._initialize_dependencies` skips `configure()`
+  when storage is already configured. The read that failed was the LLM
+  credential lookup, and `_stored_key` swallows its exception at `DEBUG`, so the
+  node reported a credential it holds, and can decrypt, as absent. **Only the
+  first generation after a worker restart used the LLM.** `tasks.py` now resets
+  those singletons per task; #467 tracks keying the registry by loop so the
+  whole class becomes impossible. Other sites that open a second loop:
+  `registry/validator_adapter.py`, and the two domain validators.
+
 ## Skills
 
 - [Setup wizard](.claude/skills/setup/SKILL.md) — natural language setup, configuration Q&A, and documentation lookup for OHM
