@@ -237,25 +237,46 @@ the availability answer generation itself uses — so a disagreement names its o
 cause rather than having to be inferred.
 
 On Azure Container Apps, run it from your own terminal rather than the Cloud
-Shell (which mangles long quoted commands):
+Shell, which mangles long quoted commands:
 
 ```bash
-az containerapp exec -n <app> -g <resource-group> \
-  --command "python scripts/diagnose_llm.py"
+az containerapp exec -n <app> -g <resource-group>
+# then, at the container prompt:
+python scripts/diagnose_llm.py
 ```
+
+!!! warning "Omit `--command`"
+    `az` 2.88 crashes with `IndexError: list index out of range` when
+    `--command` arrives empty — which a wrapped line does. Its handler runs
+    `startup_command[0]` on the value. The default is the string `sh`, so
+    leaving the flag off skips that path entirely and drops you at a prompt.
 
 **Run it in every container that generates.** With `JOBS_ENABLED=true`,
-generation happens in the **Celery worker**, which is a separate container app
-with its own environment — the API's answer does not describe it. A node whose
-API and worker disagree is exactly the case this catches:
-
-```bash
-az containerapp exec -n ohm-api    -g <rg> --command "python scripts/diagnose_llm.py"
-az containerapp exec -n ohm-worker -g <rg> --command "python scripts/diagnose_llm.py"
-```
+generation happens in the **Celery worker**, a separate container app with its
+own environment — the API's answer does not describe it. A node whose API and
+worker disagree is exactly the case this catches.
 
 The script is read-only and prints no secret: keys appear masked, as they do in
 Settings.
+
+### What it cannot see
+
+It runs in a **fresh process**, which is its blind spot. A fault that only
+appears in a long-lived worker — stale cached state, a client bound to an event
+loop that has since closed — cannot reproduce here, and the script will report a
+healthy node while generation keeps failing.
+
+The signature of that class is **the first job after a worker restart behaves
+differently from the ones after it**. When you see that, stop asking the
+container and read the worker's log during a real generation:
+
+```
+OKH generate-from-url: LLM preferred but unavailable (<reason>)
+```
+
+That line is emitted at the decision point, in the process that actually served
+the job, and it names the reason. (One instance of this is fixed in the release following 0.12.1 — before it,
+only the first generation after a worker start used the LLM. See the changelog.)
 
 ## Cost and quality notes
 
@@ -274,6 +295,8 @@ Settings.
 | Key added in Settings but nothing changed | Check `LLM_ENABLED` is not `false`, and that `LLM_DEFAULT_PROVIDER` (if set) names the provider you added |
 | Settings shows a credential as active while the runtime says no provider is available | The key was saved under different encryption material and is marked `unreadable`. Save it again |
 | Settings shows a provider as active, but generated designs still say "generated without an LLM" | A stale `LLM_DEFAULT_PROVIDER` naming a provider you have no key for. An explicit choice is tried alone, so it does not fall back. Clear the variable, or make the same provider active in Settings |
+| …and `LLM_DEFAULT_PROVIDER` is unset | With `JOBS_ENABLED=true` generation runs in the **Celery worker**, not the API. Ask that container: `python scripts/diagnose_llm.py`, and read its log during a real generation |
+| The first generation after a worker restart uses the LLM, later ones do not | Fixed in the release following 0.12.1. Before it, each task closed the event loop its cached clients belonged to, so every job after the first read nothing and reported `not_configured` |
 | `llm_status: failed` | Key rejected, or provider unreachable. For ollama, check the base URL and that the model is pulled |
 | Generation returns 401 | `GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM` is on and a provider is configured — authenticate, or pass `no_llm=true` |
 | Node will not start in production | `OHM_ENCRYPTION_SALT` / `OHM_ENCRYPTION_PASSWORD` are missing |

@@ -784,6 +784,16 @@ class SiteDoc:
 SITE_DOCS: tuple[SiteDoc, ...] = (
     # --- Working today ---------------------------------------------------
     SiteDoc(
+        "utility",
+        "The web interface",
+        "deployed",
+        path="guides/frontend.md",
+        # `utility` owns the routes this page is actually about — `/` (the
+        # dashboard) and `/help` (the keyboard and accessibility tables), both
+        # of which it screenshots. No requires_fe_call: the page describes the
+        # interface itself, not a capability reached through one endpoint.
+    ),
+    SiteDoc(
         "okw",
         "Browse the facility network",
         "deployed",
