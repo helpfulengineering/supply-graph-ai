@@ -70,6 +70,12 @@ class BaseLLMProvider(ABC):
     must implement, ensuring consistent behavior across different providers.
     """
 
+    # Context window per model, in tokens. Providers override with what they
+    # know; an unlisted model falls back to a window small enough to be safe
+    # anywhere, so an unknown model chunks rather than overflowing.
+    MODEL_CONTEXT_WINDOWS: Dict[str, int] = {}
+    DEFAULT_CONTEXT_WINDOW_TOKENS: int = 32_000
+
     def __init__(self, config: LLMProviderConfig):
         """
         Initialize the LLM provider.
@@ -87,6 +93,13 @@ class BaseLLMProvider(ABC):
 
         # Validate configuration
         self._validate_config()
+
+    @classmethod
+    def context_window_tokens(cls, model: Optional[str]) -> int:
+        """Total context window of *model*, in tokens."""
+        return cls.MODEL_CONTEXT_WINDOWS.get(
+            model or "", cls.DEFAULT_CONTEXT_WINDOW_TOKENS
+        )
 
     @abstractmethod
     async def connect(self) -> None:

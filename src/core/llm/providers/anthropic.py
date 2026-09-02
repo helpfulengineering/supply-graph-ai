@@ -59,6 +59,16 @@ class AnthropicProvider(BaseLLMProvider):
         },  # $0.25/$1.25 per 1M tokens
     }
 
+    # Every Claude model listed above carries a 200k-token context window.
+    MODEL_CONTEXT_WINDOWS = {
+        "claude-sonnet-4-5-20250929": 200_000,
+        "claude-3-5-sonnet-latest": 200_000,
+        "claude-3-5-haiku-20241022": 200_000,
+        "claude-3-opus-20240229": 200_000,
+        "claude-sonnet-4-5-20240229": 200_000,
+        "claude-3-haiku-20240307": 200_000,
+    }
+
     # Available models (ordered by preference)
     AVAILABLE_MODELS = [
         "claude-sonnet-4-5-20250929",  # Current default

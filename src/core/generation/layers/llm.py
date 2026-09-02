@@ -19,7 +19,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-from ...llm.chunking import ChunkingConfig, default_token_estimator
+from ...llm.chunking import (
+    ChunkingConfig,
+    TokenBudgetPolicy,
+    build_token_budget,
+    default_token_estimator,
+)
 from ...llm.models.requests import (
     LLMPayloadSection,
     LLMRequestConfig,
@@ -32,6 +37,22 @@ from ...llm.service import LLMService, LLMServiceConfig
 from ...services.base import ServiceStatus
 from ..models import GenerationLayer, LayerConfig, ProjectData
 from .base import BaseGenerationLayer, LayerResult
+
+# Full OKH JSON (description/function/intended_use plus bom/parts/software) often
+# exceeds 4k completion tokens; truncation yields invalid JSON and triggers partial
+# extraction. Reserved out of the context window before sizing the payload.
+MAX_COMPLETION_TOKENS = 8000
+
+# Headroom for the system prompt and tokeniser disagreement with our estimator.
+CONTEXT_SAFETY_MARGIN_TOKENS = 4000
+
+# Paths listed in the prompt. The listing is the only part that scales with the
+# repository, so it is capped: a large enough repo would otherwise chunk again
+# whatever the context window.
+LISTED_FILE_BUDGET = 500
+
+# Candidate lists carried in the prompt (the prompt itself shows the first 20).
+LISTED_CANDIDATE_BUDGET = 25
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -408,14 +429,15 @@ The OKH manifest is designed to maximize interoperability and discoverability in
     ):
         """Run LLM analysis with context file support"""
         try:
-            # Build analysis prompt
-            prompt = self._build_analysis_prompt(project_data, context_file)
+            # Build analysis prompt in its two parts: instructions every request
+            # needs in full, and the repository listing that may be split.
+            project_info = self._extract_project_info(project_data)
+            instructions = self._build_instructions(project_info, context_file)
+            repository_payload = self._build_repository_payload(project_info)
+            prompt = instructions + "\n" + repository_payload
 
-            # Create LLM request config. Full OKH JSON (description/function/intended_use
-            # plus bom/parts/software) often exceeds 4k completion tokens; truncation yields
-            # invalid JSON and triggers partial extraction (noisy warnings, weaker fields).
             config = LLMRequestConfig(
-                max_tokens=8000,
+                max_tokens=MAX_COMPLETION_TOKENS,
                 temperature=0.1,  # Low temperature for consistent output
                 timeout=120,
             )
@@ -430,7 +452,15 @@ The OKH manifest is designed to maximize interoperability and discoverability in
                         "one or two sentences; otherwise omit intended_use."
                     ),
                     payload_sections=[
-                        LLMPayloadSection(name="analysis_prompt", text=prompt)
+                        LLMPayloadSection(
+                            name="instructions",
+                            text=instructions,
+                            chunkable=False,
+                        ),
+                        LLMPayloadSection(
+                            name="repository_data",
+                            text=repository_payload,
+                        ),
                     ],
                     request_type=LLMRequestType.GENERATION,
                     config=config,
@@ -460,31 +490,55 @@ The OKH manifest is designed to maximize interoperability and discoverability in
             result.add_error(error_msg)
             logger.error(error_msg, exc_info=True)
 
+    @property
+    def _llm_cfg(self) -> Dict[str, Any]:
+        """LLM settings for this layer; an absent key means "derive it"."""
+        return getattr(self.layer_config, "llm_config", {}) or {}
+
+    def _payload_budget_tokens(self) -> int:
+        """Tokens available for payload in a single request to this model.
+
+        Derived from the model's own context window rather than a fixed
+        constant: a 4,000-token budget against Sonnet's 200,000 split one
+        OpenFlexure generation into eight sequential calls.
+        """
+        override = self._llm_cfg.get("chunk_max_tokens")
+        if override is not None:
+            return int(override)
+        context_window = self.llm_service.context_window_tokens()
+        # Scale the reservations to the window: a fixed 8k completion plus a 4k
+        # margin exceeds a small local model's whole context, and an impossible
+        # budget raises rather than chunking.
+        budget = build_token_budget(
+            TokenBudgetPolicy(
+                context_window_tokens=context_window,
+                reserved_output_tokens=min(MAX_COMPLETION_TOKENS, context_window // 4),
+                safety_margin_tokens=min(
+                    CONTEXT_SAFETY_MARGIN_TOKENS, context_window // 8
+                ),
+            ),
+            request_type=LLMRequestType.GENERATION.value,
+        )
+        return budget.payload_tokens_available
+
     def _should_use_chunked_mode(self, prompt: str) -> bool:
         """Return True when the chunked map-reduce workflow should be used.
 
         Decision order:
-        1. Explicit ``chunked_mode_enabled=True``  → always chunk (LayerConfig default).
+        1. Explicit ``chunked_mode_enabled=True``  → always chunk.
         2. Explicit ``chunked_mode_enabled=False`` → never chunk.
-        3. Key absent (auto)                       → chunk when the estimated
-           token count of *prompt* exceeds ``chunk_max_tokens``.
+        3. Key absent (the default)                → chunk only when the prompt
+           does not fit the model's context window.
         """
-        llm_cfg = getattr(self.layer_config, "llm_config", {}) or {}
-        explicit = llm_cfg.get("chunked_mode_enabled")  # None when absent
-        if explicit is True:
-            return True
-        if explicit is False:
-            return False
-        # Auto-detect: chunk when the prompt won't fit in a single chunk budget.
-        max_chunk_tokens = int(llm_cfg.get("chunk_max_tokens", 4000))
-        estimated = default_token_estimator(prompt)
-        return estimated > max_chunk_tokens
+        explicit = self._llm_cfg.get("chunked_mode_enabled")  # None when absent
+        if explicit is not None:
+            return bool(explicit)
+        return default_token_estimator(prompt) > self._payload_budget_tokens()
 
     def _build_chunking_config(self) -> ChunkingConfig:
-        """Build chunking config from layer LLM config with safe defaults."""
-        llm_cfg = getattr(self.layer_config, "llm_config", {}) or {}
-        max_tokens = int(llm_cfg.get("chunk_max_tokens", 4000))
-        overlap_tokens = int(llm_cfg.get("chunk_overlap_tokens", 256))
+        """Build chunking config from the model's payload budget."""
+        max_tokens = self._payload_budget_tokens()
+        overlap_tokens = int(self._llm_cfg.get("chunk_overlap_tokens", 256))
         # Guard against misconfiguration that violates ChunkingConfig constraints.
         if overlap_tokens >= max_tokens:
             overlap_tokens = max(0, max_tokens - 1)
@@ -493,13 +547,15 @@ The OKH manifest is designed to maximize interoperability and discoverability in
             overlap_tokens=overlap_tokens,
         )
 
-    def _build_analysis_prompt(
-        self, project_data: ProjectData, context_file: Path
+    def _build_instructions(
+        self, project_info: Dict[str, Any], context_file: Path
     ) -> str:
-        """Build the complete analysis prompt with schema reference"""
-        # Get project information
-        project_info = self._extract_project_info(project_data)
+        """The static analysis instructions, plus the bounded analysis findings.
 
+        Never chunked: every map-stage request needs the schema and the rules in
+        full, and the findings below are capped in size, so repeating them per
+        chunk is cheap.
+        """
         return f"""
 You are an expert OKH (Open Know-How) manifest generator specializing in open-source hardware projects. Your mission is to maximize interoperability and discoverability in the open-source hardware ecosystem.
 
@@ -603,9 +659,6 @@ You are an expert OKH (Open Know-How) manifest generator specializing in open-so
 3. Document any assumptions or limitations
 4. Update context file with final manifest
 5. Return structured manifest with metadata
-
-## Repository Data:
-{json.dumps(project_info, indent=2)}
 
 ## ENHANCED ANALYSIS DATA - USE THIS DATA TO POPULATE FIELDS:
 BOM Files Found: {len(project_info.get('bom_files', []))}
@@ -717,6 +770,13 @@ Use {context_file} as your scratchpad for analysis.
 **REMEMBER: The enhanced analysis has already detected BOM files, part files, and software references. Use this data!**
 """
 
+    def _build_repository_payload(self, project_info: Dict[str, Any]) -> str:
+        """The repository listing — the one part of the prompt that grows."""
+        return f"""
+## Repository Data:
+{json.dumps(project_info, indent=2)}
+"""
+
     def _extract_project_info(self, project_data: ProjectData) -> Dict[str, Any]:
         """Extract project information for LLM analysis"""
         # Get README content
@@ -767,8 +827,29 @@ Use {context_file} as your scratchpad for analysis.
         return None
 
     def _get_file_structure(self, project_data: ProjectData) -> List[str]:
-        """Get simplified file structure for LLM analysis"""
-        return [file_info.path for file_info in project_data.files]
+        """File paths for the prompt, capped, signal-bearing paths first.
+
+        Files the manifest is built from — BOM, manufacturing, design source,
+        documentation — are kept ahead of the cap; the rest fill the remaining
+        budget in repository order.
+        """
+        paths = [file_info.path for file_info in project_data.files]
+        if len(paths) <= LISTED_FILE_BUDGET:
+            return paths
+
+        prioritised = dict.fromkeys(
+            self._find_bom_files(project_data)
+            + self._find_manufacturing_candidate_files(project_data)
+            + self._find_design_source_files(project_data)
+            + [d.path for d in project_data.documentation]
+        )
+        listed = list(prioritised)[:LISTED_FILE_BUDGET]
+        for path in paths:
+            if len(listed) >= LISTED_FILE_BUDGET:
+                break
+            if path not in prioritised:
+                listed.append(path)
+        return listed + [f"... and {len(paths) - len(listed):,} more files not shown"]
 
     def _find_bom_files(self, project_data: ProjectData) -> List[str]:
         """BOM file paths that exist in the repo listing (ranked; no substring false positives)."""
@@ -838,7 +919,7 @@ Use {context_file} as your scratchpad for analysis.
             if ext in manufacturing_extensions or in_mfg_dir:
                 results.append(file_info.path)
 
-        return results
+        return results[:LISTED_CANDIDATE_BUDGET]
 
     def _find_design_source_files(self, project_data: ProjectData) -> List[str]:
         """Return files that are design sources (CAD, neutral-exchange, schematics).
@@ -892,7 +973,7 @@ Use {context_file} as your scratchpad for analysis.
             if ext in design_extensions or in_design_dir or has_part_keyword:
                 results.append(file_info.path)
 
-        return results
+        return results[:LISTED_CANDIDATE_BUDGET]
 
     def _find_software_indicators(self, project_data: ProjectData) -> Dict[str, Any]:
         """Find software-related indicators in the project"""

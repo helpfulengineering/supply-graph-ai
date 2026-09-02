@@ -53,6 +53,11 @@ class TokenBudgetPolicy:
     context_window_by_model: Dict[str, int] = field(default_factory=dict)
 
 
+# Least of a chunk's budget a natural boundary may leave unused. Below this the
+# boundary is rejected and the next preference (or a character split) is used.
+MIN_BOUNDARY_FILL = 0.5
+
+
 BoundaryPreference = Literal["paragraph", "line", "character"]
 
 
@@ -219,11 +224,18 @@ def _apply_boundary_preference(
     end: int,
     preferences: tuple[BoundaryPreference, ...],
 ) -> int:
-    """Try to move end left to a natural boundary for readability."""
+    """Try to move end left to a natural boundary for readability.
+
+    A boundary is only worth taking if the chunk still fills most of its
+    budget. Prompts end in a long listing with no blank lines in it, so the
+    last paragraph break sits near the window's start; taking it closed chunks
+    at a few percent of budget and multiplied the sequential map calls.
+    """
     if end - start <= 1:
         return end
 
     window = text[start:end]
+    earliest_worthwhile = start + int((end - start) * MIN_BOUNDARY_FILL)
     for pref in preferences:
         if pref == "paragraph":
             marker = "\n\n"
@@ -235,7 +247,7 @@ def _apply_boundary_preference(
         idx = window.rfind(marker)
         if idx > 0:
             candidate = start + idx + len(marker)
-            if candidate > start:
+            if candidate > earliest_worthwhile:
                 return candidate
 
     return end

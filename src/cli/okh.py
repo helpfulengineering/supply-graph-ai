@@ -1313,7 +1313,7 @@ async def upload(
     is_flag=True,
     default=False,
     help="Force 3-layer generation without the LLM (faster, lower quality). "
-    "Default is to prefer LLM + chunked map-reduce when configured.",
+    "Default is to prefer the LLM layer when configured.",
 )
 @standard_cli_command(
     help_text="""
@@ -1338,10 +1338,11 @@ async def upload(
     - publications: Research papers and academic publications
     - documentation_hohm: Main project documentation (README.md)
     
-    By default, generation **prefers the LLM layer** with **chunked map-reduce**
-    for large repositories (best quality). If LLM credentials are missing, the
-    command **falls back to 3-layer** generation automatically. Use ``--no-llm``
-    to force 3-layer only.
+    By default, generation **prefers the LLM layer** (best quality), in a single
+    request. **Chunked map-reduce** is a fallback, used only when the prompt does
+    not fit the model's context window; it costs one sequential request per chunk.
+    If LLM credentials are missing, the command **falls back to 3-layer**
+    generation automatically. Use ``--no-llm`` to force 3-layer only.
 
     When the LLM layer runs, generation includes:
     - Enhanced project analysis and understanding
@@ -1352,7 +1353,7 @@ async def upload(
     """,
     epilog="""
     Examples:
-      # Generate from GitHub repository (LLM + chunking when configured)
+      # Generate from GitHub repository (LLM when configured)
       ohm okh generate-from-url https://github.com/user/project
 
       # Generate with local cloning (faster, more reliable)

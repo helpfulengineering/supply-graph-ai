@@ -175,6 +175,18 @@ class LLMService(BaseService["LLMService"]):
             LLMProviderType.GOOGLE: GoogleVertexAIProvider,
         }
 
+    def context_window_tokens(self) -> int:
+        """Context window of the model this service will actually call.
+
+        Read off the provider class, so a caller can size a request before any
+        provider has been connected.
+        """
+        provider_type = self._active_provider or self.config.default_provider
+        provider_cls = self._provider_classes.get(provider_type)
+        if provider_cls is None:
+            return BaseLLMProvider.DEFAULT_CONTEXT_WINDOW_TOKENS
+        return provider_cls.context_window_tokens(self.config.default_model)
+
     async def initialize(self) -> None:
         """Initialize the LLM service."""
         self.logger.info("Initializing LLM service...")
@@ -339,14 +351,21 @@ class LLMService(BaseService["LLMService"]):
         if checkpoint_root is not None:
             checkpoint_root.mkdir(parents=True, exist_ok=True)
 
+        # A non-chunkable section is context every map call needs in full (the
+        # schema, the field rules); splitting it produces chunks of pure
+        # boilerplate with no repository content to apply them to.
+        context_prefix = "\n\n".join(
+            s.text for s in request.payload_sections if not s.chunkable
+        )
         for section in request.payload_sections:
             if section.chunkable:
                 section_chunks = split_text_into_chunks(
                     section.text, config, source_id=section.name
                 )
                 chunks.extend(c.text for c in section_chunks)
-            else:
-                chunks.append(section.text)
+        # Nothing chunkable: the context is the payload, in a single map call.
+        if not chunks and context_prefix:
+            chunks.append("")
 
         map_outputs: List[str] = []
         cache_hit_count = 0
@@ -373,6 +392,7 @@ class LLMService(BaseService["LLMService"]):
 
             map_prompt = (
                 f"{request.instruction}\n\n"
+                f"{context_prefix}\n\n"
                 f"[Map stage chunk {idx}/{len(chunks)}]\n"
                 f"{chunk_text}"
             )
