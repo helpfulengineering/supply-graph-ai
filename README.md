@@ -56,7 +56,7 @@ OHM exposes a FastAPI HTTP API that can be run locally via Docker Compose, from 
 or deployed using the configurations in `deploy/`. A reference frontend ships in
 `frontend/`.
 
-**Current release:** `0.12.1` — see [CHANGELOG.md](CHANGELOG.md) and [Release process](docs/RELEASE.md).
+**Current release:** `0.12.2` — see [CHANGELOG.md](CHANGELOG.md) and [Release process](docs/RELEASE.md).
 
 ## Quick Start for New Users
 
@@ -104,11 +104,11 @@ other than local, configure it at `/settings/storage`.
 **Local storage (no credentials needed):**
 
 ```bash
-docker pull touchthesun/openhardwaremanager:0.12.1
+docker pull touchthesun/openhardwaremanager:0.12.2
 docker run -p 8001:8001 \
   -e STORAGE_PROVIDER=local \
   -e LLM_ENABLED=false \
-  touchthesun/openhardwaremanager:0.12.1
+  touchthesun/openhardwaremanager:0.12.2
 ```
 
 **Remote storage (Azure Blob, AWS S3, or GCS):**
@@ -119,7 +119,7 @@ The published image does not include a `.env` file — you must pass your storag
 # Copy the template, fill in your provider and credentials, then:
 docker run -p 8001:8001 \
   --env-file .env \
-  touchthesun/openhardwaremanager:0.12.1
+  touchthesun/openhardwaremanager:0.12.2
 ```
 
 The minimum `.env` keys for Azure Blob are:
