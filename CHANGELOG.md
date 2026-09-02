@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Only the first generation after a worker restart used the LLM.** Every job
+  after it reported "no provider is configured" while a valid, readable
+  credential sat in storage — the reason three rounds of fixes to the credential
+  path changed nothing. The cause is the worker's process model, not the
+  credential logic. Each Celery task calls `asyncio.run`, which closes its event
+  loop on return, while the services are process-wide singletons that outlive
+  it, holding aiohttp clients bound to that dead loop.
+  `OKHService._initialize_dependencies` skips `configure()` when storage is
+  already configured, so the second task inherits a service that reports itself
+  ready and can read nothing. The read that failed was the LLM credential
+  lookup, and `_stored_key` swallows its exception at `DEBUG`, a level
+  production never emits — so the node reported the credential as absent.
+  Tasks now rebuild those singletons on their own loop.
+
+
+### Fixed
+
 - **Generation now uses the provider chosen in Settings.** The active-provider
   record added in 0.12.1 was read by the credential listing and by startup
   activation — but not by the code that decides whether an LLM runs. That path

@@ -10,6 +10,41 @@ from src.core.generation.progress import ProgressCallback
 from src.core.jobs.celery_app import celery_app
 
 
+def reset_loop_bound_singletons() -> None:
+    """Drop process-wide services so the next task rebuilds them on its own loop.
+
+    Every task body calls ``asyncio.run``, which creates an event loop and
+    closes it on return. The services are process-wide singletons that outlive
+    that loop, and the clients they hold — aiohttp sessions and connectors
+    underneath the Azure SDK — are bound to the loop that created them. Reused
+    on the next task, every call against them raises.
+
+    ``OKHService._initialize_dependencies`` only configures storage when it is
+    not already configured, so the second task inherits a service that claims to
+    be ready and cannot read anything. The read that failed was the LLM
+    credential lookup, and ``_stored_key`` swallows its exception at DEBUG — so
+    the node reported "no provider is configured" while holding a valid,
+    readable key.
+
+    The signature in production was exact: the first generation after a worker
+    start used the LLM, and every generation after it did not.
+
+    ``_initialization_locks`` holds ``asyncio.Lock`` objects, which are bound to
+    a loop the same way, so they go too.
+
+    Safe because a prefork worker runs one task at a time per child process. A
+    threaded or gevent pool would need a different approach — there, concurrent
+    tasks share the process and one clearing the registry would pull services
+    out from under another.
+    """
+    from src.core.services.base import BaseService
+    from src.core.services.storage_service import StorageService
+
+    BaseService._instances.clear()
+    BaseService._initialization_locks.clear()
+    StorageService._instance = None
+
+
 async def _run_generate_from_url(
     *,
     url: str,
@@ -79,6 +114,7 @@ def generate_from_url_task(
             },
         )
 
+    reset_loop_bound_singletons()
     result = asyncio.run(
         _run_generate_from_url(
             url=url,
@@ -169,6 +205,9 @@ def migrate_storage_task(
             },
         )
 
+    # Same loop-affinity hazard as generation: this task migrates *storage*, so
+    # a service inherited from a closed loop is exactly what it must not use.
+    reset_loop_bound_singletons()
     result = asyncio.run(
         _run_storage_migration(
             provider=provider,
