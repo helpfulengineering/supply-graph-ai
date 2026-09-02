@@ -105,6 +105,7 @@ nav:
       - Federation and sovereignty: about/federation-and-sovereignty.md
       - Meet people where they are: about/meet-people-where-they-are.md
   - Guides:
+      - The web interface: guides/frontend.md
       - Find your workshop: guides/find-your-space.md
       - Add a design: guides/add-a-design.md
       - Import from a URL: guides/import-from-a-url.md
