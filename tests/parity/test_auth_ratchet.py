@@ -1,45 +1,29 @@
-"""Every mutating route must authorize, or be listed here with a reason (#479).
+"""Every mutating route must authorize, or be declared here (#479).
 
-`#478` was found by hand: the whole ``/v1/api/package`` surface — including
-``DELETE`` — reaches its handler with no ``Authorization`` header, in every
-security mode, with ``API_KEYS`` set. Nothing in the build was watching, so
-nothing objected. This is the watcher, and it found that packages were three
-surfaces short of the whole story: assets, supply-trees and saved solutions,
-taxonomy reload, scaffold, rules and rfq are unauthenticated too.
+#478 was found by hand: the whole ``/v1/api/package`` surface — including
+``DELETE`` — reached its handler with no ``Authorization`` header, in every
+security mode, with ``API_KEYS`` set. Nothing in the build was watching. This is
+the watcher, and it found that packages were three surfaces short of the whole
+story: assets, supply-trees and saved solutions, ``taxonomy/reload``, scaffold,
+rules and rfq authorize nothing either.
 
-This is a **ratchet, not a cleanup**, in the shape of ``test_response_models.py``
-(#374). It ships with the routes that are unauthenticated *today* already
-declared, so the gate can land before the fixes do — and each fix then finishes
-by **deleting rows**, rather than by someone asserting the work is done.
+A **ratchet, not a cleanup**, in the shape of ``test_response_models.py`` (#374).
+It ships with today's violators already declared, so it lands before the fixes do
+and each fix finishes by **deleting rows** rather than by assertion. The
+assertion is set equality, which gives both directions at once: an undeclared
+violator fails, and so does a declared route that has since been protected.
 
-It fails in **both** directions, because the assertion is set equality:
+A row in ``UNAUTHENTICATED_DEBT`` is a debt, not an exemption. **Adding one to
+make a build pass is the failure this exists to prevent.**
 
-  * a mutating route that is unauthenticated and undeclared fails the build, so
-    the class cannot quietly reopen through a new endpoint; and
-  * a declared route that has since been protected fails the build, so the list
-    shrinks as the work lands instead of rotting.
-
-A row in ``UNAUTHENTICATED_DEBT`` is a debt, not an exemption. Do not add one to
-make a build pass — that is the whole failure this exists to prevent. Routes
-that are anonymous *by design* go in ``ANONYMOUS_BY_DESIGN`` instead, and each
-one there cites the source that says so.
-
-**Why "mutating" is by HTTP method.** It is a proxy, and an imperfect one: this
-API uses ``POST`` for computation as well as for writes, so some rows below are
-almost certainly stateless request/response endpoints that need no credential.
-They are still listed rather than pre-cleared, because clearing one means
-asserting that a handler does not persist, and that assertion has to be *made*
-against the code rather than guessed from the route name. Failing closed and
-requiring the check is the point.
-
-**Why the app is introspected rather than the route files parsed.** A dependency
-can be declared on the route, on the ``APIRouter``, or on the parent app.
-``routes/package.py`` uses none of the three, so an AST pass over route files
-would have to model all three to be correct. Walking the built app's dependant
-tree asks the question the way the server answers it.
-``test_viewer_scope_ratchet.py`` parses source for a different question (a
-call-site argument) and is a precedent for ratchet shape, not for this
-detection.
+The invariant, what each list means, and the procedure for removing a row are in
+``docs/architecture/route-authorization.md``. Two things worth knowing before
+reading the list: "mutating" keys off the HTTP method, which is a proxy — this
+API uses ``POST`` for computation too, so some rows need no credential and are
+listed anyway, because clearing one means reading the handler rather than
+guessing from its name. And the gate introspects the built app rather than
+parsing route files, because a dependency can be declared on the route, the
+router, or the parent app, and ``routes/package.py`` used none of the three.
 """
 
 from __future__ import annotations
@@ -56,8 +40,8 @@ MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 #:
 #: ``require_write`` and ``require_admin`` are closures built by
 #: ``require_permission``, so they share a qualname and cannot be told apart by
-#: identity of name — which is also why matching on the qualname catches any
-#: future inline ``require_permission("…")`` for free.
+#: name — which is also why matching on it catches any future inline
+#: ``require_permission("…")`` for free.
 AUTH_DEPENDENCY_QUALNAMES = frozenset(
     {
         "require_permission.<locals>.dependency",
@@ -66,7 +50,7 @@ AUTH_DEPENDENCY_QUALNAMES = frozenset(
     }
 )
 
-#: Anonymous on purpose, each with the source that says so.
+#: Anonymous on purpose, each row citing the source that says so.
 ANONYMOUS_BY_DESIGN: dict[tuple[str, str], str] = {
     # "The PEER PROTOCOL is anonymous by necessity: a peer identifies itself
     # with a DID it signs for, not with one of our API keys" — routes/federation.py.
@@ -82,12 +66,6 @@ ANONYMOUS_BY_DESIGN: dict[tuple[str, str], str] = {
     ("POST", "/v1/api/identity/recover"): "credential recovery",
 }
 
-#: Mutating routes that authorize nothing today. Every row is a debt.
-#:
-#: Tracked by #478 (the package surface) and #344 (the decision on whether
-#: unauthenticated nodes are a supported mode at all). The rows here that are
-#: neither package nor okh are the surfaces those two issues did not know about:
-#: asset, supply-tree, taxonomy, scaffold, rules and rfq.
 UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
     {
         ("POST", "/v1/api/asset/"),
@@ -152,22 +130,22 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
     }
 )
 
+#: Every route allowed to authorize nothing, for whatever reason.
+DECLARED = UNAUTHENTICATED_DEBT | set(ANONYMOUS_BY_DESIGN)
 
-def _dependency_calls(dependant) -> list[object]:
-    """Every callable in a route's dependency tree, at any depth."""
-    found: list[object] = []
+
+def _dependency_qualnames(dependant) -> set[str]:
+    """Qualified names of every callable in a route's dependency tree."""
+    names: set[str] = set()
     for sub in dependant.dependencies:
         if sub.call is not None:
-            found.append(sub.call)
-        found.extend(_dependency_calls(sub))
-    return found
+            names.add(getattr(sub.call, "__qualname__", ""))
+        names |= _dependency_qualnames(sub)
+    return names
 
 
 def _authorizes(route: APIRoute) -> bool:
-    qualnames = {
-        getattr(call, "__qualname__", "") for call in _dependency_calls(route.dependant)
-    }
-    return bool(qualnames & AUTH_DEPENDENCY_QUALNAMES)
+    return bool(_dependency_qualnames(route.dependant) & AUTH_DEPENDENCY_QUALNAMES)
 
 
 def _mutating_routes(
@@ -194,43 +172,22 @@ def _format(rows: set[tuple[str, str]]) -> str:
 
 def test_every_mutating_route_authorizes_or_is_declared() -> None:
     """Set equality, so the declaration can only shrink as the work lands."""
-    actual = {
+    unauthenticated = {
         (method, path)
         for method, path, route in _mutating_routes(app)
         if not _authorizes(route)
     }
-    declared = UNAUTHENTICATED_DEBT | set(ANONYMOUS_BY_DESIGN)
 
-    undeclared = actual - declared
+    undeclared = unauthenticated - DECLARED
     assert not undeclared, (
         "These mutating routes authorize nothing and are not declared.\n"
         "Add an auth dependency — do NOT add a row to make this pass:\n"
         f"{_format(undeclared)}"
     )
 
-    fixed = declared - actual
+    fixed = DECLARED - unauthenticated
     assert not fixed, (
         "These routes now authorize but are still declared as unauthenticated.\n"
         "Delete their rows — the list shrinks as the work lands:\n"
         f"{_format(fixed)}"
-    )
-
-
-def test_no_route_documents_a_401_it_cannot_return() -> None:
-    """A schema advertising unenforced auth is its own defect (#344).
-
-    Derived from the same declaration, so it cannot drift independently: as auth
-    lands and rows are deleted, these 401 documentations become true rather than
-    needing a second cleanup.
-    """
-    declared = UNAUTHENTICATED_DEBT | set(ANONYMOUS_BY_DESIGN)
-    offenders = {
-        (method, path)
-        for method, path, route in _mutating_routes(app)
-        if not _authorizes(route)
-        and (method, path) not in declared
-        and "401" in {str(code) for code in (route.responses or {})}
-    }
-    assert not offenders, (
-        "These routes document a 401 they can never return:\n" f"{_format(offenders)}"
     )

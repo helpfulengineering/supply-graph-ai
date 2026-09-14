@@ -65,10 +65,10 @@ break development flows.
 authorizes while still declared is an error, which is what keeps the list
 shrinking rather than rotting.
 
-**5. Check the 401 documentation.** 48 of the original 59 documented a `401` they
-could not return, inherited from a shared `responses=` constant on their router.
-Once the route authorizes, that documentation becomes true; the second test in
-the gate is derived from the same declaration, so it needs no separate cleanup.
+**5. Check the 401 documentation.** 48 of the original 59 document a `401` they
+cannot return, inherited from a shared `responses=` constant on their router.
+Adding an auth dependency makes that documentation true, which is why it is not
+separately gated — see "What this deliberately does not check" below.
 
 ## Enforcement
 
@@ -98,3 +98,13 @@ precedent for ratchet shape, not for this detection.
 so they cannot be distinguished by name — the gate matches the qualified name
 they share, which also catches any future inline `require_permission("…")`
 without needing to be told about it.
+
+## What this deliberately does not check
+
+**That a route's declared OpenAPI `security` matches what it enforces.** The
+mismatch is real and measured — 48 mutating routes document a `401` they cannot
+return, and 25 authorize but document no `401` at all — but neither direction can
+be asserted green today without a second debt list, and both resolve as a side
+effect of the rows above being paid down. A gate that cannot fail is not
+evidence; one whose failures are already counted elsewhere is noise. Tracked
+separately rather than approximated here.
