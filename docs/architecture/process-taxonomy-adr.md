@@ -95,7 +95,7 @@ Key aspects:
   failure, the current state is preserved.
 - **CLI commands**: `ohm taxonomy list`, `ohm taxonomy validate`,
   `ohm taxonomy reload` for local management.
-- **API endpoints**: `GET /api/taxonomy` and `POST /api/taxonomy/reload`
+- **API endpoints**: `GET /api/taxonomy` (public) and `POST /api/taxonomy/reload` (**requires `admin`** — it replaces the taxonomy every match depends on)
   for server-side management.
 - **No file-watching**: consistent with the existing capability rules
   pattern, reload is explicit.
