@@ -18,6 +18,7 @@ from ..core.models.base.base_types import NormalizedCapabilities
 from ..core.models.okh import OKHManifest
 from ..core.matching.match_modes import MATCH_MODE_NESTED, MATCH_MODE_SINGLE_LEVEL
 from ..core.registry.domain_registry import DomainRegistry
+from ..core.services.contact_export import contact_rows, to_csv, to_json
 from ..core.services.matching_service import MatchingService
 from ..core.services.visualization_service import VisualizationService
 from .base import (
@@ -3017,3 +3018,64 @@ async def rules_reset(
     except Exception as e:
         cli_ctx.end_command_tracking()
         raise
+
+
+@match_group.command("export-contacts")
+@click.argument("match_result", type=click.Path(exists=True, dir_okay=False))
+@click.option(
+    "--format",
+    "export_format",
+    type=click.Choice(["csv", "json"]),
+    default="csv",
+    show_default=True,
+    help="csv opens in a spreadsheet; json is for tooling",
+)
+@click.option("--output", "-o", help="Write here instead of stdout")
+@click.option("--design", help="Design name for the file header and filename")
+@click.pass_context
+def export_contacts(
+    ctx: Context,
+    match_result: str,
+    export_format: str,
+    output: Optional[str],
+    design: Optional[str],
+) -> None:
+    """Turn a saved match result into a contact list.
+
+    Coordination happens outside OHM, so this is how a result leaves it: the
+    facilities that matched, and how to reach them.
+
+    Reads the JSON a match wrote, and runs entirely offline — no server, which
+    is the point when the reason you want a contact list is that connectivity
+    is the problem.
+
+    \b
+    Examples:
+      ohm match requirements design.okh.json --output matches.json
+      ohm match export-contacts matches.json --design "Ventilator" -o contacts.csv
+      ohm match export-contacts matches.json --format json
+    """
+    cli_ctx = ctx.obj
+    payload = json.loads(Path(match_result).read_text(encoding="utf-8"))
+
+    # Accept either the raw body or the API envelope that wraps it.
+    solutions = payload.get("solutions")
+    if solutions is None and isinstance(payload.get("data"), dict):
+        solutions = payload["data"].get("solutions")
+    if not solutions:
+        cli_ctx.log(f"No solutions found in {match_result}", "error")
+        raise SystemExit(1)
+
+    matched_at = payload.get("timestamp")
+    rows = contact_rows(solutions)
+    text = (
+        to_json(rows, design, matched_at)
+        if export_format == "json"
+        else to_csv(rows, design, matched_at)
+    )
+
+    if output:
+        Path(output).write_text(text, encoding="utf-8")
+        cli_ctx.log(f"Wrote {len(rows)} contact(s) to {output}", "success")
+    else:
+        click.echo(text)

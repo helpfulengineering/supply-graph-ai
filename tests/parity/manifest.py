@@ -634,6 +634,15 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
+        "Exports selected match results as a contact list (#498). The results "
+        "view gains per-facility selection and an Export control in the same "
+        "epic; until that lands the CLI is the only caller, and it formats "
+        "in-process rather than over HTTP so it works offline.",
+        "/api/match/export/contacts",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
         "Progress of a running storage migration (#381). A migration runs as "
         "a job and needs a polling surface; the Storage panel from #380 shows "
         "the configuration and the modes that finish inline. The CLI runs "

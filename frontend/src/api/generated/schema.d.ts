@@ -251,6 +251,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/match/export/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export matched facilities as a contact list
+         * @description Turn selected match results into a contact list — CSV by default, JSON for tooling. Coordination happens outside OHM, so this is the way a result leaves it.
+         *
+         *     Stateless: the selected solutions are sent in the request and nothing is stored. The facility objects travel with them rather than being looked up, because a match may include Maps-of-Making rows whose ids cannot be resolved locally.
+         *
+         *     The result is a **snapshot** of the match that produced it. The design and timestamp ride in the file header and the filename, so two exports taken days apart can be diffed to see which facilities dropped out.
+         */
+        post: operations["export_match_contacts_api_match_export_contacts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/{record_id}/break-glass": {
         parameters: {
             query?: never;
@@ -1488,6 +1512,9 @@ export interface paths {
         /**
          * Create an asset record
          * @description Register a physical unit in the field, linked to an OKH manifest.
+         *
+         *     The creator is stamped here and matched on every read: an asset with no
+         *     owner is readable by nobody (#493).
          */
         post: operations["create_asset_api_asset__post"];
         delete?: never;
@@ -3133,7 +3160,7 @@ export interface paths {
         put?: never;
         /**
          * Reload taxonomy from YAML
-         * @description Reload the process taxonomy from the YAML configuration file. The reload is atomic: if validation fails, the current taxonomy is preserved.
+         * @description Reload the process taxonomy from the YAML configuration file. The reload is atomic: if validation fails, the current taxonomy is preserved. Operator action: requires the 'admin' permission.
          */
         post: operations["reload_taxonomy_api_taxonomy_reload_post"];
         delete?: never;
@@ -5109,6 +5136,74 @@ export interface components {
             trees: {
                 [key: string]: unknown;
             }[];
+        };
+        /**
+         * ContactExportRequest
+         * @description Export selected match results as a contact list.
+         */
+        ContactExportRequest: {
+            /**
+             * Solutions
+             * @description The selected facilities, in the order to export them
+             */
+            solutions: components["schemas"]["ContactExportSolution"][];
+            /**
+             * Format
+             * @description csv (default, opens in a spreadsheet) or json (tooling)
+             * @default csv
+             * @enum {string}
+             */
+            format: "csv" | "json";
+            /**
+             * Design Name
+             * @description Named in the file header and filename
+             */
+            design_name?: string | null;
+            /**
+             * Matched At
+             * @description ISO timestamp of the match this came from. Defaults to now. An export is a snapshot and says so.
+             */
+            matched_at?: string | null;
+        };
+        /**
+         * ContactExportSolution
+         * @description One matched facility, in the shape ``POST /api/match`` returns.
+         *
+         *     Mirrors ``RFQSolutionInput``: the caller sends back what it was given. The
+         *     facility object travels with it rather than being looked up, because a match
+         *     may include Maps-of-Making rows whose ids are synthetic stubs that
+         *     ``OKWService.get`` cannot resolve (#498).
+         */
+        ContactExportSolution: {
+            /**
+             * Facility Id
+             * @description Facility id, as matched
+             */
+            facility_id?: string | null;
+            /**
+             * Facility Name
+             * @description Display name
+             */
+            facility_name?: string | null;
+            /**
+             * Confidence
+             * @description Match confidence, 0-1
+             */
+            confidence?: number | null;
+            /**
+             * Facility
+             * @description The full OKW facility object, for location and contact details
+             */
+            facility?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Tree
+             * @description The supply tree; read for capabilities_used
+             */
+            tree?: {
+                [key: string]: unknown;
+            };
         };
         /**
          * ConvertFromDatasheetResponse
@@ -12982,6 +13077,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SimulateResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    export_match_contacts_api_match_export_contacts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/csv": unknown;
                 };
             };
             /** @description Bad Request */

@@ -74,14 +74,24 @@ ANONYMOUS_BY_DESIGN: dict[tuple[str, str], str] = {
 #: the claim is checkable rather than asserted.
 #:
 #: A row asserts two things, both verified against the handler rather than
-#: inferred from the route name: that nothing is persisted, and that the route
-#: is under **the same access control as that ``GET``**. Public-and-public is
-#: fine; scoped-and-identically-scoped is fine. A guarded ``GET`` beside an
-#: unguarded twin is not a read, it is a hole, and needs the guard its twin has.
+#: inferred from the route name: that **nothing is persisted**, and that the
+#: route **discloses nothing the caller is not already entitled to**. Two shapes
+#: satisfy the second, and the row's value says which:
 #:
-#: The definition started as "the equivalent GET is public", which #493 showed
-#: was too narrow: scoping ``GET /v1/api/asset`` did not turn its POST twin into
-#: a hole, because the twin was scoped in the same commit.
+#: * *a named ``GET``* — the same data is served by that route under the same
+#:   access control. Public-and-public is fine; scoped-and-identically-scoped is
+#:   fine. A guarded ``GET`` beside an unguarded twin is not a read, it is a
+#:   hole, and needs the guard its twin has.
+#: * *``none``* — the route is a pure function of its request body. It reads no
+#:   storage at all, so it can only hand back a rearrangement of what the caller
+#:   already had.
+#:
+#: The definition has been widened twice by real cases, both times because it
+#: was too narrow rather than too loose. It started as "the equivalent GET is
+#: public", which #493 broke: scoping ``GET /v1/api/asset`` did not turn its
+#: POST twin into a hole, because the twin was scoped in the same commit. It
+#: then required *some* equivalent GET, which #498 broke: a pure formatter has
+#: no server-side data to have a twin for.
 #:
 #: What governs *reads* is scope, not authentication —
 #: ``test_viewer_scope_ratchet.py``. It covers ``okh_service`` and
@@ -91,6 +101,12 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     # Reads through AssetService.list(viewer=...) and persists nothing. Scoped
     # to the caller's own assets, identically to GET /v1/api/asset (#493).
     ("POST", "/v1/api/asset/salvage-match"): "GET /v1/api/asset",
+    # A pure formatter: takes selected match results in the body and returns
+    # them as CSV or JSON. Reads no storage — verified, contact_export.py has
+    # no imports from it — so it can only return a rearrangement of what the
+    # caller sent. Requiring a write permission to reformat your own data would
+    # be theatre (#498).
+    ("POST", "/v1/api/match/export/contacts"): "none",
     # Loads a solution from storage, a file, or the request body and returns it.
     # `_load_solution_from_source` only ever loads — verified against the
     # handler, not inferred (#484).

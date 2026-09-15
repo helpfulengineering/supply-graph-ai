@@ -23,6 +23,7 @@ from fastapi import (
     HTTPException,
     Query,
     Request,
+    Response,
     UploadFile,
     status,
 )
@@ -83,7 +84,14 @@ from ..models.base import (
 )
 
 # Import existing models and services
+from ...services.contact_export import (
+    contact_rows,
+    export_filename,
+    to_csv,
+    to_json,
+)
 from ..models.match.request import (
+    ContactExportRequest,
     FacilityMatchRequest,
     MatchRequest,
     SimulateRequest,
@@ -3513,3 +3521,36 @@ async def simulate_supply_tree(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),
         )
+
+
+@router.post(
+    "/export/contacts",
+    summary="Export matched facilities as a contact list",
+    description=(
+        "Turn selected match results into a contact list — CSV by default, JSON "
+        "for tooling. Coordination happens outside OHM, so this is the way a "
+        "result leaves it.\n\n"
+        "Stateless: the selected solutions are sent in the request and nothing "
+        "is stored. The facility objects travel with them rather than being "
+        "looked up, because a match may include Maps-of-Making rows whose ids "
+        "cannot be resolved locally.\n\n"
+        "The result is a **snapshot** of the match that produced it. The design "
+        "and timestamp ride in the file header and the filename, so two exports "
+        "taken days apart can be diffed to see which facilities dropped out."
+    ),
+    responses={200: {"content": {"text/csv": {}, "application/json": {}}}},
+)
+async def export_match_contacts(request: ContactExportRequest) -> Response:
+    rows = contact_rows([s.model_dump() for s in request.solutions])
+    if request.format == "json":
+        body = to_json(rows, request.design_name, request.matched_at)
+        media_type = "application/json"
+    else:
+        body = to_csv(rows, request.design_name, request.matched_at)
+        media_type = "text/csv"
+    filename = export_filename(request.design_name, request.format, request.matched_at)
+    return Response(
+        content=body.encode("utf-8"),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

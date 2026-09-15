@@ -76,5 +76,31 @@ as single workshops or as gaps.
 
 You contact the workshops. OHM tells you who and why; the conversation is yours.
 
+### Take the list with you
+
+Select the workshops you want and export them. You get a spreadsheet of who
+matched and how to reach them — name, location, contact person, email, phone,
+website — which you can sort, annotate, and share with people who have no OHM
+account.
+
+```bash
+ohm match requirements design.okh.json --output matches.json
+ohm match export-contacts matches.json --design "Ventilator" -o contacts.csv
+```
+
+`--format json` instead, if something downstream is reading it rather than a
+person.
+
+The export runs offline: it reads a match you already have and needs no server.
+That is deliberate — the moment you most want a list of who can help is often
+the moment connectivity is the problem.
+
+**An export is a snapshot.** The design and the time of the match are written
+into the file header and its filename, because facilities change. Two exports
+taken a week apart can be compared directly to see which workshops dropped off
+the list — `diff`, or two columns in a spreadsheet.
+
+### Asking for a quote
+
 Generating a formal request for quotation is built but not yet available in the
 web app.
