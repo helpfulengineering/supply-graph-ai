@@ -77,6 +77,26 @@ docker compose up
 Either way the web interface is at `http://localhost:8080`, and the API is at
 `http://localhost:8001`.
 
+!!! note "The installer keeps the API on this machine"
+
+    `install.sh` binds the API port to `127.0.0.1`, so `http://localhost:8001`
+    works on the machine you installed on and the API is not reachable from
+    anywhere else. Nothing is lost by this: the web interface proxies `/v1`
+    itself, over the container network, which is why the browser never needs
+    that port.
+
+    To use the node as an API server from another machine, publish it
+    deliberately:
+
+    ```bash
+    OHM_API_BIND=0.0.0.0 sh install.sh
+    ```
+
+    Before you do, set `API_KEYS` and read the node's write surface — parts of
+    it still accept anonymous calls, which is tracked and being closed. Compose
+    publishes the API on all interfaces already, so the same caution applies
+    there.
+
 No configuration file is needed to start. Published images are pulled rather than
 built, so the first run is a download rather than a compile, and they're built
 for both `linux/amd64` and `linux/arm64` — Apple Silicon included.
