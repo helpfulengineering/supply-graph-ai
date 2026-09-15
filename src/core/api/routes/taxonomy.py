@@ -7,7 +7,7 @@ process taxonomy at runtime.
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from ....core.taxonomy import (
     DEFAULT_TAXONOMY_PATH,
@@ -16,6 +16,7 @@ from ....core.taxonomy import (
     validate_definitions,
 )
 from ..constants.openapi import RESPONSES_400_500
+from ..dependencies import require_admin
 from ..error_handlers import create_success_response
 from ..models.taxonomy.response import (
     TaxonomyIndexResponse,
@@ -80,10 +81,13 @@ async def get_taxonomy(http_request: Request = None) -> Any:
     description=(
         "Reload the process taxonomy from the YAML configuration file. "
         "The reload is atomic: if validation fails, the current taxonomy "
-        "is preserved."
+        "is preserved. Operator action: requires the 'admin' permission."
     ),
 )
-async def reload_taxonomy(http_request: Request = None) -> Any:
+async def reload_taxonomy(
+    http_request: Request = None,
+    _admin: object = Depends(require_admin),
+) -> Any:
     """Reload the taxonomy from the default YAML file."""
     try:
         result = taxonomy.reload()

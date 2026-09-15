@@ -126,7 +126,6 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
         ("PUT", "/v1/api/supply-tree/{id}"),
         ("POST", "/v1/api/supply-tree/{id}/optimize"),
         ("POST", "/v1/api/supply-tree/{id}/validate"),
-        ("POST", "/v1/api/taxonomy/reload"),
     }
 )
 
