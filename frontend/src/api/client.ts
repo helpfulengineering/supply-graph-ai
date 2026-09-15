@@ -8,7 +8,7 @@
 
 import { authHeader } from "../features/auth/tokenStorage";
 
-const API_PREFIX = "/v1/api";
+export const API_PREFIX = "/v1/api";
 
 export class ApiError extends Error {
   constructor(

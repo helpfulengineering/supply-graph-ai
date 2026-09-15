@@ -2809,6 +2809,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/rfq/bundle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * RFQ documents and the design package, as one download
+         * @description Everything needed to send a quotation request by ordinary email: one RFQ per selected facility, plus the design package they refer to.
+         *
+         *     The recipient is a workshop that has never heard of OHM, so nothing in the documents points back at this instance — the design travels as an attachment, and each RFQ names it.
+         *
+         *     Degrades rather than fails: if the design package cannot be built, the RFQs are returned on their own and say what should accompany them.
+         *
+         *     Requires write permission, unlike /generate, because it may build a package that does not exist yet — which persists one.
+         */
+        post: operations["bundle_rfq_api_rfq_bundle_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/federation/status": {
         parameters: {
             query?: never;
@@ -9112,6 +9138,16 @@ export interface components {
             quantity: number;
             /** Solutions */
             solutions: components["schemas"]["RFQSolutionInput"][];
+            /** Requester Name */
+            requester_name?: string | null;
+            /** Requester Organisation */
+            requester_organisation?: string | null;
+            /** Requester Email */
+            requester_email?: string | null;
+            /** Response Due */
+            response_due?: string | null;
+            /** Attachment Name */
+            attachment_name?: string | null;
         };
         /** RFQGenerateResponse */
         RFQGenerateResponse: {
@@ -17516,6 +17552,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RFQGenerateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bundle_rfq_api_rfq_bundle_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RFQGenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "application/zip": unknown;
                 };
             };
             /** @description Validation Error */

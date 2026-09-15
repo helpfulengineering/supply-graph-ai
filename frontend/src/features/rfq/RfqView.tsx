@@ -6,7 +6,8 @@ import { PageHero } from "../../components/layout/PageHero";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { generateRfq } from "../../api/rfq";
+import { downloadRfqBundle, generateRfq } from "../../api/rfq";
+import type { RFQGenerateRequest } from "../../types/rfq";
 import { fetchOkhDetail } from "../../api/okh";
 import { RfqDocumentCard } from "./RfqDocumentCard";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -39,6 +40,8 @@ export function RfqView({ navState }: Props) {
   const [quantity, setQuantity] = useState(1);
   const [rfqs, setRfqs] = useState<RFQDocument[]>([]);
   const [generated, setGenerated] = useState(false);
+  const [bundleBusy, setBundleBusy] = useState(false);
+  const [bundleError, setBundleError] = useState<string | null>(null);
 
   const { mutate, isPending, isError, error } = useMutation({
     mutationFn: generateRfq,
@@ -85,7 +88,8 @@ export function RfqView({ navState }: Props) {
     enabled: !isCooking,
   });
 
-  const handleGenerate = () => {
+  /** The request both the preview and the bundle are built from. */
+  const buildRequest = (): RFQGenerateRequest => {
     const solutionInputs = solutions.map((s) => ({
       facility_id: s.facility_id,
       facility_name: s.facility_name,
@@ -98,18 +102,17 @@ export function RfqView({ navState }: Props) {
     }));
 
     if (isCooking) {
-      mutate({
-        domain: "cooking",
+      return {
+        domain: "cooking" as const,
         recipe_id: navState.recipeId,
         recipe_title: navState.recipeTitle,
         recipe: navState.recipe as unknown as Record<string, unknown> | undefined,
         quantity,
         solutions: solutionInputs,
-      });
-      return;
+      };
     }
 
-    mutate({
+    return {
       okh_id: navState.okhId,
       okh_title: navState.okhTitle,
       okh_function: okhFunction,
@@ -117,7 +120,11 @@ export function RfqView({ navState }: Props) {
       quantity,
       okh_manifest: fullManifest as unknown as Record<string, unknown> | undefined,
       solutions: solutionInputs,
-    });
+    };
+  };
+
+  const handleGenerate = () => {
+    mutate(buildRequest());
   };
 
   const handleDownloadAll = () => {
@@ -134,6 +141,30 @@ export function RfqView({ navState }: Props) {
     a.download = `rfq-bundle-${subjectId.slice(0, 8)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  /**
+   * The one a coordinator actually sends: documents plus the design package.
+   *
+   * Server-built, unlike the two below, because it encloses the package — and
+   * because each RFQ has to name the file that is really in the zip.
+   */
+  const handleDownloadBundle = async () => {
+    setBundleError(null);
+    setBundleBusy(true);
+    try {
+      const { blob, filename } = await downloadRfqBundle(buildRequest());
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setBundleError(e instanceof Error ? e.message : "Could not build the bundle.");
+    } finally {
+      setBundleBusy(false);
+    }
   };
 
   const handleDownloadAllJson = () => {
@@ -285,7 +316,19 @@ export function RfqView({ navState }: Props) {
             <h2 className={SECTION_LABEL}>
               {rfqs.length} RFQ document{rfqs.length !== 1 ? "s" : ""} generated
             </h2>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {bundleError && (
+                <span role="alert" className="text-xs text-destructive">
+                  {bundleError}
+                </span>
+              )}
+              <button
+                onClick={handleDownloadBundle}
+                disabled={bundleBusy}
+                className={`${FIELD_SM} border-primary/30 bg-primary font-medium text-on-accent hover:bg-primary disabled:opacity-60`}
+              >
+                {bundleBusy ? "Building…" : "↓ Download bundle (.zip)"}
+              </button>
               <button
                 onClick={handleDownloadAll}
                 className={`${FIELD_SM} font-medium text-foreground hover:bg-background transition-colors dark:hover:bg-muted`}

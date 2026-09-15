@@ -196,3 +196,125 @@ async def test_a_facility_with_no_contact_details_still_renders():
     assert "Manufacturing Quotation Request" in text
     assert "Email:" not in text
     assert "Location:     Location not specified" in text
+
+
+# --- The bundle: an email a workshop can actually answer (#498) -------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_bundle_returns_one_document_per_facility():
+    """The zip is what gets attached to an email, so its shape is the contract."""
+    import io
+    import zipfile
+
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Open Source Ventilator",
+        "quantity": 25,
+        "solutions": [
+            _solution(facility_id="f1", facility_name="Bristol Fab Lab"),
+            _solution(facility_id="f2", facility_name="Rotterdam Precision Works"),
+        ],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/bundle", json=payload)
+
+    assert resp.status_code == 200, resp.text
+    assert resp.headers["content-type"] == "application/zip"
+    assert "rfq-open-source-ventilator-" in resp.headers["content-disposition"]
+
+    names = zipfile.ZipFile(io.BytesIO(resp.content)).namelist()
+    assert len(names) == 2, names
+    assert any("bristol-fab-lab" in n for n in names)
+    assert any("rotterdam-precision-works" in n for n in names)
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_bundle_names_the_package_it_encloses():
+    """The RFQ must name the file actually in the zip, not one someone hoped for.
+
+    Patched at the resolver rather than building a real package: the property
+    under test is that the rendered text and the archive agree, and a genuine
+    build would prove that no better while taking a network round trip per
+    asset.
+    """
+    import io
+    import zipfile
+    from unittest.mock import AsyncMock, patch
+
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution()],
+    }
+    transport = httpx.ASGITransport(app=app)
+    with patch(
+        "src.core.api.routes.rfq._resolve_design_package",
+        new=AsyncMock(return_value=(b"tarball-bytes", "acme-widget-1.0.0.tar.gz")),
+    ):
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.post("/v1/api/rfq/bundle", json=payload)
+
+    assert resp.status_code == 200, resp.text
+    archive = zipfile.ZipFile(io.BytesIO(resp.content))
+    assert "acme-widget-1.0.0.tar.gz" in archive.namelist()
+    rfq_text = next(
+        archive.read(n).decode() for n in archive.namelist() if n.endswith(".txt")
+    )
+    assert "Attached:     acme-widget-1.0.0.tar.gz" in rfq_text
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_bundle_without_a_package_still_sends_the_documents():
+    """Calibration, and the degradation that matters.
+
+    Without this the test above would pass against a bundle that always
+    attached something. It also pins the behaviour: the RFQs are the part that
+    cannot be reconstructed by hand, so a missing package must not cost them.
+    """
+    import io
+    import zipfile
+
+    app = _get_app()
+    payload = {
+        "okh_id": "not-a-manifest-id",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution()],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/bundle", json=payload)
+
+    assert resp.status_code == 200, resp.text
+    archive = zipfile.ZipFile(io.BytesIO(resp.content))
+    assert all(n.endswith(".txt") for n in archive.namelist())
+    text = archive.read(archive.namelist()[0]).decode()
+    assert "The design package is sent alongside this request." in text
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_the_rfq_never_tells_the_reader_to_call_an_api():
+    """The recipient is a workshop that has never heard of OHM.
+
+    This is the property the redesign exists for, so it is asserted directly
+    rather than inferred from the section that used to break it.
+    """
+    text = await _rfq_text(_FULL_CONTACT_FACILITY)
+    assert "/v1/api/" not in text
+    assert "POST " not in text
+    assert "GET  " not in text
