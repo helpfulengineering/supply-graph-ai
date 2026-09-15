@@ -91,6 +91,24 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     # Reads through AssetService.list(viewer=...) and persists nothing. Scoped
     # to the caller's own assets, identically to GET /v1/api/asset (#493).
     ("POST", "/v1/api/asset/salvage-match"): "GET /v1/api/asset",
+    # Loads a solution from storage, a file, or the request body and returns it.
+    # `_load_solution_from_source` only ever loads — verified against the
+    # handler, not inferred (#484).
+    #
+    # These three rows are PROVISIONAL. Their twins are open rather than scoped,
+    # which #496 tracks: only GET /solutions consults a viewer, while every
+    # per-solution read is unscoped. When #496 scopes the twins these must be
+    # scoped in the same commit, as happened for assets in #493, or they stop
+    # being reads and become holes.
+    ("POST", "/v1/api/supply-tree/solution/load"): (
+        "GET /v1/api/supply-tree/solution/{solution_id} (unscoped; #496)"
+    ),
+    ("POST", "/v1/api/supply-tree/{id}/validate"): (
+        "GET /v1/api/supply-tree/{id} (unscoped; #496)"
+    ),
+    ("POST", "/v1/api/supply-tree/{id}/optimize"): (
+        "GET /v1/api/supply-tree/{id} (unscoped; #496)"
+    ),
 }
 
 #: Mutating routes that authorize nothing today. Every row is a debt, tracked by
@@ -139,16 +157,6 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
         ("DELETE", "/v1/api/package/{org}/{project}/{version}"),
         ("POST", "/v1/api/package/{org}/{project}/{version}/pin"),
         ("POST", "/v1/api/rfq/generate"),
-        ("POST", "/v1/api/supply-tree/create"),
-        ("POST", "/v1/api/supply-tree/solution/load"),
-        ("DELETE", "/v1/api/supply-tree/solution/{solution_id}"),
-        ("POST", "/v1/api/supply-tree/solution/{solution_id}/extend"),
-        ("POST", "/v1/api/supply-tree/solution/{solution_id}/save"),
-        ("POST", "/v1/api/supply-tree/solutions/cleanup"),
-        ("DELETE", "/v1/api/supply-tree/{id}"),
-        ("PUT", "/v1/api/supply-tree/{id}"),
-        ("POST", "/v1/api/supply-tree/{id}/optimize"),
-        ("POST", "/v1/api/supply-tree/{id}/validate"),
     }
 )
 
