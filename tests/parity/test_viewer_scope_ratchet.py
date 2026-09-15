@@ -18,7 +18,7 @@ ROUTES = Path(__file__).resolve().parents[2] / "src" / "core" / "api" / "routes"
 
 # Services whose list() is visibility-scoped. A service added here without the
 # parameter will fail loudly at import, which is the intended order of events.
-SCOPED_SERVICES = ("okh_service", "okw_service")
+SCOPED_SERVICES = ("okh_service", "okw_service", "asset_service")
 
 
 def _list_calls_missing_a_viewer(tree: ast.AST) -> list[int]:

@@ -70,22 +70,26 @@ ANONYMOUS_BY_DESIGN: dict[tuple[str, str], str] = {
 #:
 #: Distinct from ``ANONYMOUS_BY_DESIGN``, which is for routes that must *never*
 #: authenticate. These simply are not writes, and a write permission on a read
-#: would be theatre: the same data is already reachable through a public ``GET``
-#: on the same surface. Each row names that ``GET``, so the claim is checkable.
+#: would be theatre. Each row names the ``GET`` that serves the same data, so
+#: the claim is checkable rather than asserted.
 #:
-#: A row here asserts two things, both verified against the handler rather than
-#: inferred from the route name: that nothing is persisted, and that the
-#: equivalent read is public. If that ``GET`` ever gains a guard, the row is
-#: wrong and must move.
+#: A row asserts two things, both verified against the handler rather than
+#: inferred from the route name: that nothing is persisted, and that the route
+#: is under **the same access control as that ``GET``**. Public-and-public is
+#: fine; scoped-and-identically-scoped is fine. A guarded ``GET`` beside an
+#: unguarded twin is not a read, it is a hole, and needs the guard its twin has.
+#:
+#: The definition started as "the equivalent GET is public", which #493 showed
+#: was too narrow: scoping ``GET /v1/api/asset`` did not turn its POST twin into
+#: a hole, because the twin was scoped in the same commit.
 #:
 #: What governs *reads* is scope, not authentication —
 #: ``test_viewer_scope_ratchet.py``. It covers ``okh_service`` and
 #: ``okw_service`` only, so a surface outside those two has nothing watching
 #: the breadth of what it returns.
 READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
-    # Reads every asset through AssetService.list() and persists nothing. The
-    # same records are served by GET /v1/api/asset, which is public and
-    # unscoped — AssetService has no visibility plane at all (#483).
+    # Reads through AssetService.list(viewer=...) and persists nothing. Scoped
+    # to the caller's own assets, identically to GET /v1/api/asset (#493).
     ("POST", "/v1/api/asset/salvage-match"): "GET /v1/api/asset",
 }
 
