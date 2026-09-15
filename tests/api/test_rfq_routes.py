@@ -318,3 +318,69 @@ async def test_the_rfq_never_tells_the_reader_to_call_an_api():
     assert "/v1/api/" not in text
     assert "POST " not in text
     assert "GET  " not in text
+
+
+# --- Who may assemble a bundle is an operator's decision --------------------
+
+
+async def _bundle_status(monkeypatch, **env) -> int:
+    """POST the bundle with no credential, under the given environment."""
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution()],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/bundle", json=payload)
+    return resp.status_code
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_bundle_needs_a_write_key_by_default(monkeypatch):
+    """Secure by default: assembling a bundle can build and store a package."""
+    assert await _bundle_status(monkeypatch) == 401
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_an_operator_can_open_the_bundle_to_anyone(monkeypatch):
+    """The other posture, and the control for the test above.
+
+    Each of these is the other's calibration: together they show the status is
+    following the setting rather than being fixed by the route. The only thing
+    a bundle creates is a design package — which may already exist and is cheap
+    to rebuild — so an operator who wants outreach to be a public act can say
+    so, deliberately, once.
+    """
+    assert await _bundle_status(monkeypatch, RFQ_BUNDLE_REQUIRE_AUTH="false") == 200
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_generate_never_needed_a_key_either_way(monkeypatch):
+    """Opening the bundle changes nothing for the preview, which only formats."""
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution()],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/generate", json=payload)
+    assert resp.status_code == 200, resp.text

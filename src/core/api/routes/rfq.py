@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel
 
-from src.core.api.dependencies import require_write
+from src.core.api.dependencies import require_write_unless_public
 from src.core.federation.package_pointer import package_dir_to_archive_bytes
 from src.core.services.contact_export import facility_contact, facility_location
 from src.core.services.package_service import PackageService
@@ -661,6 +661,17 @@ async def generate_rfq(request: RFQGenerateRequest) -> RFQGenerateResponse:
     )
 
 
+def _bundle_is_public() -> bool:
+    """Whether this instance lets anyone assemble a bundle.
+
+    Read per request, not captured at import, so the answer follows the setting
+    rather than whatever it was when the process started.
+    """
+    from src.config.schema import get_settings
+
+    return not get_settings().rfq_bundle_require_auth
+
+
 async def _resolve_design_package(okh_id: Optional[str]) -> Optional[Tuple[bytes, str]]:
     """The design package for this design, as (bytes, filename), or None.
 
@@ -732,14 +743,16 @@ def _rfq_filename(rfq: Dict[str, Any]) -> str:
         "attachment, and each RFQ names it.\n\n"
         "Degrades rather than fails: if the design package cannot be built, the "
         "RFQs are returned on their own and say what should accompany them.\n\n"
-        "Requires write permission, unlike /generate, because it may build a "
-        "package that does not exist yet — which persists one."
+        "Requires write permission by default, unlike /generate, because it "
+        "may build a package that does not exist yet — which persists one. An "
+        "operator who wants outreach to be a public act can open it with "
+        "`rfq_bundle_require_auth=false`."
     ),
     responses={200: {"content": {"application/zip": {}}}},
 )
 async def bundle_rfq(
     request: RFQGenerateRequest,
-    _user=Depends(require_write),
+    _user=Depends(require_write_unless_public(_bundle_is_public)),
 ) -> Response:
     package = await _resolve_design_package(request.okh_id)
 

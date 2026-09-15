@@ -47,6 +47,16 @@ AUTH_DEPENDENCY_QUALNAMES = frozenset(
         "require_permission.<locals>.dependency",
         "require_admin_strict",
         "get_current_user",
+        # Conditional guards count. `require_permission` is itself conditional
+        # — it no-ops when SecurityPolicy relaxes writes — so "authorizes" has
+        # never meant "always refuses". What matters is that the route made a
+        # decision rather than having no guard at all.
+        #
+        # `require_write_unless_public` lets an operator open one route to
+        # uncredentialed callers, and still resolves the caller when they do,
+        # so work stays attributable. It composes `require_write` rather than
+        # reimplementing it.
+        "require_write_unless_public.<locals>.dependency",
     }
 )
 

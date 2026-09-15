@@ -286,6 +286,16 @@ class Settings(BaseSettings):
             "spike). False means no LLM regardless of stored keys."
         ),
     )
+    rfq_bundle_require_auth: bool = Field(
+        default=True,
+        description=(
+            "When true (the default), POST /api/rfq/bundle needs a write key. "
+            "Set false to let anyone assemble an RFQ bundle on this instance. "
+            "The only thing that creates is a design package, which may already "
+            "exist and is cheap to rebuild — so an operator who wants outreach "
+            "to be a public act can allow it, deliberately, here."
+        ),
+    )
     generate_from_url_require_auth_for_llm: bool = Field(
         default=False,
         description=(

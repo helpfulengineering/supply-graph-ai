@@ -102,5 +102,22 @@ the list — `diff`, or two columns in a spreadsheet.
 
 ### Asking for a quote
 
-Generating a formal request for quotation is built but not yet available in the
-web app.
+Select the workshops and generate a request for quotation — one document each,
+addressed to that workshop, naming what matched and what did not.
+
+**Download the bundle**, and you get a zip holding those documents plus the
+design package they refer to: everything to attach to an email and send. The
+recipient needs nothing from OHM. They have never heard of it, and the documents
+do not ask them to visit it — the design is in the attachment, not behind a link.
+
+Fill in your name and email when you generate, and the RFQ says who is asking
+and where the quote should go. Leave them out and it says to reply to your
+message, which is true anyway: you are the one sending it.
+
+!!! note "Who may build a bundle"
+
+    Assembling a bundle builds the design package if one does not exist yet, so
+    it needs a write key by default. An instance that wants outreach to be a
+    public act can allow anyone to do it by setting
+    `RFQ_BUNDLE_REQUIRE_AUTH=false`. Previewing the documents never needs a key
+    either way — that only formats what you already have.
