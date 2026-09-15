@@ -13,7 +13,7 @@ from fastapi.security import APIKeyHeader
 from src.config import get_security_policy
 
 from ..models.auth import AuthenticatedUser
-from ..models.visibility import ViewerScope
+from ..models.visibility import DEV_LOCAL_ACCOUNT, ViewerScope
 from ..services.auth_service import AuthenticationService
 
 # Define API key header dependency
@@ -172,8 +172,20 @@ async def require_admin_strict(
 
 
 def created_by(user: Optional[AuthenticatedUser]) -> Optional[str]:
-    """Attribution helper: the owning account id for a resolved user, else ``None``."""
-    return str(user.account_id) if user else None
+    """Attribution helper: the owning account id for a resolved user.
+
+    Outside production an unresolved user is attributed to ``DEV_LOCAL_ACCOUNT``
+    rather than to nobody, so that a record written without a key is readable
+    back by the caller who wrote it — the two halves have to agree, or the
+    record is orphaned on creation. See that constant for why this is an
+    identity rather than a widened scope.
+    """
+    if user:
+        return str(user.account_id)
+    from src.config.schema import is_production_like
+    from src.config.settings import ENVIRONMENT
+
+    return None if is_production_like(ENVIRONMENT) else DEV_LOCAL_ACCOUNT
 
 
 def created_by_did(user: Optional[AuthenticatedUser]) -> Optional[str]:

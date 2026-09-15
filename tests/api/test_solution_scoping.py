@@ -134,8 +134,14 @@ async def test_ownerless_legacy_solutions_are_listed_for_nobody() -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.contract
-async def test_route_scopes_an_anonymous_request_to_an_empty_list() -> None:
-    """End to end through the router, with no credential supplied."""
+async def test_route_scopes_an_anonymous_request_to_an_empty_list(monkeypatch) -> None:
+    """End to end through the router, with no credential supplied.
+
+    Pinned to production: outside it an unauthenticated caller is attributed to
+    `dev-local` rather than to nobody, so this contract — an absent owner is not
+    a wildcard — is the production one.
+    """
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
     from src.core.api.routes.supply_tree import get_storage_service
     from src.core.main import api_v1
 
