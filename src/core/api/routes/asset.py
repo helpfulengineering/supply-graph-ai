@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from ...models.asset import AssetRecord, AssetStatus, ComponentState
 from ...services.asset_service import AssetService
 from ...utils.logging import get_logger
+from ..dependencies import require_write
 from ..models.asset.request import (
     AssetCreateRequest,
     AssetTriageRequest,
@@ -78,6 +79,7 @@ def _to_response(record: AssetRecord, message: str = "") -> AssetResponse:
 async def create_asset(
     body: AssetCreateRequest,
     svc: AssetService = Depends(get_asset_service),
+    _user=Depends(require_write),
 ) -> Any:
     """Register a physical unit in the field, linked to an OKH manifest."""
     record = await svc.create(
@@ -173,6 +175,7 @@ async def update_asset(
     body: AssetUpdateRequest,
     id: UUID = Path(...),
     svc: AssetService = Depends(get_asset_service),
+    _user=Depends(require_write),
 ) -> Any:
     record = await svc.get(id)
     if record is None:
@@ -207,6 +210,7 @@ async def update_asset(
 async def delete_asset(
     id: UUID = Path(...),
     svc: AssetService = Depends(get_asset_service),
+    _user=Depends(require_write),
 ) -> Any:
     deleted = await svc.delete(id)
     if not deleted:
@@ -229,6 +233,7 @@ async def record_triage(
     body: AssetTriageRequest,
     id: UUID = Path(...),
     svc: AssetService = Depends(get_asset_service),
+    _user=Depends(require_write),
 ) -> Any:
     states: list[ComponentState] = []
     for raw in body.component_states:
@@ -446,6 +451,7 @@ async def claim_component(
     id: UUID = Path(...),
     body: ClaimComponentRequest = ...,
     svc: AssetService = Depends(get_asset_service),
+    _user=Depends(require_write),
 ) -> Any:
     try:
         cs = await svc.claim_component(
