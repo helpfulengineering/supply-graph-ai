@@ -45,7 +45,7 @@ from ..models.capability import (
     is_known_verb,
 )
 from ..models.identity import Identity, IdentityKind, IdentityLink
-from ..models.visibility import ANONYMOUS_SCOPE, ViewerScope
+from ..models.visibility import ANONYMOUS_SCOPE, DEV_LOCAL_SCOPE, ViewerScope
 from ..models.provenance import RecordProvenance, sign_provenance
 from ..models.attestation import (
     KNOWN_ATTESTATION_TYPES,
@@ -346,7 +346,16 @@ class AuthenticationService:
         identical to any other authenticated user's (ADR §9).
         """
         if user is None:
-            return ANONYMOUS_SCOPE
+            # Outside production an unauthenticated caller is a person rather
+            # than nobody, so what they create without a key is readable back to
+            # them. See DEV_LOCAL_ACCOUNT for why this is an identity and not a
+            # widened scope.
+            from src.config.schema import is_production_like
+            from src.config.settings import ENVIRONMENT
+
+            return (
+                ANONYMOUS_SCOPE if is_production_like(ENVIRONMENT) else DEV_LOCAL_SCOPE
+            )
         dids: set[str] = set()
         if user.subject_did:
             dids.add(user.subject_did)

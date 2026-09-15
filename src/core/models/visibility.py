@@ -93,6 +93,35 @@ class ViewerScope:
 
 ANONYMOUS_SCOPE = ViewerScope()
 
+#: The account an unauthenticated caller is treated as *outside* production.
+#:
+#: Not a relaxation of scoping — an identity. A caller with no credential in
+#: development is this person: they own what they create and can read it back,
+#: and they see nothing that belongs to anyone else.
+#:
+#: The problem it solves is real and predates assets. With writes unenforced in
+#: development, a record created without a key was attributed to nobody, and
+#: ``private`` is the create default — so the record persisted to storage and
+#: then vanished from every API listing, including for the person who had just
+#: made it. Verified: a manifest created anonymously lands on disk and
+#: ``GET /v1/api/okh`` answers ``total_items: 0``.
+#:
+#: The rejected alternative was to widen ``ViewerScope`` itself in development —
+#: "anonymous sees everything". Two things killed it. Most of the test suite
+#: leaves ``ENVIRONMENT`` unset, so it defaults to ``development``, which would
+#: have put ``tests/api/test_read_visibility.py`` on the relaxed path and made
+#: all seven of its assertions vacuous. And this repository has already shipped
+#: development configuration to production once, where the blast radius would
+#: have been every private record on the node rather than a misconfiguration.
+#:
+#: An identity survives both. It owns nothing on a node it did not write, so a
+#: development config reaching production discloses nothing, and a test whose
+#: fixtures belong to somebody else still fails when scoping breaks.
+DEV_LOCAL_ACCOUNT = "dev-local"
+
+#: What an unauthenticated caller resolves to outside production.
+DEV_LOCAL_SCOPE = ViewerScope(account_id=DEV_LOCAL_ACCOUNT)
+
 
 def visible_to(
     level: Optional[VisibilityLevel],

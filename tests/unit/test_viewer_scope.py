@@ -124,8 +124,24 @@ def test_admin_scope_is_identical_to_an_ordinary_users(tmp_path):
     assert visible_to(VisibilityLevel.PRIVATE, admin, BOB_DID, BOB_ACCOUNT) is False
 
 
-def test_anonymous_user_resolves_to_the_empty_scope(tmp_path):
+def test_anonymous_user_resolves_to_the_empty_scope(tmp_path, monkeypatch):
+    """In production. Outside it, an anonymous caller is `dev-local` instead.
+
+    Pinned to production explicitly rather than relying on the default
+    environment, because the default is `development` and the two postures now
+    differ — a test that does not say which one it means would silently follow
+    whichever it got.
+    """
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
     assert _service_with_identities(tmp_path).viewer_scope(None) == ANONYMOUS_SCOPE
+
+
+def test_anonymous_user_resolves_to_dev_local_outside_production(tmp_path, monkeypatch):
+    """The other half, so the relaxation cannot be removed without a failure."""
+    from src.core.models.visibility import DEV_LOCAL_SCOPE
+
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "development")
+    assert _service_with_identities(tmp_path).viewer_scope(None) == DEV_LOCAL_SCOPE
 
 
 @pytest.mark.asyncio
