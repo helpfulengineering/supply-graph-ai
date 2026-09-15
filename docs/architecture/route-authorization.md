@@ -45,15 +45,22 @@ every asset through `AssetService.list()`, persists nothing, and returns what
 `GET /v1/api/asset` already serves to anyone.
 
 A row here makes two claims, and both must be verified against the handler rather
-than inferred from the route name: that nothing is persisted, and that the
-equivalent read is public. If that `GET` ever gains a guard, the row is wrong and
-must move.
+than inferred from the route name: that nothing is persisted, and that the route
+is under **the same access control as that `GET`**. Public-and-public is fine;
+scoped-and-identically-scoped is fine. A guarded `GET` beside an unguarded twin
+is not a read, it is a hole.
+
+That definition started as "the equivalent `GET` is public", which #493 showed
+was too narrow: scoping `GET /v1/api/asset` did not turn its POST twin into a
+hole, because the twin was scoped in the same commit.
 
 What governs *reads* is scope rather than authentication —
-`test_viewer_scope_ratchet.py`. Be aware it covers `okh_service` and
-`okw_service` only, so a surface outside those two has nothing watching the
-breadth of what it returns. Assets are such a surface: `AssetService` has no
-visibility plane at all.
+`test_viewer_scope_ratchet.py`, which now covers `okh_service`, `okw_service`
+and `asset_service`. Note it matches on the **variable name** at the call site,
+not the type, so a handler that names its dependency something else is invisible
+to it. That is why `routes/asset.py` calls its dependency `asset_service` rather
+than `svc`: with the old name the gate passed while watching nothing, which the
+calibration caught.
 
 **`UNAUTHENTICATED_DEBT`** is everything else that authorizes nothing today. A
 row there is a debt, tracked by #478, #344 and the per-surface split

@@ -10,7 +10,14 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from ...models.asset import AssetRecord, AssetStatus, ComponentState
 from ...services.asset_service import AssetService
 from ...utils.logging import get_logger
-from ..dependencies import require_write
+from ...models.auth import AuthenticatedUser
+from ..dependencies import (
+    created_by,
+    created_by_did,
+    get_viewer,
+    require_write,
+    viewer_scope,
+)
 from ..models.asset.request import (
     AssetCreateRequest,
     AssetTriageRequest,
@@ -78,16 +85,22 @@ def _to_response(record: AssetRecord, message: str = "") -> AssetResponse:
 )
 async def create_asset(
     body: AssetCreateRequest,
-    svc: AssetService = Depends(get_asset_service),
-    _user=Depends(require_write),
+    asset_service: AssetService = Depends(get_asset_service),
+    user=Depends(require_write),
 ) -> Any:
-    """Register a physical unit in the field, linked to an OKH manifest."""
-    record = await svc.create(
+    """Register a physical unit in the field, linked to an OKH manifest.
+
+    The creator is stamped here and matched on every read: an asset with no
+    owner is readable by nobody (#493).
+    """
+    record = await asset_service.create(
         {
             "manifest_id": body.manifest_id,
             "asset_tag": body.asset_tag,
             "location": body.location,
-        }
+        },
+        created_by=created_by(user),
+        created_by_did=created_by_did(user),
     )
     return _to_response(record, message="Asset record created")
 
@@ -99,9 +112,10 @@ async def create_asset(
 )
 async def get_asset(
     id: UUID = Path(...),
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
-    record = await svc.get(id)
+    record = await asset_service.get(id, viewer=await viewer_scope(user))
     if record is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
@@ -136,9 +150,12 @@ async def list_assets(
     harvest_viable: Optional[bool] = Query(
         None, description="When true, return only assets with harvestable components"
     ),
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
-    records = await svc.list(manifest_id=manifest_id)
+    records = await asset_service.list(
+        manifest_id=manifest_id, viewer=await viewer_scope(user)
+    )
 
     if status_filter is not None:
         try:
@@ -174,10 +191,10 @@ async def list_assets(
 async def update_asset(
     body: AssetUpdateRequest,
     id: UUID = Path(...),
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
     _user=Depends(require_write),
 ) -> Any:
-    record = await svc.get(id)
+    record = await asset_service.get(id)
     if record is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
@@ -197,7 +214,7 @@ async def update_asset(
                 detail=f"Invalid status {body.status!r}. Valid values: "
                 + ", ".join(s.value for s in AssetStatus),
             )
-    updated = await svc.update(id, record.to_dict())
+    updated = await asset_service.update(id, record.to_dict())
     return _to_response(updated, message="Asset record updated")
 
 
@@ -209,10 +226,10 @@ async def update_asset(
 )
 async def delete_asset(
     id: UUID = Path(...),
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
     _user=Depends(require_write),
 ) -> Any:
-    deleted = await svc.delete(id)
+    deleted = await asset_service.delete(id)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
@@ -232,7 +249,7 @@ async def delete_asset(
 async def record_triage(
     body: AssetTriageRequest,
     id: UUID = Path(...),
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
     _user=Depends(require_write),
 ) -> Any:
     states: list[ComponentState] = []
@@ -245,7 +262,7 @@ async def record_triage(
                 detail=f"Invalid component state: {exc}",
             )
     try:
-        record = await svc.record_triage(id, states, body.triage_notes)
+        record = await asset_service.record_triage(id, states, body.triage_notes)
     except KeyError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
@@ -272,10 +289,10 @@ async def record_triage(
 )
 async def get_triage_report(
     id: UUID = Path(...),
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
 ) -> Any:
     try:
-        report = await svc.generate_triage_report(id)
+        report = await asset_service.generate_triage_report(id)
     except KeyError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
@@ -321,10 +338,10 @@ async def get_triage_report(
 )
 async def get_triage_checklist(
     id: UUID = Path(...),
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
 ) -> Any:
     try:
-        checklist = await svc.generate_triage_checklist(id)
+        checklist = await asset_service.generate_triage_checklist(id)
     except KeyError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
@@ -363,10 +380,10 @@ async def get_triage_checklist(
 )
 async def resolve_sourcing(
     id: UUID = Path(...),
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
 ) -> Any:
     try:
-        resolution = await svc.resolve_sourcing(id)
+        resolution = await asset_service.resolve_sourcing(id)
     except KeyError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
@@ -408,19 +425,21 @@ async def resolve_sourcing(
 )
 async def salvage_match(
     body: SalvageMatchRequest,
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     if body.component_name is None and body.part_number is None:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="At least one of 'component_name' or 'part_number' is required.",
         )
-    result = await svc.salvage_match(
+    result = await asset_service.salvage_match(
         component_name=body.component_name,
         part_number=body.part_number,
         manifest_id=body.manifest_id,
         conditions=body.conditions,
         exclude_claimed=body.exclude_claimed,
+        viewer=await viewer_scope(user),
     )
     return SalvageMatchResponse(
         matches=[SalvageMatchItemResponse(**m.to_dict()) for m in result.matches],
@@ -450,11 +469,11 @@ async def salvage_match(
 async def claim_component(
     id: UUID = Path(...),
     body: ClaimComponentRequest = ...,
-    svc: AssetService = Depends(get_asset_service),
+    asset_service: AssetService = Depends(get_asset_service),
     _user=Depends(require_write),
 ) -> Any:
     try:
-        cs = await svc.claim_component(
+        cs = await asset_service.claim_component(
             asset_id=id,
             component_name=body.component_name,
             claimed_by=body.claimed_by,

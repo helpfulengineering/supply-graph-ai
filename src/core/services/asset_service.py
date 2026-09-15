@@ -15,12 +15,14 @@ from ..models.repair import (
     TriageItem,
     TriageReport,
 )
+from ..models.provenance import apply_ohm_metadata, record_attribution
 from ..models.salvage import SalvageMatch, SalvageMatchResult
 from ..models.sourcing import (
     SourcingResolution,
     SourcingResolutionItem,
     SourcingVerdict,
 )
+from ..models.visibility import ViewerScope, visible_to
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..utils.logging import get_logger
 from .base import BaseService, ServiceConfig
@@ -116,6 +118,22 @@ def _is_salvage_match(
     return True
 
 
+def _visible(stored: Dict[str, Any], viewer: ViewerScope) -> bool:
+    """Whether ``viewer`` may see this stored asset dict (#493).
+
+    Assets carry no visibility level — there is deliberately no way to share
+    one — so ``visible_to`` is called with ``None`` and reduces to ownership.
+    It is called rather than ``viewer.owns`` directly so that adding a level
+    later needs no change here.
+
+    Reads attribution off the **raw stored dict**: ``to_dict()`` is a whitelist
+    that drops ``ohm_*``, so by the time this is an ``AssetRecord`` the creator
+    is gone.
+    """
+    did, account = record_attribution(stored)
+    return visible_to(None, viewer, did, account)
+
+
 class AssetService(BaseService["AssetService"]):
     """CRUD service for AssetRecord — physical state of device units in the field."""
 
@@ -143,8 +161,19 @@ class AssetService(BaseService["AssetService"]):
     # CRUD
     # ------------------------------------------------------------------
 
-    async def create(self, asset_data: Dict[str, Any]) -> AssetRecord:
-        """Persist a new AssetRecord at ``asset/{id}.json``."""
+    async def create(
+        self,
+        asset_data: Dict[str, Any],
+        created_by: Optional[str] = None,
+        created_by_did: Optional[str] = None,
+    ) -> AssetRecord:
+        """Persist a new AssetRecord at ``asset/{id}.json``.
+
+        Attribution rides the **stored dict**, never the parsed model, because
+        ``to_dict()`` is a whitelist that drops ``ohm_*`` keys. An asset with no
+        creator is readable by nobody (#493), so the two halves of this — who is
+        stamped here and who is matched in :meth:`list` — have to agree.
+        """
         async with self.track_request("create_asset"):
             await self.ensure_initialized()
             record = (
@@ -154,14 +183,26 @@ class AssetService(BaseService["AssetService"]):
             )
             if self.storage and self.storage.manager:
                 key = f"{_PREFIX}/{record.id}.json"
+                payload = apply_ohm_metadata(
+                    record.to_dict(),
+                    asset_data if isinstance(asset_data, dict) else None,
+                    created_by,
+                    created_by_did,
+                )
                 await self.storage.manager.put_object(
-                    key, json.dumps(record.to_dict(), indent=2, default=str).encode()
+                    key, json.dumps(payload, indent=2, default=str).encode()
                 )
                 self.logger.info(f"Created AssetRecord at {key}")
             return record
 
-    async def get(self, asset_id: UUID) -> Optional[AssetRecord]:
-        """Return the AssetRecord with the given ID, or None."""
+    async def get(
+        self, asset_id: UUID, viewer: Optional[ViewerScope] = None
+    ) -> Optional[AssetRecord]:
+        """Return the AssetRecord with the given ID, or None.
+
+        ``viewer=None`` is unscoped and is for trusted internal callers only —
+        the CLI. A request handler must pass a scope.
+        """
         async with self.track_request("get_asset"):
             await self.ensure_initialized()
             if not (self.storage and self.storage.manager):
@@ -172,14 +213,27 @@ class AssetService(BaseService["AssetService"]):
                     data = json.loads(
                         (await self.storage.manager.get_object(fi.key)).decode()
                     )
-                    if data.get("id") == str(asset_id):
-                        return AssetRecord.from_dict(data)
+                    if data.get("id") != str(asset_id):
+                        continue
+                    if viewer is not None and not _visible(data, viewer):
+                        return None
+                    return AssetRecord.from_dict(data)
                 except Exception as exc:
                     logger.debug(f"Skipping {fi.key}: {exc}")
             return None
 
-    async def list(self, manifest_id: Optional[str] = None) -> List[AssetRecord]:
-        """Return all AssetRecords, optionally filtered by manifest_id."""
+    async def list(
+        self,
+        manifest_id: Optional[str] = None,
+        viewer: Optional[ViewerScope] = None,
+    ) -> List[AssetRecord]:
+        """Return AssetRecords this ``viewer`` may see, optionally by manifest.
+
+        ``viewer=None`` is unscoped and is for trusted internal callers only —
+        the CLI. A request handler must pass a scope, and
+        ``tests/parity/test_viewer_scope_ratchet.py`` fails the build if one
+        does not.
+        """
         await self.ensure_initialized()
         if not (self.storage and self.storage.manager):
             return []
@@ -190,6 +244,8 @@ class AssetService(BaseService["AssetService"]):
                 data = json.loads(
                     (await self.storage.manager.get_object(fi.key)).decode()
                 )
+                if viewer is not None and not _visible(data, viewer):
+                    continue
                 record = AssetRecord.from_dict(data)
                 if manifest_id and record.manifest_id != manifest_id:
                     continue
@@ -516,11 +572,18 @@ class AssetService(BaseService["AssetService"]):
         conditions: Optional[List[str]] = None,
         exclude_asset_id: Optional[str] = None,
         exclude_claimed: bool = True,
+        viewer: Optional[ViewerScope] = None,
     ) -> SalvageMatchResult:
-        """Find harvestable components across the asset fleet matching the query.
+        """Find harvestable components across the caller's own fleet.
 
         At least one of ``component_name`` or ``part_number`` must be provided.
         Name matching is case-insensitive substring; part_number is exact.
+
+        Scoped to ``viewer``, deliberately: searching *across owners* is a
+        different feature needing consent to publish component-level
+        availability, a contact route, and a trust story about who asserts the
+        part exists (#493). The job this does is "do I have a spare pump
+        anywhere in my own fleet".
         """
         await self.ensure_initialized()
 
@@ -535,7 +598,7 @@ class AssetService(BaseService["AssetService"]):
             if primary and primary.compatible_manifest_ids:
                 search_manifest_ids.update(primary.compatible_manifest_ids)
 
-        records = await self.list()
+        records = await self.list(viewer=viewer)
         if search_manifest_ids is not None:
             records = [r for r in records if r.manifest_id in search_manifest_ids]
 
