@@ -24,7 +24,7 @@ from ...services.visualization_service import VisualizationService
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_422_500
 from ..dependencies import created_by as owner_of
-from ..dependencies import get_viewer
+from ..dependencies import get_viewer, require_admin, require_write
 from ...models.auth import AuthenticatedUser
 from ..decorators import (
     api_endpoint,
@@ -133,6 +133,7 @@ async def create_supply_tree(
     storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
     okw_service: OKWService = Depends(get_okw_service),
+    _user=Depends(require_write),
 ) -> Any:
     """
     Enhanced supply tree creation with standardized patterns.
@@ -486,6 +487,7 @@ async def delete_supply_tree_solution(
     solution_id: UUID = Path(..., description="Solution ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
+    _user=Depends(require_write),
 ) -> Any:
     """Delete a supply tree solution by ID"""
     request_id = (
@@ -660,6 +662,7 @@ async def cleanup_stale_solutions(
     request: CleanupStaleSolutionsRequest,
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
+    _user=Depends(require_admin),
 ) -> Any:
     """Cleanup stale solutions"""
     request_id = (
@@ -734,6 +737,7 @@ async def extend_solution_ttl(
     ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
+    _user=Depends(require_write),
 ) -> Any:
     """Extend solution TTL"""
     request_id = (
@@ -833,6 +837,7 @@ async def save_supply_tree_solution(
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
     viewer: Optional[AuthenticatedUser] = Depends(get_viewer),
+    _user=Depends(require_write),
 ) -> Any:
     """Save a supply tree solution to storage, owned by the caller.
 
@@ -2542,6 +2547,7 @@ async def update_supply_tree(
     storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
     okw_service: OKWService = Depends(get_okw_service),
+    _user=Depends(require_write),
 ) -> Any:
     """Enhanced supply tree update with standardized patterns."""
     request_id = (
@@ -2747,6 +2753,7 @@ async def delete_supply_tree(
     id: UUID = Path(..., title="The ID of the supply tree"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
+    _user=Depends(require_write),
 ) -> Any:
     """Enhanced supply tree deletion with standardized patterns."""
     request_id = (
