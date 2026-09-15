@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from src.core.services.contact_export import facility_contact, facility_location
 from src.core.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -162,33 +163,44 @@ def _rfq_number() -> str:
 
 
 def _extract_location(facility: Dict[str, Any]) -> str:
-    loc = facility.get("location", {})
-    parts = [
-        loc.get("city") or "",
-        loc.get("country") or "",
-    ]
-    result = ", ".join(p for p in parts if p)
-    return result or "Location not specified"
+    """City and country, shared with the contact export (#501)."""
+    return facility_location(facility)
+
+
+#: Label for each contact field, in the order an RFQ should offer them.
+#:
+#: Email first among the channels: this document exists to be sent to the
+#: facility, and email is how most people would answer it. It was missing
+#: entirely until #501 — the block read ``landline`` and ``mobile`` and
+#: skipped ``email``, ``whatsapp`` and ``mailing_list``, so the most useful
+#: way to reach someone was absent from a document addressed to them.
+_CONTACT_LABELS: tuple[tuple[str, str], ...] = (
+    ("contact_person", "Contact"),
+    ("organisation", "Organisation"),
+    ("email", "Email"),
+    ("phone", "Phone"),
+    ("mobile", "Mobile"),
+    ("whatsapp", "WhatsApp"),
+    ("website", "Website"),
+    ("mailing_list", "Mailing list"),
+)
 
 
 def _extract_contact_block(facility: Dict[str, Any]) -> str:
-    """Return a formatted contact block (indented, trailing newline) or empty string."""
-    contact = facility.get("contact", {})
-    if not contact:
-        return ""
-    lines: List[str] = []
-    if contact.get("contact_person"):
-        lines.append(f"  Contact:      {contact['contact_person']}")
-    if contact.get("name"):
-        lines.append(f"  Organisation: {contact['name']}")
-    if contact.get("website"):
-        lines.append(f"  Website:      {contact['website']}")
-    nested = contact.get("contact", {})
-    if isinstance(nested, dict):
-        if nested.get("landline"):
-            lines.append(f"  Phone:        {nested['landline']}")
-        if nested.get("mobile"):
-            lines.append(f"  Mobile:       {nested['mobile']}")
+    """Return a formatted contact block (indented, trailing newline), or empty.
+
+    Extraction is :func:`facility_contact`, shared with the contact export, so
+    OKW's two-deep nesting — ``facility.contact`` is an Agent and
+    ``agent.contact`` is a Contact — is navigated in exactly one place.
+    Navigating it here as well is how this block came to omit ``email`` while
+    the export carried it.
+    """
+    found = facility_contact(facility)
+    lines = [
+        f"  {label + ':':<14}{found[key]}"
+        for key, label in _CONTACT_LABELS
+        if found.get(key)
+    ]
     return ("\n".join(lines) + "\n") if lines else ""
 
 

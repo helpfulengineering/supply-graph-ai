@@ -126,3 +126,73 @@ async def test_generate_rfq_cooking_domain_falls_back_without_explanation():
     doc = resp.json()["data"]["rfqs"][0]
     assert "Match confidence: 42%" in doc["text"]
     assert "Match rank:       #2" in doc["text"]
+
+
+# --- The contact block, which is the point of the document (#501) ----------
+
+_FULL_CONTACT_FACILITY = {
+    "name": "Bristol Fab Lab",
+    "location": {"city": "Bristol", "country": "United Kingdom"},
+    "contact": {
+        "name": "Bristol Makers CIC",
+        "contact_person": "Ada Okafor",
+        "website": "https://bristolfablab.example",
+        "mailing_list": "makers@bristolfablab.example",
+        "contact": {
+            "email": "ada@bristolfablab.example",
+            "landline": "+44 117 000 0000",
+            "mobile": "+44 7700 900000",
+            "whatsapp": "+44 7700 900001",
+        },
+    },
+}
+
+
+async def _rfq_text(facility: dict) -> str:
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution(facility=facility)],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/generate", json=payload)
+    assert resp.status_code == 200, resp.text
+    return resp.json()["data"]["rfqs"][0]["text"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_rfq_carries_every_way_to_reach_the_facility():
+    """An RFQ exists to be sent to someone, so it must say how to reach them.
+
+    Email was absent until #501: the contact block read `landline` and `mobile`
+    and skipped `email`, `whatsapp` and `mailing_list`, so the channel most
+    people would answer on was missing from a document addressed to them.
+    """
+    text = await _rfq_text(_FULL_CONTACT_FACILITY)
+    assert "Email:        ada@bristolfablab.example" in text
+    assert "WhatsApp:     +44 7700 900001" in text
+    assert "Mailing list: makers@bristolfablab.example" in text
+    assert "Contact:      Ada Okafor" in text
+    assert "Organisation: Bristol Makers CIC" in text
+    assert "Phone:        +44 117 000 0000" in text
+    assert "Mobile:       +44 7700 900000" in text
+    assert "Location:     Bristol, United Kingdom" in text
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_a_facility_with_no_contact_details_still_renders():
+    """Calibration: the assertions above detect content, not a template constant.
+
+    Without this a block that hard-coded every label would satisfy them.
+    """
+    text = await _rfq_text({"name": "Quiet Lab"})
+    assert "Manufacturing Quotation Request" in text
+    assert "Email:" not in text
+    assert "Location:     Location not specified" in text
