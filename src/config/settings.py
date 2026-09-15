@@ -8,7 +8,12 @@ from src.core.storage.base import StorageConfig
 
 from .auth_constants import AUTH_MODE_HYBRID
 from .llm_config import get_llm_config, is_llm_enabled, validate_llm_config
-from .schema import get_settings, is_production_like, resolve_cors_origins
+from .schema import (
+    cors_allow_credentials,
+    get_settings,
+    is_production_like,
+    resolve_cors_origins,
+)
 from .storage_config import StorageConfigError, get_default_storage_config
 
 # Import secrets manager (lazy import to avoid circular dependencies)
@@ -126,6 +131,9 @@ ENVIRONMENT = _schema_settings.environment
 CORS_ORIGINS = resolve_cors_origins(
     _schema_settings.cors_origins, ENVIRONMENT, log=True
 )
+# Derived, not configured: wildcard-plus-credentials must be unrepresentable
+# rather than merely unused (#462).
+CORS_ALLOW_CREDENTIALS = cors_allow_credentials(CORS_ORIGINS)
 
 # API Keys (backward compatibility - used for environment variable keys)
 # This is a sensitive value, so it will try secrets manager if enabled

@@ -132,9 +132,15 @@ def resolve_cors_origins(
 
     if raw.strip() == "*":
         if is_production_like(environment) and log:
+            # Says what the wildcard costs, rather than "consider restricting"
+            # — which nobody could act on, because the deploy tooling is what
+            # sets "*" when a deployment.yaml omits it (deploy/base/config.py).
             logger.warning(
-                "CORS_ORIGINS is set to '*' in production. This allows all origins. "
-                "Consider restricting to specific origins for better security."
+                "CORS_ORIGINS is '*': this node serves every origin, and "
+                "browser credentials are therefore refused cross-origin (see "
+                "cors_allow_credentials). Bearer tokens are unaffected. Set an "
+                "explicit allowlist if this node must accept cookie or other "
+                "ambient credentials from a browser."
             )
         return ["*"]
 
@@ -142,6 +148,32 @@ def resolve_cors_origins(
     if not origins and log:
         logger.warning("CORS_ORIGINS is set but empty. No CORS origins allowed.")
     return origins
+
+
+def cors_allow_credentials(origins: List[str]) -> bool:
+    """Whether the CORS layer may offer credentials to these origins (#462).
+
+    Derived, never configured, because the dangerous combination has to be
+    unrepresentable rather than merely unused.
+
+    ``allow_credentials=True`` alongside a wildcard does not mean what it looks
+    like. Starlette will not send ``Access-Control-Allow-Origin: *`` with
+    credentials — browsers reject that pairing — so it **echoes the caller's own
+    ``Origin`` instead**, individually approving every origin on earth for
+    credentialed cross-origin requests. A browser refuses the wildcard and
+    accepts the echo.
+
+    Nothing rides on this today: authentication is a bearer token attached
+    explicitly by the frontend, and browsers do not send those automatically
+    cross-origin. It fires the moment any cookie exists — session persistence
+    being the obvious candidate — and the failure would read as a
+    session-persistence bug rather than as a CORS setting nobody touched.
+
+    So: credentials are offered only to a named allowlist. A public read API
+    genuinely wants wildcard reads, and it can keep them; what it cannot have is
+    wildcard reads *and* ambient credentials.
+    """
+    return bool(origins) and "*" not in origins
 
 
 class _NormalizingEnvSource(EnvSettingsSource):
