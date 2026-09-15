@@ -861,7 +861,12 @@ class OKWService(BaseService["OKWService"]):
         }
 
     async def _load_network_candidates(
-        self, *, include_mom: bool, force_refresh: bool, require_coords: bool = True
+        self,
+        *,
+        include_mom: bool,
+        force_refresh: bool,
+        require_coords: bool = True,
+        viewer: Optional[ViewerScope] = None,
     ) -> Tuple[List[Dict[str, Any]], int, bool]:
         """Load local ∪ MoM as unified space dicts, each carrying its ``_facility``
         (the matchable object) under a private key. Shared by the browse surface
@@ -870,13 +875,22 @@ class OKWService(BaseService["OKWService"]):
         ``require_coords`` gates whether local facilities without plottable
         coordinates are dropped — True for the map/browse surface, False for
         matching (where geography is not required to be a valid candidate).
+
+        ``viewer`` scopes the local half. It used to be absent, which meant this
+        called ``list()`` unscoped — and ``list()`` applies visibility only when
+        a viewer is supplied, so a private facility was matchable by anyone and
+        its whole record, contact details included, came back in the results
+        (#503). MoM rows are unaffected: they are published to a public
+        directory, and visibility is a property of records this node holds.
         """
         candidates: List[Dict[str, Any]] = []
         dropped_no_coords = 0
         page = 1
         page_size = 500
         while True:
-            facilities, _ = await self.list(page=page, page_size=page_size)
+            facilities, _ = await self.list(
+                page=page, page_size=page_size, viewer=viewer
+            )
             if not facilities:
                 break
             for f in facilities:
@@ -916,6 +930,7 @@ class OKWService(BaseService["OKWService"]):
         region: Optional[str] = None,
         access_type: Optional[str] = None,
         okw_ids: Optional[List[str]] = None,
+        viewer: Optional[ViewerScope] = None,
     ) -> List[ManufacturingFacility]:
         """Return the filtered network as matchable facilities (local full objects
         ∪ MoM process stubs), for matching a design against the same filtered set
@@ -926,11 +941,16 @@ class OKWService(BaseService["OKWService"]):
 
         ``okw_ids`` filters by **network space id** (local facility UUID string or
         MoM IRI), not by the MoM stub's internal UUID5.
+
+        ``viewer`` scopes the local half: a private facility is not matchable by
+        someone who cannot see it (#503). Pass one from any request handler —
+        ``None`` is the unscoped path, for trusted internal callers.
         """
         candidates, _, _ = await self._load_network_candidates(
             include_mom=include_mom,
             force_refresh=force_refresh,
             require_coords=require_coords,
+            viewer=viewer,
         )
         filtered = filter_network_spaces(
             candidates,
