@@ -377,62 +377,6 @@ export const matchResponseFixture = {
   },
 };
 
-/** Visualization bundle (nested under `data`, as the API returns it). */
-export const vizBundleFixture = {
-  data: {
-    schema_version: "3.2.0",
-    source_type: "solution",
-    generated_at: "2026-01-01T00:00:00Z",
-    matching: {
-      overview: { matching_mode: "single-level", score: 0.95, tree_count: 1 },
-    },
-    supply_tree: {
-      solution_id: "sol-1",
-      nodes: [
-        {
-          id: "n1",
-          label: "Frame",
-          component_id: null,
-          facility_name: "FabLab Drome",
-          depth: 0,
-          production_stage: "assembly",
-          confidence_score: 0.95,
-          estimated_cost: null,
-          estimated_time: null,
-        },
-        {
-          id: "n2",
-          label: "Base Plate",
-          component_id: null,
-          facility_name: "Community Makerspace",
-          depth: 1,
-          production_stage: "fabrication",
-          confidence_score: 0.9,
-          estimated_cost: null,
-          estimated_time: null,
-        },
-      ],
-      edges: [{ source: "n2", target: "n1", type: "depends_on" }],
-      dependency_graph: { n1: ["n2"] },
-      production_sequence: [["n2"], ["n1"]],
-      resource_cost: { total_estimated_cost: null, total_estimated_time: null },
-    },
-    network: {
-      facility_distribution: [{ facility_name: "FabLab Drome", tree_count: 1 }],
-      route_hints: { status: "not_provided", note: "" },
-    },
-    dashboard: {
-      kpis: {
-        tree_count: 1,
-        edge_count: 1,
-        stage_count: 2,
-        solution_score: 0.95,
-      },
-    },
-    artifacts: {},
-  },
-};
-
 export const whoamiAdminFixture = {
   key_id: "00000000-0000-0000-0000-0000000000aa",
   name: "Admin key",
@@ -850,23 +794,21 @@ export const llmCredentialsFixture = {
  * less useful — the second id has no visualization bundle behind it, so the
  * card would lead to an error the demo cannot explain.
  */
-export const solutionsListFixture = {
-  data: {
-    result: [
-      {
-        id: "sol-1",
-        okh_id: "okh-0001",
-        okh_title: "Foldable Solar Dryer",
-        facility_name: "FabLab Drome",
-        matching_mode: "single-level",
-        tree_count: 1,
-        facility_count: 1,
-        score: 0.95,
-        created_at: "2026-01-01T00:00:00Z",
-      },
-    ],
-  },
-};
+/**
+ * What the contact export returns: a CSV file, not a JSON envelope.
+ *
+ * Kept as the real shape — provenance comments, then the header row — because
+ * the download path is what this exercises. A JSON stand-in would pass while a
+ * broken Content-Disposition or a mangled body shipped.
+ */
+export const contactExportFixture =
+  "# Open Hardware Manager — facilities matched to Foldable Solar Dryer\n" +
+  "# Matched at 2026-09-14T10:00:00Z\n" +
+  "# This is a snapshot. Facilities change; re-run the match to refresh.\n" +
+  "facility_name,location,contact_person,organisation,email,phone,mobile," +
+  "whatsapp,website,mailing_list,matched_processes,confidence,facility_id\n" +
+  'FabLab Drome,"Valence, France",Camille Roy,FabLab Drome,' +
+  "camille@example.org,,,,https://example.org,,3d-printing,0.92,okw-0001\n";
 
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 /**
@@ -1305,45 +1247,6 @@ export const okwTemplateFixture = {
   facility_status: "",
 };
 
-export const solutionStalenessFixture = {
-  status: "success",
-  message: "Staleness check completed",
-  data: {
-    solution_id: "sol-1",
-    // Fresh by default: the banner is the exception, and a fixture that made
-    // every mocked page shout would train readers to ignore it.
-    is_stale: false,
-    staleness_reason: null,
-    age_days: 2,
-  },
-};
-
-export const solutionHierarchyFixture = {
-  status: "success",
-  message: "Hierarchy retrieved",
-  data: {
-    // A list, as the API returns. Nothing in the app reads it yet, which is
-    // exactly why it drifted to `{}` unnoticed.
-    hierarchy: [],
-    // Objects, not ids — matching the API. A fixture of bare strings is what
-    // let a render of `{root}` pass its tests and throw React #31 for a user.
-    root_components: [
-      {
-        component_id: "frame",
-        component_name: "Frame",
-        tree_id: "11111111-1111-1111-1111-111111111111",
-      },
-    ],
-    component_details: { frame: { name: "Frame" } },
-    summary: {
-      total_components: 1,
-      root_components: 1,
-      total_trees: 1,
-      max_depth: 1,
-    },
-  },
-};
-
 export const generateJobEventsFixture = {
   status: "success",
   message: "Events retrieved",
@@ -1460,7 +1363,7 @@ export const storageConfigureFixture = {
     region: "westeurope",
     verified: true,
     prefixes_found: [],
-    prefixes_created: ["okh/", "okw/", "packages/", "supply-trees/"],
+    prefixes_created: ["okh/", "okw/", "packages/"],
     previous_provider: "local",
     previous_bucket: "/var/ohm-data",
   },
@@ -1476,12 +1379,6 @@ export const fixturesByPath: Record<string, unknown> = {
   // looks like, not an unconfigured one.
   "/v1/api/storage/config": storageConfigFixture,
   "/v1/api/package/demo/widget/1.0.0/verify-signature": packageSignatureFixture,
-  "/v1/api/supply-tree/solution/sol-1/staleness": solutionStalenessFixture,
-  "/v1/api/supply-tree/solution/sol-1/hierarchy": solutionHierarchyFixture,
-  "/v1/api/supply-tree/solution/sol-1/extend": {
-    status: "success",
-    message: "TTL extended successfully",
-  },
   "/v1/api/okh/recipes": recipesFixture,
   "/v1/api/okw/kitchens": kitchensFixture,
   "/v1/api/okh/extract": okhRequirementsFixture,
@@ -1519,7 +1416,6 @@ export const fixturesByPath: Record<string, unknown> = {
   [`/v1/api/asset/${ASSET_ID_B}`]: assetListFixture.assets[1],
   [`/v1/api/asset/${ASSET_ID_B}/claim-component`]: claimComponentFixture,
   "/v1/api/asset/salvage-match": salvageMatchFixture,
-  "/v1/api/supply-tree/solutions": solutionsListFixture,
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,
   "/v1/api/utility/metrics": metricsFixture,
@@ -1539,7 +1435,6 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okw/spaces": networkSpacesFixture,
-  "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
   "/v1/api/okh/inventory": inventoryFixture,
   "/v1/api/okw/inventory": inventoryFixture,
   "/v1/api/identity/whoami": whoamiAdminFixture,

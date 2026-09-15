@@ -134,21 +134,6 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         ),
     )
 
-    # Solution storage options
-    save_solution: Optional[bool] = Field(
-        False,
-        description="Automatically save the solution to storage. Returns solution_id in response.",
-    )
-    solution_ttl_days: Optional[int] = Field(
-        None,
-        ge=1,
-        description="Time-to-live in days for saved solution (default: 30). Only used if save_solution=True.",
-    )
-    solution_tags: Optional[List[str]] = Field(
-        None,
-        description="Tags to apply to saved solution. Only used if save_solution=True.",
-    )
-
     # Tree filtering parameters (for nested matching results)
     include_trees: Optional[bool] = Field(
         True,

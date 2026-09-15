@@ -53,14 +53,23 @@ describe("navEntryFor", () => {
   });
 
   it("resolves routes that are deliberately absent from the menu", () => {
-    // A supply tree is a match result rather than a browsable collection, so
-    // it is not in the drawer — but it is a page, and it needs a hero.
-    expect(navEntryFor("/visualization/sol-1")?.entry.name).toBe("Supply Tree");
+    // The icon gallery documents the icon set rather than being a place in the
+    // app, so it is reachable but unlisted — and still needs a hero.
+    expect(navEntryFor("/icons")?.entry.name).toBeTruthy();
     expect(
-      NAV_GROUPS.flatMap((g) => g.entries).some(
-        (e) => e.href === "/visualization",
-      ),
+      NAV_GROUPS.flatMap((g) => g.entries).some((e) => e.href === "/icons"),
     ).toBe(false);
+  });
+
+  it("has no entry for the removed solution surfaces", () => {
+    // #498: saved solutions stopped being durable objects, so the browse and
+    // the visualization went with them. A nav entry pointing at a deleted
+    // route renders a dead link rather than failing loudly.
+    const hrefs = [...NAV_GROUPS.flatMap((g) => g.entries)].map((e) => e.href);
+    expect(hrefs).not.toContain("/solutions");
+    expect(hrefs).not.toContain("/visualization");
+    expect(navEntryFor("/solutions")).toBeUndefined();
+    expect(navEntryFor("/visualization")).toBeUndefined();
   });
 
   it("returns nothing outside the app", () => {

@@ -245,11 +245,11 @@ class MatchingMetrics(BaseModel):
 class _MatchDataBase(BaseModel):
     """What both branches carry.
 
-    The three optional fields are conditional on the request, not on the
-    branch: ``solution_id`` is written only when ``save_solution`` was asked
-    for — and it is the only way a caller learns where its result went, so
-    omitting it here would silently lose it — while ``human_summary`` and
-    ``save_warning`` appear only when generated or when a save failed.
+    ``human_summary`` is conditional on the request rather than on the branch:
+    it appears only when one was generated.
+
+    ``solution_id`` and ``save_warning`` went with #498 — a match result is not
+    stored, so there is no id to hand back and no save that can fail.
     """
 
     processing_time: float
@@ -259,9 +259,7 @@ class _MatchDataBase(BaseModel):
     suggestions: List[str] = Field(default_factory=list)
     suggestion_codes: List[str] = Field(default_factory=list)
 
-    solution_id: Optional[str] = None
     human_summary: Optional[Dict[str, Any]] = None
-    save_warning: Optional[str] = None
 
 
 class SingleLevelMatchData(_MatchDataBase):

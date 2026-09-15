@@ -11,12 +11,11 @@ arms are frozen.
 It could not be captured until now. The single-level branch 500'd until #434
 (#432), and the nested branch until #441 (#439).
 
-Each branch is captured twice, saved and unsaved, because several fields are
-conditional: ``solution_id`` appears only when ``save_solution`` was asked for,
-and ``human_summary`` and ``save_warning`` likewise. A model that declared them
-required would reject the plain call; one that omitted them would drop the
-saved solution's id, which is the only way a caller learns where its result
-went.
+Each branch is captured once. It used to be twice — saved and unsaved — because
+``solution_id`` and ``save_warning`` appeared only when ``save_solution`` was
+asked for. #498 removed saved solutions, so those two fields and their captures
+went with them. ``human_summary`` is still conditional on the request, which is
+why the model declares it optional.
 
     BLESS_MATCH=1 .venv/bin/python -m pytest \
         tests/integration/test_match_contract.py
@@ -104,16 +103,6 @@ def test_single_level_shape(client, matchable):
     assert_shape(_mask_projections(response.json()), "match_single_level", BLESS)
 
 
-def test_single_level_saved_shape(client, matchable):
-    """`solution_id` appears only here. A model without it drops it silently."""
-    auth, okh_id = matchable
-    response = _match(
-        client, auth, okh_id, max_depth=0, include_explanation=True, save_solution=True
-    )
-    assert response.json()["data"]["solution_id"]
-    assert_shape(_mask_projections(response.json()), "match_single_level_saved", BLESS)
-
-
 def test_nested_shape(client, matchable):
     auth, okh_id = matchable
     response = _match(client, auth, okh_id, max_depth=2)
@@ -123,10 +112,3 @@ def test_nested_shape(client, matchable):
     assert "solution" in data and "solutions" not in data
     assert data["solution"]["all_trees"], "nested match produced no trees"
     assert_shape(response.json(), "match_nested", BLESS)
-
-
-def test_nested_saved_shape(client, matchable):
-    auth, okh_id = matchable
-    response = _match(client, auth, okh_id, max_depth=2, save_solution=True)
-    assert response.json()["data"]["solution_id"]
-    assert_shape(response.json(), "match_nested_saved", BLESS)

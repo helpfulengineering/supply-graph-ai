@@ -20,6 +20,17 @@ export interface RankedSolution {
   /** Per-solution supply-tree id when the API returned one on the solution. */
   treeId: string | null;
   /**
+   * The facility object the API returned, carried rather than rebuilt.
+   *
+   * `POST /api/match` puts the full OKW record on each solution
+   * (`facility.to_dict()`), contact details and all. Dropping it here is what
+   * made #501 possible: the RFQ hand-off synthesised a hollow replacement, so
+   * every generated RFQ went out reading "Location not specified" with no way
+   * to reach the facility it named. Contact export reads the same object, so
+   * there is exactly one source for it.
+   */
+  facility: Record<string, unknown> | null;
+  /**
    * Requirement coverage from the structured explanation. Null when the API
    * did not supply one — which must not be read as "nothing missing".
    */
@@ -31,14 +42,6 @@ export interface MatchView {
   coverageGaps: string[];
   summary: string | null;
   totalSolutions: number;
-  /**
-   * Persisted solution id — what the supply-tree explorer loads.
-   *
-   * Null when the match was not saved (inline manifests), in which case no card
-   * offers a tree link. `treeId` identifies a tree WITHIN this solution and is
-   * not addressable on its own.
-   */
-  solutionId: string | null;
 }
 
 export function toMatchView(raw: RawMatchResponse): MatchView {
@@ -56,6 +59,7 @@ export function toMatchView(raw: RawMatchResponse): MatchView {
       rank: s.rank ?? 0,
       explanation: s.explanation_human ?? null,
       treeId: s.tree?.id ?? null,
+      facility: (s.facility as Record<string, unknown> | undefined) ?? null,
       coverage: requirementStats(
         s.explanation as Parameters<typeof requirementStats>[0],
       ),
@@ -67,7 +71,6 @@ export function toMatchView(raw: RawMatchResponse): MatchView {
     coverageGaps: data.coverage_gaps ?? [],
     summary: data.human_summary?.executive ?? data.match_summary_text ?? null,
     totalSolutions: data.total_solutions ?? solutions.length,
-    solutionId: data.solution_id ?? null,
   };
 }
 

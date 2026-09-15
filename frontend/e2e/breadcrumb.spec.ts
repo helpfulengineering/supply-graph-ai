@@ -20,7 +20,6 @@ const TRAILS: Array<{ route: string; root: string; rootHref: string }> = [
   { route: "/okh/okh-0001", root: "Designs", rootHref: "/okh" },
   { route: "/facilities/okw-1", root: "Facilities", rootHref: "/facilities" },
   { route: "/facilities/new", root: "Facilities", rootHref: "/facilities" },
-  { route: "/visualization/sol-1", root: "Match", rootHref: "/match" },
   {
     route: "/packages/demo/widget/1.0.0",
     root: "Packages",

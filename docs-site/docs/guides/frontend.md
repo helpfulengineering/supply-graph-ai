@@ -45,8 +45,8 @@ from the live tokens at runtime. There is no second copy of the palette.
 | ![Synthwave, dark](../assets/ux/dashboard-synthwave-dark.png) | ![Blueprint, dark](../assets/ux/catalog-blueprint-dark.png) |
 | The dashboard in Synthwave dark | The design catalog in Blueprint dark |
 
-The Leaflet map, the cytoscape supply-tree graph, and the ECharts charts read
-the same tokens instead of carrying private palettes. OpenStreetMap's raster
+The Leaflet map and the ECharts charts read the same tokens instead of carrying
+private palettes. OpenStreetMap's raster
 tiles arrive from the tile server already painted, so `tileFilter.ts` computes a
 CSS filter chain from the active accent and rotates them onto its hue; land and
 water stay separated by lightness.
@@ -67,11 +67,9 @@ Every route in the sitemap has a chord. `CHORD_ROUTES` and `SHORTCUTS` in
 drawer's help block, and `/help`. A unit test fails if a sitemap route has no
 chord — it reads every group, including the ones the drawer hides, so a route
 cannot fall outside the keyboard contract by being outside the menu. Two
-exemptions are named in that test rather than left implicit: bare
-`/visualization`, which redirects to `/solutions` and would otherwise cost two
-keys for one destination, and `/operator-tools`, which only exists when the
-instance runs the site layer — a static chord for a conditional route would
-land on a 404 wherever it does not.
+exemption is named in that test rather than left implicit: `/operator-tools`,
+which only exists when the instance runs the site layer — a static chord for a
+conditional route would land on a 404 wherever it does not.
 
 ![The keyboard and accessibility tables on /help](../assets/ux/help-keyboard-accessibility.png)
 
@@ -205,7 +203,6 @@ Every OHM capability with a web surface, and where it lives:
 | `/facilities` | The network, local and federated, on a map and as a list |
 | `/assets` | Physical units in the field: triage a unit component by component, resolve where its parts come from, and claim a part from another unit |
 | `/match` | Pair a design with facilities, in a chosen domain or a detected one |
-| `/solutions`, `/visualization` | Saved supply trees, what they are made of, and when they expire |
 | `/packages` | Built archives, local and remote, with pin and signature verification |
 | `/settings/matching` | The capability rules and taxonomies behind every match — validate a file, see what importing it would change, then import |
 | `/settings/llm` | Provider keys, and whether generation will actually work right now |

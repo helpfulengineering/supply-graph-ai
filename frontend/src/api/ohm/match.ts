@@ -1,3 +1,4 @@
+import type { components } from "../generated/schema";
 import {
   apiBaseUrl,
   apiClient,
@@ -71,6 +72,16 @@ export interface RawSolution {
   } | null;
   match_type?: string | null;
   tree?: { id?: string | null } | null;
+  /**
+   * The full OKW facility record, as `facility.to_dict()` on the server.
+   *
+   * Typed loosely on purpose, like the rest of this interface: it is an OKW
+   * document whose shape the match route does not narrow. What reads it —
+   * contact export and the RFQ hand-off — goes through
+   * `contact_export.facility_contact()` on the server rather than reaching into
+   * the nesting here.
+   */
+  facility?: Record<string, unknown> | null;
 }
 
 export interface RawMatchData {
@@ -80,8 +91,6 @@ export interface RawMatchData {
   match_summary_text?: string | null;
   total_solutions?: number;
   suggestions?: string[];
-  /** Present when save_solution was requested — the persisted solution's id. */
-  solution_id?: string | null;
 }
 
 export interface RawMatchResponse {
@@ -126,11 +135,6 @@ export async function runMatch(
       max_results: params.maxResults ?? 10,
       include_human_summary: true,
       include_explanation: true,
-      // Persist the solution so it has an id the supply-tree explorer can load.
-      // Not for inline manifests: the design itself is deliberately unsaved, so
-      // a stored solution would reference an OKH id that does not exist. The
-      // trade is that inline matches have no supply-tree deep link.
-      save_solution: !params.okhManifest,
       quality_level: params.qualityLevel,
       strict_mode: params.strictMode,
       // Omitted rather than nulled when unset: absent is what makes the server
@@ -235,4 +239,40 @@ export async function listMatchDomains(): Promise<MatchDomain[]> {
   const payload = (body.data as Record<string, unknown>) ?? body;
   const items = (payload.domains ?? payload.items ?? []) as MatchDomain[];
   return Array.isArray(items) ? items : [];
+}
+
+/** What the export sends per facility — the API's own shape. */
+export type ContactExportBody =
+  components["schemas"]["ContactExportRequest"];
+
+/**
+ * Export selected match results as a contact list.
+ *
+ * Returns the file and the name the server chose for it, because the name
+ * carries the design and the date: two exports a week apart are meant to be
+ * diffable in a directory, which needs them to be distinguishable there.
+ *
+ * `parseAs: "blob"` because the body is CSV or a JSON *file*, not a JSON
+ * envelope — without it openapi-fetch parses it and the download arrives
+ * mangled.
+ */
+export async function exportMatchContacts(
+  body: ContactExportBody,
+): Promise<{ blob: Blob; filename: string }> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/match/export/contacts",
+    { body, parseAs: "blob" },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Could not export contacts"),
+    );
+  }
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const match = /filename="([^"]+)"/.exec(disposition);
+  return {
+    blob: data as Blob,
+    filename: match?.[1] ?? `contacts.${body.format ?? "csv"}`,
+  };
 }

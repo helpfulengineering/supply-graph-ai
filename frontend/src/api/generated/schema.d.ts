@@ -1706,39 +1706,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/supply-tree/create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Supply Tree
-         * @description Create a supply tree with enhanced capabilities.
-         *
-         *         This endpoint provides:
-         *         - Standardized request/response formats
-         *         - LLM integration support
-         *         - Enhanced error handling
-         *         - Performance metrics
-         *         - Validation
-         *
-         *         **Features:**
-         *         - Support for LLM-enhanced supply tree creation
-         *         - Advanced workflow definitions
-         *         - Real-time performance tracking
-         *         - Detailed validation results
-         */
-        post: operations["create_supply_tree_api_supply_tree_create_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/supply-tree/solutions": {
         parameters: {
             query?: never;
@@ -1747,75 +1714,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Supply Tree Solutions
-         * @description List the calling account's saved supply tree solutions.
-         *
-         *         Scoped to the caller: a solution is returned only to the account that ran
-         *         the match that saved it. An unauthenticated caller receives an empty list,
-         *         as does anyone asking after a solution saved before solutions carried an
-         *         owner.
-         *
-         *         Supports filtering by:
-         *         - okh_id: Filter by OKH manifest ID
-         *         - matching_mode: Filter by matching mode (nested/single-level)
-         *         - min_age_days, max_age_days: Filter by solution age
-         *         - include_stale, only_stale: Filter by staleness
-         *
-         *         Supports sorting by:
-         *         - created_at, updated_at, expires_at, score, age_days
-         *         - sort_order: asc or desc (default: desc)
+         * List saved solutions (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
          */
-        get: operations["list_supply_tree_solutions_api_supply_tree_solutions_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Supply Tree Solution
-         * @description Get a supply tree solution by ID.
-         *
-         *         Returns the complete solution including all trees, metadata, and relationships.
-         */
-        get: operations["get_supply_tree_solution_api_supply_tree_solution__solution_id__get"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete Supply Tree Solution
-         * @description Delete a supply tree solution by ID.
-         *
-         *         This permanently deletes both the solution data and its metadata.
-         */
-        delete: operations["delete_supply_tree_solution_api_supply_tree_solution__solution_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/staleness": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Check Solution Staleness
-         * @description Check if a supply tree solution is stale.
-         *
-         *         Returns staleness status, age, and reason if stale.
-         */
-        get: operations["get_solution_staleness_api_supply_tree_solution__solution_id__staleness_get"];
+        get: operations["_removed_api_supply_tree_solutions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1834,12 +1736,54 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Cleanup Stale Solutions
-         * @description Remove stale solutions from storage.
-         *
-         *         Supports dry-run mode to preview what would be deleted.
+         * Clean up stale solutions (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
          */
-        post: operations["cleanup_stale_solutions_api_supply_tree_solutions_cleanup_post"];
+        post: operations["_removed_api_supply_tree_solutions_cleanup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/supply-tree/solution/{solution_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a saved solution (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
+         */
+        get: operations["_removed_api_supply_tree_solution__solution_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a saved solution (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
+         */
+        delete: operations["_removed_api_supply_tree_solution__solution_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/supply-tree/solution/{solution_id}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save a solution (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
+         */
+        post: operations["_removed_api_supply_tree_solution__solution_id__save_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1856,42 +1800,17 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Extend Solution TTL
-         * @description Extend the expiration time (TTL) of a solution.
-         *
-         *         Adds additional days to the current expiration time.
+         * Extend a solution's TTL (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
          */
-        post: operations["extend_solution_ttl_api_supply_tree_solution__solution_id__extend_post"];
+        post: operations["_removed_api_supply_tree_solution__solution_id__extend_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/supply-tree/solution/{solution_id}/save": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Save Supply Tree Solution
-         * @description Save a supply tree solution to storage.
-         *
-         *         The solution can be provided in the request body. If solution_id is provided in path,
-         *         it will be used; otherwise, a new UUID will be generated.
-         */
-        post: operations["save_supply_tree_solution_api_supply_tree_solution__solution_id__save_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/summary": {
+    "/api/supply-tree/solution/{solution_id}/staleness": {
         parameters: {
             query?: never;
             header?: never;
@@ -1899,261 +1818,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Solution Summary
-         * @description Get aggregated statistics and summary for a supply tree solution.
-         *
-         *         Supports multiple loading sources:
-         *         - Storage: Load from storage using solution_id in path (default)
-         *         - File: Use GET /api/supply-tree/solution/load?file_path=... for file loading
-         *
-         *         Returns:
-         *         - Total trees, components, and facilities
-         *         - Average confidence score
-         *         - Component and facility distributions
-         *         - Cost and time estimates (if available)
-         *         - Solution metadata
+         * Check solution staleness (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
          */
-        get: operations["get_solution_summary_api_supply_tree_solution__solution_id__summary_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/load": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Load Supply Tree Solution
-         * @description Load a supply tree solution from multiple sources.
-         *
-         *         Supports three loading sources:
-         *         - storage: Load from StorageService using solution_id
-         *         - file: Load from local file using file_path
-         *         - inline: Use solution data provided directly in request body
-         *
-         *         Examples:
-         *         - Storage: {"source": "storage", "solution_id": "uuid"}
-         *         - File: {"source": "file", "file_path": "/path/to/solution.json"}
-         *         - Inline: {"source": "inline", "solution": {...}}
-         */
-        post: operations["load_supply_tree_solution_api_supply_tree_solution_load_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/trees": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Trees from Solution
-         * @description Get trees from a supply tree solution with optional filtering.
-         *
-         *         Supports filtering by:
-         *         - component_id, component_name: Filter by component
-         *         - facility_name, okw_reference: Filter by facility
-         *         - depth, min_depth, max_depth: Filter by depth
-         *         - min_confidence: Filter by minimum confidence score
-         *         - production_stage: Filter by production stage
-         *
-         *         Supports pagination and sorting.
-         */
-        get: operations["get_solution_trees_api_supply_tree_solution__solution_id__trees_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/component/{component_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Component Trees
-         * @description Get all trees for a specific component in a solution.
-         *
-         *         Returns all SupplyTrees that match the component_id, including
-         *         parent/child relationships if available.
-         */
-        get: operations["get_component_trees_api_supply_tree_solution__solution_id__component__component_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/facility/{facility_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Facility Trees
-         * @description Get all trees for a specific facility in a solution.
-         *
-         *         The facility_id can be either:
-         *         - okw_reference (facility reference string)
-         *         - facility_name (exact match)
-         *
-         *         Useful for understanding facility workload and capacity planning.
-         */
-        get: operations["get_facility_trees_api_supply_tree_solution__solution_id__facility__facility_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Export Supply Tree Solution
-         * @description Export a supply tree solution to a specific format.
-         *
-         *         Supports multiple loading sources:
-         *         - Storage: Load from storage using solution_id in path (default)
-         *         - File: Use GET /api/supply-tree/solution/load?file_path=... for file loading
-         *
-         *         Supported formats:
-         *         - json: JSON format (default)
-         *         - xml: XML format
-         *         - graphml: GraphML format for graph visualization (supports nested relationships)
-         */
-        get: operations["export_supply_tree_solution_api_supply_tree_solution__solution_id__export_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/dependencies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Solution Dependencies
-         * @description Get the dependency graph for a supply tree solution.
-         *
-         *         Returns:
-         *         - dependency_graph: Dictionary mapping tree_id -> list of dependency tree_ids
-         *         - trees: Dictionary mapping tree_id -> tree details (for visualization)
-         *         - summary: Summary statistics about dependencies
-         *
-         *         The dependency graph shows which SupplyTrees depend on which others,
-         *         based on parent-child relationships and explicit dependencies.
-         */
-        get: operations["get_solution_dependencies_api_supply_tree_solution__solution_id__dependencies_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/production-sequence": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Production Sequence
-         * @description Get the production sequence for a supply tree solution.
-         *
-         *         Returns:
-         *         - production_sequence: List of production stages (each stage can be done in parallel)
-         *         - stages: Detailed stage information with tree details
-         *         - summary: Summary statistics about the production sequence
-         *
-         *         The production sequence is calculated using topological sort,
-         *         ensuring dependencies are respected. Trees in the same stage
-         *         can be produced in parallel.
-         */
-        get: operations["get_solution_production_sequence_api_supply_tree_solution__solution_id__production_sequence_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/visualization": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Visualization Bundle
-         * @description Build a canonical JSON visualization bundle for a stored supply tree solution.
-         *
-         *         The bundle is additive and stable for API/CLI consumers and includes:
-         *         - supply tree nodes/edges/dependency graph
-         *         - production sequence staging
-         *         - network/facility distribution summaries
-         *         - dashboard KPI summaries
-         */
-        get: operations["get_solution_visualization_bundle_api_supply_tree_solution__solution_id__visualization_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/solution/{solution_id}/report": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Visualization Report
-         * @description Build a standalone HTML report from the solution visualization bundle.
-         */
-        get: operations["get_solution_visualization_report_api_supply_tree_solution__solution_id__report_get"];
+        get: operations["_removed_api_supply_tree_solution__solution_id__staleness_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2170,18 +1838,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Component Hierarchy
-         * @description Get the component hierarchy for a supply tree solution.
-         *
-         *         Returns:
-         *         - hierarchy: Tree structure showing parent-child component relationships
-         *         - root_components: List of root (top-level) components
-         *         - component_details: Dictionary mapping component_id -> component information
-         *
-         *         The hierarchy shows how components are organized in a tree structure,
-         *         with parent components containing child components.
+         * Get a solution's hierarchy (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
          */
-        get: operations["get_solution_hierarchy_api_supply_tree_solution__solution_id__hierarchy_get"];
+        get: operations["_removed_api_supply_tree_solution__solution_id__hierarchy_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2190,7 +1850,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/supply-tree/{id}": {
+    "/api/supply-tree/solution/{solution_id}/visualization": {
         parameters: {
             query?: never;
             header?: never;
@@ -2198,112 +1858,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Supply Tree
-         * @description Get a specific supply tree by ID with enhanced capabilities.
+         * Get a solution's visualization bundle (removed)
+         * @description Saved supply-tree solutions were removed in #498. A match result is not stored: run the match again, export the facilities as a contact list with POST /api/match/export/contacts, or generate an RFQ — both take the result in the request body.
          */
-        get: operations["get_supply_tree_api_supply_tree__id__get"];
-        /**
-         * Update Supply Tree
-         * @description Update an existing supply tree with enhanced capabilities.
-         */
-        put: operations["update_supply_tree_api_supply_tree__id__put"];
-        post?: never;
-        /**
-         * Delete Supply Tree
-         * @description Delete a supply tree with enhanced capabilities.
-         */
-        delete: operations["delete_supply_tree_api_supply_tree__id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Supply Trees
-         * @description Get a paginated list of supply trees with enhanced capabilities.
-         *
-         *         **Features:**
-         *         - Paginated results with sorting and filtering
-         *         - Enhanced error handling
-         *         - Performance metrics
-         *         - Validation
-         */
-        get: operations["list_supply_trees_api_supply_tree_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/{id}/validate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Validate Supply Tree
-         * @description Validate a supply tree against specified requirements and capabilities with enhanced capabilities.
-         */
-        post: operations["validate_supply_tree_api_supply_tree__id__validate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/{id}/optimize": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Optimize Supply Tree
-         * @description Optimize a supply tree based on specific criteria.
-         *
-         *         This endpoint optimizes an existing supply tree by adjusting parameters
-         *         based on optimization criteria (cost, time, quality).
-         */
-        post: operations["optimize_supply_tree_api_supply_tree__id__optimize_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/supply-tree/{id}/export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Export Supply Tree
-         * @description Export a supply tree to a specific format.
-         *
-         *         Supported formats:
-         *         - json: JSON format (default)
-         *         - xml: XML format
-         *         - graphml: GraphML format for graph visualization
-         */
-        get: operations["export_supply_tree_api_supply_tree__id__export_get"];
+        get: operations["_removed_api_supply_tree_solution__solution_id__visualization_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4581,26 +4139,6 @@ export interface components {
              */
             materials?: string | null;
         };
-        /** Body_save_supply_tree_solution_api_supply_tree_solution__solution_id__save_post */
-        Body_save_supply_tree_solution_api_supply_tree_solution__solution_id__save_post: {
-            /**
-             * Solution
-             * @description Solution data to save
-             */
-            solution: {
-                [key: string]: unknown;
-            };
-            /**
-             * Ttl Days
-             * @description Time-to-live in days
-             */
-            ttl_days?: number | null;
-            /**
-             * Tags
-             * @description Tags to associate with solution
-             */
-            tags?: string[] | null;
-        };
         /** Body_upload_okh_file_api_okh_upload_post */
         Body_upload_okh_file_api_okh_upload_post: {
             /**
@@ -5013,57 +4551,6 @@ export interface components {
             warnings?: string[];
         };
         /**
-         * CleanupStaleSolutionsRequest
-         * @description Request model for cleaning up stale solutions
-         * @example {
-         *       "before_date": "2024-01-01T00:00:00",
-         *       "dry_run": true,
-         *       "max_age_days": 45
-         *     }
-         */
-        CleanupStaleSolutionsRequest: {
-            /**
-             * Request Id
-             * @description Unique request identifier for tracking
-             */
-            request_id?: string | null;
-            /**
-             * Client Info
-             * @description Client information and context
-             */
-            client_info?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Quality Level
-             * @description Quality level: hobby, professional, or medical
-             * @default professional
-             */
-            quality_level: string | null;
-            /**
-             * Strict Mode
-             * @description Enable strict validation mode
-             * @default false
-             */
-            strict_mode: boolean | null;
-            /**
-             * Dry Run
-             * @description If True, preview what would be deleted without actually deleting
-             * @default true
-             */
-            dry_run: boolean;
-            /**
-             * Max Age Days
-             * @description Delete solutions older than N days
-             */
-            max_age_days?: number | null;
-            /**
-             * Before Date
-             * @description Delete solutions created before this date (ISO format)
-             */
-            before_date?: string | null;
-        };
-        /**
          * CollectionDiffResponse
          * @description ``POST /api/okh/diff-collection`` — what each side has that the other does not.
          */
@@ -5114,28 +4601,6 @@ export interface components {
             conflict?: components["schemas"]["CollectionEntry"][];
             /** Request Id */
             request_id?: string | null;
-        };
-        /**
-         * ComponentDetail
-         * @description Per-component summary, plus the serialised trees that produced it.
-         */
-        ComponentDetail: {
-            /** Component Id */
-            component_id: string;
-            /** Component Name */
-            component_name: string;
-            /** Tree Count */
-            tree_count: number;
-            /** Depth */
-            depth: number;
-            /** Production Stage */
-            production_stage: string;
-            /** Component Path */
-            component_path: string[];
-            /** Trees */
-            trees: {
-                [key: string]: unknown;
-            }[];
         };
         /**
          * ContactExportRequest
@@ -5783,45 +5248,6 @@ export interface components {
             suggestion?: string | null;
         };
         /**
-         * ExtendSolutionTTLRequest
-         * @description Request model for extending solution TTL
-         * @example {
-         *       "additional_days": 30
-         *     }
-         */
-        ExtendSolutionTTLRequest: {
-            /**
-             * Request Id
-             * @description Unique request identifier for tracking
-             */
-            request_id?: string | null;
-            /**
-             * Client Info
-             * @description Client information and context
-             */
-            client_info?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Quality Level
-             * @description Quality level: hobby, professional, or medical
-             * @default professional
-             */
-            quality_level: string | null;
-            /**
-             * Strict Mode
-             * @description Enable strict validation mode
-             * @default false
-             */
-            strict_mode: boolean | null;
-            /**
-             * Additional Days
-             * @description Number of days to add to expiration time
-             * @default 30
-             */
-            additional_days: number;
-        };
-        /**
          * FacilityDesignMatch
          * @description One design a facility could make, as the reverse matcher ranks them.
          *
@@ -5904,16 +5330,6 @@ export interface components {
             metadata?: {
                 [key: string]: unknown;
             } | null;
-        };
-        /**
-         * FacilityDistributionEntry
-         * @description How many trees a given facility accounts for.
-         */
-        FacilityDistributionEntry: {
-            /** Facility Name */
-            facility_name: string;
-            /** Tree Count */
-            tree_count: number;
         };
         /**
          * FacilityMatchRequest
@@ -6223,44 +5639,6 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
-        };
-        /**
-         * HierarchyNode
-         * @description One node of the component tree, with its children inline.
-         *
-         *     Recursive: ``children`` holds the same shape, which is how the hierarchy
-         *     carries parent/child structure the visualization bundle does not have.
-         */
-        HierarchyNode: {
-            /** Component Id */
-            component_id: string;
-            /** Component Name */
-            component_name: string;
-            /** Tree Id */
-            tree_id: string;
-            /** Depth */
-            depth: number;
-            /** Production Stage */
-            production_stage: string;
-            /**
-             * Children
-             * @default []
-             */
-            children: components["schemas"]["HierarchyNode"][];
-        };
-        /**
-         * HierarchySummary
-         * @description Counts the UI shows as KPIs above the component list.
-         */
-        HierarchySummary: {
-            /** Total Components */
-            total_components: number;
-            /** Root Components */
-            root_components: number;
-            /** Total Trees */
-            total_trees: number;
-            /** Max Depth */
-            max_depth: number;
         };
         /** IdentifyResponse */
         IdentifyResponse: {
@@ -6961,22 +6339,6 @@ export interface components {
              */
             combination_strategy: string | null;
             /**
-             * Save Solution
-             * @description Automatically save the solution to storage. Returns solution_id in response.
-             * @default false
-             */
-            save_solution: boolean | null;
-            /**
-             * Solution Ttl Days
-             * @description Time-to-live in days for saved solution (default: 30). Only used if save_solution=True.
-             */
-            solution_ttl_days?: number | null;
-            /**
-             * Solution Tags
-             * @description Tags to apply to saved solution. Only used if save_solution=True.
-             */
-            solution_tags?: string[] | null;
-            /**
              * Include Trees
              * @description Include full tree data in response. If False, returns metadata only (tree counts, IDs).
              * @default true
@@ -7262,14 +6624,10 @@ export interface components {
             suggestions?: string[];
             /** Suggestion Codes */
             suggestion_codes?: string[];
-            /** Solution Id */
-            solution_id?: string | null;
             /** Human Summary */
             human_summary?: {
                 [key: string]: unknown;
             } | null;
-            /** Save Warning */
-            save_warning?: string | null;
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -9878,21 +9236,6 @@ export interface components {
             size: number;
         };
         /**
-         * RootComponentRef
-         * @description A top-level component — an object, not an id.
-         *
-         *     Named explicitly because the frontend assumed this was a bare string and
-         *     rendered it directly, which threw React #31 and took down the page (#369).
-         */
-        RootComponentRef: {
-            /** Component Id */
-            component_id: string;
-            /** Component Name */
-            component_name: string;
-            /** Tree Id */
-            tree_id: string;
-        };
-        /**
          * RuleCompareRequest
          * @description Request for comparing rules file with current rules
          * @example {
@@ -10885,14 +10228,10 @@ export interface components {
             suggestions?: string[];
             /** Suggestion Codes */
             suggestion_codes?: string[];
-            /** Solution Id */
-            solution_id?: string | null;
             /** Human Summary */
             human_summary?: {
                 [key: string]: unknown;
             } | null;
-            /** Save Warning */
-            save_warning?: string | null;
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -10913,572 +10252,6 @@ export interface components {
             solutions?: {
                 [key: string]: unknown;
             }[];
-        };
-        /**
-         * SolutionDeleteData
-         * @description Result of deleting a saved solution.
-         */
-        SolutionDeleteData: {
-            /** Deleted */
-            deleted: boolean;
-            /** Solution Id */
-            solution_id: string;
-        };
-        /**
-         * SolutionDeleteResponse
-         * @description Envelope for ``DELETE /api/supply-tree/solution/{solution_id}``.
-         * @example {
-         *       "data": {},
-         *       "message": "Operation completed successfully",
-         *       "metadata": {},
-         *       "request_id": "req_123456789",
-         *       "status": "success",
-         *       "timestamp": "2024-01-01T12:00:00Z"
-         *     }
-         */
-        SolutionDeleteResponse: {
-            /**
-             * @description Success status
-             * @default success
-             */
-            status: components["schemas"]["APIStatus"];
-            /**
-             * Message
-             * @description Human-readable response message
-             */
-            message: string;
-            /**
-             * Timestamp
-             * Format: date-time
-             * @description Response timestamp
-             */
-            timestamp?: string;
-            /**
-             * Request Id
-             * @description Request identifier if provided
-             */
-            request_id?: string | null;
-            data: components["schemas"]["SolutionDeleteData"];
-            /**
-             * Metadata
-             * @description Additional response metadata
-             */
-            metadata?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /**
-         * SolutionDetailData
-         * @description A stored solution, as ``SupplyTreeSolution.to_dict`` serialises it.
-         *
-         *     The optional fields are not stylistic: ``to_dict`` emits ``tree`` only when
-         *     the solution holds exactly one tree, and the nested block only when those
-         *     attributes are set. A model declaring them required would reject a
-         *     single-level solution; one omitting them would filter them off a nested
-         *     one. The contract test captures both branches for exactly this reason.
-         */
-        SolutionDetailData: {
-            /** All Trees */
-            all_trees: {
-                [key: string]: unknown;
-            }[];
-            /** Root Trees */
-            root_trees?: {
-                [key: string]: unknown;
-            }[] | null;
-            /** Tree */
-            tree?: {
-                [key: string]: unknown;
-            } | null;
-            /** Score */
-            score: number;
-            /**
-             * Metrics
-             * @default {}
-             */
-            metrics: {
-                [key: string]: unknown;
-            };
-            /**
-             * Metadata
-             * @default {}
-             */
-            metadata: {
-                [key: string]: unknown;
-            };
-            /**
-             * Is Nested
-             * @default false
-             */
-            is_nested: boolean;
-            /** Component Mapping */
-            component_mapping?: {
-                [key: string]: {
-                    [key: string]: unknown;
-                }[];
-            } | null;
-            /** Dependency Graph */
-            dependency_graph?: {
-                [key: string]: string[];
-            } | null;
-            /** Production Sequence */
-            production_sequence?: string[][] | null;
-            validation_result?: components["schemas"]["SolutionValidationResult"] | null;
-            /** Total Estimated Cost */
-            total_estimated_cost?: number | null;
-            /** Total Estimated Time */
-            total_estimated_time?: string | null;
-        };
-        /**
-         * SolutionDetailResponse
-         * @description Envelope for ``GET /api/supply-tree/solution/{solution_id}``.
-         * @example {
-         *       "data": {},
-         *       "message": "Operation completed successfully",
-         *       "metadata": {},
-         *       "request_id": "req_123456789",
-         *       "status": "success",
-         *       "timestamp": "2024-01-01T12:00:00Z"
-         *     }
-         */
-        SolutionDetailResponse: {
-            /**
-             * @description Success status
-             * @default success
-             */
-            status: components["schemas"]["APIStatus"];
-            /**
-             * Message
-             * @description Human-readable response message
-             */
-            message: string;
-            /**
-             * Timestamp
-             * Format: date-time
-             * @description Response timestamp
-             */
-            timestamp?: string;
-            /**
-             * Request Id
-             * @description Request identifier if provided
-             */
-            request_id?: string | null;
-            data: components["schemas"]["SolutionDetailData"];
-            /**
-             * Metadata
-             * @description Additional response metadata
-             */
-            metadata?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /**
-         * SolutionExtendData
-         * @description Result of extending a solution's time-to-live.
-         */
-        SolutionExtendData: {
-            /** Extended */
-            extended: boolean;
-            /** Solution Id */
-            solution_id: string;
-            /** Additional Days */
-            additional_days: number;
-        };
-        /**
-         * SolutionExtendResponse
-         * @description Envelope for ``POST /api/supply-tree/solution/{id}/extend``.
-         * @example {
-         *       "data": {},
-         *       "message": "Operation completed successfully",
-         *       "metadata": {},
-         *       "request_id": "req_123456789",
-         *       "status": "success",
-         *       "timestamp": "2024-01-01T12:00:00Z"
-         *     }
-         */
-        SolutionExtendResponse: {
-            /**
-             * @description Success status
-             * @default success
-             */
-            status: components["schemas"]["APIStatus"];
-            /**
-             * Message
-             * @description Human-readable response message
-             */
-            message: string;
-            /**
-             * Timestamp
-             * Format: date-time
-             * @description Response timestamp
-             */
-            timestamp?: string;
-            /**
-             * Request Id
-             * @description Request identifier if provided
-             */
-            request_id?: string | null;
-            data: components["schemas"]["SolutionExtendData"];
-            /**
-             * Metadata
-             * @description Additional response metadata
-             */
-            metadata?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /**
-         * SolutionHierarchyData
-         * @description The ``data`` payload of the component-hierarchy route.
-         */
-        SolutionHierarchyData: {
-            /** Hierarchy */
-            hierarchy: components["schemas"]["HierarchyNode"][];
-            /** Root Components */
-            root_components: components["schemas"]["RootComponentRef"][];
-            /** Component Details */
-            component_details: {
-                [key: string]: components["schemas"]["ComponentDetail"];
-            };
-            summary: components["schemas"]["HierarchySummary"];
-        };
-        /**
-         * SolutionHierarchyResponse
-         * @description Envelope for the component-hierarchy route.
-         *
-         *     Declaring this is what makes ``openapi-typescript`` generate a response
-         *     type for the route. Without it the endpoint returned a bare ``dict``, the
-         *     generated schema said nothing, and the frontend filled the gap with a
-         *     hand-written type that was wrong.
-         *
-         *     ``response_model`` filters undeclared fields, so this model is frozen
-         *     against a golden capture in
-         *     ``tests/api/test_supply_tree_hierarchy_contract.py``.
-         * @example {
-         *       "data": {},
-         *       "message": "Operation completed successfully",
-         *       "metadata": {},
-         *       "request_id": "req_123456789",
-         *       "status": "success",
-         *       "timestamp": "2024-01-01T12:00:00Z"
-         *     }
-         */
-        SolutionHierarchyResponse: {
-            /**
-             * @description Success status
-             * @default success
-             */
-            status: components["schemas"]["APIStatus"];
-            /**
-             * Message
-             * @description Human-readable response message
-             */
-            message: string;
-            /**
-             * Timestamp
-             * Format: date-time
-             * @description Response timestamp
-             */
-            timestamp?: string;
-            /**
-             * Request Id
-             * @description Request identifier if provided
-             */
-            request_id?: string | null;
-            data: components["schemas"]["SolutionHierarchyData"];
-            /**
-             * Metadata
-             * @description Additional response metadata
-             */
-            metadata?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /**
-         * SolutionListData
-         * @description The ``data`` payload of the solutions listing.
-         */
-        SolutionListData: {
-            /** Result */
-            result: components["schemas"]["SolutionListRow"][];
-        };
-        /**
-         * SolutionListResponse
-         * @description Envelope for ``GET /api/supply-tree/solutions``.
-         * @example {
-         *       "data": {},
-         *       "message": "Operation completed successfully",
-         *       "metadata": {},
-         *       "request_id": "req_123456789",
-         *       "status": "success",
-         *       "timestamp": "2024-01-01T12:00:00Z"
-         *     }
-         */
-        SolutionListResponse: {
-            /**
-             * @description Success status
-             * @default success
-             */
-            status: components["schemas"]["APIStatus"];
-            /**
-             * Message
-             * @description Human-readable response message
-             */
-            message: string;
-            /**
-             * Timestamp
-             * Format: date-time
-             * @description Response timestamp
-             */
-            timestamp?: string;
-            /**
-             * Request Id
-             * @description Request identifier if provided
-             */
-            request_id?: string | null;
-            data: components["schemas"]["SolutionListData"];
-            /**
-             * Metadata
-             * @description Additional response metadata
-             */
-            metadata?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /**
-         * SolutionListRow
-         * @description One row of the solutions listing.
-         *
-         *     Every field is optional because every field is read with ``.get()`` from a
-         *     sidecar metadata object that predates most of them. A solution written
-         *     before ``okh_title`` existed has no ``okh_title``, and declaring it
-         *     required would turn one legacy row into a 500 for the whole listing.
-         */
-        SolutionListRow: {
-            /** Id */
-            id?: string | null;
-            /** Okh Id */
-            okh_id?: string | null;
-            /** Okh Title */
-            okh_title?: string | null;
-            /** Facility Name */
-            facility_name?: string | null;
-            /** Matching Mode */
-            matching_mode?: string | null;
-            /** Tree Count */
-            tree_count?: number | null;
-            /** Component Count */
-            component_count?: number | null;
-            /** Facility Count */
-            facility_count?: number | null;
-            /** Score */
-            score?: number | null;
-            /** Created At */
-            created_at?: string | null;
-            /** Updated At */
-            updated_at?: string | null;
-            /** Expires At */
-            expires_at?: string | null;
-            /** Ttl Days */
-            ttl_days?: number | null;
-            /**
-             * Tags
-             * @default []
-             */
-            tags: string[];
-            /** Last Modified */
-            last_modified?: string | null;
-            /** Age Days */
-            age_days?: number | null;
-        };
-        /**
-         * SolutionLoadRequest
-         * @description Request model for loading a supply tree solution from multiple sources
-         * @example {
-         *       "solution_id": "12345678-1234-1234-1234-123456789012",
-         *       "source": "storage"
-         *     }
-         */
-        SolutionLoadRequest: {
-            /**
-             * Request Id
-             * @description Unique request identifier for tracking
-             */
-            request_id?: string | null;
-            /**
-             * Client Info
-             * @description Client information and context
-             */
-            client_info?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Quality Level
-             * @description Quality level: hobby, professional, or medical
-             * @default professional
-             */
-            quality_level: string | null;
-            /**
-             * Strict Mode
-             * @description Enable strict validation mode
-             * @default false
-             */
-            strict_mode: boolean | null;
-            /**
-             * Source
-             * @description Source type: 'storage', 'file', or 'inline'
-             */
-            source: string;
-            /**
-             * Solution Id
-             * @description Solution ID (required if source='storage')
-             */
-            solution_id?: string | null;
-            /**
-             * File Path
-             * @description Path to local solution file (required if source='file')
-             */
-            file_path?: string | null;
-            /**
-             * Solution
-             * @description Inline solution data (required if source='inline')
-             */
-            solution?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /**
-         * SolutionStalenessData
-         * @description Whether a saved solution has gone stale, and how old it is.
-         */
-        SolutionStalenessData: {
-            /** Is Stale */
-            is_stale: boolean;
-            /** Staleness Reason */
-            staleness_reason?: string | null;
-            /** Age Days */
-            age_days?: number | null;
-            /** Solution Id */
-            solution_id: string;
-        };
-        /**
-         * SolutionStalenessResponse
-         * @description Envelope for ``GET /api/supply-tree/solution/{id}/staleness``.
-         * @example {
-         *       "data": {},
-         *       "message": "Operation completed successfully",
-         *       "metadata": {},
-         *       "request_id": "req_123456789",
-         *       "status": "success",
-         *       "timestamp": "2024-01-01T12:00:00Z"
-         *     }
-         */
-        SolutionStalenessResponse: {
-            /**
-             * @description Success status
-             * @default success
-             */
-            status: components["schemas"]["APIStatus"];
-            /**
-             * Message
-             * @description Human-readable response message
-             */
-            message: string;
-            /**
-             * Timestamp
-             * Format: date-time
-             * @description Response timestamp
-             */
-            timestamp?: string;
-            /**
-             * Request Id
-             * @description Request identifier if provided
-             */
-            request_id?: string | null;
-            data: components["schemas"]["SolutionStalenessData"];
-            /**
-             * Metadata
-             * @description Additional response metadata
-             */
-            metadata?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /**
-         * SolutionValidationResult
-         * @description Validation attached to a nested solution.
-         */
-        SolutionValidationResult: {
-            /** Is Valid */
-            is_valid: boolean;
-            /**
-             * Errors
-             * @default []
-             */
-            errors: string[];
-            /**
-             * Warnings
-             * @default []
-             */
-            warnings: string[];
-            /**
-             * Unmatched Components
-             * @default []
-             */
-            unmatched_components: string[];
-            /**
-             * Circular Dependencies
-             * @default []
-             */
-            circular_dependencies: string[][];
-            /**
-             * Missing Dependencies
-             * @default []
-             */
-            missing_dependencies: string[];
-        };
-        /**
-         * SolutionVisualizationResponse
-         * @description Envelope for ``GET /api/supply-tree/solution/{id}/visualization``.
-         * @example {
-         *       "data": {},
-         *       "message": "Operation completed successfully",
-         *       "metadata": {},
-         *       "request_id": "req_123456789",
-         *       "status": "success",
-         *       "timestamp": "2024-01-01T12:00:00Z"
-         *     }
-         */
-        SolutionVisualizationResponse: {
-            /**
-             * @description Success status
-             * @default success
-             */
-            status: components["schemas"]["APIStatus"];
-            /**
-             * Message
-             * @description Human-readable response message
-             */
-            message: string;
-            /**
-             * Timestamp
-             * Format: date-time
-             * @description Response timestamp
-             */
-            timestamp?: string;
-            /**
-             * Request Id
-             * @description Request identifier if provided
-             */
-            request_id?: string | null;
-            data: components["schemas"]["VisualizationBundleData"];
-            /**
-             * Metadata
-             * @description Additional response metadata
-             */
-            metadata?: {
-                [key: string]: unknown;
-            } | null;
         };
         /** SourcingResolutionItemResponse */
         SourcingResolutionItemResponse: {
@@ -11834,192 +10607,6 @@ export interface components {
             metadata?: {
                 [key: string]: unknown;
             } | null;
-        };
-        /**
-         * SupplyTreeCreateRequest
-         * @description Consolidated supply tree creation request with standardized fields and LLM support
-         * @example {
-         *       "capabilities_used": [
-         *         "soldering",
-         *         "assembly",
-         *         "testing"
-         *       ],
-         *       "confidence_score": 0.8,
-         *       "estimated_cost": 1000,
-         *       "estimated_time": "2 weeks",
-         *       "facility_id": "12345678-1234-1234-1234-123456789012",
-         *       "facility_name": "Electronics Manufacturing Facility",
-         *       "llm_model": "claude-sonnet-4-5",
-         *       "llm_provider": "anthropic",
-         *       "match_type": "direct",
-         *       "materials_required": [
-         *         "copper",
-         *         "plastic",
-         *         "silicon"
-         *       ],
-         *       "metadata": {
-         *         "project": "IoT Sensor Node"
-         *       },
-         *       "okh_reference": "electronics-manufacturing",
-         *       "quality_level": "professional",
-         *       "strict_mode": false,
-         *       "use_llm": true
-         *     }
-         */
-        SupplyTreeCreateRequest: {
-            /**
-             * Use Llm
-             * @description Enable LLM processing for this request
-             * @default false
-             */
-            use_llm: boolean | null;
-            /**
-             * Llm Provider
-             * @description Specific LLM provider to use
-             */
-            llm_provider?: string | null;
-            /**
-             * Llm Model
-             * @description Specific LLM model to use
-             */
-            llm_model?: string | null;
-            /**
-             * Llm Temperature
-             * @description LLM temperature setting
-             */
-            llm_temperature?: number | null;
-            /**
-             * Llm Max Tokens
-             * @description Maximum tokens for LLM response
-             */
-            llm_max_tokens?: number | null;
-            /**
-             * Request Id
-             * @description Unique request identifier for tracking
-             */
-            request_id?: string | null;
-            /**
-             * Client Info
-             * @description Client information and context
-             */
-            client_info?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Quality Level
-             * @description Quality level: hobby, professional, or medical
-             * @default professional
-             */
-            quality_level: string | null;
-            /**
-             * Strict Mode
-             * @description Enable strict validation mode
-             * @default false
-             */
-            strict_mode: boolean | null;
-            /**
-             * Facility Id
-             * Format: uuid
-             */
-            facility_id: string;
-            /** Facility Name */
-            facility_name: string;
-            /** Okh Reference */
-            okh_reference: string;
-            /** Confidence Score */
-            confidence_score: number;
-            /** Estimated Cost */
-            estimated_cost?: number | null;
-            /** Estimated Time */
-            estimated_time?: string | null;
-            /** Materials Required */
-            materials_required?: string[];
-            /** Capabilities Used */
-            capabilities_used?: string[];
-            /**
-             * Match Type
-             * @default unknown
-             */
-            match_type: string;
-            /** Metadata */
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
-        /**
-         * SupplyTreeOptimizeRequest
-         * @description Request model for optimizing a supply tree
-         * @example {
-         *       "criteria": {
-         *         "priority": "cost",
-         *         "weights": {
-         *           "cost": 0.5,
-         *           "quality": 0.2,
-         *           "time": 0.3
-         *         }
-         *       }
-         *     }
-         */
-        SupplyTreeOptimizeRequest: {
-            /**
-             * Request Id
-             * @description Unique request identifier for tracking
-             */
-            request_id?: string | null;
-            /**
-             * Client Info
-             * @description Client information and context
-             */
-            client_info?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Quality Level
-             * @description Quality level: hobby, professional, or medical
-             * @default professional
-             */
-            quality_level: string | null;
-            /**
-             * Strict Mode
-             * @description Enable strict validation mode
-             * @default false
-             */
-            strict_mode: boolean | null;
-            /**
-             * Criteria
-             * @description Optimization criteria with priority and weights
-             */
-            criteria: {
-                [key: string]: unknown;
-            };
-        };
-        /**
-         * SupplyTreeValidateRequest
-         * @description Request model for validating a supply tree
-         */
-        SupplyTreeValidateRequest: {
-            /** Okh Reference */
-            okh_reference?: string | null;
-            /** Okw References */
-            okw_references?: string[] | null;
-            /**
-             * Domain
-             * @description Domain for validation (e.g., 'manufacturing', 'cooking')
-             * @default manufacturing
-             */
-            domain: string | null;
-            /**
-             * Quality Level
-             * @description Quality level: hobby, professional, or medical
-             * @default professional
-             */
-            quality_level: string | null;
-            /**
-             * Strict Mode
-             * @description Enable strict validation mode
-             * @default false
-             */
-            strict_mode: boolean | null;
         };
         /**
          * SyncDigest
@@ -12450,163 +11037,6 @@ export interface components {
              */
             id: string;
             visibility: components["schemas"]["VisibilityLevel"];
-        };
-        /**
-         * VisualizationArtifacts
-         * @description What else can be fetched for this solution, and from where.
-         */
-        VisualizationArtifacts: {
-            /** Graphml Endpoint */
-            graphml_endpoint: string;
-            /** Json Bundle */
-            json_bundle: boolean;
-            /** Html Report */
-            html_report: boolean;
-        };
-        /**
-         * VisualizationBundleData
-         * @description The ``data`` payload of the visualization-bundle route.
-         */
-        VisualizationBundleData: {
-            /** Schema Version */
-            schema_version: string;
-            /** Source Type */
-            source_type: string;
-            /** Generated At */
-            generated_at: string;
-            matching: components["schemas"]["VisualizationMatching"];
-            supply_tree: components["schemas"]["VisualizationSupplyTree"];
-            network: components["schemas"]["VisualizationNetwork"];
-            dashboard: components["schemas"]["VisualizationDashboard"];
-            artifacts: components["schemas"]["VisualizationArtifacts"];
-        };
-        /**
-         * VisualizationDashboard
-         * @description Dashboard block of the bundle.
-         */
-        VisualizationDashboard: {
-            kpis: components["schemas"]["VisualizationKPIs"];
-        };
-        /**
-         * VisualizationEdge
-         * @description A relationship between two trees.
-         *
-         *     Only nested solutions produce these — an edge exists where a tree has a
-         *     parent or a dependency — so the golden for this shape comes from a nested
-         *     fixture rather than from a match.
-         */
-        VisualizationEdge: {
-            /** Source */
-            source: string;
-            /** Target */
-            target: string;
-            /** Type */
-            type: string;
-        };
-        /**
-         * VisualizationKPIs
-         * @description The four counters the dashboard shows above the graph.
-         */
-        VisualizationKPIs: {
-            /** Tree Count */
-            tree_count: number;
-            /** Edge Count */
-            edge_count: number;
-            /** Stage Count */
-            stage_count: number;
-            /** Solution Score */
-            solution_score: number;
-        };
-        /**
-         * VisualizationMatching
-         * @description Matching context carried alongside the graph.
-         */
-        VisualizationMatching: {
-            overview: components["schemas"]["VisualizationMatchingOverview"];
-        };
-        /**
-         * VisualizationMatchingOverview
-         * @description How the solution was arrived at.
-         */
-        VisualizationMatchingOverview: {
-            /** Matching Mode */
-            matching_mode: string;
-            /** Score */
-            score: number;
-            /** Tree Count */
-            tree_count: number;
-        };
-        /**
-         * VisualizationNetwork
-         * @description Facility-level view of the solution.
-         */
-        VisualizationNetwork: {
-            /** Facility Distribution */
-            facility_distribution: components["schemas"]["FacilityDistributionEntry"][];
-            route_hints: components["schemas"]["VisualizationRouteHints"];
-        };
-        /**
-         * VisualizationNode
-         * @description One tree, as a node in the visualization graph.
-         */
-        VisualizationNode: {
-            /** Id */
-            id: string;
-            /** Label */
-            label: string;
-            /** Component Id */
-            component_id?: string | null;
-            /** Facility Name */
-            facility_name?: string | null;
-            /** Depth */
-            depth: number;
-            /** Production Stage */
-            production_stage: string;
-            /** Confidence Score */
-            confidence_score: number;
-            /** Estimated Cost */
-            estimated_cost?: number | null;
-            /** Estimated Time */
-            estimated_time?: string | null;
-        };
-        /**
-         * VisualizationResourceCost
-         * @description Roll-up of cost and time across the solution.
-         */
-        VisualizationResourceCost: {
-            /** Total Estimated Cost */
-            total_estimated_cost?: number | null;
-            /** Total Estimated Time */
-            total_estimated_time?: string | null;
-        };
-        /**
-         * VisualizationRouteHints
-         * @description Placeholder for transport routing, which the contract does not carry.
-         */
-        VisualizationRouteHints: {
-            /** Status */
-            status: string;
-            /** Note */
-            note: string;
-        };
-        /**
-         * VisualizationSupplyTree
-         * @description The graph itself: nodes, edges and the orderings derived from them.
-         */
-        VisualizationSupplyTree: {
-            /** Solution Id */
-            solution_id: string;
-            /** Nodes */
-            nodes: components["schemas"]["VisualizationNode"][];
-            /** Edges */
-            edges: components["schemas"]["VisualizationEdge"][];
-            /** Dependency Graph */
-            dependency_graph: {
-                [key: string]: string[];
-            };
-            /** Production Sequence */
-            production_sequence: string[][];
-            resource_cost: components["schemas"]["VisualizationResourceCost"];
         };
         /**
          * WipeReportData
@@ -16454,28 +14884,15 @@ export interface operations {
             };
         };
     };
-    create_supply_tree_api_supply_tree_create_post: {
+    _removed_api_supply_tree_solutions_get: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SupplyTreeCreateRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -16504,47 +14921,26 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Removed in #498 */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
         };
     };
-    list_supply_tree_solutions_api_supply_tree_solutions_get: {
+    _removed_api_supply_tree_solutions_cleanup_post: {
         parameters: {
-            query?: {
-                /** @description Maximum number of solutions to return */
-                limit?: number | null;
-                /** @description Number of solutions to skip */
-                offset?: number | null;
-                /** @description Filter by OKH ID */
-                okh_id?: string | null;
-                /** @description Filter by matching mode */
-                matching_mode?: string | null;
-                /** @description Field to sort by */
-                sort_by?: string;
-                /** @description Sort order (asc/desc) */
-                sort_order?: string;
-                /** @description Filter by minimum age in days */
-                min_age_days?: number | null;
-                /** @description Filter by maximum age in days */
-                max_age_days?: number | null;
-                /** @description Include stale solutions */
-                include_stale?: boolean;
-                /** @description Only return stale solutions */
-                only_stale?: boolean;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SolutionListResponse"];
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -16573,347 +14969,26 @@ export interface operations {
                 };
                 content?: never;
             };
-        };
-    };
-    get_supply_tree_solution_api_supply_tree_solution__solution_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Removed in #498 */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SolutionDetailResponse"];
+                    "application/json": unknown;
                 };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
-    delete_supply_tree_solution_api_supply_tree_solution__solution_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SolutionDeleteResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_solution_staleness_api_supply_tree_solution__solution_id__staleness_get: {
-        parameters: {
-            query?: {
-                /** @description Optional maximum age in days for staleness check */
-                max_age_days?: number | null;
-            };
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SolutionStalenessResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    cleanup_stale_solutions_api_supply_tree_solutions_cleanup_post: {
+    _removed_api_supply_tree_solution__solution_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CleanupStaleSolutionsRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    extend_solution_ttl_api_supply_tree_solution__solution_id__extend_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["ExtendSolutionTTLRequest"] | null;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SolutionExtendResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    save_supply_tree_solution_api_supply_tree_solution__solution_id__save_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Body_save_supply_tree_solution_api_supply_tree_solution__solution_id__save_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_solution_summary_api_supply_tree_solution__solution_id__summary_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID (for storage loading) */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -16942,23 +15017,56 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Removed in #498 */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
         };
     };
-    load_supply_tree_solution_api_supply_tree_solution_load_post: {
+    _removed_api_supply_tree_solution__solution_id__delete: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SolutionLoadRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Removed in #498 */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16966,708 +15074,17 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
-    get_solution_trees_api_supply_tree_solution__solution_id__trees_get: {
-        parameters: {
-            query?: {
-                /** @description Filter by component ID */
-                component_id?: string | null;
-                /** @description Filter by component name */
-                component_name?: string | null;
-                /** @description Filter by facility name */
-                facility_name?: string | null;
-                /** @description Filter by OKW reference (facility ID) */
-                okw_reference?: string | null;
-                /** @description Filter by exact depth */
-                depth?: number | null;
-                /** @description Filter by minimum depth */
-                min_depth?: number | null;
-                /** @description Filter by maximum depth */
-                max_depth?: number | null;
-                /** @description Filter by minimum confidence score */
-                min_confidence?: number | null;
-                /** @description Filter by production stage */
-                production_stage?: string | null;
-                /** @description Maximum number of trees to return */
-                limit?: number | null;
-                /** @description Number of trees to skip */
-                offset?: number | null;
-                /** @description Field to sort by (confidence_score, depth, facility_name) */
-                sort_by?: string | null;
-                /** @description Sort order (asc/desc) */
-                sort_order?: string;
-            };
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_component_trees_api_supply_tree_solution__solution_id__component__component_id__get: {
+    _removed_api_supply_tree_solution__solution_id__save_post: {
         parameters: {
             query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-                /** @description Component ID */
-                component_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_facility_trees_api_supply_tree_solution__solution_id__facility__facility_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-                /** @description Facility ID (okw_reference or facility_name) */
-                facility_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    export_supply_tree_solution_api_supply_tree_solution__solution_id__export_get: {
-        parameters: {
-            query?: {
-                /** @description Export format (json, xml, graphml) */
-                format?: string;
-            };
-            header?: never;
-            path: {
-                /** @description Solution ID (for storage loading) */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_solution_dependencies_api_supply_tree_solution__solution_id__dependencies_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_solution_production_sequence_api_supply_tree_solution__solution_id__production_sequence_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_solution_visualization_bundle_api_supply_tree_solution__solution_id__visualization_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SolutionVisualizationResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_solution_visualization_report_api_supply_tree_solution__solution_id__report_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_solution_hierarchy_api_supply_tree_solution__solution_id__hierarchy_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Solution ID */
-                solution_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SolutionHierarchyResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_supply_tree_api_supply_tree__id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_supply_tree_api_supply_tree__id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SupplyTreeCreateRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_supply_tree_api_supply_tree__id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_supply_trees_api_supply_tree_get: {
-        parameters: {
-            query?: {
-                /** @description Filter criteria */
-                filter?: string | null;
-                page?: number;
-                page_size?: number;
-                sort_by?: string | null;
-                sort_order?: string | null;
-            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -17696,25 +15113,8 @@ export interface operations {
                 };
                 content?: never;
             };
-        };
-    };
-    validate_supply_tree_api_supply_tree__id__validate_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["SupplyTreeValidateRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Removed in #498 */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -17722,113 +15122,17 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
-    optimize_supply_tree_api_supply_tree__id__optimize_post: {
+    _removed_api_supply_tree_solution__solution_id__extend_post: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SupplyTreeOptimizeRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    export_supply_tree_api_supply_tree__id__export_get: {
-        parameters: {
-            query?: {
-                /** @description Export format (json, xml, graphml) */
-                format?: string;
-            };
-            header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -17856,6 +15160,159 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Removed in #498 */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    _removed_api_supply_tree_solution__solution_id__staleness_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Removed in #498 */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    _removed_api_supply_tree_solution__solution_id__hierarchy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Removed in #498 */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    _removed_api_supply_tree_solution__solution_id__visualization_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Removed in #498 */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
         };
     };

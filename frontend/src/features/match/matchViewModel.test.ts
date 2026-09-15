@@ -51,11 +51,12 @@ describe("toMatchView", () => {
     expect(view.totalSolutions).toBe(3);
   });
 
-  it("surfaces per-solution tree ids and the persisted solution id", () => {
+  it("surfaces per-solution tree ids", () => {
+    // The persisted solution id went with #498: nothing is stored, so there is
+    // no id to surface. `treeId` identifies a tree within the response and is
+    // still used to key selection.
     const view = toMatchView(raw);
     expect(view.solutions.map((s) => s.treeId)).toEqual(["t-a", null, "t-b"]);
-    expect(view.solutionId).toBe("sol-123");
-    expect(toMatchView({ data: { solutions: [] } }).solutionId).toBeNull();
   });
 
   it("handles an empty/no-match response", () => {
@@ -82,6 +83,74 @@ describe("toRfqSolutions", () => {
     expect(rfq[0].facility_id).toBe("a");
     expect(rfq[0].tree.id).toBe("t-a");
     expect(rfq[0].facility.contact?.website).toBe("https://example.org");
+  });
+
+  /** Just enough of the OKW record to assert what RFQ actually reads. */
+  type FacilityRecord = {
+    name?: string;
+    location?: { city: string; country: string };
+    contact?: {
+      contact_person?: string;
+      website?: string;
+      contact?: { email?: string };
+    };
+  };
+
+  // #501: the payload used to be synthesised — `location: {city:"",country:""}`
+  // and no contact — so every generated RFQ read "Location not specified" and
+  // named a facility with no way to reach it. The full OKW record was in the
+  // match response the whole time. These assert it is carried, not rebuilt.
+  const withFacility = {
+    data: {
+      solutions: [
+        {
+          facility_name: "Bristol Fab Lab",
+          facility_id: "f1",
+          confidence: 0.9,
+          rank: 1,
+          tree: { id: "t-f1" },
+          facility: {
+            id: "f1",
+            name: "Bristol Fab Lab",
+            location: { city: "Bristol", country: "UK" },
+            contact: {
+              contact_person: "Ada Okafor",
+              contact: { email: "ada@example.org" },
+            },
+          },
+        },
+      ],
+    },
+  };
+
+  it("carries the facility the API returned, contact details and all", () => {
+    const view = toMatchView(withFacility);
+    const [solution] = toRfqSolutions(view.solutions);
+    const facility = solution.facility as unknown as FacilityRecord;
+    expect(facility.location).toEqual({ city: "Bristol", country: "UK" });
+    expect(facility.contact?.contact_person).toBe("Ada Okafor");
+    expect(facility.contact?.contact?.email).toBe("ada@example.org");
+  });
+
+  it("fills a known network URL only when the facility lacks one", () => {
+    const view = toMatchView(withFacility);
+    const [solution] = toRfqSolutions(view.solutions, {
+      f1: "https://mom.example",
+    });
+    const facility = solution.facility as unknown as FacilityRecord;
+    expect(facility.contact?.website).toBe("https://mom.example");
+    // and does not trample what the record already said
+    expect(facility.contact?.contact_person).toBe("Ada Okafor");
+  });
+
+  it("still produces a payload when the solution carries no facility", () => {
+    // Calibration: the assertions above must be detecting carried data rather
+    // than passing because every path returns something shaped like a facility.
+    const view = toMatchView(raw);
+    const [solution] = toRfqSolutions([view.solutions[0]]);
+    const facility = solution.facility as unknown as FacilityRecord;
+    expect(facility.name).toBe("A");
+    expect(facility.location).toBeUndefined();
   });
 });
 

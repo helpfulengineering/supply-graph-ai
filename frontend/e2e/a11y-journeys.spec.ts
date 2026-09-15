@@ -15,7 +15,6 @@ const ROUTES = [
   "/match",
   "/packages",
   "/packages/demo/widget/1.0.0",
-  "/solutions",
   "/assets",
   "/assets/11111111-1111-4111-8111-111111111111",
   "/assets/11111111-1111-4111-8111-111111111111/triage",

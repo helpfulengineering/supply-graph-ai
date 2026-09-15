@@ -84,7 +84,6 @@ class StorageOrganizer:
             "okh/": ".gitkeep",
             "okw/": ".gitkeep",
             "packages/": ".gitkeep",
-            "supply-trees/": ".gitkeep",
         }
 
         created_dirs = []
@@ -248,47 +247,12 @@ class StorageOrganizer:
         logger.info(f"Stored OKW facility at: {path}")
         return path
 
-    async def store_supply_tree(
-        self, tree_data: Dict[str, Any], tree_id: Optional[str] = None
-    ) -> str:
-        """Store a supply tree in the organized structure"""
-        if not tree_id:
-            tree_id = tree_data.get("id", str(uuid4()))
-
-        # Generate organized path (simplified structure: no subdirectories)
-        path = f"supply-trees/{tree_id}.json"
-
-        # Store with metadata
-        data = json.dumps(tree_data).encode("utf-8")
-        status = tree_data.get("status", "generated")
-        metadata = await self.storage_manager.put_object(
-            key=path,
-            data=data,
-            content_type="application/json",
-            metadata=_sanitize_metadata_for_blob(
-                {
-                    "file-type": "supply-tree",
-                    "domain": "supply-tree",
-                    "id": tree_id,
-                    "status": status,
-                    "created_at": datetime.now().isoformat(),
-                }
-            ),
-        )
-
-        logger.info(f"Stored supply tree at: {path}")
-        return path
-
-    # Note: Subdirectory helper methods removed - using simplified structure
-    # Files are stored directly in okh/manifests/, okw/facilities/, and supply-trees/
-
     async def get_storage_structure(self) -> Dict[str, Any]:
         """Get the current storage structure"""
         # Simplified structure: no subdirectories
         structure = {
             "okh": {"manifests": []},
             "okw": {"facilities": []},
-            "supply-trees": [],
         }
 
         try:

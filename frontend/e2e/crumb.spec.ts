@@ -25,8 +25,6 @@ const ROUTES = [
   "/match",
   "/rfq",
   "/help",
-  "/visualization/sol-1",
-  "/solutions",
   "/packages",
   "/icons",
   "/assets",
@@ -52,8 +50,6 @@ const MIN_LINKS: Record<string, number> = {
   "/match": 2,
   "/rfq": 1,
   "/help": 3,
-  "/visualization/sol-1": 3,
-  "/solutions": 3,
   "/packages": 1,
   "/icons": 2,
   // "triage" is text: it names an aspect, and there are as many triage
@@ -68,12 +64,12 @@ const MIN_LINKS: Record<string, number> = {
 /**
  * Wait until the tab order has stopped changing.
  *
- * /visualization loads its graph and chart through `next/dynamic`, so focusable
- * controls appear after first paint. Tabbing while that happens made the crumb
- * test flaky in the full run and green on its own: focus advanced past the
- * target as the document grew underneath it, and the bounded loop ran out. The
- * property under test is the tab order, so the tab order has to be settled
- * before it is walked.
+ * Some routes load controls through `next/dynamic`, so focusable elements
+ * appear after first paint. Tabbing while that happens made the crumb test
+ * flaky in the full run and green on its own: focus advanced past the target as
+ * the document grew underneath it, and the bounded loop ran out. The property
+ * under test is the tab order, so the tab order has to be settled before it is
+ * walked.
  */
 async function settle(page: import("@playwright/test").Page) {
   await page.locator("#main").waitFor({ state: "visible" });

@@ -45,6 +45,9 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
         ("POST", "/api/convert/to-datasheet"),
         ("POST", "/api/package/download-zip"),
         ("GET", "/api/package/{org}/{project}/{version}/download"),
+        # A CSV or JSON *file* with a Content-Disposition, not a JSON envelope.
+        # Same category as the four above: there is no body to describe (#498).
+        ("POST", "/api/match/export/contacts"),
         # Cannot be typed as one model: /metrics returns four different shapes
         # depending on its parameters — a Prometheus text body, per-endpoint
         # metrics, a summary, or a detailed breakdown. A single response_model

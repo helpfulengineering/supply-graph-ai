@@ -106,12 +106,16 @@ test("matching a single-source design yields exactly one solution", async ({
   await expect(run).toBeEnabled();
   await run.click();
 
-  await expect(page.locator('a[href*="/visualization/"]')).toHaveCount(1, {
+  // Was a count of supply-tree links, one per result. #498 removed those, so
+  // the same property is read off the result summary the view renders.
+  await expect(page.getByText(/\b1 solution\b/)).toBeVisible({
     timeout: 30_000,
   });
 });
 
-test("a match carries through to a rendered supply tree", async ({ page }) => {
+test("a match carries through to an exported contact list", async ({ page }) => {
+  // The journey that replaced the supply-tree explorer (#498): a match result
+  // leaves OHM as contacts, because the coordination happens elsewhere.
   await page.goto("/match");
   await page.getByText("Bias Tape Maker", { exact: true }).first().click();
   await page
@@ -123,23 +127,17 @@ test("a match carries through to a rendered supply tree", async ({ page }) => {
     .first()
     .click();
 
-  const tree = page.locator('a[href*="/visualization/"]').first();
-  await expect(tree).toBeVisible({ timeout: 30_000 });
+  const selectAll = page.getByRole("button", { name: /^select all$/i });
+  await expect(selectAll).toBeEnabled({ timeout: 30_000 });
+  await selectAll.click();
 
-  // Follow the link rather than re-reading its href and navigating: the match
-  // result list re-renders as solutions settle, so a href captured a moment
-  // earlier can belong to a detached element by the time it is used.
-  await tree.click();
-  await page.waitForURL(/\/visualization\//, { timeout: 30_000 });
-
-  await expect(page.getByRole("heading", { name: /supply tree/i })).toBeVisible(
-    {
-      timeout: 30_000,
-    },
-  );
-  // The graph (cytoscape) and the facility chart (echarts) both draw to canvas;
-  // their presence is what proves the client-only boundaries actually mounted.
-  await expect(page.locator("canvas").first()).toBeVisible({ timeout: 30_000 });
+  // The download is the assertion: a button that renders but hands back
+  // nothing would pass every visibility check and fail the user.
+  const [download] = await Promise.all([
+    page.waitForEvent("download", { timeout: 30_000 }),
+    page.getByRole("button", { name: /export contacts/i }).click(),
+  ]);
+  expect(download.suggestedFilename()).toMatch(/^contacts-.*\.csv$/);
 });
 
 test("seeded facilities appear on the network surface", async ({ page }) => {

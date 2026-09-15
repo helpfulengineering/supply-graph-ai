@@ -12,6 +12,7 @@ const solution: RankedSolution = {
   rank: 1,
   explanation: "✓ FabLab Drome MATCHED\nAll requirements satisfied.",
   treeId: "tree-1",
+  facility: null,
   coverage: null,
 };
 
@@ -25,7 +26,6 @@ function renderCard(
       selected={false}
       onToggle={onToggle}
       selectionKey="okw-1"
-      solutionId="sol-1"
       {...props}
     />,
   );
@@ -48,16 +48,11 @@ describe("MatchResultCard", () => {
   // /supply-tree/solution/{id}/visualization, which only accepts a SOLUTION id,
   // so every "View supply tree" link 404'd. Verified against production: a tree
   // id returns 404 where the solution id returns 200.
-  it("links by solution id, not tree id", () => {
+  // #498 removed the supply-tree link. It addressed a stored solution by id,
+  // and solutions are no longer stored — a card is a result you act on now, by
+  // selecting it for export or an RFQ.
+  it("offers no supply-tree link", () => {
     renderCard();
-    expect(
-      screen.getByRole("link", { name: /view supply tree/i }),
-    ).toHaveAttribute("href", "/visualization/sol-1");
-  });
-
-  it("offers no link when the match was not persisted", () => {
-    // Inline manifests are deliberately unsaved, so there is nothing to load.
-    renderCard({ solutionId: null });
     expect(
       screen.queryByRole("link", { name: /view supply tree/i }),
     ).toBeNull();

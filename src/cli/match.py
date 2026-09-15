@@ -178,27 +178,6 @@ def match_group() -> None:
 )
 @click.option("--output", "-o", help="Output file path")
 @click.option(
-    "--save-solution",
-    "save_solution",
-    is_flag=True,
-    default=False,
-    help="Automatically save the solution to storage. Returns solution_id in output.",
-)
-@click.option(
-    "--solution-ttl-days",
-    "solution_ttl_days",
-    type=int,
-    default=None,
-    help="Time-to-live in days for saved solution (default: 30). Only used if --save-solution is set.",
-)
-@click.option(
-    "--solution-tags",
-    "solution_tags",
-    type=str,
-    default=None,
-    help="Comma-separated tags to apply to saved solution. Only used if --save-solution is set.",
-)
-@click.option(
     "--explain",
     "include_explanation",
     is_flag=True,
@@ -327,9 +306,6 @@ async def requirements(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-    save_solution: bool = False,
-    solution_ttl_days: Optional[int] = None,
-    solution_tags: Optional[str] = None,
     include_explanation: bool = False,
     include_human_summary: bool = False,
     human_summary_profile: str = "balanced",
@@ -422,16 +398,6 @@ async def requirements(
             "combination_strategy": combination_strategy,
             "return_alternative_solutions": not no_alternative_solutions,
         }
-
-        # Add solution storage parameters if requested
-        if save_solution:
-            nested_params["save_solution"] = True
-            if solution_ttl_days:
-                nested_params["solution_ttl_days"] = solution_ttl_days
-            if solution_tags:
-                nested_params["solution_tags"] = [
-                    tag.strip() for tag in solution_tags.split(",")
-                ]
 
         # Create request data based on domain and input type
         if detected_domain == "manufacturing":
@@ -648,48 +614,6 @@ async def requirements(
                         max(solutions, key=lambda s: s.score) if solutions else None
                     )
 
-                    # Save solution if requested
-                    solution_id = None
-                    if save_solution and best_solution:
-                        try:
-                            from ..config.storage_config import (
-                                get_default_storage_config,
-                            )
-                            from ..core.services.storage_service import StorageService
-
-                            storage_service = await StorageService.get_instance()
-                            await storage_service.configure(
-                                get_default_storage_config()
-                            )
-
-                            # Parse tags if provided
-                            tags_list = None
-                            if solution_tags:
-                                tags_list = [
-                                    tag.strip() for tag in solution_tags.split(",")
-                                ]
-
-                            # Use default TTL of 30 days if not provided
-                            ttl_days = (
-                                solution_ttl_days
-                                if solution_ttl_days is not None
-                                else 30
-                            )
-                            solution_id = (
-                                await storage_service.save_supply_tree_solution(
-                                    best_solution,
-                                    ttl_days=ttl_days,
-                                    tags=tags_list,
-                                )
-                            )
-                            cli_ctx.log(
-                                f"Solution saved to storage with ID: {solution_id}",
-                                "info",
-                            )
-                        except Exception as e:
-                            cli_ctx.log(f"Failed to save solution: {str(e)}", "warning")
-                            # Continue without failing the match
-
                     # Convert to response format matching API
                     solutions_list = sorted(
                         solutions, key=lambda s: s.score, reverse=True
@@ -716,8 +640,6 @@ async def requirements(
                             ),
                             "detailed": [],
                         }
-                    if solution_id:
-                        result["solution_id"] = str(solution_id)
                     if include_explanation:
                         await _attach_explanations_to_solutions(
                             result,
@@ -752,67 +674,6 @@ async def requirements(
                         )[:max_results]
 
                     # Save solution if requested (save best solution for single-level)
-                    solution_id = None
-                    if save_solution and results_list:
-                        try:
-                            from ..config.storage_config import (
-                                get_default_storage_config,
-                            )
-                            from ..core.models.supply_trees import (
-                                SupplyTree,
-                                SupplyTreeSolution,
-                            )
-                            from ..core.services.storage_service import StorageService
-
-                            storage_service = await StorageService.get_instance()
-                            await storage_service.configure(
-                                get_default_storage_config()
-                            )
-
-                            # Convert best result to SupplyTreeSolution
-                            best_result = results_list[0]  # Already sorted by score
-                            tree = SupplyTree.from_dict(best_result.to_dict())
-
-                            solution = SupplyTreeSolution(
-                                all_trees=[tree],
-                                score=best_result.score,
-                                metadata={
-                                    "okh_id": (
-                                        str(manifest.id)
-                                        if hasattr(manifest, "id")
-                                        else None
-                                    ),
-                                    "matching_mode": MATCH_MODE_SINGLE_LEVEL,
-                                },
-                            )
-
-                            # Parse tags if provided
-                            tags_list = None
-                            if solution_tags:
-                                tags_list = [
-                                    tag.strip() for tag in solution_tags.split(",")
-                                ]
-
-                            # Use default TTL of 30 days if not provided
-                            ttl_days = (
-                                solution_ttl_days
-                                if solution_ttl_days is not None
-                                else 30
-                            )
-                            solution_id = (
-                                await storage_service.save_supply_tree_solution(
-                                    solution,
-                                    ttl_days=ttl_days,
-                                    tags=tags_list,
-                                )
-                            )
-                            cli_ctx.log(
-                                f"Solution saved to storage with ID: {solution_id}",
-                                "info",
-                            )
-                        except Exception as e:
-                            cli_ctx.log(f"Failed to save solution: {str(e)}", "warning")
-                            # Continue without failing the match
 
                     if results_list:
                         solution_dicts = [r.to_dict() for r in results_list]
@@ -833,8 +694,6 @@ async def requirements(
                                 ),
                                 "detailed": [],
                             }
-                        if solution_id:
-                            result["solution_id"] = str(solution_id)
                         if include_explanation:
                             await _attach_explanations_to_solutions(
                                 result,
@@ -1844,11 +1703,6 @@ async def _display_match_results(
     # Handle both old format (matches) and new format (solutions)
     solutions = result.get("solutions", result.get("matches", []))
     total_solutions = result.get("total_solutions", len(solutions))
-
-    # Check if solution was saved (from API response or fallback)
-    solution_id = result.get("solution_id")
-    if solution_id:
-        cli_ctx.log(f"✓ Solution saved to storage with ID: {solution_id}", "success")
 
     if total_solutions == 0:
         cli_ctx.log("No matching facilities found", "warning")

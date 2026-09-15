@@ -12,7 +12,6 @@ Four, established with a `.gitkeep` placeholder each:
 okh/            designs
 okw/            facilities
 packages/       built packages
-supply-trees/   saved match solutions
 ```
 
 No structure is enforced beneath them. OHM searches recursively from each root,
@@ -72,11 +71,10 @@ and "nothing done" look identical otherwise:
 ✅ Storage is ready.
 Provider: local
 Location: /home/you/ohm-data
-Already present (4):
+Already present (3):
   - okh/
   - okw/
   - packages/
-  - supply-trees/
 Nothing to do — storage was already set up.
 ```
 
@@ -91,9 +89,9 @@ Nothing to do — storage was already set up.
   "bucket": "/home/you/ohm-data",
   "storage_location": "/home/you/ohm-data",
   "verified": true,
-  "prefixes_found": ["okh/", "okw/", "packages/", "supply-trees/"],
+  "prefixes_found": ["okh/", "okw/", "packages/"],
   "prefixes_created": [],
-  "total_found": 4,
+  "total_found": 3,
   "total_created": 0
 }
 ```

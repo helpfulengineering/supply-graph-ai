@@ -107,25 +107,29 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     # caller sent. Requiring a write permission to reformat your own data would
     # be theatre (#498).
     ("POST", "/v1/api/match/export/contacts"): "none",
-    # Loads a solution from storage, a file, or the request body and returns it.
-    # `_load_solution_from_source` only ever loads — verified against the
-    # handler, not inferred (#484).
-    #
-    # These three rows are PROVISIONAL. Their twins are open rather than scoped,
-    # which #496 tracks: only GET /solutions consults a viewer, while every
-    # per-solution read is unscoped. When #496 scopes the twins these must be
-    # scoped in the same commit, as happened for assets in #493, or they stop
-    # being reads and become holes.
-    ("POST", "/v1/api/supply-tree/solution/load"): (
-        "GET /v1/api/supply-tree/solution/{solution_id} (unscoped; #496)"
-    ),
-    ("POST", "/v1/api/supply-tree/{id}/validate"): (
-        "GET /v1/api/supply-tree/{id} (unscoped; #496)"
-    ),
-    ("POST", "/v1/api/supply-tree/{id}/optimize"): (
-        "GET /v1/api/supply-tree/{id} (unscoped; #496)"
-    ),
 }
+
+#: Routes that were removed and answer **501** to say so, rather than 404.
+#:
+#: A tombstone is neither a read nor a write: it reaches no storage, returns no
+#: data, and does nothing a credential could authorize. Requiring one would be
+#: ceremony on a route whose entire body raises.
+#:
+#: Unlike the other two lists, this one is **verified rather than trusted** —
+#: ``test_removed_routes_actually_answer_501`` checks each declared route really
+#: is a 501, so a row cannot quietly outlive the removal it records or be added
+#: to a live route to dodge the gate.
+REMOVED_ANSWERING_501: frozenset[tuple[str, str]] = frozenset(
+    {
+        # #498: saved supply-tree solutions stopped being durable objects. Kept
+        # as 501 because each had an in-repo caller; #499 deletes them once the
+        # access logs show whether anything outside still calls them.
+        ("POST", "/v1/api/supply-tree/solutions/cleanup"),
+        ("DELETE", "/v1/api/supply-tree/solution/{solution_id}"),
+        ("POST", "/v1/api/supply-tree/solution/{solution_id}/save"),
+        ("POST", "/v1/api/supply-tree/solution/{solution_id}/extend"),
+    }
+)
 
 #: Mutating routes that authorize nothing today. Every row is a debt, tracked by
 #: #478 and #344 and their per-surface split (#483-#487).
@@ -178,7 +182,10 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
 
 #: Every route allowed to authorize nothing, for whatever reason.
 DECLARED = (
-    UNAUTHENTICATED_DEBT | set(ANONYMOUS_BY_DESIGN) | set(READS_EXPRESSED_AS_POST)
+    UNAUTHENTICATED_DEBT
+    | set(ANONYMOUS_BY_DESIGN)
+    | set(READS_EXPRESSED_AS_POST)
+    | REMOVED_ANSWERING_501
 )
 
 
@@ -238,4 +245,22 @@ def test_every_mutating_route_authorizes_or_is_declared() -> None:
         "These routes now authorize but are still declared as unauthenticated.\n"
         "Delete their rows — the list shrinks as the work lands:\n"
         f"{_format(fixed)}"
+    )
+
+
+def test_removed_routes_actually_answer_501() -> None:
+    """A tombstone row must name a route that is really a tombstone.
+
+    The other declarations are claims a reader has to take on trust. This one
+    is checkable, so it is checked: a row that outlived its removal, or one
+    added to a working route to get past the gate, fails here.
+    """
+    by_key = {(method, path): route for method, path, route in _mutating_routes(app)}
+    not_removed = {
+        key
+        for key in REMOVED_ANSWERING_501
+        if key not in by_key or by_key[key].status_code != 501
+    }
+    assert not not_removed, (
+        "Declared as removed, but not answering 501:\n" f"{_format(not_removed)}"
     )

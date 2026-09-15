@@ -3,7 +3,6 @@
 export interface MatchRequest {
   okh_id: string;
   max_results?: number;
-  save_solution?: boolean;
   solution_tags?: string[];
   solution_ttl_days?: number;
   include_human_summary?: boolean;
@@ -141,7 +140,6 @@ export interface MatchResponseData {
   suggestions: string[];
   suggestion_codes: string[];
   human_summary?: HumanSummary;
-  solution_id?: string;
 }
 
 export interface MatchResponse {

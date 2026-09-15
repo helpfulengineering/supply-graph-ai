@@ -215,14 +215,14 @@ describe("the demo world is the seeded world", () => {
     expect((detail.body as { id: string }).id).toBe("not-in-the-world");
   });
 
-  it("answers a supply tree for whichever solution a match produced", () => {
-    for (const id of ["sol-1", "sol-99"]) {
-      const viz = resolveDemoRoute(
-        "GET",
-        `/v1/api/supply-tree/solution/${id}/visualization`,
-      );
-      expect(viz.kind, id).toBe("json");
-    }
+  it("answers the contact export, because it is a download not a body", () => {
+    // #498 replaced the supply-tree surfaces with an export. The demo has to
+    // answer it or the one journey that leaves OHM is unexercised.
+    const csv = resolveDemoRoute("POST", "/v1/api/match/export/contacts");
+    // Narrow rather than cast: `kind` is the discriminant, and asserting it
+    // first is what makes `body` exist at all.
+    if (csv.kind !== "json") throw new Error(`expected a body, got ${csv.kind}`);
+    expect(String(csv.body)).toContain("facility_name,location");
   });
 
   it("answers the POSTs that are queries, so match and validation work", () => {

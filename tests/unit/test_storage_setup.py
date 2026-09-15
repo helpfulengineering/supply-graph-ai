@@ -25,7 +25,9 @@ from src.core.storage.base import StorageConfig
 
 pytestmark = pytest.mark.asyncio
 
-PREFIXES = {"okh/", "okw/", "packages/", "supply-trees/"}
+# supply-trees/ was created on every boot for a writer that had no callers even
+# before #498 removed saved solutions. Setup now creates only what is written to.
+PREFIXES = {"okh/", "okw/", "packages/"}
 
 
 @pytest.fixture

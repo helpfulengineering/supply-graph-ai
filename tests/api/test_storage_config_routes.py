@@ -205,7 +205,6 @@ async def test_a_good_configuration_is_committed_and_persisted(monkeypatch, tmp_
         "okh/",
         "okw/",
         "packages/",
-        "supply-trees/",
     ]
     assert data["previous_bucket"] == str(before)
 

@@ -41,10 +41,8 @@ test("running a match shows ranked results, summary, and coverage gaps (mocked)"
   await expect(page.getByText(/confidence 95%/)).toBeVisible();
   await expect(page.getByText(/2 candidate solutions found/)).toBeVisible();
   await expect(page.getByText(/CNC Machining/)).toBeVisible();
-  // Each solution links to its own supply tree.
-  await expect(
-    page.getByRole("link", { name: /view supply tree/i }).first(),
-  ).toBeVisible();
+  // #498 removed the per-result supply-tree link: a result is acted on now, not
+  // filed. Selecting facilities offers the two exits — export and RFQ.
   await page.getByRole("checkbox", { name: /select fablab drome/i }).check();
   await page
     .getByRole("checkbox", { name: /select community makerspace/i })
@@ -52,6 +50,9 @@ test("running a match shows ranked results, summary, and coverage gaps (mocked)"
   await expect(page.getByText(/2 selected/i)).toBeVisible();
   await expect(
     page.getByRole("button", { name: /contact selected facilities/i }),
+  ).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: /export contacts/i }),
   ).toBeEnabled();
 });
 
