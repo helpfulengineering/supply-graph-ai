@@ -66,14 +66,33 @@ ANONYMOUS_BY_DESIGN: dict[tuple[str, str], str] = {
     ("POST", "/v1/api/identity/recover"): "credential recovery",
 }
 
+#: Reads that happen to use a mutating method, because the query needs a body.
+#:
+#: Distinct from ``ANONYMOUS_BY_DESIGN``, which is for routes that must *never*
+#: authenticate. These simply are not writes, and a write permission on a read
+#: would be theatre: the same data is already reachable through a public ``GET``
+#: on the same surface. Each row names that ``GET``, so the claim is checkable.
+#:
+#: A row here asserts two things, both verified against the handler rather than
+#: inferred from the route name: that nothing is persisted, and that the
+#: equivalent read is public. If that ``GET`` ever gains a guard, the row is
+#: wrong and must move.
+#:
+#: What governs *reads* is scope, not authentication —
+#: ``test_viewer_scope_ratchet.py``. It covers ``okh_service`` and
+#: ``okw_service`` only, so a surface outside those two has nothing watching
+#: the breadth of what it returns.
+READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
+    # Reads every asset through AssetService.list() and persists nothing. The
+    # same records are served by GET /v1/api/asset, which is public and
+    # unscoped — AssetService has no visibility plane at all (#483).
+    ("POST", "/v1/api/asset/salvage-match"): "GET /v1/api/asset",
+}
+
+#: Mutating routes that authorize nothing today. Every row is a debt, tracked by
+#: #478 and #344 and their per-surface split (#483-#487).
 UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
     {
-        ("POST", "/v1/api/asset/"),
-        ("POST", "/v1/api/asset/salvage-match"),
-        ("DELETE", "/v1/api/asset/{id}"),
-        ("PUT", "/v1/api/asset/{id}"),
-        ("POST", "/v1/api/asset/{id}/claim-component"),
-        ("POST", "/v1/api/asset/{id}/triage"),
         ("POST", "/v1/api/convert/from-datasheet"),
         ("POST", "/v1/api/convert/from-okh-losh"),
         ("POST", "/v1/api/convert/to-datasheet"),
@@ -130,7 +149,9 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
 )
 
 #: Every route allowed to authorize nothing, for whatever reason.
-DECLARED = UNAUTHENTICATED_DEBT | set(ANONYMOUS_BY_DESIGN)
+DECLARED = (
+    UNAUTHENTICATED_DEBT | set(ANONYMOUS_BY_DESIGN) | set(READS_EXPRESSED_AS_POST)
+)
 
 
 def _dependency_qualnames(dependant) -> set[str]:

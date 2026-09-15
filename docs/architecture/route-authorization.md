@@ -36,9 +36,29 @@ each row cites the source that says so. There are four, in two groups:
   node, and because the credential recovery returns is the one the caller lost.
   These are gated by `SecurityPolicy.open_registration`, not by a key.
 
+**`READS_EXPRESSED_AS_POST`** is for routes that use a mutating method only
+because the query needs a body. They are not writes, and a write permission on a
+read would be theatre: the same data is already reachable through a public `GET`
+on the same surface. Each row **names that `GET`**, so the claim is checkable
+rather than asserted. `POST /v1/api/asset/salvage-match` is the first — it reads
+every asset through `AssetService.list()`, persists nothing, and returns what
+`GET /v1/api/asset` already serves to anyone.
+
+A row here makes two claims, and both must be verified against the handler rather
+than inferred from the route name: that nothing is persisted, and that the
+equivalent read is public. If that `GET` ever gains a guard, the row is wrong and
+must move.
+
+What governs *reads* is scope rather than authentication —
+`test_viewer_scope_ratchet.py`. Be aware it covers `okh_service` and
+`okw_service` only, so a surface outside those two has nothing watching the
+breadth of what it returns. Assets are such a surface: `AssetService` has no
+visibility plane at all.
+
 **`UNAUTHENTICATED_DEBT`** is everything else that authorizes nothing today. A
-row there is a debt, tracked by #478 and #344. **Adding a row to make a build
-pass is the failure this gate exists to prevent.**
+row there is a debt, tracked by #478, #344 and the per-surface split
+(#483–#487). **Adding a row to make a build pass is the failure this gate exists
+to prevent.**
 
 ## The procedure for removing a row
 
@@ -48,10 +68,13 @@ computation as well as for writes, so some rows are stateless request/response
 endpoints that need no credential. Read the handler. Do not infer it from the
 route name.
 
-**2. If it does not persist, it still does not simply move lists.**
-`ANONYMOUS_BY_DESIGN` is for routes that must *never* authenticate, not for
-routes that merely need not. A stateless endpoint that takes an optional
-credential for attribution is better served by an auth dependency than by a row.
+**2. If it does not persist, find out whether the equivalent read is public.**
+If it is, the route belongs in `READS_EXPRESSED_AS_POST` with that `GET` named.
+If it is *not* — the read is guarded but the POST-shaped twin is not — then the
+route is a hole rather than a read, and it needs the same guard its twin has.
+
+`ANONYMOUS_BY_DESIGN` is not the destination for either case. It is for routes
+that must *never* authenticate, not for routes that merely need not.
 
 **3. If it writes, give it a dependency.** `require_write` for ordinary
 mutations, `require_admin` for operator surfaces, `require_admin_strict` for
