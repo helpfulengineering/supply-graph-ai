@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Badge } from "../../components/ui/Badge";
 import { CHECKBOX } from "../../components/ui/field";
 import { PANEL, PANEL_ACCENT } from "../../components/ui/surface";
@@ -15,22 +14,15 @@ export function MatchResultCard({
   selected,
   onToggle,
   selectionKey,
-  solutionId,
 }: {
   solution: RankedSolution;
   selected: boolean;
   onToggle: () => void;
   selectionKey: string;
   /** Persisted solution id — the only id the visualization endpoint accepts. */
-  solutionId: string | null;
 }) {
   const token = confidenceToken(solution.confidence);
   const firstLine = solution.explanation?.split("\n")[0]?.trim() ?? null;
-  // Link by SOLUTION id, not tree id. The route loads
-  // /supply-tree/solution/{id}/visualization, which only accepts a solution id,
-  // so linking by tree id 404'd on every card. The solution now carries every
-  // result's tree, so this page shows the clicked facility among them.
-  const treeHref = solutionId ? `/visualization/${solutionId}` : null;
 
   return (
     <div className={selected ? PANEL_ACCENT : PANEL}>
@@ -78,16 +70,6 @@ export function MatchResultCard({
               </span>
             </div>
           </div>
-          {treeHref && (
-            <div className="mt-3">
-              <Link
-                href={treeHref}
-                className="text-sm font-medium text-primary-ink hover:underline"
-              >
-                View supply tree →
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </div>

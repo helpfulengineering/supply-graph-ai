@@ -5,11 +5,8 @@ import { ALL_GROUPS } from "./nav";
 /**
  * Routes a chord would lead somewhere useless, named rather than skipped.
  *
- * Bare /visualization is a redirect to /solutions, which has its own chord —
- * two keys for one destination is a worse contract than one.
- *
- * /operator-tools is the harder case, and the reason it is a list rather than
- * a shorter spread of nav groups. The route is conditional: it 404s unless the
+ * /operator-tools is the case this list exists for, and the reason it is a list
+ * rather than a shorter spread of nav groups. The route is conditional: it 404s unless the
  * instance runs the site layer, and the drawer hides its row to match. This
  * table is static, so a chord for it would be a key that lands on a 404 for
  * most deployments — and /help, which lists only the unconditional groups,

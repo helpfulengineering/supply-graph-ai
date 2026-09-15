@@ -51,7 +51,6 @@ const BASELINE_FILES = [
   "e2e/screenshots.spec.ts",
   "e2e/settings.spec.ts",
   "e2e/smoke.spec.ts",
-  "e2e/visualization.spec.ts",
 ];
 
 function hash(relPath: string): string {

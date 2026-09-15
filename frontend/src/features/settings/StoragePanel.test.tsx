@@ -73,7 +73,7 @@ describe("StoragePanel", () => {
     );
 
     expect(await screen.findByRole("status")).toHaveTextContent(
-      /Created okh\/, okw\/, packages\/, supply-trees\//,
+      /Created okh\/, okw\/, packages\//,
     );
     // Where the data it left behind went is part of the outcome.
     expect(screen.getByRole("status")).toHaveTextContent(/untouched/);

@@ -126,3 +126,261 @@ async def test_generate_rfq_cooking_domain_falls_back_without_explanation():
     doc = resp.json()["data"]["rfqs"][0]
     assert "Match confidence: 42%" in doc["text"]
     assert "Match rank:       #2" in doc["text"]
+
+
+# --- The contact block, which is the point of the document (#501) ----------
+
+_FULL_CONTACT_FACILITY = {
+    "name": "Bristol Fab Lab",
+    "location": {"city": "Bristol", "country": "United Kingdom"},
+    "contact": {
+        "name": "Bristol Makers CIC",
+        "contact_person": "Ada Okafor",
+        "website": "https://bristolfablab.example",
+        "mailing_list": "makers@bristolfablab.example",
+        "contact": {
+            "email": "ada@bristolfablab.example",
+            "landline": "+44 117 000 0000",
+            "mobile": "+44 7700 900000",
+            "whatsapp": "+44 7700 900001",
+        },
+    },
+}
+
+
+async def _rfq_text(facility: dict) -> str:
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution(facility=facility)],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/generate", json=payload)
+    assert resp.status_code == 200, resp.text
+    return resp.json()["data"]["rfqs"][0]["text"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_rfq_carries_every_way_to_reach_the_facility():
+    """An RFQ exists to be sent to someone, so it must say how to reach them.
+
+    Email was absent until #501: the contact block read `landline` and `mobile`
+    and skipped `email`, `whatsapp` and `mailing_list`, so the channel most
+    people would answer on was missing from a document addressed to them.
+    """
+    text = await _rfq_text(_FULL_CONTACT_FACILITY)
+    assert "Email:        ada@bristolfablab.example" in text
+    assert "WhatsApp:     +44 7700 900001" in text
+    assert "Mailing list: makers@bristolfablab.example" in text
+    assert "Contact:      Ada Okafor" in text
+    assert "Organisation: Bristol Makers CIC" in text
+    assert "Phone:        +44 117 000 0000" in text
+    assert "Mobile:       +44 7700 900000" in text
+    assert "Location:     Bristol, United Kingdom" in text
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_a_facility_with_no_contact_details_still_renders():
+    """Calibration: the assertions above detect content, not a template constant.
+
+    Without this a block that hard-coded every label would satisfy them.
+    """
+    text = await _rfq_text({"name": "Quiet Lab"})
+    assert "Manufacturing Quotation Request" in text
+    assert "Email:" not in text
+    assert "Location:     Location not specified" in text
+
+
+# --- The bundle: an email a workshop can actually answer (#498) -------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_bundle_returns_one_document_per_facility():
+    """The zip is what gets attached to an email, so its shape is the contract."""
+    import io
+    import zipfile
+
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Open Source Ventilator",
+        "quantity": 25,
+        "solutions": [
+            _solution(facility_id="f1", facility_name="Bristol Fab Lab"),
+            _solution(facility_id="f2", facility_name="Rotterdam Precision Works"),
+        ],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/bundle", json=payload)
+
+    assert resp.status_code == 200, resp.text
+    assert resp.headers["content-type"] == "application/zip"
+    assert "rfq-open-source-ventilator-" in resp.headers["content-disposition"]
+
+    names = zipfile.ZipFile(io.BytesIO(resp.content)).namelist()
+    assert len(names) == 2, names
+    assert any("bristol-fab-lab" in n for n in names)
+    assert any("rotterdam-precision-works" in n for n in names)
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_bundle_names_the_package_it_encloses():
+    """The RFQ must name the file actually in the zip, not one someone hoped for.
+
+    Patched at the resolver rather than building a real package: the property
+    under test is that the rendered text and the archive agree, and a genuine
+    build would prove that no better while taking a network round trip per
+    asset.
+    """
+    import io
+    import zipfile
+    from unittest.mock import AsyncMock, patch
+
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution()],
+    }
+    transport = httpx.ASGITransport(app=app)
+    with patch(
+        "src.core.api.routes.rfq._resolve_design_package",
+        new=AsyncMock(return_value=(b"tarball-bytes", "acme-widget-1.0.0.tar.gz")),
+    ):
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.post("/v1/api/rfq/bundle", json=payload)
+
+    assert resp.status_code == 200, resp.text
+    archive = zipfile.ZipFile(io.BytesIO(resp.content))
+    assert "acme-widget-1.0.0.tar.gz" in archive.namelist()
+    rfq_text = next(
+        archive.read(n).decode() for n in archive.namelist() if n.endswith(".txt")
+    )
+    assert "Attached:     acme-widget-1.0.0.tar.gz" in rfq_text
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_bundle_without_a_package_still_sends_the_documents():
+    """Calibration, and the degradation that matters.
+
+    Without this the test above would pass against a bundle that always
+    attached something. It also pins the behaviour: the RFQs are the part that
+    cannot be reconstructed by hand, so a missing package must not cost them.
+    """
+    import io
+    import zipfile
+
+    app = _get_app()
+    payload = {
+        "okh_id": "not-a-manifest-id",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution()],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/bundle", json=payload)
+
+    assert resp.status_code == 200, resp.text
+    archive = zipfile.ZipFile(io.BytesIO(resp.content))
+    assert all(n.endswith(".txt") for n in archive.namelist())
+    text = archive.read(archive.namelist()[0]).decode()
+    assert "The design package is sent alongside this request." in text
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_the_rfq_never_tells_the_reader_to_call_an_api():
+    """The recipient is a workshop that has never heard of OHM.
+
+    This is the property the redesign exists for, so it is asserted directly
+    rather than inferred from the section that used to break it.
+    """
+    text = await _rfq_text(_FULL_CONTACT_FACILITY)
+    assert "/v1/api/" not in text
+    assert "POST " not in text
+    assert "GET  " not in text
+
+
+# --- Who may assemble a bundle is an operator's decision --------------------
+
+
+async def _bundle_status(monkeypatch, **env) -> int:
+    """POST the bundle with no credential, under the given environment."""
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution()],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/bundle", json=payload)
+    return resp.status_code
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_bundle_needs_a_write_key_by_default(monkeypatch):
+    """Secure by default: assembling a bundle can build and store a package."""
+    assert await _bundle_status(monkeypatch) == 401
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_an_operator_can_open_the_bundle_to_anyone(monkeypatch):
+    """The other posture, and the control for the test above.
+
+    Each of these is the other's calibration: together they show the status is
+    following the setting rather than being fixed by the route. The only thing
+    a bundle creates is a design package — which may already exist and is cheap
+    to rebuild — so an operator who wants outreach to be a public act can say
+    so, deliberately, once.
+    """
+    assert await _bundle_status(monkeypatch, RFQ_BUNDLE_REQUIRE_AUTH="false") == 200
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_generate_never_needed_a_key_either_way(monkeypatch):
+    """Opening the bundle changes nothing for the preview, which only formats."""
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
+    app = _get_app()
+    payload = {
+        "okh_id": "okh-1",
+        "okh_title": "Widget",
+        "quantity": 1,
+        "solutions": [_solution()],
+    }
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        resp = await client.post("/v1/api/rfq/generate", json=payload)
+    assert resp.status_code == 200, resp.text

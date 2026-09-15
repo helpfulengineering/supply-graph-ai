@@ -47,6 +47,16 @@ AUTH_DEPENDENCY_QUALNAMES = frozenset(
         "require_permission.<locals>.dependency",
         "require_admin_strict",
         "get_current_user",
+        # Conditional guards count. `require_permission` is itself conditional
+        # — it no-ops when SecurityPolicy relaxes writes — so "authorizes" has
+        # never meant "always refuses". What matters is that the route made a
+        # decision rather than having no guard at all.
+        #
+        # `require_write_unless_public` lets an operator open one route to
+        # uncredentialed callers, and still resolves the caller when they do,
+        # so work stays attributable. It composes `require_write` rather than
+        # reimplementing it.
+        "require_write_unless_public.<locals>.dependency",
     }
 )
 
@@ -74,14 +84,24 @@ ANONYMOUS_BY_DESIGN: dict[tuple[str, str], str] = {
 #: the claim is checkable rather than asserted.
 #:
 #: A row asserts two things, both verified against the handler rather than
-#: inferred from the route name: that nothing is persisted, and that the route
-#: is under **the same access control as that ``GET``**. Public-and-public is
-#: fine; scoped-and-identically-scoped is fine. A guarded ``GET`` beside an
-#: unguarded twin is not a read, it is a hole, and needs the guard its twin has.
+#: inferred from the route name: that **nothing is persisted**, and that the
+#: route **discloses nothing the caller is not already entitled to**. Two shapes
+#: satisfy the second, and the row's value says which:
 #:
-#: The definition started as "the equivalent GET is public", which #493 showed
-#: was too narrow: scoping ``GET /v1/api/asset`` did not turn its POST twin into
-#: a hole, because the twin was scoped in the same commit.
+#: * *a named ``GET``* — the same data is served by that route under the same
+#:   access control. Public-and-public is fine; scoped-and-identically-scoped is
+#:   fine. A guarded ``GET`` beside an unguarded twin is not a read, it is a
+#:   hole, and needs the guard its twin has.
+#: * *``none``* — the route is a pure function of its request body. It reads no
+#:   storage at all, so it can only hand back a rearrangement of what the caller
+#:   already had.
+#:
+#: The definition has been widened twice by real cases, both times because it
+#: was too narrow rather than too loose. It started as "the equivalent GET is
+#: public", which #493 broke: scoping ``GET /v1/api/asset`` did not turn its
+#: POST twin into a hole, because the twin was scoped in the same commit. It
+#: then required *some* equivalent GET, which #498 broke: a pure formatter has
+#: no server-side data to have a twin for.
 #:
 #: What governs *reads* is scope, not authentication —
 #: ``test_viewer_scope_ratchet.py``. It covers ``okh_service`` and
@@ -91,25 +111,35 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     # Reads through AssetService.list(viewer=...) and persists nothing. Scoped
     # to the caller's own assets, identically to GET /v1/api/asset (#493).
     ("POST", "/v1/api/asset/salvage-match"): "GET /v1/api/asset",
-    # Loads a solution from storage, a file, or the request body and returns it.
-    # `_load_solution_from_source` only ever loads — verified against the
-    # handler, not inferred (#484).
-    #
-    # These three rows are PROVISIONAL. Their twins are open rather than scoped,
-    # which #496 tracks: only GET /solutions consults a viewer, while every
-    # per-solution read is unscoped. When #496 scopes the twins these must be
-    # scoped in the same commit, as happened for assets in #493, or they stop
-    # being reads and become holes.
-    ("POST", "/v1/api/supply-tree/solution/load"): (
-        "GET /v1/api/supply-tree/solution/{solution_id} (unscoped; #496)"
-    ),
-    ("POST", "/v1/api/supply-tree/{id}/validate"): (
-        "GET /v1/api/supply-tree/{id} (unscoped; #496)"
-    ),
-    ("POST", "/v1/api/supply-tree/{id}/optimize"): (
-        "GET /v1/api/supply-tree/{id} (unscoped; #496)"
-    ),
+    # A pure formatter: takes selected match results in the body and returns
+    # them as CSV or JSON. Reads no storage — verified, contact_export.py has
+    # no imports from it — so it can only return a rearrangement of what the
+    # caller sent. Requiring a write permission to reformat your own data would
+    # be theatre (#498).
+    ("POST", "/v1/api/match/export/contacts"): "none",
 }
+
+#: Routes that were removed and answer **501** to say so, rather than 404.
+#:
+#: A tombstone is neither a read nor a write: it reaches no storage, returns no
+#: data, and does nothing a credential could authorize. Requiring one would be
+#: ceremony on a route whose entire body raises.
+#:
+#: Unlike the other two lists, this one is **verified rather than trusted** —
+#: ``test_removed_routes_actually_answer_501`` checks each declared route really
+#: is a 501, so a row cannot quietly outlive the removal it records or be added
+#: to a live route to dodge the gate.
+REMOVED_ANSWERING_501: frozenset[tuple[str, str]] = frozenset(
+    {
+        # #498: saved supply-tree solutions stopped being durable objects. Kept
+        # as 501 because each had an in-repo caller; #499 deletes them once the
+        # access logs show whether anything outside still calls them.
+        ("POST", "/v1/api/supply-tree/solutions/cleanup"),
+        ("DELETE", "/v1/api/supply-tree/solution/{solution_id}"),
+        ("POST", "/v1/api/supply-tree/solution/{solution_id}/save"),
+        ("POST", "/v1/api/supply-tree/solution/{solution_id}/extend"),
+    }
+)
 
 #: Mutating routes that authorize nothing today. Every row is a debt, tracked by
 #: #478 and #344 and their per-surface split (#483-#487).
@@ -162,7 +192,10 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
 
 #: Every route allowed to authorize nothing, for whatever reason.
 DECLARED = (
-    UNAUTHENTICATED_DEBT | set(ANONYMOUS_BY_DESIGN) | set(READS_EXPRESSED_AS_POST)
+    UNAUTHENTICATED_DEBT
+    | set(ANONYMOUS_BY_DESIGN)
+    | set(READS_EXPRESSED_AS_POST)
+    | REMOVED_ANSWERING_501
 )
 
 
@@ -222,4 +255,22 @@ def test_every_mutating_route_authorizes_or_is_declared() -> None:
         "These routes now authorize but are still declared as unauthenticated.\n"
         "Delete their rows — the list shrinks as the work lands:\n"
         f"{_format(fixed)}"
+    )
+
+
+def test_removed_routes_actually_answer_501() -> None:
+    """A tombstone row must name a route that is really a tombstone.
+
+    The other declarations are claims a reader has to take on trust. This one
+    is checkable, so it is checked: a row that outlived its removal, or one
+    added to a working route to get past the gate, fails here.
+    """
+    by_key = {(method, path): route for method, path, route in _mutating_routes(app)}
+    not_removed = {
+        key
+        for key in REMOVED_ANSWERING_501
+        if key not in by_key or by_key[key].status_code != 501
+    }
+    assert not not_removed, (
+        "Declared as removed, but not answering 501:\n" f"{_format(not_removed)}"
     )

@@ -9,13 +9,22 @@ logic is adapted from demo/rfq_generator.py to work with the current
 match response payload shape (facility.location, facility.contact, tree.*).
 """
 
+import io
+import re
 import uuid
+import zipfile
+from pathlib import Path
+from uuid import UUID
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel
 
+from src.core.api.dependencies import require_write_unless_public
+from src.core.federation.package_pointer import package_dir_to_archive_bytes
+from src.core.services.contact_export import facility_contact, facility_location
+from src.core.services.package_service import PackageService
 from src.core.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -65,6 +74,21 @@ class RFQGenerateRequest(BaseModel):
     quantity: int = 1
     solutions: List[RFQSolutionInput]
 
+    # Who is asking. Optional, all of it: the RFQ is sent by the requester over
+    # their own email, so the recipient already has a reply-to even when the
+    # document carries none. Naming them here makes the document answerable on
+    # its own — forwarded, printed, or read weeks later — which is what an RFQ
+    # that leaves OHM has to survive.
+    requester_name: Optional[str] = None
+    requester_organisation: Optional[str] = None
+    requester_email: Optional[str] = None
+    response_due: Optional[str] = None
+    # Filename of the design package sent alongside. The RFQ cannot derive it:
+    # packages are named {org}-{project}-{version}, and the RFQ knows only the
+    # design. Naming a file that is not attached is worse than naming none, so
+    # absent means the section says what to attach instead.
+    attachment_name: Optional[str] = None
+
 
 class RFQDocument(BaseModel):
     rfq_number: str
@@ -103,8 +127,8 @@ ISSUED TO:
   Location:     {facility_location}
 {facility_contact_block}
 ISSUED BY:
-  Platform:     Open Hardware Matching (OHM)
-  Design ID:    {okh_id}
+{requester_block}  Design ID:    {okh_id}
+  Prepared with Open Hardware Manager
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -124,14 +148,7 @@ SUBJECT:  Manufacturing Quotation Request — {design_name} ({version})
 3. MATCHED CAPABILITIES
 {matched_capabilities_block}
 4. DESIGN DATA PACKAGE
-  The complete design package (CAD files, Gerber/fabrication outputs,
-  assembly drawings, and documentation) can be obtained via the OHM API:
-
-    Trigger build:  POST /v1/api/package/build/{okh_id}
-    Download:       GET  /v1/api/package/{okh_id}/download
-
-  The full OKH manifest is included in the JSON export of this RFQ.
-
+{attachment_block}
 5. QUOTATION REQUIREMENTS
   Please provide a response that includes all applicable items:
   · Unit price and total price for the quantity above
@@ -143,7 +160,7 @@ SUBJECT:  Manufacturing Quotation Request — {design_name} ({version})
   · Quality documentation: inspection plan, first-article report (FAI)
   · Any capability constraints, substitutions, or design-for-manufacture notes
   · Minimum order quantity (MOQ) if applicable
-
+{response_to_block}
 6. TERMS & CONDITIONS
   · This RFQ does not constitute a purchase order or commitment to buy.
   · All submitted pricing and technical information will be treated as
@@ -162,33 +179,44 @@ def _rfq_number() -> str:
 
 
 def _extract_location(facility: Dict[str, Any]) -> str:
-    loc = facility.get("location", {})
-    parts = [
-        loc.get("city") or "",
-        loc.get("country") or "",
-    ]
-    result = ", ".join(p for p in parts if p)
-    return result or "Location not specified"
+    """City and country, shared with the contact export (#501)."""
+    return facility_location(facility)
+
+
+#: Label for each contact field, in the order an RFQ should offer them.
+#:
+#: Email first among the channels: this document exists to be sent to the
+#: facility, and email is how most people would answer it. It was missing
+#: entirely until #501 — the block read ``landline`` and ``mobile`` and
+#: skipped ``email``, ``whatsapp`` and ``mailing_list``, so the most useful
+#: way to reach someone was absent from a document addressed to them.
+_CONTACT_LABELS: tuple[tuple[str, str], ...] = (
+    ("contact_person", "Contact"),
+    ("organisation", "Organisation"),
+    ("email", "Email"),
+    ("phone", "Phone"),
+    ("mobile", "Mobile"),
+    ("whatsapp", "WhatsApp"),
+    ("website", "Website"),
+    ("mailing_list", "Mailing list"),
+)
 
 
 def _extract_contact_block(facility: Dict[str, Any]) -> str:
-    """Return a formatted contact block (indented, trailing newline) or empty string."""
-    contact = facility.get("contact", {})
-    if not contact:
-        return ""
-    lines: List[str] = []
-    if contact.get("contact_person"):
-        lines.append(f"  Contact:      {contact['contact_person']}")
-    if contact.get("name"):
-        lines.append(f"  Organisation: {contact['name']}")
-    if contact.get("website"):
-        lines.append(f"  Website:      {contact['website']}")
-    nested = contact.get("contact", {})
-    if isinstance(nested, dict):
-        if nested.get("landline"):
-            lines.append(f"  Phone:        {nested['landline']}")
-        if nested.get("mobile"):
-            lines.append(f"  Mobile:       {nested['mobile']}")
+    """Return a formatted contact block (indented, trailing newline), or empty.
+
+    Extraction is :func:`facility_contact`, shared with the contact export, so
+    OKW's two-deep nesting — ``facility.contact`` is an Agent and
+    ``agent.contact`` is a Contact — is navigated in exactly one place.
+    Navigating it here as well is how this block came to omit ``email`` while
+    the export carried it.
+    """
+    found = facility_contact(facility)
+    lines = [
+        f"  {label + ':':<14}{found[key]}"
+        for key, label in _CONTACT_LABELS
+        if found.get(key)
+    ]
     return ("\n".join(lines) + "\n") if lines else ""
 
 
@@ -332,6 +360,69 @@ def _extract_manifest_extras(
     }
 
 
+# ---------------------------------------------------------------------------
+# Blocks that make the document survive leaving OHM
+# ---------------------------------------------------------------------------
+
+
+def _requester_block(request: "RFQGenerateRequest") -> str:
+    """Who is asking, when they said so.
+
+    An RFQ is answered by a human who may have been forwarded it. Without a
+    name the document is a quotation request from nobody; the sender's email
+    address is on the message, but not in the thing that gets printed, filed
+    or passed to whoever actually prices the job.
+    """
+    rows = (
+        ("Requester", request.requester_name),
+        ("Organisation", request.requester_organisation),
+        ("Email", request.requester_email),
+    )
+    lines = [f"  {label + ':':<14}{value}" for label, value in rows if value]
+    return ("\n".join(lines) + "\n") if lines else ""
+
+
+def _attachment_block(request: "RFQGenerateRequest") -> str:
+    """What was sent with this, or what to send.
+
+    This used to print two OHM API calls. That assumes the reader can reach the
+    instance, which is exactly backwards: an RFQ goes to a workshop that has
+    never heard of OHM, over ordinary email. So the design travels as an
+    attachment, and this names it.
+    """
+    contents = (
+        "  Contains the OKH manifest, design and fabrication files, assembly\n"
+        "  documentation, and the bill of materials, as published under the\n"
+        "  license stated above.\n"
+    )
+    if request.attachment_name:
+        return f"  Attached:     {request.attachment_name}\n{contents}"
+    return (
+        "  The design package is sent alongside this request.\n"
+        f"{contents}"
+        "  If it did not arrive, reply and it will be sent again.\n"
+    )
+
+
+def _response_to_block(request: "RFQGenerateRequest") -> str:
+    """Where the quotation goes, and by when.
+
+    Section 5 asked for a response and never said where to send it. Reply-to
+    is the default because that is true whatever else is missing: this arrived
+    as an email from the requester.
+    """
+    lines = []
+    if request.response_due:
+        lines.append(f"  Please respond by {request.response_due}.")
+    if request.requester_email:
+        who = request.requester_name or "the requester"
+        lines.append(f"  Send your quotation to {who} at {request.requester_email},")
+        lines.append("  or simply reply to the message this arrived with.")
+    else:
+        lines.append("  Please reply to the message this request arrived with.")
+    return "\n" + "\n".join(lines) + "\n"
+
+
 def _render_rfq(
     *,
     solution: RFQSolutionInput,
@@ -340,6 +431,7 @@ def _render_rfq(
     okh_function: Optional[str],
     okh_version: Optional[str],
     quantity: int,
+    request: "RFQGenerateRequest",
     okh_manifest: Optional[Dict[str, Any]] = None,
 ) -> str:
     extras = _extract_manifest_extras(okh_manifest, solution)
@@ -365,6 +457,9 @@ def _render_rfq(
         materials_block=extras["materials_block"],
         matched_capabilities_block=extras["matched_capabilities_block"],
         quantity=quantity,
+        requester_block=_requester_block(request),
+        attachment_block=_attachment_block(request),
+        response_to_block=_response_to_block(request),
     )
 
 
@@ -386,8 +481,8 @@ ISSUED TO:
   Location:     {facility_location}
 {facility_contact_block}
 ISSUED BY:
-  Platform:     Open Hardware Matching (OHM)
-  Recipe ID:    {recipe_id}
+{requester_block}  Recipe ID:    {recipe_id}
+  Prepared with Open Hardware Manager
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -410,7 +505,7 @@ SUBJECT:  Kitchen Quotation Request — {recipe_name}
   · Substitutions available for any missing ingredients or equipment noted above
   · Dietary or allergen considerations
   · Minimum order quantity (MOQ) if applicable
-
+{response_to_block}
 5. TERMS & CONDITIONS
   · This RFQ does not constitute a purchase order or commitment to buy.
   · All submitted pricing and details will be treated as confidential unless
@@ -458,6 +553,7 @@ def _render_cooking_rfq(
     recipe_title: str,
     recipe_id: str,
     quantity: int,
+    request: "RFQGenerateRequest",
     recipe: Optional[Dict[str, Any]] = None,
 ) -> str:
     lists = _extract_recipe_lists(recipe)
@@ -476,7 +572,55 @@ def _render_cooking_rfq(
         equipment_list=lists["equipment_list"],
         match_summary_block=_extract_cooking_match_summary(solution),
         quantity=quantity,
+        requester_block=_requester_block(request),
+        response_to_block=_response_to_block(request),
     )
+
+
+def _render_all(request: "RFQGenerateRequest") -> List[Dict[str, Any]]:
+    """Render one RFQ per selected facility.
+
+    Shared by ``/generate`` and ``/bundle`` so the document a caller reads on
+    screen is byte-for-byte the one that lands in the zip.
+    """
+    is_cooking = request.domain == "cooking"
+    rfqs: List[Dict[str, Any]] = []
+    for sol in request.solutions:
+        rfq_num = _rfq_number()
+        if is_cooking:
+            text = _render_cooking_rfq(
+                solution=sol,
+                recipe_title=request.recipe_title or "Unknown recipe",
+                recipe_id=request.recipe_id or "unknown",
+                quantity=request.quantity,
+                request=request,
+                recipe=request.recipe,
+            )
+        else:
+            text = _render_rfq(
+                solution=sol,
+                okh_title=request.okh_title or "Unknown design",
+                okh_id=request.okh_id or "unknown",
+                okh_function=request.okh_function,
+                okh_version=request.okh_version,
+                quantity=request.quantity,
+                request=request,
+                okh_manifest=request.okh_manifest,
+            )
+        rfqs.append(
+            RFQDocument(
+                rfq_number=rfq_num,
+                facility_name=sol.facility_name,
+                facility_id=sol.facility_id,
+                confidence=sol.confidence,
+                rank=sol.rank,
+                quantity=request.quantity,
+                text=text,
+                okh_manifest=None if is_cooking else request.okh_manifest,
+            ).model_dump()
+        )
+
+    return rfqs
 
 
 # ---------------------------------------------------------------------------
@@ -501,39 +645,7 @@ async def generate_rfq(request: RFQGenerateRequest) -> RFQGenerateResponse:
         f"({len(request.solutions)} solution(s), qty={request.quantity})"
     )
 
-    rfqs: List[Dict[str, Any]] = []
-    for sol in request.solutions:
-        rfq_num = _rfq_number()
-        if is_cooking:
-            text = _render_cooking_rfq(
-                solution=sol,
-                recipe_title=request.recipe_title or "Unknown recipe",
-                recipe_id=request.recipe_id or "unknown",
-                quantity=request.quantity,
-                recipe=request.recipe,
-            )
-        else:
-            text = _render_rfq(
-                solution=sol,
-                okh_title=request.okh_title or "Unknown design",
-                okh_id=request.okh_id or "unknown",
-                okh_function=request.okh_function,
-                okh_version=request.okh_version,
-                quantity=request.quantity,
-                okh_manifest=request.okh_manifest,
-            )
-        rfqs.append(
-            RFQDocument(
-                rfq_number=rfq_num,
-                facility_name=sol.facility_name,
-                facility_id=sol.facility_id,
-                confidence=sol.confidence,
-                rank=sol.rank,
-                quantity=request.quantity,
-                text=text,
-                okh_manifest=None if is_cooking else request.okh_manifest,
-            ).model_dump()
-        )
+    rfqs = _render_all(request)
 
     return RFQGenerateResponse(
         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -546,4 +658,125 @@ async def generate_rfq(request: RFQGenerateRequest) -> RFQGenerateResponse:
             "recipe_title": request.recipe_title,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         },
+    )
+
+
+def _bundle_is_public() -> bool:
+    """Whether this instance lets anyone assemble a bundle.
+
+    Read per request, not captured at import, so the answer follows the setting
+    rather than whatever it was when the process started.
+    """
+    from src.config.schema import get_settings
+
+    return not get_settings().rfq_bundle_require_auth
+
+
+async def _resolve_design_package(okh_id: Optional[str]) -> Optional[Tuple[bytes, str]]:
+    """The design package for this design, as (bytes, filename), or None.
+
+    Reuses a built package when one exists and builds when it does not, because
+    building downloads every asset the manifest declares and a coordinator
+    assembling an email should not pay that twice.
+
+    Returns ``None`` rather than raising for every failure mode — no id, not a
+    UUID, no manifest, a build that could not fetch an asset. A bundle missing
+    its attachment is still worth sending: the RFQs are the part that cannot be
+    reconstructed by hand, and the document says plainly what should have been
+    attached.
+    """
+    if not okh_id:
+        return None
+    try:
+        manifest_id = UUID(okh_id)
+    except (ValueError, AttributeError):
+        logger.info(
+            "RFQ bundle: %r is not a manifest id; sending without a package", okh_id
+        )
+        return None
+
+    try:
+        service = await PackageService.get_instance()
+        built = await service.list_built_packages()
+        metadata = next(
+            (m for m in built if str(m.okh_manifest_id) == str(manifest_id)), None
+        )
+        if metadata is None:
+            metadata = await service.build_package_from_storage(manifest_id)
+        return package_dir_to_archive_bytes(Path(metadata.package_path))
+    except Exception as exc:  # noqa: BLE001 — the bundle degrades, it does not fail
+        logger.warning(
+            "RFQ bundle: no design package for %s (%s). Sending the RFQs alone.",
+            okh_id,
+            exc,
+        )
+        return None
+
+
+def _bundle_filename(request: "RFQGenerateRequest") -> str:
+    subject = request.okh_title or request.recipe_title or "rfq"
+    slug = re.sub(r"[^a-z0-9]+", "-", subject.lower()).strip("-") or "rfq"
+    return f"rfq-{slug}-{datetime.now().strftime('%Y-%m-%d')}.zip"
+
+
+def _rfq_filename(rfq: Dict[str, Any]) -> str:
+    """``<rfq number>-<facility>.txt``.
+
+    The number already carries its own ``RFQ-`` prefix. The facility is in the
+    name because whoever sends these has one file per workshop open at once and
+    picks by who it is for, not by serial number.
+    """
+    facility = re.sub(r"[^a-z0-9]+", "-", (rfq["facility_name"] or "").lower()).strip(
+        "-"
+    )
+    return f"{rfq['rfq_number']}-{facility or 'facility'}.txt"
+
+
+@router.post(
+    "/bundle",
+    summary="RFQ documents and the design package, as one download",
+    description=(
+        "Everything needed to send a quotation request by ordinary email: one "
+        "RFQ per selected facility, plus the design package they refer to.\n\n"
+        "The recipient is a workshop that has never heard of OHM, so nothing in "
+        "the documents points back at this instance — the design travels as an "
+        "attachment, and each RFQ names it.\n\n"
+        "Degrades rather than fails: if the design package cannot be built, the "
+        "RFQs are returned on their own and say what should accompany them.\n\n"
+        "Requires write permission by default, unlike /generate, because it "
+        "may build a package that does not exist yet — which persists one. An "
+        "operator who wants outreach to be a public act can open it with "
+        "`rfq_bundle_require_auth=false`."
+    ),
+    responses={200: {"content": {"application/zip": {}}}},
+)
+async def bundle_rfq(
+    request: RFQGenerateRequest,
+    _user=Depends(require_write_unless_public(_bundle_is_public)),
+) -> Response:
+    package = await _resolve_design_package(request.okh_id)
+
+    # Render after resolving, so each RFQ can name the file actually enclosed
+    # rather than a filename someone hoped for.
+    if package is not None:
+        request = request.model_copy(update={"attachment_name": package[1]})
+    rfqs = _render_all(request)
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as archive:
+        for rfq in rfqs:
+            archive.writestr(_rfq_filename(rfq), rfq["text"])
+        if package is not None:
+            archive.writestr(package[1], package[0])
+
+    filename = _bundle_filename(request)
+    logger.info(
+        "RFQ bundle: %d document(s)%s",
+        len(rfqs),
+        f" + {package[1]}" if package else " (no design package)",
+    )
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

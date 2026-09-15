@@ -134,21 +134,6 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         ),
     )
 
-    # Solution storage options
-    save_solution: Optional[bool] = Field(
-        False,
-        description="Automatically save the solution to storage. Returns solution_id in response.",
-    )
-    solution_ttl_days: Optional[int] = Field(
-        None,
-        ge=1,
-        description="Time-to-live in days for saved solution (default: 30). Only used if save_solution=True.",
-    )
-    solution_tags: Optional[List[str]] = Field(
-        None,
-        description="Tags to apply to saved solution. Only used if save_solution=True.",
-    )
-
     # Tree filtering parameters (for nested matching results)
     include_trees: Optional[bool] = Field(
         True,
@@ -347,3 +332,46 @@ class SimulateRequest(BaseModel):
 
     supply_tree: Dict[str, Any]
     parameters: SimulationParameters
+
+
+class ContactExportSolution(BaseModel):
+    """One matched facility, in the shape ``POST /api/match`` returns.
+
+    Mirrors ``RFQSolutionInput``: the caller sends back what it was given. The
+    facility object travels with it rather than being looked up, because a match
+    may include Maps-of-Making rows whose ids are synthetic stubs that
+    ``OKWService.get`` cannot resolve (#498).
+    """
+
+    facility_id: Optional[str] = Field(None, description="Facility id, as matched")
+    facility_name: Optional[str] = Field(None, description="Display name")
+    confidence: Optional[float] = Field(None, description="Match confidence, 0-1")
+    facility: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="The full OKW facility object, for location and contact details",
+    )
+    tree: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="The supply tree; read for capabilities_used",
+    )
+
+
+class ContactExportRequest(BaseModel):
+    """Export selected match results as a contact list."""
+
+    solutions: List[ContactExportSolution] = Field(
+        ..., description="The selected facilities, in the order to export them"
+    )
+    format: Literal["csv", "json"] = Field(
+        "csv", description="csv (default, opens in a spreadsheet) or json (tooling)"
+    )
+    design_name: Optional[str] = Field(
+        None, description="Named in the file header and filename"
+    )
+    matched_at: Optional[str] = Field(
+        None,
+        description=(
+            "ISO timestamp of the match this came from. Defaults to now. An "
+            "export is a snapshot and says so."
+        ),
+    )

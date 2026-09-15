@@ -5,7 +5,7 @@ This module provides dependencies for authentication and authorization
 in FastAPI routes.
 """
 
-from typing import Optional
+from typing import Callable, Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
@@ -150,6 +150,34 @@ def require_permission(permission: str):
 
 require_write = require_permission("write")
 require_admin = require_permission("admin")
+
+
+def require_write_unless_public(is_public: Callable[[], bool]):
+    """A write guard an operator can open to anonymous callers.
+
+    Some writes are only nominally writes. Assembling an RFQ bundle creates a
+    design package — which may already exist, and is cheap to rebuild from a
+    manifest — so whether that needs a credential is a posture an operator
+    should be able to choose, not a property of the route.
+
+    ``is_public`` is read per request rather than captured, so the setting can
+    move without a restart once it joins the runtime config plane.
+
+    This composes ``require_write`` rather than reimplementing it: when the
+    operator has not opened the route, the ordinary guard runs, including its
+    own policy gating. When they have, the caller is still resolved so the work
+    can be attributed — open does not mean anonymous, it means uncredentialed
+    callers are also allowed.
+    """
+
+    async def dependency(
+        auth_header: Optional[str] = Depends(API_KEY_HEADER),
+    ) -> Optional[AuthenticatedUser]:
+        if is_public():
+            return await get_optional_user(auth_header)
+        return await require_write(auth_header)
+
+    return dependency
 
 
 async def require_admin_strict(

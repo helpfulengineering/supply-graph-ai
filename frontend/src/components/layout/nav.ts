@@ -13,7 +13,6 @@ import {
   SettingsIcon,
   ShowcaseIcon,
   SmartFactoryIcon,
-  ArtificialLeavesIcon,
   ToolBoxIcon,
   type IconProps,
 } from "../icons";
@@ -144,17 +143,6 @@ export const NAV_GROUPS: NavGroup[] = [
         desc: "versioned design bundles",
         icon: PackingIcon,
       },
-      // Shares ArtificialLeavesIcon with the Supply Tree entry below: this is
-      // the browse for those results, and the two cannot inherit from each
-      // other the way a detail route inherits from its list (navEntryFor
-      // matches on prefix, and /visualization/:id is not under /solutions).
-      // Same glyph is what keeps them reading as one section anyway.
-      {
-        href: "/solutions",
-        name: "Solutions",
-        desc: "supply trees saved from your matches",
-        icon: ArtificialLeavesIcon,
-      },
     ],
   },
   {
@@ -209,8 +197,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
-// Deliberately absent from NAV_GROUPS: bare /visualization is a redirect, now
-// to /solutions — the browse it lacked when it redirected home. Detail routes
+// Deliberately absent from NAV_GROUPS: detail routes
 // (/okh/[id], /facilities/[id], /packages/[org]/[project]/[version],
 // /okh/[id]/files/*) are reached from their lists, and /settings/* subtabs
 // from the Settings page's own tab strip.
@@ -271,25 +258,11 @@ export const SITE_GROUP: NavGroup = {
 
 /**
  * Routes that have a page but no menu entry, so their heroes still resolve.
- *
- * A supply tree is a match result rather than a browsable collection, which
- * is why it is not in the drawer — but it is a real page with a real
- * identity, and leaving it iconless would make it the one surface where the
- * connection between menu and page visibly breaks.
  */
 export const UNLISTED_GROUP: NavGroup = {
   label: "Results",
-  // Explore's accent, not its own: a supply tree is the detail view of the
-  // Solutions row, and giving the pair one hue keeps the list and the thing it
-  // opens from reading as two unrelated sections.
   accent: "text-chart-1",
   entries: [
-    {
-      href: "/visualization",
-      name: "Supply Tree",
-      desc: "the production plan a match resolved to",
-      icon: ArtificialLeavesIcon,
-    },
     // The glyph gallery documents the icon set this interface is drawn from,
     // which is a fact about the app rather than a place in it. It sat in
     // Reference and spent a full drawer row — a role line and all — on a page

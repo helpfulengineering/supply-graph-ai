@@ -272,5 +272,9 @@ test("hands the reviewed design off to match without saving it (mocked)", async 
   await expect.poll(() => matchBody).not.toBeNull();
   expect(matchBody!.okh_manifest).toBeTruthy();
   expect(matchBody!.okh_id).toBeUndefined();
-  expect(matchBody!.save_solution).toBe(false);
+  // `save_solution` used to be asserted false here, because an inline manifest
+  // must not produce a stored solution referencing an OKH id that does not
+  // exist. #498 removed the field: nothing is stored for any match, so the
+  // hazard is gone rather than guarded.
+  expect(matchBody!.save_solution).toBeUndefined();
 });

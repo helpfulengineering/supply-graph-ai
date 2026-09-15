@@ -18,15 +18,13 @@ import {
   provenanceFixture,
   recoveredFixture,
   registrationFixture,
+  contactExportFixture,
   salvageMatchFixture,
-  solutionHierarchyFixture,
-  solutionStalenessFixture,
   sourcingResolutionFixture,
   triageChecklistFixture,
   triageReportFixture,
   validationResultFixture,
   visibilityFixture,
-  vizBundleFixture,
 } from "../../test/fixtures";
 import {
   demoNetworkSpaces,
@@ -149,31 +147,6 @@ const PARAMETERISED: Array<{
   },
   {
     method: "GET",
-    // Any solution id: a supply tree is a match result, and in the demo every
-    // match returns the one bundled solution, so every id is that solution.
-    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/visualization$/,
-    resolve: () => vizBundleFixture,
-  },
-  {
-    method: "GET",
-    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/staleness$/,
-    resolve: (id) => ({
-      ...solutionStalenessFixture,
-      data: { ...solutionStalenessFixture.data, solution_id: id },
-    }),
-  },
-  {
-    method: "GET",
-    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/hierarchy$/,
-    resolve: () => solutionHierarchyFixture,
-  },
-  {
-    method: "POST",
-    pattern: /^\/v1\/api\/supply-tree\/solution\/([^/]+)\/extend$/,
-    resolve: () => ({ status: "success", message: "TTL extended" }),
-  },
-  {
-    method: "GET",
     pattern: /^\/v1\/api\/identity\/reputation\/(.+)$/,
     resolve: () => attestationsFixture,
   },
@@ -255,6 +228,11 @@ const QUERY_POSTS: Record<string, unknown> = {
   "/v1/api/okw/extract": okwCapabilitiesFixture,
   "/v1/api/okw/validate": validationResultFixture,
   "/v1/api/asset/salvage-match": salvageMatchFixture,
+  // A CSV file, not a JSON body. The demo returns the same header the real
+  // export writes, so the download is exercised end to end rather than mocked
+  // away — the failure this catches is a broken Content-Disposition, which no
+  // JSON fixture would notice.
+  "/v1/api/match/export/contacts": contactExportFixture,
 };
 
 /**

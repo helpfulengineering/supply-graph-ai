@@ -62,9 +62,7 @@ const ROUTES = [
   "/account",
   "/help",
   "/packages",
-  "/solutions",
   "/icons",
-  "/visualization/sol-1",
   "/assets",
   "/assets/11111111-1111-4111-8111-111111111111",
   // The densest control surface the app has: N components, each with a

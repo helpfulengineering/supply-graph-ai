@@ -34,13 +34,11 @@ const STEPS: Step[] = [
   },
   {
     n: 3,
-    title: "See the supply tree",
-    body: "Each match opens an interactive supply tree — production plan, facility distribution, dependencies — which you can download.",
-    // The step is about the supply tree, but a tree is a match result and has
-    // no browsable entry — so the link goes to the match that produces one
-    // while the icon names what you are being sent to see.
+    title: "Take the list with you",
+    body: "Select the workshops you want and export their contact details as a spreadsheet. Coordination happens outside OHM — this is how a result leaves it.",
+    // Same destination as step 2: the export lives on the match results, which
+    // is where you are once you have an answer worth acting on.
     to: "/match",
-    icon: "/visualization",
     cta: "Run a match",
   },
 ];

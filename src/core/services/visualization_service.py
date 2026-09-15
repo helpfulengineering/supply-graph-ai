@@ -1,4 +1,14 @@
-"""Visualization bundle and report generation service."""
+"""Visualization bundles for match results.
+
+Two methods, both pure: a match result in, a bundle or an HTML report out.
+Nothing here reads storage.
+
+It used to also build bundles from *stored* supply-tree solutions, and to stamp
+metadata into GraphML exports of them. #498 removed saved solutions, so both
+went with their callers. What is left serves `ohm match visualize`, which
+renders the result it was just given — which is why it survived: it never
+depended on anything being persisted.
+"""
 
 from __future__ import annotations
 
@@ -6,8 +16,6 @@ import json
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from typing import Any, Dict, List
-
-from src.core.models.supply_trees import SupplyTreeSolution
 
 
 class VisualizationService:
@@ -163,108 +171,6 @@ class VisualizationService:
         }
 
     @classmethod
-    def build_solution_visualization_bundle(
-        cls, solution: SupplyTreeSolution, solution_id: str
-    ) -> Dict[str, Any]:
-        """Build visualization bundle from a stored supply tree solution."""
-        all_trees = list(solution.all_trees or [])
-        dependency_graph = solution.get_dependency_graph()
-        if solution.production_sequence:
-            sequence = [
-                [str(tree_id) for tree_id in stage]
-                for stage in solution.production_sequence
-            ]
-        else:
-            sequence_ids = SupplyTreeSolution._calculate_production_sequence(
-                dependency_graph
-            )
-            sequence = [[str(tree_id) for tree_id in stage] for stage in sequence_ids]
-
-        nodes = []
-        edges = []
-        facility_distribution: Counter[str] = Counter()
-
-        for tree in all_trees:
-            tree_id = str(tree.id)
-            nodes.append(
-                {
-                    "id": tree_id,
-                    "label": tree.component_name or tree.facility_name,
-                    "component_id": tree.component_id,
-                    "facility_name": tree.facility_name,
-                    "depth": tree.depth,
-                    "production_stage": tree.production_stage,
-                    "confidence_score": tree.confidence_score,
-                    "estimated_cost": tree.estimated_cost,
-                    "estimated_time": tree.estimated_time,
-                }
-            )
-            facility_distribution[tree.facility_name or "Unknown Facility"] += 1
-
-            if tree.parent_tree_id:
-                edges.append(
-                    {
-                        "source": str(tree.parent_tree_id),
-                        "target": tree_id,
-                        "type": "parent-child",
-                    }
-                )
-            for dep_id in tree.depends_on:
-                edges.append(
-                    {"source": str(dep_id), "target": tree_id, "type": "depends_on"}
-                )
-
-        return {
-            "schema_version": cls.SCHEMA_VERSION,
-            "source_type": "supply_tree_solution",
-            "generated_at": cls._now_iso(),
-            "matching": {
-                "overview": {
-                    "matching_mode": solution.metadata.get("matching_mode", "unknown"),
-                    "score": solution.score,
-                    "tree_count": len(all_trees),
-                }
-            },
-            "supply_tree": {
-                "solution_id": solution_id,
-                "nodes": nodes,
-                "edges": edges,
-                "dependency_graph": {
-                    str(tree_id): [str(dep_id) for dep_id in deps]
-                    for tree_id, deps in dependency_graph.items()
-                },
-                "production_sequence": sequence,
-                "resource_cost": {
-                    "total_estimated_cost": solution.total_estimated_cost,
-                    "total_estimated_time": solution.total_estimated_time,
-                },
-            },
-            "network": {
-                "facility_distribution": [
-                    {"facility_name": name, "tree_count": count}
-                    for name, count in facility_distribution.items()
-                ],
-                "route_hints": {
-                    "status": "not_provided",
-                    "note": "No transport route data exists in current supply tree contract.",
-                },
-            },
-            "dashboard": {
-                "kpis": {
-                    "tree_count": len(all_trees),
-                    "edge_count": len(edges),
-                    "stage_count": len(sequence),
-                    "solution_score": solution.score,
-                }
-            },
-            "artifacts": {
-                "graphml_endpoint": f"/v1/api/supply-tree/solution/{solution_id}/export?format=graphml",
-                "json_bundle": True,
-                "html_report": True,
-            },
-        }
-
-    @classmethod
     def render_html_report(cls, bundle: Dict[str, Any], title: str) -> str:
         """Render a lightweight standalone HTML report."""
         escaped_payload = json.dumps(bundle, indent=2)
@@ -288,22 +194,3 @@ class VisualizationService:
             f"<pre>{escaped_payload}</pre>"
             "</body></html>"
         )
-
-    @classmethod
-    def normalize_graphml_metadata(
-        cls, graphml_content: str, source_type: str, source_id: str
-    ) -> str:
-        """Inject stable metadata comment for graph export traceability."""
-        metadata_comment = (
-            f"<!-- ohm_visualization_schema={cls.SCHEMA_VERSION};"
-            f"source_type={source_type};source_id={source_id} -->"
-        )
-        if metadata_comment in graphml_content:
-            return graphml_content
-        if graphml_content.startswith("<?xml"):
-            end_decl = graphml_content.find("?>")
-            if end_decl != -1:
-                prefix = graphml_content[: end_decl + 2]
-                suffix = graphml_content[end_decl + 2 :]
-                return f"{prefix}\n{metadata_comment}\n{suffix}"
-        return f"{metadata_comment}\n{graphml_content}"

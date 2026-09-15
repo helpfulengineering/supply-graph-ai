@@ -293,3 +293,10 @@ summary = "Localhost Compose e2e for async generate-from-url jobs, progress, rev
 run = "uv run python scripts/local_async_generation_e2e.py"
 mutates = false
 used_by = ["async-generation local verify before cloud deploy"]
+
+[scripts.remove_supply_tree_storage]
+category = "storage"
+summary = "Delete storage left by saved supply-tree solutions (#498); reports counts, --apply to commit."
+run = "python scripts/remove_supply_tree_storage.py [--apply]"
+mutates = true
+used_by = "one-off cleanup after the #498 release"

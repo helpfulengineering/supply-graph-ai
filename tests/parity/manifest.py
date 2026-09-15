@@ -184,13 +184,17 @@ AREAS: tuple[Area, ...] = (
         "supply-tree",
         None,
         "supply-tree",
-        "solution",
-        "exposed",
-        note="REVIEW: NAME MISMATCH — API tag is 'supply-tree' but the CLI group "
-        "is 'solution'. Pick one name (external surface; needs deprecation "
-        "cycle, not a bare rename).",
-        fe_routes=("/visualization", "/solutions"),
-        fe_api_prefixes=("/api/supply-tree",),
+        None,
+        "internal",
+        note="Tombstones. #498 removed saved supply-tree solutions; nine routes "
+        "answer 501 rather than 404 because each had an in-repo caller at the "
+        "time. No service, no CLI group, no frontend surface — a match result "
+        "is client-held and leaves through /api/match/export/contacts or an "
+        "RFQ. #499 deletes these and retires the tag.\n\n"
+        "This also closes the standing REVIEW on this row — 'API tag is "
+        "supply-tree but the CLI group is solution, needs a deprecation cycle "
+        "not a bare rename'. The deprecation cycle happened; the group is "
+        "gone.",
     ),
     # --- Partial exposure -------------------------------------------------
     Area(
@@ -489,19 +493,37 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/federation/health",
         "/api/okw/{id}/spaceapi",
     ),
+    # --- Never: removed, and answering 501 to say so ----------------------
+    *_decision(
+        "never",
+        "superseded",
+        "Removed in #498: saved supply-tree solutions are not durable objects. "
+        "A match result is client-held and session-bounded, and leaves OHM "
+        "through POST /api/match/export/contacts or an RFQ, both of which take "
+        "the result in the request body. These nine answer 501 rather than 404 "
+        "because each had an in-repo caller when it was removed, so something "
+        "outside may have one too — #459's precedent: a removed endpoint 404s, "
+        "which reads as a wrong URL rather than a decision. #499 probes for "
+        "real callers and then deletes them.",
+        "/api/supply-tree/solutions",
+        "/api/supply-tree/solutions/cleanup",
+        "/api/supply-tree/solution/{solution_id}",
+        "/api/supply-tree/solution/{solution_id}/save",
+        "/api/supply-tree/solution/{solution_id}/extend",
+        "/api/supply-tree/solution/{solution_id}/staleness",
+        "/api/supply-tree/solution/{solution_id}/hierarchy",
+        "/api/supply-tree/solution/{solution_id}/visualization",
+    ),
     # --- Never: destructive, or a footgun behind a button ------------------
     *_decision(
         "never",
         "operator",
         "Bulk-destructive with no undo and no per-record review. "
-        "/api/supply-tree/solutions/cleanup sweeps stale solutions "
-        "instance-wide with no owner filter, across every caller's saved work; "
-        "/api/okh/scaffold/cleanup deletes scaffolded directories by age. Both "
-        "have a shell equivalent, which is where an operation nobody can undo "
+        "/api/okh/scaffold/cleanup deletes scaffolded directories by age, and "
+        "has a shell equivalent, which is where an operation nobody can undo "
         "belongs. Contrast /api/taxonomy/reload, which looks similar and is "
         "not: it fails safe, keeping the current taxonomy when the new file "
         "does not validate, so it gets a button in /settings/matching.",
-        "/api/supply-tree/solutions/cleanup",
         "/api/okh/scaffold/cleanup",
     ),
     *_decision(
@@ -532,30 +554,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     ),
     *_decision(
         "never",
-        "superseded",
-        "The visualization bundle already carries this data. "
-        "/api/supply-tree/solution/{id}/visualization returns production_"
-        "sequence, dependency_graph and the KPI dashboard in one payload, and "
-        "supplyTreeAdapter.ts renders all three from it under unit test. "
-        "Calling these would give one picture two sources of truth. "
-        "/component/{component_id} and /facility/{facility_id} are server-side "
-        "filters of /trees, which the Trees table filters client-side.",
-        "/api/supply-tree/solution/{solution_id}/dependencies",
-        "/api/supply-tree/solution/{solution_id}/production-sequence",
-        "/api/supply-tree/solution/{solution_id}/summary",
-        "/api/supply-tree/solution/{solution_id}/component/{component_id}",
-        "/api/supply-tree/solution/{solution_id}/facility/{facility_id}",
-    ),
-    *_decision(
-        "never",
-        "superseded",
-        "Matching already saves. runMatch sends save_solution: true, so every "
-        "solution the UI holds was persisted when it was produced; a second "
-        "save button would be a control for something that already happened.",
-        "/api/supply-tree/solution/{solution_id}/save",
-    ),
-    *_decision(
-        "never",
         "cli",
         "Returns the JSON Schema for the format, not a record in it. Developer "
         "reference, and the OpenAPI page at /v1/docs already serves it. Note "
@@ -566,22 +564,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/okw/schema",
     ),
     # --- Never: the UI cannot supply what the path needs -------------------
-    *_decision(
-        "never",
-        "blocked",
-        "An id-space mismatch, not a value judgement. These take a SUPPLY-TREE "
-        "id; every id the frontend holds is a SOLUTION id — /solutions, "
-        "/visualization/[solutionId], and save_solution all speak solutions. "
-        "Nothing in the UI has a supply-tree id to pass. The honest fix is a "
-        "solution-scoped variant on the backend, not a frontend workaround.",
-        "/api/supply-tree",
-        "/api/supply-tree/create",
-        "/api/supply-tree/{id}",
-        "/api/supply-tree/{id}/export",
-        "/api/supply-tree/{id}/optimize",
-        "/api/supply-tree/{id}/validate",
-        "/api/supply-tree/solution/load",
-    ),
     *_decision(
         "never",
         "machine",
@@ -620,16 +602,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/utility/contexts",
     ),
     # --- Called by the UI; the scanner cannot see the URL ------------------
-    *_composed(
-        "The supply-tree artifact links build one base and hang suffixes off "
-        "it, so no source literal contains a whole path. Following that needs "
-        "expression evaluation rather than a regex; recording it is cheaper "
-        "and, unlike a looser regex, cannot go quietly wrong.",
-        "frontend/src/features/visualization/ArtifactLinks.tsx:25",
-        "/v1/api/supply-tree/solution/${solutionId}",
-        "/api/supply-tree/solution/{solution_id}/report",
-        "/api/supply-tree/solution/{solution_id}/export",
-    ),
     # --- Planned: the backlog, deleted by the commit that wires the call ---
     *_decision(
         "planned",
@@ -675,16 +647,6 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "/api/okh/extract-repair-docs",
         "/api/okh/import-repair-doc",
         "/api/okw/upload",
-    ),
-    *_decision(
-        "planned",
-        "backlog",
-        "The filterable index into the graph — trees by component, facility, "
-        "depth and confidence. Deliberately not wired to DRIVE the graph, "
-        "which is built from the visualization bundle: two sources for one "
-        "picture is two truths. A table beside it is the honest pairing, and "
-        "it is the next thing this page wants.",
-        "/api/supply-tree/solution/{solution_id}/trees",
     ),
     *_decision(
         "never",
@@ -837,7 +799,10 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         path="guides/share-as-a-package.md",
         requires_fe_call="/api/package",
     ),
-    SiteDoc("supply-tree", "Visualize a supply tree", "deployed"),
+    # Not "deployed": #498 removed the visualization along with saved solutions,
+    # and #500 holds the question of whether it earns a rebuild. Claiming it
+    # ships would be the exact drift this table exists to catch.
+    SiteDoc("supply-tree", "Visualize a supply tree", "roadmap"),
     SiteDoc("federation", "Follow peers and sync catalogs", "deployed"),
     SiteDoc(
         "identity",

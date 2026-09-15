@@ -23,6 +23,7 @@ from fastapi import (
     HTTPException,
     Query,
     Request,
+    Response,
     UploadFile,
     status,
 )
@@ -83,7 +84,14 @@ from ..models.base import (
 )
 
 # Import existing models and services
+from ...services.contact_export import (
+    contact_rows,
+    export_filename,
+    to_csv,
+    to_json,
+)
 from ..models.match.request import (
+    ContactExportRequest,
     FacilityMatchRequest,
     MatchRequest,
     SimulateRequest,
@@ -151,10 +159,9 @@ async def get_okw_service() -> OKWService:
     "",
     status_code=status.HTTP_200_OK,
     response_model=MatchRunResponse,
-    # solution_id, human_summary and save_warning are written only when the
-    # request asked for them or a save failed. Declaring them optional types
-    # them; without this the model would add each one back as null, and the
-    # payload would no longer be what the route returned.
+    # human_summary is written only when the request asked for it. Declaring it
+    # optional types it; without this the model would add it back as null, and
+    # the payload would no longer be what the route returned.
     response_model_exclude_unset=True,
     summary="Enhanced Requirements Matching (Domain-Aware)",
     description="""
@@ -405,9 +412,6 @@ async def match_requirements_to_capabilities(
                     "solution_count": len(solutions),
                     "max_depth": max_depth,
                     "processing_time": processing_time,
-                    "solution_saved": (
-                        request.save_solution if request.save_solution else False
-                    ),
                 },
             )
 
@@ -547,77 +551,6 @@ async def match_requirements_to_capabilities(
                 },
             )
 
-            # Auto-save solution if requested (save best solution for single-level)
-            if request.save_solution and storage_service and solutions:
-                try:
-                    # Convert first (best) solution to SupplyTreeSolution
-                    from ...models.supply_trees import SupplyTree, SupplyTreeSolution
-
-                    best_solution_dict = solutions[0]
-
-                    # Persist every returned solution's tree, not just the best.
-                    # The UI offers "View supply tree" on each result card, so a
-                    # solution holding one tree left nine of ten cards pointing at
-                    # a tree that was never stored. Each tree becomes a node in
-                    # the visualization bundle, keyed by its own id.
-                    trees = []
-                    for solution_dict in solutions:
-                        tree_dict = solution_dict.get("tree")
-                        if not tree_dict:
-                            continue
-                        try:
-                            trees.append(SupplyTree.from_dict(tree_dict))
-                        except Exception:  # noqa: BLE001 — one bad tree must not
-                            # cost the whole solution; the rest still resolve.
-                            logger.warning(
-                                "Skipping unparseable tree while saving solution",
-                                extra={"request_id": request_id},
-                            )
-                    if not trees:
-                        raise ValueError("no parseable supply tree to save")
-
-                    solution = SupplyTreeSolution(
-                        all_trees=trees,
-                        score=best_solution_dict.get(
-                            "score", best_solution_dict.get("confidence", 0.0)
-                        ),
-                        metrics=best_solution_dict.get("metrics", {}),
-                        metadata={
-                            "okh_id": str(request.okh_id) if request.okh_id else None,
-                            "matching_mode": MATCH_MODE_SINGLE_LEVEL,
-                        },
-                    )
-
-                    solution_id = await storage_service.save_supply_tree_solution(
-                        solution,
-                        ttl_days=request.solution_ttl_days,
-                        tags=request.solution_tags,
-                        created_by=owner_of(viewer),
-                    )
-                    response_data["solution_id"] = str(solution_id)
-                    logger.info(
-                        f"Single-level solution auto-saved with ID: {solution_id}",
-                        extra={
-                            "request_id": request_id,
-                            "solution_id": str(solution_id),
-                            "ttl_days": request.solution_ttl_days,
-                        },
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"Failed to auto-save single-level solution: {str(e)}",
-                        extra={
-                            "request_id": request_id,
-                            "error": str(e),
-                            "error_type": type(e).__name__,
-                        },
-                        exc_info=True,
-                    )
-                    # Don't fail the request if save fails
-                    response_data["save_warning"] = (
-                        f"Solution could not be saved: {str(e)}"
-                    )
-
             logger.info(
                 f"Enhanced matching completed: {len(solutions)} solutions found",
                 extra={
@@ -625,9 +558,6 @@ async def match_requirements_to_capabilities(
                     "solutions_count": len(solutions),
                     "processing_time": processing_time,
                     "llm_used": request.use_llm,
-                    "solution_saved": (
-                        request.save_solution if request.save_solution else False
-                    ),
                 },
             )
 
@@ -1934,38 +1864,6 @@ async def _format_nested_response(
     )
     if optional_human_summary:
         response_data["human_summary"] = optional_human_summary
-
-    # Auto-save solution if requested
-    if request.save_solution and storage_service:
-        try:
-            solution_id = await storage_service.save_supply_tree_solution(
-                solution,
-                ttl_days=request.solution_ttl_days,
-                tags=request.solution_tags,
-                created_by=created_by,
-            )
-            response_data["solution_id"] = str(solution_id)
-            logger.info(
-                f"Solution auto-saved with ID: {solution_id}",
-                extra={
-                    "request_id": request_id,
-                    "solution_id": str(solution_id),
-                    "ttl_days": request.solution_ttl_days,
-                },
-            )
-        except Exception as e:
-            logger.error(
-                f"Failed to auto-save solution: {str(e)}",
-                extra={
-                    "request_id": request_id,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                },
-                exc_info=True,
-            )
-            # Don't fail the request if save fails, just log the error
-            # Optionally add a warning to the response
-            response_data["save_warning"] = f"Solution could not be saved: {str(e)}"
 
     # A plain dict, as the annotation says and as the single-level branch does.
     #
@@ -3513,3 +3411,36 @@ async def simulate_supply_tree(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),
         )
+
+
+@router.post(
+    "/export/contacts",
+    summary="Export matched facilities as a contact list",
+    description=(
+        "Turn selected match results into a contact list — CSV by default, JSON "
+        "for tooling. Coordination happens outside OHM, so this is the way a "
+        "result leaves it.\n\n"
+        "Stateless: the selected solutions are sent in the request and nothing "
+        "is stored. The facility objects travel with them rather than being "
+        "looked up, because a match may include Maps-of-Making rows whose ids "
+        "cannot be resolved locally.\n\n"
+        "The result is a **snapshot** of the match that produced it. The design "
+        "and timestamp ride in the file header and the filename, so two exports "
+        "taken days apart can be diffed to see which facilities dropped out."
+    ),
+    responses={200: {"content": {"text/csv": {}, "application/json": {}}}},
+)
+async def export_match_contacts(request: ContactExportRequest) -> Response:
+    rows = contact_rows([s.model_dump() for s in request.solutions])
+    if request.format == "json":
+        body = to_json(rows, request.design_name, request.matched_at)
+        media_type = "application/json"
+    else:
+        body = to_csv(rows, request.design_name, request.matched_at)
+        media_type = "text/csv"
+    filename = export_filename(request.design_name, request.format, request.matched_at)
+    return Response(
+        content=body.encode("utf-8"),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

@@ -10,6 +10,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchAllOkhList } from "../../api/ohm/okh";
 import { fetchNetworkSpaces } from "../../api/ohm/network";
 import { listMatchDomains, runMatch } from "../../api/ohm/match";
+import { downloadContacts } from "./exportContacts";
 import { track } from "../../lib/site/stack";
 import { EVENTS, type MatchRunProps } from "../../lib/site/events";
 import { ApiError } from "../../api/ohm/client";
@@ -148,6 +149,7 @@ export function MatchView({
   const [selectedSolutionKeys, setSelectedSolutionKeys] = useState<string[]>(
     [],
   );
+  const [exportError, setExportError] = useState<string | null>(null);
   const mutation = useMutation({
     mutationFn: ({
       id,
@@ -255,12 +257,11 @@ export function MatchView({
         crumb={[
           { label: "design", href: "/okh" },
           { label: "facilities", href: "/facilities" },
-          // Solutions are what this page produces; there is no list of them to
-          // send anyone to.
-          // Was text. /solutions is a real route holding exactly these —
-          // the supply trees saved from matches — so the term names a place
-          // after all.
-          { label: "solutions", href: "/solutions" },
+          // Text, not a link. Solutions are what this page produces and there
+          // is nowhere to send anyone: #498 removed the browse, because nothing
+          // is stored. The link also cost a hanging RSC prefetch to a deleted
+          // route, which held /match short of networkidle for ever.
+          { label: "solutions" },
         ]}
       />
 
@@ -515,6 +516,34 @@ export function MatchView({
                       Clear selection
                     </Button>
                     <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={selectedSolutionKeys.length === 0}
+                      onClick={async () => {
+                        setExportError(null);
+                        try {
+                          await downloadContacts(
+                            view.solutions.filter((s, i) =>
+                              selectedSolutionKeys.includes(
+                                solutionSelectionKey(s, i),
+                              ),
+                            ),
+                            selectedDesign
+                              ? formatOkhDisplayTitle(selectedDesign.title)
+                              : undefined,
+                          );
+                        } catch (e) {
+                          setExportError(
+                            e instanceof Error
+                              ? e.message
+                              : "Could not export contacts.",
+                          );
+                        }
+                      }}
+                    >
+                      Export contacts
+                    </Button>
+                    <Button
                       size="sm"
                       disabled={
                         selectedSolutionKeys.length === 0 || !selectedDesign
@@ -541,17 +570,22 @@ export function MatchView({
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Select one or more facilities to generate outreach RFQs and
-                  arrange production. Each card also links to that solution’s supply
-                  tree when available.
+                  Select one or more facilities, then export their contact
+                  details as a spreadsheet or generate outreach RFQs. The export
+                  is a snapshot of this match — it records the date, so two
+                  exports can be compared later.
                 </p>
+                {exportError && (
+                  <p role="alert" className="text-xs text-destructive">
+                    {exportError}
+                  </p>
+                )}
                 {view.solutions.map((s, i) => {
                   const key = solutionSelectionKey(s, i);
                   return (
                     <MatchResultCard
                       key={key}
                       solution={s}
-                      solutionId={view.solutionId}
                       selectionKey={key}
                       selected={selectedSolutionKeys.includes(key)}
                       onToggle={() =>
