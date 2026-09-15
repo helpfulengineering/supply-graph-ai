@@ -31,6 +31,11 @@
 #   OHM_VERSION   pin a version (default: the latest release)
 #   OHM_PORT      host port for the web interface (default: 8080)
 #   OHM_API_PORT  host port for the API (default: 8001)
+#   OHM_API_BIND  host interface for the API port (default: 127.0.0.1).
+#                 The web interface proxies /v1 over the container network, so
+#                 nothing needs the API's host port to reach this node. Set it
+#                 to 0.0.0.0 to use the node as an API server from another
+#                 machine — and read #344 and #478 before you do.
 #   OHM_DATA_DIR  host directory for data and configuration
 #                 (default: ~/.ohm/node)
 #   OHM_NAME      name prefix for the containers (default: ohm)
@@ -48,6 +53,10 @@ RELEASES_API="${OHM_RELEASES_API:-https://api.github.com/repos/helpfulengineerin
 # into Settings, is a page the API does not serve.
 PORT="${OHM_PORT:-8080}"
 API_PORT="${OHM_API_PORT:-8001}"
+# Loopback, because a bare `-p 8001:8001` binds every interface: a node
+# installed on a laptop joining a cafe network would publish its raw API to
+# that network. Same treatment #341 gave the monitoring port in compose.
+API_BIND="${OHM_API_BIND:-127.0.0.1}"
 DATA_DIR="${OHM_DATA_DIR:-$HOME/.ohm/node}"
 NAME="${OHM_NAME:-ohm}"
 API_NAME="${NAME}-api"
@@ -215,7 +224,7 @@ docker run -d \
     --name "$API_NAME" \
     --network "$NETWORK" \
     --restart unless-stopped \
-    -p "${API_PORT}:8001" \
+    -p "${API_BIND}:${API_PORT}:8001" \
     -v "${DATA_DIR}:${CONTAINER_MOUNT}" \
     -e "API_KEYS=${ADMIN_KEY}" \
     -e "OHM_ENCRYPTION_SALT=${ENCRYPTION_SALT}" \
@@ -303,12 +312,21 @@ printf '\n'
 say "Web: ready"
 
 # --- Done -----------------------------------------------------------------
+# Say which interface the API landed on. An operator who overrode the default
+# should see that it took effect; one who did not should learn the port exists
+# and is deliberately local, rather than assuming it is exposed.
+if [ "$API_BIND" = "127.0.0.1" ] || [ "$API_BIND" = "localhost" ]; then
+    API_REACH="this machine only"
+else
+    API_REACH="published on ${API_BIND} — reachable from other machines"
+fi
+
 cat <<EOF
 
   Your node is running.
 
     Open        http://localhost:${PORT}
-    API         http://localhost:${API_PORT}
+    API         http://localhost:${API_PORT}  (${API_REACH})
     Admin key   ${ADMIN_KEY}
 
   Save that key somewhere safe. It is shown once and is not stored anywhere
