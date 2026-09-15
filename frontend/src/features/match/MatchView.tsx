@@ -257,12 +257,11 @@ export function MatchView({
         crumb={[
           { label: "design", href: "/okh" },
           { label: "facilities", href: "/facilities" },
-          // Solutions are what this page produces; there is no list of them to
-          // send anyone to.
-          // Was text. /solutions is a real route holding exactly these —
-          // the supply trees saved from matches — so the term names a place
-          // after all.
-          { label: "solutions", href: "/solutions" },
+          // Text, not a link. Solutions are what this page produces and there
+          // is nowhere to send anyone: #498 removed the browse, because nothing
+          // is stored. The link also cost a hanging RSC prefetch to a deleted
+          // route, which held /match short of networkidle for ever.
+          { label: "solutions" },
         ]}
       />
 
