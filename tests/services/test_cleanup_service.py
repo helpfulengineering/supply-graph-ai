@@ -18,6 +18,12 @@ if __name__ == "__main__":
     _sys.exit(pytest.main([__file__]))
 
 
+@pytest.fixture(autouse=True)
+def _scaffold_workspace(tmp_path, monkeypatch):
+    """Every test here scaffolds into `tmp_path` — sandbox to it (#512)."""
+    monkeypatch.setenv("SCAFFOLD_OUTPUT_ROOT", str(tmp_path))
+
+
 async def _create_scaffold(tmp_path: Path) -> Path:
     svc = ScaffoldService()
     opts = ScaffoldOptions(

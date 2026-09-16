@@ -40,7 +40,9 @@ class CleanupService:
     """Service to clean and optimize scaffolded OKH project directories."""
 
     async def clean(self, options: CleanupOptions) -> CleanupResult:
-        root = Path(options.project_path).expanduser().resolve()
+        from .scaffold_workspace import resolve_scaffold_path
+
+        root = resolve_scaffold_path(options.project_path)
         result = CleanupResult()
 
         if not root.exists() or not root.is_dir():

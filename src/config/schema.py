@@ -310,6 +310,19 @@ class Settings(BaseSettings):
             "with a credential it holds and can decrypt."
         ),
     )
+    scaffold_output_root: Optional[str] = Field(
+        default=None,
+        description=(
+            "Directory POST /api/okh/scaffold (output_format=filesystem) and "
+            "POST /api/okh/scaffold/cleanup (and zip's optional output_path) "
+            "may write to or delete from. Unset (the default) disables both — "
+            "fails closed rather than falling back to 'anywhere the process "
+            "can write', which is what both resolved a caller-supplied path "
+            "to before #512. Set to a directory this node's operator "
+            "actually wants scaffolded projects written into; a caller-"
+            "supplied path must resolve inside it or the request is refused."
+        ),
+    )
     okw_source: Optional[str] = Field(
         default=None,  # unset resolves via okw_source_resolved
         description="OKW facility source: storage | mom. Unset → union (storage ∪ MoM).",

@@ -42,7 +42,8 @@ async def _create_scaffold(tmp_path: Path) -> Path:
 
 
 @pytest.mark.asyncio
-async def test_cleanup_endpoint_dry_run_and_apply(tmp_path):
+async def test_cleanup_endpoint_dry_run_and_apply(tmp_path, monkeypatch):
+    monkeypatch.setenv("SCAFFOLD_OUTPUT_ROOT", str(tmp_path))
     project_dir = await _create_scaffold(tmp_path)
 
     transport = httpx.ASGITransport(app=_get_app())
@@ -86,7 +87,8 @@ async def test_cleanup_endpoint_dry_run_and_apply(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_cleanup_endpoint_invalid_path_returns_500(tmp_path):
+async def test_cleanup_endpoint_invalid_path_returns_500(tmp_path, monkeypatch):
+    monkeypatch.setenv("SCAFFOLD_OUTPUT_ROOT", str(tmp_path))
     transport = httpx.ASGITransport(app=_get_app())
     async with httpx.AsyncClient(
         transport=transport, base_url="http://testserver"

@@ -1042,7 +1042,9 @@ class ScaffoldService:
         """
         import json
 
-        base = Path(options.output_path).expanduser().resolve()
+        from .scaffold_workspace import resolve_scaffold_path
+
+        base = resolve_scaffold_path(options.output_path)
         if not base.exists():
             base.mkdir(parents=True, exist_ok=True)
 
@@ -1133,12 +1135,17 @@ class ScaffoldService:
 
             add_node(project_root_node, f"{project_root_name}/")
 
-        # Persist to disk
-        base_dir = (
-            Path(options.output_path).expanduser().resolve()
-            if options.output_path
-            else Path(tempfile.gettempdir()) / "ohm-scaffolds"
-        )
+        # Persist to disk. A caller-supplied output_path is sandboxed exactly
+        # like `filesystem` output — it's the same same-machine assumption,
+        # since download_url below is a file:// URI no route ever serves
+        # over HTTP. The default temp dir is not caller-controlled, so it
+        # is not sandboxed.
+        if options.output_path:
+            from .scaffold_workspace import resolve_scaffold_path
+
+            base_dir = resolve_scaffold_path(options.output_path)
+        else:
+            base_dir = Path(tempfile.gettempdir()) / "ohm-scaffolds"
         base_dir.mkdir(parents=True, exist_ok=True)
 
         timestamp = int(time.time())
