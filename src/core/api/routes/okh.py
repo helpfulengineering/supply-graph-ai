@@ -1249,7 +1249,7 @@ async def get_okh_from_storage(
     request: OKHFromStorageRequest,
     http_request: Request = None,
     okh_service: OKHService = Depends(get_okh_service),
-    user: Optional[AuthenticatedUser] = Depends(require_write),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """Retrieve an OKH manifest from storage by ID."""
     request_id = (
@@ -1276,6 +1276,25 @@ async def get_okh_from_storage(
         manifest = await okh_service.get(manifest_id)
 
         if not manifest:
+            error_response = create_error_response(
+                error=f"OKH manifest with ID {manifest_id} not found in storage",
+                status_code=status.HTTP_404_NOT_FOUND,
+                request_id=request_id,
+                suggestion="Please check the manifest ID and try again",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_response.model_dump(mode="json"),
+            )
+
+        # A private manifest must not leave the instance — same shape as
+        # GET /api/okh/{id} (#513). 404 rather than 403 so the response does
+        # not confirm the id exists. require_write (#485) required a
+        # credential to reach this point at all, but didn't scope which
+        # manifest a resolved caller could read — this does.
+        if user is None and not is_shareable(
+            await okh_service.get_visibility(manifest_id)
+        ):
             error_response = create_error_response(
                 error=f"OKH manifest with ID {manifest_id} not found in storage",
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -2124,7 +2143,7 @@ async def harvest_parts(
     request: OKHHarvestRequest,
     okh_service: OKHService = Depends(get_okh_service),
     asset_service: AssetService = Depends(get_asset_service),
-    user: Optional[AuthenticatedUser] = Depends(require_write),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     """Return a flat component inventory harvested from the requested manifests."""
     from uuid import UUID as UUIDType
@@ -2134,13 +2153,26 @@ async def harvest_parts(
 
     for mid in request.manifest_ids:
         try:
-            manifest = await okh_service.get(UUIDType(mid))
+            manifest_id = UUIDType(mid)
+            manifest = await okh_service.get(manifest_id)
         except (ValueError, AttributeError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid manifest ID: {mid!r}",
             )
         if manifest is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Manifest {mid!r} not found.",
+            )
+
+        # A private manifest must not leave the instance (#513) — checked
+        # per id, not once for the whole batch, so a shareable id cannot
+        # smuggle out results for a private one listed alongside it. Same
+        # 404-not-403 shape as GET /api/okh/{id}.
+        if user is None and not is_shareable(
+            await okh_service.get_visibility(manifest_id)
+        ):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Manifest {mid!r} not found.",

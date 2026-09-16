@@ -172,6 +172,15 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     # diff against an uploaded archive, and returns only the diff, never the
     # manifests themselves.
     ("POST", "/v1/api/okh/diff-collection"): "GET /api/okh (scoped identically)",
+    # #513: loads one manifest by id and returns it — a read, scoped to the
+    # manifest's visibility exactly as GET /api/okh/{id} is. #485 gated this
+    # with require_write as a stopgap while the actual gap (no visibility
+    # check at all, so an authenticated stranger read the same private
+    # content an anonymous one could) was tracked separately; this is that
+    # fix landing.
+    ("POST", "/v1/api/okh/from-storage"): "GET /api/okh/{id}",
+    # #513: same fix, applied per id in a batch — see from-storage above.
+    ("POST", "/v1/api/okh/harvest-parts"): "GET /api/okh/{id}",
 }
 
 #: Routes that were removed and answer **501** to say so, rather than 404.
