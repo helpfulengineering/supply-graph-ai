@@ -1715,6 +1715,19 @@ async def cleanup_project(
             "bytes_saved": result.bytes_saved,
             "warnings": result.warnings,
         }
+    except ValueError as e:
+        # Includes the scaffold-workspace sandbox refusal (#512): a
+        # project_path outside SCAFFOLD_OUTPUT_ROOT, or no root configured.
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            request_id=request_id,
+            suggestion="Please check the project_path and try again",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=error_response.model_dump(mode="json"),
+        )
     except Exception as e:
         error_response = create_error_response(
             error=e,
