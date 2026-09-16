@@ -47,6 +47,7 @@ from ...services.domain_service import DomainDetector
 from ...services.matching_service import MatchingService
 from ...models.auth import AuthenticatedUser
 from ..dependencies import created_by as owner_of
+from ...models.visibility import ViewerScope, is_shareable
 from ..dependencies import get_viewer, viewer_scope
 from ...services.okh_service import OKHService
 from ...services.okw_service import (
@@ -325,6 +326,7 @@ async def match_requirements_to_capabilities(
                 if isinstance(requirements_data, OKHManifest)
                 else None
             ),
+            viewer=await viewer_scope(viewer),
         )
 
         if domain == "manufacturing" and required_processes and facilities:
@@ -1007,7 +1009,21 @@ async def match_designs_for_facility(
 
     try:
         facility = await okw_service.get(request.okw_id)
-        if facility is None:
+        # A facility nobody may see must not be reverse-matchable either: the
+        # answer would confirm it exists and describe what it can make (#503).
+        # 404 rather than 403, so the response does not confirm the id.
+        #
+        # This is deliberately the same check GET /api/okw/{id} applies, not a
+        # stricter one — a reverse match should not be harder to do than simply
+        # reading the record. Both share a wider gap: an authenticated
+        # non-owner still passes, because attribution is dropped by to_dict()
+        # before either sees the record. Fixing that means a viewer-aware
+        # OKWService.get, as assets have, and belongs with the detail route.
+        hidden = facility is not None and (
+            user is None
+            and not is_shareable(await okw_service.get_visibility(request.okw_id))
+        )
+        if facility is None or hidden:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Facility {request.okw_id} not found",
@@ -2272,8 +2288,13 @@ async def _get_filtered_facilities(
     request_id: str,
     domain: str = "manufacturing",
     okh_manifest: Optional[OKHManifest] = None,
+    viewer: Optional[ViewerScope] = None,
 ) -> List[Any]:
     """Get facilities with applied filters.
+
+    ``viewer`` scopes the candidate pool. Without it a private facility was
+    matchable by anyone and its whole record came back in the results (#503) —
+    the route resolved a caller for attribution and never used it for this.
 
     Returns:
         - ``List[ManufacturingFacility]`` for the manufacturing domain.
@@ -2314,6 +2335,7 @@ async def _get_filtered_facilities(
             if okw_id_subset:
                 kwargs["okw_ids"] = okw_id_subset
             okw_service = await OKWService.get_instance()
+            kwargs["viewer"] = viewer
             facilities = await okw_service.get_network_match_facilities(**kwargs)
             logger.info(
                 "Network-match candidate pool built",

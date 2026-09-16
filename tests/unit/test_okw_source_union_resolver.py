@@ -167,7 +167,9 @@ async def test_union_degrades_to_storage_when_mom_unavailable(clean_env, monkeyp
 
     local = _facility_without_coords()
 
-    async def _one_page(self, *, page, page_size):
+    # `viewer` since #503: the candidate loader scopes its read, so the stand-in
+    # has to accept what the real one is now given.
+    async def _one_page(self, *, page, page_size, viewer=None):
         return ([local], 1) if page == 1 else ([], 0)
 
     monkeypatch.setattr(okw_mod.OKWService, "list", _one_page)

@@ -40,6 +40,13 @@ def test_reverse_match_returns_ranked_envelope(client, matchable_design):
     assert created.status_code == 201, created.text
     okw_id = created.json()["okw"]["id"]
 
+    # The facility needs sharing for the same reason the design does. Since
+    # #503 a private facility is not reverse-matchable either: answering would
+    # confirm it exists and describe what it can make. Without this the request
+    # 404s, correctly, and the assertions below check nothing.
+    shared = client.put(f"/api/okw/{okw_id}/visibility", json={"visibility": "public"})
+    assert shared.status_code == 200, shared.text
+
     resp = client.post(
         "/api/match/facility",
         json={"okw_id": okw_id, "min_confidence": 0.1, "max_results": 5},
