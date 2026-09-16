@@ -2248,8 +2248,8 @@ class MatchingService:
             # Import domain components (.. = src.core from this package)
             from ..domains.manufacturing.okh_extractor import OKHExtractor
             from ..domains.manufacturing.okh_matcher import OKHMatcher
-            from ..domains.manufacturing.validation.compatibility import (
-                ManufacturingOKHValidatorCompat,
+            from ..domains.manufacturing.validation.okh_validator import (
+                ManufacturingOKHValidator,
             )
             from ..domains.cooking.extractors import CookingExtractor
             from ..domains.cooking.matchers import CookingMatcher
@@ -2295,7 +2295,7 @@ class MatchingService:
                 domain_name="manufacturing",
                 extractor=OKHExtractor(),
                 matcher=OKHMatcher(),
-                validator=ManufacturingOKHValidatorCompat(),
+                validator=ManufacturingOKHValidator(),
                 metadata=manufacturing_metadata,
             )
 

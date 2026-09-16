@@ -114,8 +114,14 @@ These are load-bearing, non-obvious, and each has already caused a real defect.
   node reported a credential it holds, and can decrypt, as absent. **Only the
   first generation after a worker restart used the LLM.** `tasks.py` now resets
   those singletons per task; #467 tracks keying the registry by loop so the
-  whole class becomes impossible. Other sites that open a second loop:
-  `registry/validator_adapter.py`, and the two domain validators.
+  whole class becomes impossible. Other sites that open a second loop: the two
+  domain validators (`domains/manufacturing/validation/okh_validator.py`,
+  `domains/cooking/validation/compatibility.py`), each via a sync fallback
+  path (`loop.run_until_complete`) for a legacy sync caller. A third site,
+  `registry/validator_adapter.py`, was removed in #509 — it existed only to
+  bridge a registered async `Validator` into a sync interface, and its
+  bridge was unusable from any real (already-async) caller in the first
+  place; nothing needed it.
 
 ## Skills
 

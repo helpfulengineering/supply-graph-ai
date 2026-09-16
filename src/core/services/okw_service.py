@@ -1285,8 +1285,8 @@ class OKWService(BaseService["OKWService"]):
             )
             from ..domains.manufacturing.okh_extractor import OKHExtractor
             from ..domains.manufacturing.okh_matcher import OKHMatcher
-            from ..domains.manufacturing.validation.compatibility import (
-                ManufacturingOKHValidatorCompat,
+            from ..domains.manufacturing.validation.okh_validator import (
+                ManufacturingOKHValidator,
             )
 
             # Register Cooking domain
@@ -1327,7 +1327,7 @@ class OKWService(BaseService["OKWService"]):
                 domain_name="manufacturing",
                 extractor=OKHExtractor(),
                 matcher=OKHMatcher(),
-                validator=ManufacturingOKHValidatorCompat(),
+                validator=ManufacturingOKHValidator(),
                 metadata=manufacturing_metadata,
             )
 
