@@ -93,6 +93,7 @@ from ..models.okh.request import (
     OKHFromStorageRequest,
     OKHGenerateJobsRequest,
     OKHGenerateRequest,
+    OKHGenerateSpendGate,
     OKHHarvestRequest,
     OKHUpdateRequest,
     OKHValidateRequest,
@@ -1147,6 +1148,7 @@ async def upload_okh_file(
         None, description="Validation context (e.g., 'manufacturing', 'hobby')"
     ),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Upload an OKH file
@@ -1247,6 +1249,7 @@ async def get_okh_from_storage(
     request: OKHFromStorageRequest,
     http_request: Request = None,
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Retrieve an OKH manifest from storage by ID."""
     request_id = (
@@ -1327,37 +1330,47 @@ async def get_okh_from_storage(
         )
 
 
-async def _enforce_llm_auth_if_required(
-    *,
-    no_llm: bool,
-    user: Optional[AuthenticatedUser],
-) -> None:
+async def require_auth_for_llm_spend(
+    request: OKHGenerateSpendGate,
+    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
+) -> Optional[AuthenticatedUser]:
     """Require authentication only when a request would genuinely invoke an LLM.
 
-    This used to gate on the request's *intent* — the `no_llm` flag — rather than
-    on whether an LLM was actually available. The web UI always requests
-    LLM-enabled generation, so switching the setting on would have rejected every
-    generation in order to guard a cost that could not occur. That is why it
-    stayed off, and why the spend path stayed unguarded.
+    Was a plain function called from inside each handler body — invisible to
+    the auth ratchet (`tests/parity/test_auth_ratchet.py`) and to the OpenAPI
+    schema, because neither inspects a route's code, only its declared
+    dependencies (#344 named this "a second, invisible authorization
+    mechanism"; #485 formalizes it). `request` here and the route's own
+    `request` parameter share one parsed body — FastAPI merges a Pydantic
+    body param across a route and its dependencies when both use the same
+    parameter *name*, confirmed empirically before relying on it — so this
+    reads `no_llm` from the exact payload the route received, not a second
+    parse of anything.
 
-    Availability is resolved here rather than reused from the generation call:
-    on the async path this runs in the API process while generation happens in
-    the worker, so there is nothing to reuse.
+    This used to gate on the request's *intent* — the `no_llm` flag — rather
+    than on whether an LLM was actually available. The web UI always
+    requests LLM-enabled generation, so switching the setting on would have
+    rejected every generation in order to guard a cost that could not occur.
+    That is why it stayed off, and why the spend path stayed unguarded.
+
+    Availability is resolved here rather than reused from the generation
+    call: on the async path this runs in the API process while generation
+    happens in the worker, so there is nothing to reuse.
     """
     from src.config.schema import get_settings
 
     from ...llm.availability import resolve_llm_availability
 
-    if no_llm or not get_settings().generate_from_url_require_auth_for_llm:
-        return
+    if request.no_llm or not get_settings().generate_from_url_require_auth_for_llm:
+        return user
     if user is not None:
-        return
+        return user
 
     availability = await resolve_llm_availability(requested=True)
     if not availability.available:
         # No provider, so no spend to protect. Refusing here would deny an
         # anonymous user heuristic generation they are entitled to.
-        return
+        return user
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -1393,7 +1406,7 @@ async def generate_from_url(
     request: OKHGenerateRequest,
     http_request: Request,
     okh_service: OKHService = Depends(get_okh_service),
-    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
+    user: Optional[AuthenticatedUser] = Depends(require_auth_for_llm_spend),
 ) -> Any:
     """
     Generate OKH manifest from repository URL or local clone path
@@ -1423,7 +1436,6 @@ async def generate_from_url(
     - Optional interactive review for field validation
     """
     _enforce_generate_rate_limit(http_request)
-    await _enforce_llm_auth_if_required(no_llm=request.no_llm, user=user)
     try:
         # Call service to generate manifest from URL or local path
         result = await okh_service.generate_from_url(
@@ -1460,13 +1472,12 @@ async def generate_from_url(
 async def submit_generate_from_url_jobs(
     request: OKHGenerateJobsRequest,
     http_request: Request,
-    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
+    user: Optional[AuthenticatedUser] = Depends(require_auth_for_llm_spend),
 ) -> OKHGenerateJobsResponse:
     """Enqueue one Celery job per URL. Poll ``GET .../jobs/{job_id}`` for status."""
     from src.core.jobs import generation_jobs
 
     _enforce_generate_rate_limit(http_request)
-    await _enforce_llm_auth_if_required(no_llm=request.no_llm, user=user)
 
     if not generation_jobs.jobs_available():
         raise HTTPException(
@@ -1555,6 +1566,7 @@ async def get_generate_from_url_job_events(
 )
 async def revoke_generate_from_url_job(
     job_id: str = Path(..., description="Celery task id"),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> OKHGenerateJobStatus:
     """Revoke a queued or running job; subsequent polls report REVOKED."""
     from src.core.jobs import generation_jobs
@@ -1589,6 +1601,7 @@ async def scaffold_project(
             "src.core.services.scaffold_service", fromlist=["ScaffoldService"]
         ).ScaffoldService()
     ),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Generate a scaffold using ScaffoldService and return structured response."""
     from src.core.services.scaffold_service import ScaffoldOptions
@@ -1677,6 +1690,7 @@ async def cleanup_project(
             "src.core.services.cleanup_service", fromlist=["CleanupService"]
         ).CleanupService()
     ),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     request_id = getattr(http_request.state, "request_id", None)
 
@@ -1740,6 +1754,7 @@ async def import_collection_endpoint(
     dry_run: bool = Query(False, description="Analyse without writing"),
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Classify and optionally import manifests from a collection archive."""
     from ...packaging.collection import analyse_import
@@ -1854,6 +1869,7 @@ async def extract_repair_docs(
     manifest_id: Optional[str] = Form(None, description="Merge into this manifest"),
     use_llm: bool = Form(False, description="Run optional LLM enrichment pass"),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Extract repair-specific OKH fields from uploaded documents."""
     import tempfile
@@ -1985,6 +2001,7 @@ async def import_repair_doc(
     title: Optional[str] = Form(None, description="Title for a new manifest"),
     use_llm: bool = Form(False, description="Run optional LLM enrichment pass"),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     import tempfile
     from pathlib import Path as FsPath
@@ -2107,6 +2124,7 @@ async def harvest_parts(
     request: OKHHarvestRequest,
     okh_service: OKHService = Depends(get_okh_service),
     asset_service: AssetService = Depends(get_asset_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Return a flat component inventory harvested from the requested manifests."""
     from uuid import UUID as UUIDType

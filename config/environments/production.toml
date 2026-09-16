@@ -19,6 +19,11 @@ cache_backend = "redis"
 
 # Require authentication for generation that would actually invoke an LLM.
 #
+# Now the schema default too (#485) — kept explicit here regardless, since
+# deploy_env_vars() only applies keys this file declares, not schema
+# defaults, and the deployed container app should have this set on its own
+# terms rather than rely on an implicit default matching it today.
+#
 # Safe to have on before any provider is configured: the gate fires only when a
 # request would genuinely spend, so with no provider it is inert and anonymous
 # heuristic generation keeps working exactly as it does today. The moment an

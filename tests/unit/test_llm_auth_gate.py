@@ -8,6 +8,12 @@ off, and why the spend path stayed unguarded.
 
 Fixing the semantics is what makes arming the flag safe, which is why both ship
 together: separated, merging one without the other rejects every generation.
+
+#485 formalized the gate — was a plain function called from inside each
+handler body (invisible to the auth ratchet and the OpenAPI schema, since
+neither inspects a route's code) — into `require_auth_for_llm_spend`, a real
+FastAPI dependency taking the parsed request body instead of a raw `no_llm`
+bool. The behavior under test here is unchanged; only the call shape is.
 """
 
 from __future__ import annotations
@@ -23,12 +29,19 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from src.core.api.routes.okh import _enforce_llm_auth_if_required
+from src.core.api.models.okh.request import OKHGenerateSpendGate
+from src.core.api.routes.okh import require_auth_for_llm_spend
 from src.core.llm.availability import LLMAvailability, LLMUnavailableReason
 
 pytestmark = pytest.mark.unit
 
 _USER = object()  # any authenticated principal
+
+
+async def _gate(no_llm: bool, user):
+    return await require_auth_for_llm_spend(
+        request=OKHGenerateSpendGate(no_llm=no_llm), user=user
+    )
 
 
 def _availability(available: bool):
@@ -60,14 +73,14 @@ async def test_anonymous_generation_is_allowed_when_no_provider_is_configured():
     """THE fix. The UI always asks for LLM, so the old gate would have rejected
     every generation to protect a cost that cannot occur."""
     with _flag(True), _availability(False):
-        await _enforce_llm_auth_if_required(no_llm=False, user=None)  # must not raise
+        await _gate(no_llm=False, user=None)  # must not raise
 
 
 @pytest.mark.asyncio
 async def test_anonymous_generation_is_refused_once_a_provider_exists():
     with _flag(True), _availability(True):
         with pytest.raises(HTTPException) as raised:
-            await _enforce_llm_auth_if_required(no_llm=False, user=None)
+            await _gate(no_llm=False, user=None)
 
     assert raised.value.status_code == 401
     assert "no_llm=true" in str(raised.value.detail)
@@ -76,7 +89,7 @@ async def test_anonymous_generation_is_refused_once_a_provider_exists():
 @pytest.mark.asyncio
 async def test_an_authenticated_caller_proceeds():
     with _flag(True), _availability(True):
-        await _enforce_llm_auth_if_required(no_llm=False, user=_USER)
+        await _gate(no_llm=False, user=_USER)
 
 
 # --- Things that must never be gated -----------------------------------------
@@ -86,13 +99,13 @@ async def test_an_authenticated_caller_proceeds():
 async def test_opting_out_of_the_llm_is_never_refused():
     """A heuristic-only request spends nothing, whoever asks for it."""
     with _flag(True), _availability(True):
-        await _enforce_llm_auth_if_required(no_llm=True, user=None)
+        await _gate(no_llm=True, user=None)
 
 
 @pytest.mark.asyncio
 async def test_the_flag_off_gates_nothing():
     with _flag(False), _availability(True):
-        await _enforce_llm_auth_if_required(no_llm=False, user=None)
+        await _gate(no_llm=False, user=None)
 
 
 @pytest.mark.asyncio
@@ -109,7 +122,7 @@ async def test_availability_is_not_resolved_when_it_cannot_change_the_answer():
             _flag(flag),
             patch("src.core.llm.availability.resolve_llm_availability", resolver),
         ):
-            await _enforce_llm_auth_if_required(no_llm=no_llm, user=user)
+            await _gate(no_llm=no_llm, user=user)
         resolver.assert_not_awaited()
 
 

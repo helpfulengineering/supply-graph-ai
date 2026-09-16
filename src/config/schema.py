@@ -297,10 +297,17 @@ class Settings(BaseSettings):
         ),
     )
     generate_from_url_require_auth_for_llm: bool = Field(
-        default=False,
+        default=True,
         description=(
-            "When true, LLM-enabled generation (sync or async) requires a valid "
-            "API key. Heuristic-only runs (no_llm=true) stay public."
+            "When true (the default), LLM-enabled generation (sync or async) "
+            "requires a valid API key. Heuristic-only runs (no_llm=true) stay "
+            "public. Safe on unconditionally: the gate fires only when a "
+            "request would genuinely spend, so with no provider configured it "
+            "is inert. Was False by default until #485 — the reason it was "
+            "left off (it rejected every generation before an LLM-availability "
+            "check existed) no longer applies, and a node not running the "
+            "production profile had, until now, an unguarded LLM-spend path "
+            "with a credential it holds and can decrypt."
         ),
     )
     okw_source: Optional[str] = Field(

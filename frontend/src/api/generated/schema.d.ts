@@ -6947,6 +6947,12 @@ export interface components {
          */
         OKHGenerateJobsRequest: {
             /**
+             * No Llm
+             * @description Force heuristic-only generation (no LLM layer)
+             * @default false
+             */
+            no_llm: boolean;
+            /**
              * Urls
              * @description One or more GitHub/GitLab repository URLs (or server-local paths).
              */
@@ -6974,12 +6980,6 @@ export interface components {
              * @description Persist clone on the server
              */
             save_clone?: string | null;
-            /**
-             * No Llm
-             * @description Force heuristic-only generation (no LLM layer)
-             * @default false
-             */
-            no_llm: boolean;
         };
         /**
          * OKHGenerateJobsResponse
@@ -6996,6 +6996,12 @@ export interface components {
          * @description Request model for generating OKH manifest from URL or local path
          */
         OKHGenerateRequest: {
+            /**
+             * No Llm
+             * @description If true, use 3-layer generation only (no LLM). Default false: prefer LLM with chunked map-reduce when API keys are configured; otherwise automatically fall back to 3-layer.
+             * @default false
+             */
+            no_llm: boolean;
             /**
              * Url
              * @description Repository URL (GitHub / GitLab) **or** an absolute path to a locally cloned repository on the server filesystem.  When a local path is given the service skips network extraction and reads the directory directly.
@@ -7024,12 +7030,6 @@ export interface components {
              * @description Server-side path where the cloned repository should be persisted after generation instead of being deleted.  Only used when `clone=true` and `url` is a remote URL.  Useful for caching clones so a subsequent request can pass the saved path as `url` to skip re-cloning.
              */
             save_clone?: string | null;
-            /**
-             * No Llm
-             * @description If true, use 3-layer generation only (no LLM). Default false: prefer LLM with chunked map-reduce when API keys are configured; otherwise automatically fall back to 3-layer.
-             * @default false
-             */
-            no_llm: boolean;
         };
         /**
          * OKHGenerateResponse
