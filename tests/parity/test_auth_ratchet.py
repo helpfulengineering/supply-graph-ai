@@ -57,6 +57,13 @@ AUTH_DEPENDENCY_QUALNAMES = frozenset(
         # so work stays attributable. It composes `require_write` rather than
         # reimplementing it.
         "require_write_unless_public.<locals>.dependency",
+        # Same shape again: refuses only when a request would genuinely spend
+        # on an LLM, inert otherwise. Formalizes what used to be a plain
+        # function called from inside the handler body — invisible to this
+        # ratchet and to the OpenAPI schema, since neither inspects a route's
+        # code (#344 named this "a second, invisible authorization
+        # mechanism"; #485 fixed it here).
+        "require_auth_for_llm_spend",
     }
 )
 
@@ -151,6 +158,20 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     # itself loaded from files shipped in the image, never written by a
     # caller.
     ("POST", "/v1/api/match/rules/export"): "none",
+    # #485: validates the OKH content posted in the body against domain
+    # rules. `okh_service` is injected but never called — verified by
+    # reading the handler — so there is no storage access of any kind to
+    # scope, identically to match/rules/validate above.
+    ("POST", "/v1/api/okh/validate"): "none",
+    # #485: extracts process requirements from the OKH content posted in the
+    # body via `okh_service.extract_requirements(request.content)` — a pure
+    # function of what the caller sent, not a lookup by id.
+    ("POST", "/v1/api/okh/extract"): "none",
+    # #485: already correctly scoped — reads the caller's own visible OKH
+    # collection via `okh_service.list(viewer=await viewer_scope(user))` to
+    # diff against an uploaded archive, and returns only the diff, never the
+    # manifests themselves.
+    ("POST", "/v1/api/okh/diff-collection"): "GET /api/okh (scoped identically)",
 }
 
 #: Routes that were removed and answer **501** to say so, rather than 404.
@@ -196,20 +217,6 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
         ("POST", "/v1/api/convert/from-datasheet"),
         ("POST", "/v1/api/convert/from-okh-losh"),
         ("POST", "/v1/api/convert/to-datasheet"),
-        ("POST", "/v1/api/okh/diff-collection"),
-        ("POST", "/v1/api/okh/extract"),
-        ("POST", "/v1/api/okh/extract-repair-docs"),
-        ("POST", "/v1/api/okh/from-storage"),
-        ("POST", "/v1/api/okh/generate-from-url"),
-        ("POST", "/v1/api/okh/generate-from-url/jobs"),
-        ("POST", "/v1/api/okh/generate-from-url/jobs/{job_id}/revoke"),
-        ("POST", "/v1/api/okh/harvest-parts"),
-        ("POST", "/v1/api/okh/import-collection"),
-        ("POST", "/v1/api/okh/import-repair-doc"),
-        ("POST", "/v1/api/okh/scaffold"),
-        ("POST", "/v1/api/okh/scaffold/cleanup"),
-        ("POST", "/v1/api/okh/upload"),
-        ("POST", "/v1/api/okh/validate"),
         ("POST", "/v1/api/okw/extract"),
         ("POST", "/v1/api/okw/upload"),
         ("POST", "/v1/api/okw/validate"),

@@ -87,7 +87,26 @@ class OKHUploadRequest(BaseModel):
     validation_context: Optional[str] = None
 
 
-class OKHGenerateRequest(BaseModel):
+class OKHGenerateSpendGate(BaseModel):
+    """The one field an LLM-spend auth gate needs, shared by both
+    generate-from-url request shapes so a dependency can type its body
+    parameter against either one (#485).
+
+    FastAPI shares a parsed body across a route and its dependencies when
+    both declare a body parameter with the *same name* — `request` for both
+    routes below — regardless of whether the dependency's declared type is
+    this base or the route's own subclass. Carrying only `no_llm` here,
+    rather than collapsing every duplicated field between the two request
+    models, keeps this change to what the dependency actually needs.
+    """
+
+    no_llm: bool = Field(
+        False,
+        description="If true, this request will not invoke an LLM.",
+    )
+
+
+class OKHGenerateRequest(OKHGenerateSpendGate):
     """Request model for generating OKH manifest from URL or local path"""
 
     url: str = Field(
@@ -138,7 +157,7 @@ class OKHGenerateRequest(BaseModel):
     )
 
 
-class OKHGenerateJobsRequest(BaseModel):
+class OKHGenerateJobsRequest(OKHGenerateSpendGate):
     """Submit one or more repository URLs for async OKH generation."""
 
     urls: List[str] = Field(
