@@ -622,7 +622,6 @@ async def validate_match(
         False, description="Enable strict validation mode"
     ),
     matching_service: MatchingService = Depends(get_matching_service),
-    storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
     user: Optional[AuthenticatedUser] = Depends(get_viewer),
@@ -644,9 +643,17 @@ async def validate_match(
             },
         )
 
-        # Load OKH manifest from storage
-        okh_handler = await storage_service.get_domain_handler("okh")
-        okh_manifest = await okh_handler.load(request.okh_id)
+        # Load via OKHService.get(), not the raw storage handler (#505).
+        #
+        # okh_handler.load() built a fixed `{domain}/{id}.json` storage key,
+        # which okh_service.create() never wrote — it names files
+        # `okh/{slug}-{id8}-okh.json`. So this 500'd for every manifest
+        # created through the normal API, on every manifest id, always.
+        # get() finds the same file okh_service.create() actually wrote by
+        # scanning for a matching `id` field rather than guessing a filename,
+        # which is also the path GET /api/okh/{id} and every other
+        # OKH-reading route already uses.
+        okh_manifest = await okh_service.get(request.okh_id)
 
         if not okh_manifest:
             raise HTTPException(
@@ -668,8 +675,18 @@ async def validate_match(
         # Get domain from OKH manifest or default to manufacturing
         domain = "manufacturing"  # Default, could be detected from manifest
 
-        # Get domain validator from registry
-        if not DomainRegistry.is_domain_registered(domain):
+        # Get domain validator from registry.
+        #
+        # `DomainRegistry.is_domain_registered` does not exist and never has —
+        # verified: it is called nowhere else in this codebase, and the class
+        # has no such method. So this branch AttributeError'd on every call
+        # that reached it, meaning this route has never once returned a
+        # successful validation (#505). `list_domains()` is the real
+        # membership check; `get_domain_services` below already raises
+        # ValueError on an unregistered domain, which is what this restates
+        # as a 400 rather than letting it fall through to a bare 500 in the
+        # `except Exception` below.
+        if domain not in DomainRegistry.list_domains(include_disabled=True):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Domain {domain} is not registered",
