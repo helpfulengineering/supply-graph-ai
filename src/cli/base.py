@@ -35,8 +35,8 @@ async def ensure_domains_registered() -> None:
     from ..core.domains.cooking.validation.compatibility import CookingValidatorCompat
     from ..core.domains.manufacturing.okh_extractor import OKHExtractor
     from ..core.domains.manufacturing.okh_matcher import OKHMatcher
-    from ..core.domains.manufacturing.validation.compatibility import (
-        ManufacturingOKHValidatorCompat,
+    from ..core.domains.manufacturing.validation.okh_validator import (
+        ManufacturingOKHValidator,
     )
     from ..core.registry.domain_registry import (
         DomainMetadata,
@@ -92,7 +92,7 @@ async def ensure_domains_registered() -> None:
             domain_name="manufacturing",
             extractor=OKHExtractor(),
             matcher=OKHMatcher(),
-            validator=ManufacturingOKHValidatorCompat(),
+            validator=ManufacturingOKHValidator(),
             metadata=manufacturing_metadata,
         )
 

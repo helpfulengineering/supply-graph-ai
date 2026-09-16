@@ -41,9 +41,8 @@ from src.core.domains.cooking.validation.compatibility import CookingValidatorCo
 from src.core.domains.manufacturing.okh_extractor import OKHExtractor
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher
 
-# Import new enhanced validators with compatibility layers
-from src.core.domains.manufacturing.validation.compatibility import (
-    ManufacturingOKHValidatorCompat,
+from src.core.domains.manufacturing.validation.okh_validator import (
+    ManufacturingOKHValidator,
 )
 from src.core.errors.metrics import get_metrics_tracker
 from src.core.registry.domain_registry import (
@@ -497,7 +496,7 @@ async def register_domain_components():
         domain_name="manufacturing",
         extractor=OKHExtractor(),
         matcher=OKHMatcher(),
-        validator=ManufacturingOKHValidatorCompat(),
+        validator=ManufacturingOKHValidator(),
         metadata=manufacturing_metadata,
     )
 

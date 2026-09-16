@@ -5,15 +5,23 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 from ..models.base.base_extractors import BaseExtractor
 from ..models.base.base_types import BaseMatcher, BaseValidator
-from .validator_adapter import ValidatorAdapter
 
 if TYPE_CHECKING:
-    pass
+    from ..validation.engine import Validator as ValidationEngineValidator
 
 logger = logging.getLogger(__name__)
 
-# Type alias for validators (supports both old and new)
-ValidatorType = Union[BaseValidator, ValidatorAdapter]
+# A domain's validator is stored exactly as registered — either the legacy
+# sync `BaseValidator`, or the current async `Validator`
+# (`validation/engine.py`). Earlier, `register_domain()` wrapped any async
+# `Validator` in `ValidatorAdapter` to present a uniform sync interface, but
+# that adapter's sync bridge raises `RuntimeError` under any running event
+# loop — i.e. always, for every real async caller — so nothing that
+# registered a real async validator through this path could ever call it
+# (#509). Consumers must check which kind they got, the way
+# `ValidationEngine._validate_with_domain_context` already does via
+# `inspect.iscoroutinefunction(domain_validator.validate)`.
+ValidatorType = Union[BaseValidator, "ValidationEngineValidator"]
 
 
 class DomainStatus(Enum):
@@ -59,7 +67,7 @@ class DomainServices:
 
     extractor: BaseExtractor
     matcher: BaseMatcher  # Now properly typed
-    validator: ValidatorType  # Supports both BaseValidator and adapted Validator
+    validator: ValidatorType  # BaseValidator (sync) or Validator (async) — as registered, unwrapped
     metadata: DomainMetadata
     orchestrator: Optional[Any] = None  # BaseOrchestrator when available
 
@@ -88,13 +96,6 @@ class DomainRegistry:
 
         # Validate services
         cls._validate_services(extractor, matcher, validator)
-
-        # Wrap ValidationEngineValidator if needed (lazy import to avoid circular dependency)
-        from ..validation.engine import Validator as ValidationEngineValidator
-
-        if isinstance(validator, ValidationEngineValidator):
-            validator = ValidatorAdapter(validator)
-            logger.debug(f"Wrapped ValidationEngineValidator for domain {domain_name}")
 
         services = DomainServices(
             extractor=extractor,
