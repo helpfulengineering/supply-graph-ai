@@ -117,6 +117,40 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     # caller sent. Requiring a write permission to reformat your own data would
     # be theatre (#498).
     ("POST", "/v1/api/match/export/contacts"): "none",
+    # #486: reads OKW facilities and ranks them against a design, exactly like
+    # GET /api/okw would if it took a request body. Scoped to the caller since
+    # #503/#504 — the private-facility hole this route used to have is closed,
+    # so declaring it here is now an honest claim rather than a wish.
+    ("POST", "/v1/api/match"): "GET /v1/api/okw (scoped identically, #503/#504)",
+    # Same read, addressed by facility instead of by design. Also scoped since
+    # #503/#504 — a private facility 404s here exactly as GET /api/okw/{id}
+    # does.
+    ("POST", "/v1/api/match/facility"): "GET /v1/api/okw/{id}",
+    # Loads a design by id and validates it against a supply tree — a read,
+    # scoped to the design's visibility exactly as GET /api/okh/{id} is
+    # (#486). Persists nothing: it renders a ValidationResult, it does not
+    # write one.
+    ("POST", "/v1/api/match/validate"): "GET /v1/api/okh/{id}",
+    # A pure function of its request body: classifies which domain a posted
+    # requirements payload belongs to. No storage read, no storage write.
+    ("POST", "/v1/api/match/detect-domain"): "none",
+    # Simulates executing a supply tree the caller posted. The tree is in the
+    # request body, not loaded from storage, and nothing is persisted.
+    ("POST", "/v1/api/match/simulate"): "none",
+    # /import is not entirely a tombstone, which is why it is not in
+    # REMOVED_ANSWERING_501: dry_run=True with file_content is the supported
+    # comparison path #457/#459 kept, and it genuinely returns 200. The other
+    # two branches (no file_content; dry_run=False) refuse with 501 before
+    # reaching any of this. Reads no storage either way — the comparison runs
+    # against rule sets already loaded in memory.
+    ("POST", "/v1/api/match/rules/import"): "none",
+    ("POST", "/v1/api/match/rules/validate"): "none",
+    ("POST", "/v1/api/match/rules/compare"): "none",
+    # Serializes the running node's current in-memory rule sets. A read of
+    # process state, not of storage — and the process state it reads was
+    # itself loaded from files shipped in the image, never written by a
+    # caller.
+    ("POST", "/v1/api/match/rules/export"): "none",
 }
 
 #: Routes that were removed and answer **501** to say so, rather than 404.
@@ -138,6 +172,20 @@ REMOVED_ANSWERING_501: frozenset[tuple[str, str]] = frozenset(
         ("DELETE", "/v1/api/supply-tree/solution/{solution_id}"),
         ("POST", "/v1/api/supply-tree/solution/{solution_id}/save"),
         ("POST", "/v1/api/supply-tree/solution/{solution_id}/extend"),
+        # #486: a rule written here would live in one worker's process memory.
+        # CapabilityRuleManager.add_rule_set is `self.rule_sets[domain] =
+        # rule_set` on a module-level singleton — nothing in
+        # capability_rules.py writes rules to disk at all. Same defect #457
+        # described and #459 refused for applying an import and for reset;
+        # these three CRUD routes did the identical thing through a different
+        # door and #459 never reached them.
+        ("POST", "/v1/api/match/rules/"),
+        ("PUT", "/v1/api/match/rules/{domain}/{rule_id}"),
+        ("DELETE", "/v1/api/match/rules/{domain}/{rule_id}"),
+        # #459's own refusal, now declaring the status code on the route
+        # (rather than only raising it in the body) so this verification test
+        # can see it too.
+        ("POST", "/v1/api/match/rules/reset"),
     }
 )
 
@@ -148,20 +196,6 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
         ("POST", "/v1/api/convert/from-datasheet"),
         ("POST", "/v1/api/convert/from-okh-losh"),
         ("POST", "/v1/api/convert/to-datasheet"),
-        ("POST", "/v1/api/match"),
-        ("POST", "/v1/api/match/detect-domain"),
-        ("POST", "/v1/api/match/facility"),
-        ("POST", "/v1/api/match/rules/"),
-        ("POST", "/v1/api/match/rules/compare"),
-        ("POST", "/v1/api/match/rules/export"),
-        ("POST", "/v1/api/match/rules/import"),
-        ("POST", "/v1/api/match/rules/reset"),
-        ("POST", "/v1/api/match/rules/validate"),
-        ("DELETE", "/v1/api/match/rules/{domain}/{rule_id}"),
-        ("PUT", "/v1/api/match/rules/{domain}/{rule_id}"),
-        ("POST", "/v1/api/match/simulate"),
-        ("POST", "/v1/api/match/upload"),
-        ("POST", "/v1/api/match/validate"),
         ("POST", "/v1/api/okh/diff-collection"),
         ("POST", "/v1/api/okh/extract"),
         ("POST", "/v1/api/okh/extract-repair-docs"),

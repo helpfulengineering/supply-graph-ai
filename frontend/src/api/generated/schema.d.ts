@@ -2450,8 +2450,25 @@ export interface paths {
         get: operations["list_rules_api_match_rules__get"];
         put?: never;
         /**
-         * Create a new rule
-         * @description Create a new rule
+         * Create a new rule (refused — see docstring)
+         * @description Refused: a rule written here would live in one worker's memory (#486).
+         *
+         *     ``CapabilityRuleManager.add_rule_set`` is ``self.rule_sets[domain] = rule_set``
+         *     on a module-level singleton, and nothing in ``capability_rules.py`` writes rules
+         *     to disk at all. So a created rule reached the worker that answered, was invisible to its
+         *     siblings, vanished on the next restart, and reported success throughout.
+         *
+         *     That is the same defect #457 described and #459 refused for applying an import
+         *     and for reset. It never reached these three, which do the identical thing
+         *     through a different door.
+         *
+         *     Kept as a route rather than deleted so the refusal is legible: a removed
+         *     endpoint 404s, which reads as a wrong URL rather than a decision.
+         *
+         *     Rules are an admin surface and rarely exercised, so requiring a key here would
+         *     be right — but a key on a write that does not persist only means needing
+         *     credentials in order to be misled. Making rules durable is tracked separately;
+         *     this makes the current behaviour honest rather than closing that door.
          */
         post: operations["create_rule_api_match_rules__post"];
         delete?: never;
@@ -2473,14 +2490,18 @@ export interface paths {
          */
         get: operations["get_rule_api_match_rules__domain___rule_id__get"];
         /**
-         * Update an existing rule
-         * @description Update an existing rule
+         * Update an existing rule (refused — see docstring)
+         * @description Refused: an edited rule would live in one worker's memory (#486).
+         *
+         *     See :func:`create_rule` for why — same mechanism, same door.
          */
         put: operations["update_rule_api_match_rules__domain___rule_id__put"];
         post?: never;
         /**
-         * Delete a rule
-         * @description Delete a rule
+         * Delete a rule (refused — see docstring)
+         * @description Refused: a deletion would live in one worker's memory (#486).
+         *
+         *     See :func:`create_rule` for why — same mechanism, same door.
          */
         delete: operations["delete_rule_api_match_rules__domain___rule_id__delete"];
         options?: never;
@@ -2582,7 +2603,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Reset all rules
+         * Reset all rules (refused — see docstring)
          * @description Refused: rules are shipped with the image, so there is nothing to reset.
          *
          *     Refused for the same reason as applying an import (#457), and this one was
@@ -2826,7 +2847,7 @@ export interface paths {
          *
          *     Degrades rather than fails: if the design package cannot be built, the RFQs are returned on their own and say what should accompany them.
          *
-         *     Requires write permission, unlike /generate, because it may build a package that does not exist yet — which persists one.
+         *     Requires write permission by default, unlike /generate, because it may build a package that does not exist yet — which persists one. An operator who wants outreach to be a public act can open it with `rfq_bundle_require_auth=false`.
          */
         post: operations["bundle_rfq_api_rfq_bundle_post"];
         delete?: never;
@@ -16693,15 +16714,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RuleResponse"];
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -16736,6 +16748,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Successful Response */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
         };
     };
@@ -16820,15 +16841,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RuleResponse"];
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -16863,6 +16875,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Successful Response */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
         };
     };
@@ -16883,15 +16904,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"];
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -16926,6 +16938,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Successful Response */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
         };
     };
@@ -17180,15 +17201,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"];
-                };
-            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -17223,6 +17235,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Successful Response */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
         };
     };
