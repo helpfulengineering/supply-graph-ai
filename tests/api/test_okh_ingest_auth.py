@@ -8,10 +8,13 @@ proves each route now resolves *some* dependency or has moved to
 when it should, or that a genuinely-exempt route stays open. These tests do
 that, on a representative route from each of the three shapes #485 produced:
 
-- `require_write` (e.g. `/okh/from-storage`) — must 401 an anonymous
-  caller once `SecurityPolicy.require_auth_for_writes` is enforced
-  (production), calibrated against a control proving the same route is
-  reachable at all when it is not enforced.
+- `require_write` (`/okh/generate-from-url/jobs/{job_id}/revoke`) — must
+  401 an anonymous caller once `SecurityPolicy.require_auth_for_writes` is
+  enforced (production), calibrated against a control proving the same
+  route is reachable at all when it is not enforced. `/okh/from-storage`
+  was this file's original example, but #513 replaced its `require_write`
+  with visibility-scoped `get_viewer` — see
+  `tests/api/test_okh_from_storage_scope.py` for its own tests.
 - `require_auth_for_llm_spend` — covered exhaustively in
   `tests/unit/test_llm_auth_gate.py`; not repeated here.
 - `READS_EXPRESSED_AS_POST` (`/okh/validate`) — must stay open even in
@@ -22,7 +25,6 @@ from __future__ import annotations
 
 import os
 import sys
-from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import httpx
@@ -42,8 +44,11 @@ def _app() -> tuple[FastAPI, FastAPI]:
     return app, api_v1
 
 
+_REVOKE_PATH = f"/v1/api/okh/generate-from-url/jobs/{uuid4()}/revoke"
+
+
 @pytest.mark.asyncio
-async def test_from_storage_refuses_anonymous_when_enforced(monkeypatch):
+async def test_revoke_job_refuses_anonymous_when_enforced(monkeypatch):
     """Calibration: proves the test can observe enforcement at all — a
     check that has never been shown to refuse where it should is not
     evidence when it refuses."""
@@ -52,39 +57,26 @@ async def test_from_storage_refuses_anonymous_when_enforced(monkeypatch):
 
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://t") as client:
-        resp = await client.post(
-            "/v1/api/okh/from-storage", json={"manifest_id": str(uuid4())}
-        )
+        resp = await client.post(_REVOKE_PATH)
 
     assert resp.status_code == 401, resp.text
 
 
 @pytest.mark.asyncio
-async def test_from_storage_reachable_anonymously_when_not_enforced(monkeypatch):
-    """The control: the same route, same payload, policy relaxed — reaches
-    the handler (404 for a manifest that doesn't exist) rather than 401,
-    proving the previous test's 401 came from enforcement and not from
-    something else entirely (a malformed request, a missing route, ...)."""
+async def test_revoke_job_reachable_anonymously_when_not_enforced(monkeypatch):
+    """The control: the same route, policy relaxed — reaches the handler
+    (whatever it naturally returns for a job system that may not be
+    configured) rather than 401, proving the previous test's 401 came from
+    enforcement and not from something else entirely (a malformed request,
+    a missing route, ...)."""
     monkeypatch.setattr("src.config.settings.ENVIRONMENT", "development")
-    from src.core.api.routes.okh import get_okh_service
+    app, _ = _app()
 
-    app, api_v1 = _app()
-    svc = MagicMock()
-    svc.get = AsyncMock(return_value=None)
-    api_v1.dependency_overrides[get_okh_service] = lambda: svc
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://t") as client:
+        resp = await client.post(_REVOKE_PATH)
 
-    try:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(
-            transport=transport, base_url="http://t"
-        ) as client:
-            resp = await client.post(
-                "/v1/api/okh/from-storage", json={"manifest_id": str(uuid4())}
-            )
-    finally:
-        api_v1.dependency_overrides.clear()
-
-    assert resp.status_code == 404, resp.text
+    assert resp.status_code != 401, resp.text
 
 
 @pytest.mark.asyncio
