@@ -1847,6 +1847,34 @@ async def diff_collection_endpoint(
         )
 
 
+async def _require_manifest_ownership(
+    okh_service: OKHService, manifest_id: str, user: Optional[AuthenticatedUser]
+) -> None:
+    """Refuse to merge into ``manifest_id`` unless the caller created it.
+
+    ``require_write`` (#485) proves the caller holds *a* credential, not
+    that they may touch *this* record — the gap #514 found: any
+    write-permitted caller could patch any manifest on the node by id.
+    ``ViewerScope.owns`` and ``owner_attribution`` already exist and are
+    used everywhere for read-scoping (``visible_to``); nothing previously
+    called them for a write. 403, not 404 — unlike the read-scoping
+    precedent (#486/#513), which 404s to avoid confirming a record's
+    existence to a caller who cannot see it, a caller merging into this id
+    already named it, so there is nothing to hide; the honest answer is
+    that they may not touch it. An unattributed manifest (no ohm_* stamp —
+    legacy, or written by a path that never provenance-stamped) refuses
+    everyone, including its own creator, which is the safer default over
+    treating "nobody" as "anybody."
+    """
+    did, account = await okh_service.owner_attribution(manifest_id)
+    scope = await viewer_scope(user)
+    if not scope.owns(did, account):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"You do not have write access to manifest {manifest_id!r}.",
+        )
+
+
 @router.post(
     "/extract-repair-docs",
     response_model=OKHRepairExtractResponse,
@@ -1919,6 +1947,7 @@ async def extract_repair_docs(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=f"Manifest {manifest_id!r} not found.",
                     )
+                await _require_manifest_ownership(okh_service, manifest_id, user)
                 patch = result.to_patch()
                 existing_dict = existing.to_dict()
                 existing_dict["components"] = existing_dict.get(
@@ -2047,6 +2076,8 @@ async def import_repair_doc(
         mid_uuid = UUIDType(manifest_id) if manifest_id else None
         if mid_uuid:
             pre = await okh_service.get(mid_uuid)
+            if pre is not None:
+                await _require_manifest_ownership(okh_service, manifest_id, user)
             pre_comp_names = (
                 {c.name.lower() for c in (pre.components or [])} if pre else set()
             )
