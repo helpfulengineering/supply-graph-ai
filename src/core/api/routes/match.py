@@ -48,7 +48,7 @@ from ...services.matching_service import MatchingService
 from ...models.auth import AuthenticatedUser
 from ..dependencies import created_by as owner_of
 from ...models.visibility import ViewerScope, is_shareable
-from ..dependencies import get_viewer, viewer_scope
+from ..dependencies import get_viewer, require_write, viewer_scope
 from ...services.okh_service import OKHService
 from ...services.okw_service import (
     OKWService,
@@ -623,7 +623,9 @@ async def validate_match(
     ),
     matching_service: MatchingService = Depends(get_matching_service),
     storage_service: StorageService = Depends(get_storage_service),
+    okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> ValidationResult:
     """Enhanced validation endpoint with standardized patterns."""
     request_id = (
@@ -647,6 +649,17 @@ async def validate_match(
         okh_manifest = await okh_handler.load(request.okh_id)
 
         if not okh_manifest:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKH manifest {request.okh_id} not found",
+            )
+
+        # A private design must not leave the instance. 404 rather than 403 so
+        # the response does not confirm the id exists — the same check
+        # GET /api/okh/{id} applies (#486, same shape as #503/#504).
+        if user is None and not is_shareable(
+            await okh_service.get_visibility(request.okh_id)
+        ):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKH manifest {request.okh_id} not found",
@@ -833,8 +846,14 @@ async def match_requirements_from_file(
     storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
+    _user=Depends(require_write),
 ) -> dict[str, Any]:
-    """Enhanced file upload matching endpoint."""
+    """Enhanced file upload matching endpoint.
+
+    Requires write permission: this stores the uploaded OKH manifest
+    (`okh_handler.save(okh_manifest)`, below) before matching against it, so
+    it is a write wearing a matching-request shape (#486).
+    """
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
     )

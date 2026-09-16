@@ -155,9 +155,12 @@ async def get_rule(
 
 @router.post(
     "/",
-    response_model=RuleResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a new rule",
+    response_model=None,
+    # 501, not 201: this route is refused, not one that sometimes succeeds.
+    # A tombstone route declares the status code it actually returns, which is
+    # also what tests/parity/test_auth_ratchet.py verifies against (#486).
+    status_code=status.HTTP_501_NOT_IMPLEMENTED,
+    summary="Create a new rule (refused — see docstring)",
 )
 @api_endpoint(success_message="Rule created successfully")
 @track_performance("rules_create")
@@ -166,32 +169,42 @@ async def create_rule(
     http_request: Request,
     service: RulesService = Depends(get_rules_service),
 ) -> JSONResponse:
-    """Create a new rule"""
-    try:
-        rule = await service.create_rule(request.rule_data)
-        rule_dict = rule.to_dict(include_metadata=False)
-        response = create_success_response(
-            message="Rule created successfully", data=rule_dict
-        )
-        # Set status code for 201 Created
-        return JSONResponse(
-            content=response.model_dump(mode="json"),
-            status_code=status.HTTP_201_CREATED,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        logger.exception("Error creating rule")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create rule: {str(e)}",
-        )
+    """Refused: a rule written here would live in one worker's memory (#486).
+
+    ``CapabilityRuleManager.add_rule_set`` is ``self.rule_sets[domain] = rule_set``
+    on a module-level singleton, and nothing in ``capability_rules.py`` writes rules
+    to disk at all. So a created rule reached the worker that answered, was invisible to its
+    siblings, vanished on the next restart, and reported success throughout.
+
+    That is the same defect #457 described and #459 refused for applying an import
+    and for reset. It never reached these three, which do the identical thing
+    through a different door.
+
+    Kept as a route rather than deleted so the refusal is legible: a removed
+    endpoint 404s, which reads as a wrong URL rather than a decision.
+
+    Rules are an admin surface and rarely exercised, so requiring a key here would
+    be right — but a key on a write that does not persist only means needing
+    credentials in order to be misled. Making rules durable is tracked separately;
+    this makes the current behaviour honest rather than closing that door.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail=(
+            "Editing matching rules is not supported. Rules ship with the image "
+            "and load at startup, so a change made here would apply to one worker "
+            "process until it restarted, and to none of the others. Ship an edited "
+            "rule file in the image, or check one against a running node with "
+            "POST /api/match/rules/validate and /compare."
+        ),
+    )
 
 
 @router.put(
     "/{domain}/{rule_id}",
-    response_model=RuleResponse,
-    summary="Update an existing rule",
+    response_model=None,
+    status_code=status.HTTP_501_NOT_IMPLEMENTED,
+    summary="Update an existing rule (refused — see docstring)",
 )
 @api_endpoint(success_message="Rule updated successfully")
 @track_performance("rules_update")
@@ -202,29 +215,28 @@ async def update_rule(
     http_request: Request = None,
     service: RulesService = Depends(get_rules_service),
 ) -> SuccessResponse:
-    """Update an existing rule"""
-    try:
-        # Ensure rule_id and domain match path parameters
-        request.rule_data["id"] = rule_id
-        request.rule_data["domain"] = domain
+    """Refused: an edited rule would live in one worker's memory (#486).
 
-        rule = await service.update_rule(domain, rule_id, request.rule_data)
-        rule_dict = rule.to_dict(include_metadata=False)
-        return create_success_response(
-            message="Rule updated successfully", data=rule_dict
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        logger.exception("Error updating rule")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update rule: {str(e)}",
-        )
+    See :func:`create_rule` for why — same mechanism, same door.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail=(
+            "Editing matching rules is not supported. Rules ship with the "
+            "image and load at startup, so a change made here would apply to "
+            "one worker process until it restarted, and to none of the "
+            "others. Ship an edited rule file in the image, or check one "
+            "against a running node with POST /api/match/rules/validate "
+            "and /compare."
+        ),
+    )
 
 
 @router.delete(
-    "/{domain}/{rule_id}", response_model=SuccessResponse, summary="Delete a rule"
+    "/{domain}/{rule_id}",
+    response_model=None,
+    status_code=status.HTTP_501_NOT_IMPLEMENTED,
+    summary="Delete a rule (refused — see docstring)",
 )
 @api_endpoint(success_message="Rule deleted successfully")
 @track_performance("rules_delete")
@@ -234,30 +246,21 @@ async def delete_rule(
     confirm: bool = Query(False, description="Confirmation flag"),
     service: RulesService = Depends(get_rules_service),
 ) -> SuccessResponse:
-    """Delete a rule"""
-    try:
-        if not confirm:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Confirmation required. Set 'confirm=true' to delete.",
-            )
+    """Refused: a deletion would live in one worker's memory (#486).
 
-        result = await service.delete_rule(domain, rule_id)
-        if not result:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Rule '{rule_id}' not found in domain '{domain}'",
-            )
-
-        return create_success_response(message="Rule deleted successfully")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("Error deleting rule")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete rule: {str(e)}",
-        )
+    See :func:`create_rule` for why — same mechanism, same door.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail=(
+            "Editing matching rules is not supported. Rules ship with the "
+            "image and load at startup, so a change made here would apply to "
+            "one worker process until it restarted, and to none of the "
+            "others. Ship an edited rule file in the image, or check one "
+            "against a running node with POST /api/match/rules/validate "
+            "and /compare."
+        ),
+    )
 
 
 @router.post(
@@ -281,11 +284,26 @@ async def import_rules(
     files have been modified while the server is running).
     """
     try:
-        # If no file_content provided, reload from filesystem
+        # No file_content: refused (#486). `reload_rules` ends in
+        # `rule_manager.rule_sets.clear()` then re-initializes from the files
+        # on disk — the same clear-then-refill shape #459 called "a loaded
+        # gun" and removed from `reset_rules`. It never reached this path,
+        # which does it through `import` instead of `reset`.
+        #
+        # Per-worker, like every other rules write: the worker that answers
+        # reloads, its siblings do not, and the caller is told the reload
+        # succeeded. Restarting the node is the supported way to pick up rule
+        # files changed on disk, because every worker does it at once.
         if not request.file_content:
-            result = await rules_service.reload_rules(domain=request.domain)
-            return create_success_response(
-                message="Rules reloaded successfully from filesystem", data=result
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail=(
+                    "Reloading rules from the filesystem is not supported. "
+                    "Matching rules are loaded once at startup by each worker "
+                    "process; a reload here would apply to only the worker "
+                    "that answered, leaving its siblings on the old rules. "
+                    "Restart the node to pick up rule files changed on disk."
+                ),
             )
 
         # Otherwise, import from provided file content
@@ -469,7 +487,15 @@ async def compare_rules(
         )
 
 
-@router.post("/reset", response_model=SuccessResponse, summary="Reset all rules")
+@router.post(
+    "/reset",
+    response_model=None,
+    # 501, not 200: this route is refused, not one that sometimes
+    # succeeds. A tombstone route declares the status code it actually
+    # returns, which is also what test_auth_ratchet.py verifies (#486).
+    status_code=status.HTTP_501_NOT_IMPLEMENTED,
+    summary="Reset all rules (refused — see docstring)",
+)
 @api_endpoint(success_message="Rules reset successfully")
 @track_performance("rules_reset")
 async def reset_rules(
