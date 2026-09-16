@@ -692,8 +692,49 @@ async def validate_match(
                 detail=f"Domain {domain} is not registered",
             )
 
-        domain_services = DomainRegistry.get_domain_services(domain)
-        validator = domain_services.validator
+        # The real async validator, not DomainRegistry.get_domain_services()'s
+        # (#507).
+        #
+        # DomainRegistry.register_domain() unconditionally wraps any new-style
+        # `Validator` (validation/engine.py) in `ValidatorAdapter`, which
+        # exposes only a synchronous `validate(requirement, capability)`
+        # interface — and that adapter's sync `validate()` itself raises
+        # RuntimeError the moment it is called from a running event loop,
+        # which this route always is. So the registry path cannot produce a
+        # working async validator here no matter what gets registered into
+        # it. Verified: every register_domain() call site in this codebase
+        # (main.py, okw_service.py, matching_service.py, cli/base.py — six
+        # in total) registers the same legacy sync Compat stub, so this is a
+        # systemic gap in the registry's validator-wrapping design, not a
+        # one-off mistake — worth its own audit, filed separately.
+        #
+        # ManufacturingOKHValidator (the real implementation this route
+        # actually needs — it does field/quality/TSDC/process validation
+        # against the manifest) already implements the exact interface this
+        # route calls: `async def validate(data, context) -> ValidationResult`.
+        # Using it directly, exactly as okh_orchestrator.py already
+        # instantiates its own validator directly rather than going through
+        # the registry, sidesteps the broken adapter path entirely.
+        if domain == "manufacturing":
+            from ...domains.manufacturing.validation.okh_validator import (
+                ManufacturingOKHValidator,
+            )
+
+            validator = ManufacturingOKHValidator()
+        else:
+            # Unreachable today: `domain` is hardcoded to "manufacturing"
+            # above. Guarding explicitly rather than falling through to the
+            # registry's broken Compat stub, so that if domain detection is
+            # ever added here, an unimplemented domain fails loudly with a
+            # clear message instead of silently "validating" via a stub that
+            # always returns True regardless of input.
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail=(
+                    f"No real validator is wired up for domain '{domain}' yet "
+                    "— only 'manufacturing' has one (#507)."
+                ),
+            )
 
         # Create validation context
         from src.core.validation.context import ValidationContext
@@ -717,22 +758,38 @@ async def validate_match(
         # Future enhancement: Load actual supply tree from storage if available and validate it.
         # This would provide more comprehensive validation including supply tree structure validation.
 
-        # Convert validation result to API format
+        # Convert validation result to API format.
+        #
+        # `ErrorCode` is a small, closed, API-level vocabulary (auth/resource/
+        # service errors) — it is not meant to hold the ~20 specific,
+        # snake_case codes the manufacturing validator emits
+        # (`required_field_missing`, `pcb_fields_missing`, ...), which
+        # describe domain-specific validation detail, not HTTP-API-level error
+        # categories. `ErrorCode(error.code)` assumed every validator code was
+        # already a member of this enum, which none of them are — verified
+        # live: the first real validation run raised
+        # `ValueError: 'required_field_missing' is not a valid ErrorCode`
+        # (#507). Falls back to VALIDATION_ERROR for any code that is not a
+        # recognized member, same as the existing None fallback just below —
+        # the specific problem is still fully described in `message`, which
+        # each validator error already sets to a human-readable sentence.
         from src.core.api.models.base import ErrorCode, ErrorDetail
+
+        def _api_error_code(raw_code: Any) -> ErrorCode:
+            if isinstance(raw_code, ErrorCode):
+                return raw_code
+            if isinstance(raw_code, str):
+                try:
+                    return ErrorCode(raw_code)
+                except ValueError:
+                    return ErrorCode.VALIDATION_ERROR
+            return ErrorCode.VALIDATION_ERROR
 
         all_errors = [
             ErrorDetail(
                 message=error.message,
                 field=error.field,
-                code=(
-                    ErrorCode.VALIDATION_ERROR
-                    if error.code is None
-                    else (
-                        ErrorCode(error.code)
-                        if isinstance(error.code, str)
-                        else error.code
-                    )
-                ),
+                code=_api_error_code(error.code),
             )
             for error in okh_validation.errors
         ] + [
