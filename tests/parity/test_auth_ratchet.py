@@ -181,6 +181,25 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     ("POST", "/v1/api/okh/from-storage"): "GET /api/okh/{id}",
     # #513: same fix, applied per id in a batch — see from-storage above.
     ("POST", "/v1/api/okh/harvest-parts"): "GET /api/okh/{id}",
+    # #487: builds an OKHManifest from the request body and streams back a
+    # generated .docx — no storage access on any path, verified by reading
+    # the handler.
+    ("POST", "/v1/api/convert/to-datasheet"): "none",
+    # #487: parses an uploaded .toml file in-request and returns JSON — no
+    # storage access.
+    ("POST", "/v1/api/convert/from-okh-losh"): "none",
+    # #487: parses an uploaded .docx file in-request and returns JSON — no
+    # storage access.
+    ("POST", "/v1/api/convert/from-datasheet"): "none",
+    # #487: runs the manufacturing extractor on `request.content` — mirrors
+    # okh/extract exactly (#485), no storage access.
+    ("POST", "/v1/api/okw/extract"): "none",
+    # #487: `okw_service` is injected but never called in the body — mirrors
+    # okh/validate exactly (#485), no storage access.
+    ("POST", "/v1/api/okw/validate"): "none",
+    # #487: renders RFQ documents purely from `request.solutions` and other
+    # body fields — no storage access.
+    ("POST", "/v1/api/rfq/generate"): "none",
 }
 
 #: Routes that were removed and answer **501** to say so, rather than 404.
@@ -223,12 +242,6 @@ REMOVED_ANSWERING_501: frozenset[tuple[str, str]] = frozenset(
 #: #478 and #344 and their per-surface split (#483-#487).
 UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
     {
-        ("POST", "/v1/api/convert/from-datasheet"),
-        ("POST", "/v1/api/convert/from-okh-losh"),
-        ("POST", "/v1/api/convert/to-datasheet"),
-        ("POST", "/v1/api/okw/extract"),
-        ("POST", "/v1/api/okw/upload"),
-        ("POST", "/v1/api/okw/validate"),
         ("POST", "/v1/api/package/build"),
         ("POST", "/v1/api/package/build/{manifest_id}"),
         ("POST", "/v1/api/package/download-zip"),
@@ -236,7 +249,6 @@ UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
         ("POST", "/v1/api/package/push"),
         ("DELETE", "/v1/api/package/{org}/{project}/{version}"),
         ("POST", "/v1/api/package/{org}/{project}/{version}/pin"),
-        ("POST", "/v1/api/rfq/generate"),
     }
 )
 
