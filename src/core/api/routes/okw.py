@@ -50,6 +50,7 @@ from ..dependencies import (
     created_by_did,
     get_optional_user,
     get_viewer,
+    require_ownership,
     require_write,
     resolve_provenance,
     viewer_scope,
@@ -986,6 +987,9 @@ async def update_okw(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKW facility with ID {id} not found",
             )
+        await require_ownership(
+            await okw_service.owner_attribution(str(id)), user, "facility"
+        )
 
         # Convert request to facility data
         facility_data = request.dict()
@@ -1062,6 +1066,9 @@ async def delete_okw(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKW facility with ID {id} not found",
             )
+        await require_ownership(
+            await okw_service.owner_attribution(str(id)), user, "facility"
+        )
 
         # Delete facility using service
         success = await okw_service.delete(id)

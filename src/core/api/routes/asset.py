@@ -15,6 +15,7 @@ from ..dependencies import (
     created_by,
     created_by_did,
     get_viewer,
+    require_ownership,
     require_write,
     viewer_scope,
 )
@@ -192,13 +193,14 @@ async def update_asset(
     body: AssetUpdateRequest,
     id: UUID = Path(...),
     asset_service: AssetService = Depends(get_asset_service),
-    _user=Depends(require_write),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     record = await asset_service.get(id)
     if record is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
         )
+    await require_ownership(await asset_service.owner_attribution(id), user, "asset")
     if body.asset_tag is not None:
         record.asset_tag = body.asset_tag
     if body.location is not None:
@@ -227,8 +229,14 @@ async def update_asset(
 async def delete_asset(
     id: UUID = Path(...),
     asset_service: AssetService = Depends(get_asset_service),
-    _user=Depends(require_write),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
+    existing = await asset_service.get(id)
+    if existing is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    await require_ownership(await asset_service.owner_attribution(id), user, "asset")
     deleted = await asset_service.delete(id)
     if not deleted:
         raise HTTPException(

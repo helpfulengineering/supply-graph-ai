@@ -232,6 +232,31 @@ async def viewer_scope(user: Optional[AuthenticatedUser]) -> ViewerScope:
     return svc.viewer_scope(user)
 
 
+async def require_ownership(
+    attribution: tuple[Optional[str], Optional[str]],
+    user: Optional[AuthenticatedUser],
+    noun: str,
+) -> None:
+    """Refuse unless ``user`` created the record ``attribution`` describes.
+
+    Shared by OKH, asset, and OKW write-by-id routes (#514/#518), each
+    resolving ``attribution`` from their own ``owner_attribution(id)``.
+    ``require_write`` proves the caller holds *a* credential, not that they
+    may touch *this* record — this decides the latter. 403, not 404: the
+    caller already named this id, so there is nothing to hide; the honest
+    answer is that they may not touch it. An unattributed record (no
+    ``ohm_*`` stamp) refuses everyone, including its own creator, rather
+    than treating "nobody" as "anybody." Admin gets no bypass — the same
+    rule ``ViewerScope`` already applies to reads (ADR §9).
+    """
+    did, account = attribution
+    if not (await viewer_scope(user)).owns(did, account):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"You do not have write access to this {noun}.",
+        )
+
+
 async def resolve_provenance(
     user: Optional[AuthenticatedUser],
     author: Optional[str] = None,
