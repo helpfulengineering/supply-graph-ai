@@ -114,6 +114,60 @@ async def test_download_zip_returns_zip_of_tarballs(mock_two_packages):
 
 @pytest.mark.asyncio
 @pytest.mark.contract
+async def test_download_zip_falls_back_to_a_trusted_remote_pull(
+    mock_two_packages, monkeypatch
+):
+    """When a package isn't built locally, download-zip falls back to
+    PackageRemoteStorage.pull_package with a server-generated tempdir
+    (_materialize_package_tarball) — not a caller-supplied path, so it must
+    stay unsandboxed even with no PACKAGE_PULL_OUTPUT_ROOT configured (#521
+    only sandboxes the API/CLI's own caller-supplied output_dir)."""
+    import src.core.api.routes.package as package_routes
+    from src.core.api.routes.package import get_package_service
+
+    monkeypatch.delenv("PACKAGE_PULL_OUTPUT_ROOT", raising=False)
+
+    app, api_v1 = _get_app()
+    api_v1.dependency_overrides[get_package_service] = lambda: mock_two_packages
+
+    remote_storage = MagicMock()
+
+    async def fake_pull(package_name, version, local_output_dir, **kwargs):
+        assert kwargs.get("trusted_output_dir") is True
+        package_path = Path(local_output_dir) / "org-c" / "proj-c" / "1.0.0"
+        package_path.mkdir(parents=True)
+        return _sample_metadata(package_path, "org-c/proj-c", "1.0.0")
+
+    remote_storage.pull_package = AsyncMock(side_effect=fake_pull)
+    # _materialize_package_tarball calls get_remote_storage() directly, not
+    # through FastAPI's Depends resolution, so dependency_overrides can't
+    # reach it — patch the module-level function itself instead.
+    monkeypatch.setattr(
+        package_routes, "get_remote_storage", AsyncMock(return_value=remote_storage)
+    )
+
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.post(
+                "/v1/api/package/download-zip",
+                json={
+                    "items": [
+                        {"org": "org-c", "project": "proj-c", "version": "1.0.0"},
+                    ]
+                },
+            )
+
+        assert resp.status_code == 200, resp.text
+        remote_storage.pull_package.assert_awaited_once()
+    finally:
+        api_v1.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
 async def test_download_zip_404_when_missing(mock_two_packages):
     from src.core.api.routes.package import get_package_service
 
