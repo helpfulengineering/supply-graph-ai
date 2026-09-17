@@ -7,6 +7,126 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-09-17
+
+The security pass. A node reachable by strangers had no known anonymous
+mutation surface before this release; after it, it does not — the epic that
+gates the next stage of federation work (making it safe to turn on). A
+build-time ratchet (`tests/parity/test_auth_ratchet.py`) found the scope by
+asking the question of every mutating route at once rather than one surface
+at a time: 59 routes across packages, assets, supply-trees, OKH ingest,
+match/rules, and OKW/convert/rfq resolved no authorization dependency
+whatsoever. That list is now empty, and the ratchet fails `make ready` on
+any future regression rather than waiting to be audited by hand again.
+
+Several fixes here are backward-incompatible by design, which is why this is
+a minor rather than a patch release: two filesystem features now fail closed
+behind a setting that must be configured before they work at all, and a
+credentialed writer who previously could edit or delete *any* record on the
+node now can only touch their own.
+
+### Security
+
+- **Every mutating route that resolved no authorization now does, or is
+  declared exempt with a cited reason.** The full 59-route surface: package
+  build/push/pull/delete/pin/download-zip, the asset surface
+  (create/update/delete/triage/claim-component), supply-trees and saved
+  solutions, OKH ingest/generation, `taxonomy/reload`, `okh/scaffold`, the
+  match/rules routes, `rfq/generate`, and the okw/convert tail. Each route
+  either gained `require_write`/`require_admin` or was verified — by reading
+  the handler, not guessing from the route name — to persist nothing and
+  moved to a declared-exempt list.
+- **Write ownership is now enforced, not just write authentication.** Any
+  credentialed caller could previously update or delete *any* OKH manifest,
+  asset, or OKW facility on the node, and merge repair-doc content into any
+  manifest by id — holding *a* credential was never the same as owning
+  *that* record. `PUT`/`DELETE` on all three domains, plus the two OKH
+  repair-doc routes, now check `ViewerScope.owns(...)` and refuse with
+  `403`; an unattributed legacy record refuses everyone, including its own
+  creator, rather than treating "nobody" as "anybody." Admin gets no
+  bypass, matching the same rule already applied to reads.
+- **Two routes leaked private records to any authenticated stranger, not
+  just anonymous callers.** `okh/from-storage` and `okh/harvest-parts`
+  returned a manifest's full content with no visibility check at all; a
+  credential proved the caller was *someone*, not that they could see *this*
+  manifest. `POST /match` and `/match/facility` returned private OKW
+  facility contact details the same way. All four now enforce the same
+  visibility rule `GET /{id}` already does, 404ing rather than confirming
+  the record exists.
+- **Assets had no visibility plane at all** — every asset read was
+  anonymous and unscoped. Assets now carry creator attribution and are
+  readable only by whoever created them; there is deliberately no way to
+  share one, since nothing was asking for that capability.
+- **Two arbitrary-filesystem write/delete sandboxes.** `okh/scaffold`
+  (+`cleanup`) and `package/pull` each resolved a caller-supplied path
+  directly, with nothing constraining where it could point — a write or
+  delete anywhere the API process could reach, for any credentialed caller.
+  Both now fail closed against a dedicated `SCAFFOLD_OUTPUT_ROOT` /
+  `PACKAGE_PULL_OUTPUT_ROOT` setting: unset, the feature (or, for package
+  pull, only the caller-directed part of it) refuses rather than falling
+  back to "anywhere the process can write."
+- **CORS could not represent its own dangerous configuration.**
+  `allow_credentials=True` beside a wildcard `CORS_ORIGINS` made the
+  middleware echo the caller's own `Origin` instead of sending `*` —
+  individually approving every origin on earth for credentialed
+  cross-origin requests. `allow_credentials` is now derived from the
+  configured origins rather than set independently, so the pairing is
+  unrepresentable rather than merely unused.
+- **The API port now binds loopback by default**, on both the installer
+  and `docker-compose.yml`/`docker-compose.federation.yml` — a node
+  installed on a laptop joining an untrusted network no longer publishes
+  its write surface to it. The browser never needed this port; the web
+  container proxies `/v1` itself. Set `OHM_API_BIND`/`API_BIND=0.0.0.0` to
+  reach it from another machine, deliberately.
+- **`gitpython` bumped to 3.1.62**, fixing PYSEC-2026-3982/3983/3984. A
+  transitive dependency of `streamlit`, not imported by application code.
+
+### Fixed
+
+- **`POST /match/validate` had never once returned a successful
+  validation.** Two bugs stacked: it loaded manifests via a fixed storage
+  key `okh_service.create()` never actually writes (always a miss), and the
+  validator it pulled from the domain registry was a legacy sync stub whose
+  `.validate()` hardcoded `return True` behind an incompatible signature.
+  It now loads via `OKHService.get()` — the same path every other
+  OKH-reading route uses — and calls a real, working validator.
+- **`DomainRegistry`'s async-validator auto-wrap never worked from any real
+  caller.** Its sync bridge refused to run inside an already-running event
+  loop, which every real caller is, so all 8 live registration sites had
+  quietly worked around it by registering a sync stub instead. The auto-wrap
+  is retired; manufacturing now registers its real, working validator
+  directly.
+- **A private OKW facility was still matchable.** `POST /match` and
+  `/match/facility` never passed a viewer into `OKWService`'s read path, so
+  visibility was enforced everywhere except the one place it mattered.
+  Reverse matching (asking what a facility can make, by id) is scoped the
+  same way `GET /api/okw/{id}` already is — `404`, not `403`, so the
+  response doesn't confirm the id exists.
+- **A record created anonymously outside production vanished from every
+  listing, including for the person who just created it.** With writes
+  unenforced in development, an unauthenticated caller now resolves to a
+  stable local identity that owns what it creates and can read it back,
+  rather than "nobody" — which is also what let assets be owner-scoped at
+  all without breaking every local dev flow.
+- **Generating a manifest with LLM enrichment took far longer than
+  necessary.** Eight sequential model calls to fill five fields, chunked to
+  a fixed 4,000-token constant regardless of the model's actual context
+  window. The request is now sized to the model. (Visible for the first
+  time in 0.12.2, once the worker loop-affinity fix stopped silently
+  skipping the layer after the first generation.)
+
+### Changed
+
+- **Saved supply-tree solutions are no longer durable objects.** A routing
+  convenience (persisting a match result so the supply-tree explorer had an
+  id to load) had grown into durable storage of who searched for what,
+  readable by anyone holding the id, with a browse page and eleven derived
+  projections on top — none of it chosen. A match result is now
+  client-held and session-bounded; it leaves OHM via CSV/JSON export or an
+  RFQ, both of which already worked from the request body directly. 16
+  supply-tree routes, 15 storage methods, and the `solution` CLI group's 9
+  commands are removed.
+
 ## [0.12.2] - 2026-09-01
 
 The LLM layer now actually runs in production. It had not been, and three
