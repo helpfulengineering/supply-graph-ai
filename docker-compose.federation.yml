@@ -13,6 +13,9 @@
 # Peer B: http://localhost:8002
 # Edge:   http://localhost:8003  (profile: roles)
 # Relay:  http://localhost:8004  (profile: roles)
+#
+# Each port binds loopback by default (#523) — set API_BIND=0.0.0.0 to reach
+# these nodes from another machine.
 
 x-ohm-common: &ohm-common
   build:
@@ -29,7 +32,7 @@ services:
     <<: *ohm-common
     container_name: ohm-peer-a
     ports:
-      - "8001:8001"
+      - "${API_BIND:-127.0.0.1}:8001:8001"
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8001
@@ -70,7 +73,7 @@ services:
     <<: *ohm-common
     container_name: ohm-peer-b
     ports:
-      - "8002:8001"
+      - "${API_BIND:-127.0.0.1}:8002:8001"
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8001
@@ -114,7 +117,7 @@ services:
     profiles: ["roles"]
     container_name: ohm-edge
     ports:
-      - "8003:8001"
+      - "${API_BIND:-127.0.0.1}:8003:8001"
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8001
@@ -152,7 +155,7 @@ services:
     profiles: ["roles"]
     container_name: ohm-relay
     ports:
-      - "8004:8001"
+      - "${API_BIND:-127.0.0.1}:8004:8001"
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8001

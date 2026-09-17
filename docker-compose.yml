@@ -23,9 +23,14 @@ services:
       dockerfile: Dockerfile
     container_name: ohm-api
     ports:
-      # Map host port 8001 to container port (defaults to 8001, but can be overridden via PORT/API_PORT)
-      # If you change PORT or API_PORT, update this mapping accordingly
-      - "8001:8001"
+      # Loopback by default: a bare "8001:8001" binds every interface, so a
+      # node on a laptop joining a cafe network would publish its raw API to
+      # that network (#523, the treatment #480 already gave the installer).
+      # The web container reverse-proxies /v1 over the compose network, so
+      # nothing needs this host port to reach the node. Set API_BIND=0.0.0.0
+      # to use this node as an API server from another machine — and read
+      # #344 and #478 before you do.
+      - "${API_BIND:-127.0.0.1}:${API_PORT:-8001}:8001"
     # Optional so a clean clone starts with no setup. Still the only way secrets
     # reach the container: API keys, storage credentials and LLM keys are not
     # listed under `environment:`, so they arrive by passthrough from here.
