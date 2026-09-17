@@ -238,19 +238,12 @@ REMOVED_ANSWERING_501: frozenset[tuple[str, str]] = frozenset(
     }
 )
 
-#: Mutating routes that authorize nothing today. Every row is a debt, tracked by
-#: #478 and #344 and their per-surface split (#483-#487).
-UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset(
-    {
-        ("POST", "/v1/api/package/build"),
-        ("POST", "/v1/api/package/build/{manifest_id}"),
-        ("POST", "/v1/api/package/download-zip"),
-        ("POST", "/v1/api/package/pull"),
-        ("POST", "/v1/api/package/push"),
-        ("DELETE", "/v1/api/package/{org}/{project}/{version}"),
-        ("POST", "/v1/api/package/{org}/{project}/{version}/pin"),
-    }
-)
+#: Mutating routes that authorize nothing today. Empty as of #478 — the last
+#: surface (package: build, build/{manifest_id}, download-zip, push, pull,
+#: delete, pin) now resolves require_write like every other write route.
+#: #344 (anonymous writes when API_KEYS is unset) is a separate policy-layer
+#: question, not a route missing a dependency, so it has no row here.
+UNAUTHENTICATED_DEBT: frozenset[tuple[str, str]] = frozenset()
 
 #: Every route allowed to authorize nothing, for whatever reason.
 DECLARED = (
