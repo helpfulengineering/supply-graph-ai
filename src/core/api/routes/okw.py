@@ -1536,6 +1536,7 @@ async def upload_okw_file(
         None, description="Validation context (e.g., 'manufacturing', 'hobby')"
     ),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Upload an OKW file
