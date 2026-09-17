@@ -310,6 +310,21 @@ class Settings(BaseSettings):
             "with a credential it holds and can decrypt."
         ),
     )
+    package_pull_output_root: Optional[str] = Field(
+        default=None,
+        description=(
+            "Directory POST /api/package/pull's optional output_dir may write "
+            "to. Unset (the default) refuses any caller-supplied output_dir — "
+            "fails closed rather than falling back to 'anywhere the process "
+            "can write', which is what it resolved a caller-supplied path to "
+            "before #521 — while a pull with no output_dir keeps using the "
+            "server's own safe default (packages/ in the repo root), never "
+            "caller-controlled, so it is unaffected either way. Set to a "
+            "directory this node's operator actually wants pulled packages "
+            "written into; a caller-supplied output_dir must resolve inside "
+            "it or the request is refused."
+        ),
+    )
     scaffold_output_root: Optional[str] = Field(
         default=None,
         description=(

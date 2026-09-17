@@ -1051,19 +1051,10 @@ async def pull_package(
     try:
         package_name = request.package_name
         version = request.version
-        output_dir = request.output_dir
-
-        # Determine output directory
-        if output_dir:
-            from pathlib import Path
-
-            output_path = Path(output_dir)
-        else:
-            # Use default packages directory
-            from pathlib import Path
-
-            repo_root = Path(__file__).parent.parent.parent.parent.parent
-            output_path = repo_root / "packages"
+        # A caller-supplied output_dir is sandboxed against
+        # PACKAGE_PULL_OUTPUT_ROOT inside pull_package (#521); omitted, it
+        # resolves the server's own default there instead.
+        output_path = Path(request.output_dir) if request.output_dir else None
 
         # Pull package
         metadata = await remote_storage.pull_package(package_name, version, output_path)
@@ -1088,6 +1079,21 @@ async def pull_package(
             ),
         )
 
+    except PermissionError as e:
+        # The output_dir sandbox refusal (#521): unconfigured or outside
+        # PACKAGE_PULL_OUTPUT_ROOT. A distinct exception type from the
+        # package-name-parsing ValueError below, on purpose — this is a 422
+        # naming the setting, not a 404.
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            request_id=None,
+            suggestion="Please check output_dir and try again",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=error_response.model_dump(mode="json"),
+        )
     except ValueError as e:
         # Use standardized error handler
         error_response = create_error_response(

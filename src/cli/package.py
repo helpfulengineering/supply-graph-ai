@@ -1217,21 +1217,29 @@ async def push(
     - VERSION: Package version (e.g. ``1.0.0`` or multiple words such as ``Rev C`` — pass each word as a separate token)
     
     Use 'ohm package list-remote' to see available remote packages and their versions.
-    
+
     When LLM is enabled, pulling includes:
     - Enhanced package analysis and validation
     - Quality assessment of downloaded contents
     - Intelligent download strategy and error handling
     - Advanced metadata verification
+
+    --output-dir directs a write to the SERVER's filesystem — only
+    meaningful when the server you're talking to (OHM_SERVER_URL) is your
+    own machine. The server refuses it with a 422 unless its operator has
+    set PACKAGE_PULL_OUTPUT_ROOT, and even then only a path inside that
+    configured root is accepted (#521). Omit --output-dir to use the
+    server's own default (packages/ in its repo root) instead.
     """,
     epilog="""
     Examples:
       # Pull a package from remote storage
       ohm package pull fourthievesvinegar/solderless-microlab 1.0.0
-      
-      # Pull to custom directory
+
+      # Pull to custom directory (server-local; requires PACKAGE_PULL_OUTPUT_ROOT
+      # on the server, and --output-dir inside it)
       ohm package pull fourthievesvinegar/solderless-microlab 1.0.0 --output-dir ./my-packages
-      
+
       # Use LLM for enhanced processing
       ohm package pull fourthievesvinegar/solderless-microlab 1.0.0 --use-llm
     """,
@@ -1294,17 +1302,11 @@ async def pull(
 
             remote_storage = PackageRemoteStorage(storage_service)
 
-            # Determine output directory
-            if output_dir:
-                output_path = Path(output_dir)
-            else:
-                # Use default packages directory
-                repo_root = Path(__file__).parent.parent.parent
-                output_path = repo_root / "packages"
-
-            # Pull package
+            # A caller-supplied output_dir is sandboxed against
+            # PACKAGE_PULL_OUTPUT_ROOT inside pull_package (#521); omitted,
+            # it resolves the server's own default there instead.
             metadata = await remote_storage.pull_package(
-                package_name, version, output_path
+                package_name, version, Path(output_dir) if output_dir else None
             )
             return {
                 "status": "success",

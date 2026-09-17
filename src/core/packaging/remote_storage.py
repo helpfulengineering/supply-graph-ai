@@ -7,10 +7,10 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from ..models.package import PackageMetadata
-from ..utils.safe_paths import safe_join, safe_key
+from ..utils.safe_paths import UnsafePathError, safe_join, safe_key
 from ..storage.package_storage import (
     build_info_key_candidates,
     default_package_prefix,
@@ -22,6 +22,42 @@ if TYPE_CHECKING:
     from ..services.storage_service import StorageService
 
 logger = logging.getLogger(__name__)
+
+
+def resolve_package_pull_path(candidate: str) -> Path:
+    """Resolve a caller-supplied ``output_dir`` against
+    ``PACKAGE_PULL_OUTPUT_ROOT``.
+
+    Only the *caller-supplied* branch of ``pull_package`` calls this — the
+    server's own default (``packages/`` in the repo root) is never
+    caller-controlled, so it is not routed through here at all.
+
+    Fails closed: no root configured refuses rather than falling back to
+    "anywhere the process can write" (#521, the same posture #512's
+    ``resolve_scaffold_path`` already established for scaffold/cleanup).
+    Reuses :func:`safe_join`'s containment check — the same primitive
+    package building already trusts to keep a manifest-supplied file path
+    inside its own package (#418) — rather than a second implementation of
+    "is this path inside that one."
+    """
+    from src.config.schema import get_settings
+
+    root_setting = get_settings().package_pull_output_root
+    if not root_setting:
+        raise PermissionError(
+            "output_dir requires PACKAGE_PULL_OUTPUT_ROOT to be configured. "
+            "Set it to the directory package pulls may write to, or omit "
+            "output_dir to use the default packages directory."
+        )
+
+    root = Path(root_setting).expanduser().resolve()
+    try:
+        return safe_join(root, str(Path(candidate).expanduser()))
+    except UnsafePathError as exc:
+        raise PermissionError(
+            "output_dir must be inside the configured package-pull "
+            f"workspace ({root})"
+        ) from exc
 
 
 class PackageRemoteStorage:
@@ -261,7 +297,7 @@ class PackageRemoteStorage:
         return push_results
 
     async def pull_package(
-        self, package_name: str, version: str, local_output_dir: Path
+        self, package_name: str, version: str, local_output_dir: Optional[Path] = None
     ) -> PackageMetadata:
         """
         Pull a remote package to local storage
@@ -269,12 +305,21 @@ class PackageRemoteStorage:
         Args:
             package_name: Package name (e.g., "org/project")
             version: Package version
-            local_output_dir: Local directory to download to
+            local_output_dir: Directory to download to. A caller-supplied
+                value is sandboxed against ``PACKAGE_PULL_OUTPUT_ROOT``
+                (#521); omitted, this defaults to ``packages/`` in the repo
+                root, which is never caller-controlled and so is never
+                sandboxed.
 
         Returns:
             PackageMetadata for the downloaded package
         """
         logger.info(f"Pulling package {package_name}:{version}")
+
+        if local_output_dir is not None:
+            local_output_dir = resolve_package_pull_path(str(local_output_dir))
+        else:
+            local_output_dir = Path(__file__).parent.parent.parent.parent / "packages"
 
         # Parse package name
         org, project = package_name.split("/")
