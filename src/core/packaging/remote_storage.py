@@ -297,7 +297,12 @@ class PackageRemoteStorage:
         return push_results
 
     async def pull_package(
-        self, package_name: str, version: str, local_output_dir: Optional[Path] = None
+        self,
+        package_name: str,
+        version: str,
+        local_output_dir: Optional[Path] = None,
+        *,
+        trusted_output_dir: bool = False,
     ) -> PackageMetadata:
         """
         Pull a remote package to local storage
@@ -307,19 +312,28 @@ class PackageRemoteStorage:
             version: Package version
             local_output_dir: Directory to download to. A caller-supplied
                 value is sandboxed against ``PACKAGE_PULL_OUTPUT_ROOT``
-                (#521); omitted, this defaults to ``packages/`` in the repo
-                root, which is never caller-controlled and so is never
-                sandboxed.
+                (#521) unless ``trusted_output_dir`` says otherwise; omitted,
+                this defaults to ``packages/`` in the repo root, which is
+                never caller-controlled and so is never sandboxed either.
+            trusted_output_dir: True when ``local_output_dir`` was generated
+                by trusted internal code — a server-managed tempdir, not
+                something an API/CLI caller supplied — and so must bypass
+                the sandbox entirely rather than requiring an operator to
+                configure ``PACKAGE_PULL_OUTPUT_ROOT`` for a path the caller
+                never chose. Same shape as ``viewer=None`` elsewhere in this
+                codebase: unscoped, for trusted internal callers only.
+                ``_materialize_package_tarball`` (download-zip's remote
+                fallback) is the one caller that sets this.
 
         Returns:
             PackageMetadata for the downloaded package
         """
         logger.info(f"Pulling package {package_name}:{version}")
 
-        if local_output_dir is not None:
-            local_output_dir = resolve_package_pull_path(str(local_output_dir))
-        else:
+        if local_output_dir is None:
             local_output_dir = Path(__file__).parent.parent.parent.parent / "packages"
+        elif not trusted_output_dir:
+            local_output_dir = resolve_package_pull_path(str(local_output_dir))
 
         # Parse package name
         org, project = package_name.split("/")

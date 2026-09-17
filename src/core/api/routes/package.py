@@ -111,7 +111,11 @@ async def _materialize_package_tarball(
     remote_storage = await get_remote_storage()
     tmp_root = Path(tempfile.mkdtemp(prefix="ohm-pkg-pull-"))
     try:
-        metadata = await remote_storage.pull_package(package_name, version, tmp_root)
+        # tmp_root is a server-generated tempdir, not a caller-supplied path
+        # — never routed through the output_dir sandbox (#521).
+        metadata = await remote_storage.pull_package(
+            package_name, version, tmp_root, trusted_output_dir=True
+        )
         package_path = Path(metadata.package_path)
         temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
         temp_tar.close()
