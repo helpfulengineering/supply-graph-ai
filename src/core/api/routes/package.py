@@ -14,14 +14,17 @@ from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
 # Import existing models and services
+from ...models.auth import AuthenticatedUser
 from ...models.okh import OKHManifest
 from ...models.package import BuildOptions
+from ...models.visibility import is_shareable
 from ...packaging.builder import PackageAssetDownloadError
 from ...packaging.remote_storage import PackageRemoteStorage
 from ...services.okh_service import OKHService
 from ...services.package_service import PackageService
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_422_500
+from ..dependencies import require_write
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
@@ -192,6 +195,7 @@ async def build_package_from_manifest(
     request: PackageBuildRequest,
     http_request: Request,
     package_service: PackageService = Depends(get_package_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Enhanced package building with standardized patterns.
@@ -336,6 +340,8 @@ async def build_package_from_storage(
     manifest_id: UUID,
     options_body: Optional[Dict[str, Any]] = Body(default=None),
     package_service: PackageService = Depends(get_package_service),
+    okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Build an OKH package from a stored manifest
@@ -348,6 +354,18 @@ async def build_package_from_storage(
         Package metadata and build information
     """
     try:
+        # A private manifest must not become a publicly-downloadable package
+        # just because the caller holds any write credential — same shape
+        # #513 fixed for okh/from-storage. 404 rather than 403 so the
+        # response does not confirm the id exists.
+        if user is None and not is_shareable(
+            await okh_service.get_visibility(manifest_id)
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKH manifest not found: {manifest_id}",
+            )
+
         if options_body:
             options = BuildOptions.from_dict(options_body)
         else:
@@ -365,6 +383,8 @@ async def build_package_from_storage(
             request_id=None,
         ).model_dump(mode="json")
 
+    except HTTPException:
+        raise
     except ValueError as e:
         # Use standardized error handler
         error_response = create_error_response(
@@ -506,6 +526,7 @@ async def list_packages(
 async def download_packages_zip(
     body: PackageDownloadZipRequest,
     package_service: PackageService = Depends(get_package_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Zip multiple package tarballs for batch download (F2b.0)."""
     temp_paths: List[str] = []
@@ -727,6 +748,7 @@ async def pin_package(
     pinned_by: Optional[str] = None,
     note: Optional[str] = None,
     package_service: PackageService = Depends(get_package_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Lock a package version's content hashes as a certified snapshot (pin record)."""
     import getpass
@@ -869,6 +891,7 @@ async def delete_package(
     project: str,
     version: str,
     package_service: PackageService = Depends(get_package_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Delete a package
@@ -917,6 +940,7 @@ async def delete_package(
 async def push_package(
     request: PackagePushRequest,
     remote_storage: PackageRemoteStorage = Depends(get_remote_storage),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Push a local package to remote storage
@@ -1013,6 +1037,7 @@ async def push_package(
 async def pull_package(
     request: PackagePullRequest,
     remote_storage: PackageRemoteStorage = Depends(get_remote_storage),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Pull a remote package to local storage
