@@ -743,10 +743,27 @@ class OKWService(BaseService["OKWService"]):
         rare, deliberate act, so a full pass is the right trade against a
         second implementation of the same lookup.
         """
+        did, _ = await self.owner_attribution(record_id)
+        return did
+
+    async def owner_attribution(
+        self, record_id: str
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """The ``(creator DID, creator account)`` pair ``record_id`` was
+        stamped with, or ``(None, None)`` if unattributed.
+
+        Same one-inventory-pass lookup as :meth:`owner_did`, but keeps the
+        account fallback :class:`ViewerScope.owns` needs — DID-only misses
+        the two populations with no DID (environment-configured API keys,
+        and records written before #403). Used to gate a write to an
+        *existing* record by who created it (#518), distinct from
+        ``get_visibility``/``is_shareable``, which gate whether a record may
+        be read at all.
+        """
         for row in await self.inventory():
             if row["id"] == str(record_id):
-                return row["created_by_did"]
-        return None
+                return row["created_by_did"], row["created_by_account"]
+        return None, None
 
     async def _visible_facilities(
         self,

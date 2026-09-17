@@ -222,6 +222,34 @@ class AssetService(BaseService["AssetService"]):
                     logger.debug(f"Skipping {fi.key}: {exc}")
             return None
 
+    async def owner_attribution(
+        self, asset_id: UUID
+    ) -> tuple[Optional[str], Optional[str]]:
+        """The ``(creator DID, creator account)`` pair ``asset_id`` was
+        stamped with, or ``(None, None)`` if unattributed.
+
+        Same scan ``get`` uses, but reads the raw stored dict directly
+        instead of parsing an ``AssetRecord`` — attribution lives in
+        ``ohm_*`` keys ``to_dict()`` drops. Used to gate a write to an
+        *existing* record by who created it (#518), distinct from
+        ``visible_to``, which gates whether a record may be read at all.
+        """
+        await self.ensure_initialized()
+        if not (self.storage and self.storage.manager):
+            return None, None
+        discovery = SmartFileDiscovery(self.storage.manager)
+        for fi in await discovery.discover_files(_PREFIX):
+            try:
+                data = json.loads(
+                    (await self.storage.manager.get_object(fi.key)).decode()
+                )
+                if data.get("id") != str(asset_id):
+                    continue
+                return record_attribution(data)
+            except Exception as exc:
+                logger.debug(f"Skipping {fi.key}: {exc}")
+        return None, None
+
     async def list(
         self,
         manifest_id: Optional[str] = None,
