@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- An unhandled exception under `/v1` answered a bare `text/plain "Internal
+  Server Error"`: `/v1` is a mounted sub-app, so the exception handlers
+  registered on the parent never saw it, and the client had no request id to
+  find the log line by. It now answers the JSON error envelope, with the same
+  request id that appears in the log. `HTTPException` and validation errors
+  under `/v1` keep FastAPI's `{"detail": ...}` body, which the CLI reads.
+
 ## [0.13.0] - 2026-09-17
 
 The security pass. A node reachable by strangers had no known anonymous
