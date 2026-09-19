@@ -416,6 +416,14 @@ api_v1 = FastAPI(
     version=get_version(),
 )
 
+# A mounted sub-app has its own outermost error middleware, so the handlers
+# registered on `app` above never see an exception raised under /v1: the client
+# got a bare text/plain "Internal Server Error" and the parent's handler logged
+# a response it could no longer send. Only the catch-all is registered here.
+# HTTPException and validation errors deliberately keep FastAPI's {"detail": ...}
+# body under /v1 — the CLI reads that key, and the envelope has no `detail`.
+api_v1.add_exception_handler(Exception, general_exception_handler)
+
 # Include routers - those with prefixes don't need additional prefixes
 api_v1.include_router(match_router, prefix="/api/match", tags=["match"])
 api_v1.include_router(okh_router, prefix="/api/okh", tags=["okh"])
