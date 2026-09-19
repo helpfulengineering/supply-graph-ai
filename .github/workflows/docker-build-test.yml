@@ -72,6 +72,11 @@ jobs:
           docker logs test-container 2>&1 || echo "(no container to log)"
           exit 1
 
+      # What `docker ps` tells an operator, as opposed to whether the app
+      # answers a curl. The two can disagree — see the script's header.
+      - name: Container reports healthy
+        run: sh scripts/wait_container_healthy.sh test-container
+
       - name: Run health checks
         run: |
           EXPECTED="${{ steps.version.outputs.expected }}"
@@ -109,6 +114,56 @@ jobs:
         run: |
           docker stop test-container || true
           docker rm test-container || true
+
+  # The web image, which nothing here built before. It shipped in 0.12.2
+  # reporting "unhealthy" for its whole life while serving normally, and no gate
+  # noticed because none of them looked at it: its HEALTHCHECK probed
+  # `localhost`, which resolves to ::1 first, against a server listening on IPv4
+  # only.
+  #
+  # No docs site is built first. The Dockerfile only needs `docs-dist/` to
+  # exist, and its tracked .gitkeep guarantees that; the health check does not
+  # depend on what the docs route serves.
+  frontend-image:
+    name: Test frontend image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: false
+          load: true
+          tags: ohm-frontend:test
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      # The upstream is never called: /healthz answers without it. It only has
+      # to be set, because entry.sh refuses to start without one.
+      - name: Start it
+        run: |
+          docker run -d --name test-frontend -p 8080:8080 \
+            -e API_UPSTREAM_URL=http://127.0.0.1:1 \
+            ohm-frontend:test
+
+      - name: Container reports healthy
+        run: sh scripts/wait_container_healthy.sh test-frontend
+
+      - name: Serves the health endpoint from the host
+        run: curl -fsS http://localhost:8080/healthz
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f test-frontend || true
 
   # The self-host path, end to end. The job above proves one container answers
   # /health; it cannot see the failure that matters here, because a broken async
