@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Minting an identity returned a 500 on a node made by `install.sh`. The
+  installer never set `OHM_FEDERATION_DATA_DIR`, so the identity key store
+  defaulted to a path under a home directory the image does not create. It now
+  points at `<data dir>/federation` on the mounted volume, so the keys survive an
+  upgrade alongside the space claims they sign for. Nodes installed by an earlier
+  installer are not migrated.
+
+### Added
+
+- `tests/parity/test_home_rooted_defaults.py`: every `Path.home()` default in
+  server code must be declared, and the override it names must be set by the
+  installer and the compose files. A known gap remains, recorded in the test:
+  the compose files do not set `OHM_STORAGE_CONFIG_PATH`.
+
 ## [0.13.0] - 2026-09-17
 
 The security pass. A node reachable by strangers had no known anonymous
