@@ -70,7 +70,12 @@ RUN chmod +x entry.sh
 
 EXPOSE 8080
 
+# 127.0.0.1, not localhost: inside the container `localhost` resolves to ::1
+# first, the standalone server listens on IPv4 only, and busybox wget does not
+# fall back to the next address after a refused connection — so the check failed
+# for the container's whole life while the app served normally. stderr is left
+# attached so a real failure reports why in `docker inspect`.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -qO- "http://localhost:${PORT}/healthz" >/dev/null 2>&1 || exit 1
+    CMD wget -qO- "http://127.0.0.1:${PORT}/healthz" >/dev/null || exit 1
 
 CMD ["./entry.sh"]
