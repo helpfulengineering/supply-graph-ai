@@ -221,6 +221,13 @@ async def reconfigure_storage(
             "configuration has been restored."
         )
 
+    # A no-op in a process with no marker (the CLI never starts one); in the
+    # API process this keeps the liveness marker from reporting the backend
+    # this process just left (#539 D9, #544).
+    from . import storage_liveness
+
+    storage_liveness.refresh_backend(candidate.provider, candidate.bucket_name)
+
     logger.info("Storage reconfigured to provider=%s bucket=%s", provider, bucket)
     return {
         "provider": candidate.provider,

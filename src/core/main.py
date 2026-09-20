@@ -116,6 +116,19 @@ async def lifespan(app: FastAPI):
                 f"This may be a temporary network issue."
             )
 
+        # Start the liveness marker (#544) so the CLI, which cannot
+        # authenticate to this API, and this API itself on its next boot, can
+        # tell it is running and what it is serving without an HTTP call. Only
+        # once storage actually connected — a marker for a backend the API
+        # never reached would be worse than no marker.
+        if getattr(storage_service, "_configured", False) and storage_service.manager:
+            from .services import storage_liveness
+
+            storage_liveness.start(
+                storage_service.manager.config.provider,
+                storage_service.manager.config.bucket_name,
+            )
+
         # Ensure directory structure exists (lazy initialization)
         # This allows the application to self-bootstrap on first run
         try:
@@ -513,6 +526,15 @@ async def cleanup_resources():
     """Cleanup resources on shutdown"""
     try:
         logger.info("Cleaning up resources")
+
+        # Clean shutdown removes the marker (#544): uvicorn reaches this on
+        # SIGTERM/SIGINT, so an operator-initiated restart or stop leaves no
+        # marker behind. A `kill -9` skips this and the marker ages into
+        # `stale` on its own, which is the point of the heartbeat.
+        from .services import storage_liveness
+
+        await storage_liveness.stop()
+
         if settings.OHM_FEDERATION_ENABLED:
             from .federation.service import FederationService
 

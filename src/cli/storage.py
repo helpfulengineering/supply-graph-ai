@@ -846,3 +846,111 @@ async def config_set(
             )
 
     cli_ctx.end_command_tracking()
+
+
+@storage_group.command("status")
+@click.option(
+    "--forget",
+    is_flag=True,
+    help="Clear a marker known to be dead (status stale). Refused while running.",
+)
+@click.option(
+    "--yes",
+    is_flag=True,
+    help="Skip the confirmation prompt for --forget.",
+)
+@standard_cli_command(
+    help_text="""
+    Whether an API is running, and what it is actually serving (#539, #544).
+
+    Under the restart-to-apply contract a saved configuration only takes
+    effect at the next boot, so this compares three things that can disagree:
+    the saved configuration, what a running API connected to at its own boot
+    (from its heartbeat marker), and how fresh that heartbeat is.
+
+    This reads a local marker file; it never makes an HTTP call, because the
+    CLI has no way to authenticate to the API.
+    """,
+    async_cmd=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def storage_status(
+    ctx,
+    forget: bool,
+    yes: bool,
+    verbose: bool,
+    output_format: str,
+    **_kwargs,
+):
+    """Report the liveness marker's state, or clear a dead one."""
+    from ..core.services.storage_liveness import LivenessStatus
+    from ..core.services.storage_liveness import forget as forget_marker
+    from ..core.services.storage_liveness import marker_path, read as read_marker
+    from ..core.services.storage_reconfigure import current_config
+
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+    cli_ctx.start_command_tracking("storage-status")
+
+    storage_service = await StorageService.get_instance()
+    saved = await current_config(storage_service)
+    live = read_marker()
+
+    if forget:
+        if live.status == LivenessStatus.RUNNING:
+            age_desc = (
+                f"heartbeat {live.age_seconds:.1f}s old"
+                if live.age_seconds is not None
+                else f"unreadable: {live.error}"
+            )
+            cli_ctx.log(
+                f"Refusing --forget: the marker still looks running ({age_desc}). "
+                "If the API is actually dead, wait for it to go stale first.",
+                "error",
+            )
+            raise SystemExit(1)
+        if live.status == LivenessStatus.ABSENT:
+            cli_ctx.log("Nothing to forget: no marker is present.", "info")
+        elif yes or click.confirm(
+            f"Clear the stale marker at {marker_path()}?", default=False
+        ):
+            forget_marker()
+            cli_ctx.log("Marker cleared.", "success")
+        else:
+            cli_ctx.log("Left the marker in place.", "info")
+        cli_ctx.end_command_tracking()
+        return
+
+    if output_format == "json":
+        click.echo(
+            json.dumps({"saved": saved.to_dict(), "live": live.to_dict()}, indent=2)
+        )
+    else:
+        cli_ctx.log("Storage status", "success")
+        click.echo(f"  saved:  {saved.provider} ({saved.bucket}) [{saved.source}]")
+        if live.status == LivenessStatus.ABSENT:
+            click.echo("  live:   no API marker — none has started since boot")
+        else:
+            age = (
+                f"{live.age_seconds:.1f}s ago"
+                if live.age_seconds is not None
+                else "unknown"
+            )
+            click.echo(
+                f"  live:   {live.status.value} — {live.provider} ({live.bucket}), "
+                f"heartbeat {age}, pid {live.pid} on {live.host}"
+            )
+            if live.error:
+                click.echo(f"          ({live.error})")
+        if live.status != LivenessStatus.ABSENT and (
+            live.provider != saved.provider or live.bucket != saved.bucket
+        ):
+            click.echo(
+                "  note:   the running API is on a different backend than the "
+                "saved configuration — a restart is pending to apply it."
+            )
+
+    cli_ctx.end_command_tracking()
