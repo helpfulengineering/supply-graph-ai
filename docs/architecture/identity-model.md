@@ -29,7 +29,10 @@ and are **custodial** at first — the node holds the private key on the owner's
 behalf until they claim it.
 
 - Private keys live **node-local**, never in the object store and never federated
-  (`OHM_FEDERATION_DATA_DIR/identities/<did>.json`). Plaintext in peacetime;
+  (`OHM_FEDERATION_DATA_DIR/identities/<did>.json`), and the storage layer enforces
+  it: when that directory lies inside a local object root (compose does this), the
+  local provider neither lists it nor accepts any key naming it
+  (`src/core/storage/node_local.py`, #530). Plaintext in peacetime;
   encryption-at-rest is on the roadmap. The files are written `0600` inside a
   `0700` directory, and files written by older versions are tightened on the
   next write — plaintext means *not encrypted*, not *readable by anyone with a

@@ -79,6 +79,14 @@ COPY deploy/docker/docker-entrypoint.sh deploy/docker/healthcheck.sh deploy/dock
 RUN mkdir -p logs storage storage/federation temp_context temp_matching_context && \
     chmod -R 755 logs storage temp_context temp_matching_context
 
+# Where the node keeps its identity keys: on the storage mount, which is what
+# docker-entrypoint.sh already assumes (it creates and chowns this path, defaulting
+# to it when the variable is unset). The application's own default is under the
+# user's home, which this image does not create, so without this line minting an
+# identity fails with a PermissionError on a bare `docker run`. Deployment files
+# used to have to remember to set it, and the one that forgot shipped broken.
+ENV OHM_FEDERATION_DATA_DIR=/app/storage/federation
+
 RUN chmod +x docker-entrypoint.sh healthcheck.sh && \
     mv docker-entrypoint.sh healthcheck.sh /usr/local/bin/
 

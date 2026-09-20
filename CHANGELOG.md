@@ -7,8 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Node-local state is no longer reachable as an object (#530). The identity model
+  says private keys live "node-local, never in the object store", but the compose
+  files mount one volume as the object root and keep the identity plane inside it,
+  so a full walk of the store listed the plaintext signing keys and the saved
+  storage configuration, and `--mode migrate` to a cloud provider (or a backup)
+  copied them into the destination. The local provider now derives what is
+  node-local from the node's own settings and neither lists it nor lets any
+  operation read, write, delete or copy it, whatever the key (`..` segments,
+  absolute paths and differently-cased names included). Layouts that keep the
+  state outside the object root, like the installer's, are unchanged, and no
+  provider loses any key name. The provider also now refuses keys that escape the
+  object store; it used to join the key onto the base path unchecked. No API route
+  passes a caller-supplied key to the storage layer, and the one service that
+  derives keys from untrusted content already used `safe_key`, so this is
+  defence in depth rather than a closed remote hole. Keys already copied to a
+  destination by an earlier migrate or backup are not recalled: rotate any
+  identity whose store was migrated or backed up from a compose deployment.
+
 ### Fixed
 
+- The compose files did not set `OHM_STORAGE_CONFIG_PATH`, so saving storage
+  settings from the UI wrote to a home directory the image does not create and
+  failed. They now point it at `/app/storage/config/storage-config.json`, which
+  is safe because the storage layer refuses to treat it as an object.
+- The image defaults `OHM_FEDERATION_DATA_DIR` to `/app/storage/federation`, the
+  path its own entrypoint already prepared. The application's default was under
+  the user's home, so the two disagreed and every deployment file had to remember
+  to override it. A bare `docker run` can now mint an identity.
 - The web image reported `unhealthy` in `docker ps` for its whole life while
   serving normally: its `HEALTHCHECK` probed `localhost`, which resolves to
   `::1` first inside the container while the server listens on IPv4 only. It now
@@ -48,8 +76,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   built by any CI job before, and no job looked at container health state.
 - `tests/parity/test_home_rooted_defaults.py`: every `Path.home()` default in
   server code must be declared, and the override it names must be set by the
-  installer and the compose files. A known gap remains, recorded in the test:
-  the compose files do not set `OHM_STORAGE_CONFIG_PATH`.
+  installer and the compose files; the image's own default must agree with its
+  entrypoint; and in every compose layout the node's real state must be
+  unreachable through the object store.
 
 ### Changed
 
