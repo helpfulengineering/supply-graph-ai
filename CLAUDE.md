@@ -129,6 +129,24 @@ These are load-bearing, non-obvious, and each has already caused a real defect.
   bridge was unusable from any real (already-async) caller in the first
   place; nothing needed it.
 
+- **A new local-disk write in the API lifespan (`src/core/main.py`) must be
+  non-fatal, and its default path must clear
+  `tests/parity/test_home_rooted_defaults.py`.** That test only requires a
+  Dockerfile `ENV` default for a path *once it's declared* in `HOME_ROOTED`; it
+  does not stop you from adding new code that writes to an already-declared
+  path unconditionally at boot. #544's liveness marker did exactly that —
+  called `storage_liveness.start()` unguarded, defaulting through
+  `OHM_STORAGE_CONFIG_PATH` (already declared, but only `OHM_FEDERATION_DATA_DIR`
+  had a Dockerfile default at the time) — and crashed the whole API with
+  `PermissionError: /home/ohm` the first time CI ran a bare `docker run` (no
+  installer, no compose) against it, because that user's home directory is
+  never created. Fixed two ways, both required: the Dockerfile now defaults
+  every declared `HOME_ROOTED` override (`test_the_image_sets_a_default_for_every_override`
+  enforces it), and the call itself is wrapped in try/except, matching how
+  `storage_service.configure()` and LLM credential activation are already
+  guarded in the same lifespan — a node that can't write a heartbeat file
+  should degrade, not refuse to start.
+
 ## Skills
 
 - [Setup wizard](.claude/skills/setup/SKILL.md) — natural language setup, configuration Q&A, and documentation lookup for OHM

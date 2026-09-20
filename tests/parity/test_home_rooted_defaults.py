@@ -208,6 +208,30 @@ def test_the_image_default_agrees_with_its_entrypoint() -> None:
     )
 
 
+@pytest.mark.parametrize("env", _overrides())
+def test_the_image_sets_a_default_for_every_override(env: str) -> None:
+    """A bare `docker run` — no installer, no compose — must not fall back to $HOME.
+
+    The two tests above prove install.sh and the compose files each set every
+    declared override; neither protects a bare `docker run` that skips both, which
+    is exactly what CI's own "Test Docker Image" job does. Only
+    `OHM_FEDERATION_DATA_DIR` had a Dockerfile `ENV` default before this test
+    existed (`test_the_image_default_agrees_with_its_entrypoint`, above) — nothing
+    required *every* declared override to have one, so a second `HOME_ROOTED`
+    entry (`OHM_STORAGE_CONFIG_PATH`, for #544's liveness marker) shipped without
+    it and crashed the API on boot with `PermissionError: /home/ohm` the first
+    time anything tried to write there. That test stays as the stricter check for
+    the one path the entrypoint also pre-creates and chowns; this is the general
+    one every declared override must pass.
+    """
+    dockerfile = (_ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert re.search(rf"^ENV\s+{env}=\S+", dockerfile, re.M), (
+        f"the Dockerfile does not set a default for {env}. Without one, a bare "
+        "`docker run` (no installer, no compose) falls back to a path under "
+        "$HOME, which this image's user cannot write to."
+    )
+
+
 _DEFAULT = re.compile(r"^\$\{[A-Z_]+:-(?P<default>.*)\}$")
 
 
