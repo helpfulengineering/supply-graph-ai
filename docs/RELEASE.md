@@ -44,7 +44,12 @@ Federation is **off by default**. To enable it, set `OHM_FEDERATION_ENABLED=true
 1. Update version in `pyproject.toml` (or run `uv run python scripts/bump_version.py X.Y.Z`).
 2. Run `uv lock` and `uv sync --extra dev`.
 3. Confirm `uv run ohm version` and local `/health` report the new version.
-4. Update `CHANGELOG.md`.
+4. Fold pending entries into `CHANGELOG.md`:
+   `uv run python scripts/render_changelog.py --consolidate` (reads
+   `changelog.d/*.md`, so no PR hand-edited `[Unreleased]` directly — see
+   `changelog.d/README.md`). Then rename `## [Unreleased]` to
+   `## [X.Y.Z] - YYYY-MM-DD` and re-baseline:
+   `uv run python scripts/render_changelog.py --refreeze`.
 5. Run `make match-harness` (offline golden matching). Optionally `MOM_LIVE=1 make match-harness` for live MoM SPARQL smoke — see `tests/matching/`.
 6. Merge to `main` and wait for CI to pass (quality, test, contract-stability, security, docker-build-test).
 7. Create git tag `vX.Y.Z` on the release commit.
