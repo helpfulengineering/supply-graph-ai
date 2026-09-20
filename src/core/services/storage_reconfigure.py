@@ -247,6 +247,34 @@ MODE_MIGRATE = "migrate"
 MODE_ABANDON_AND_WIPE = "abandon_and_wipe"
 SWITCH_MODES = (MODE_ABANDON, MODE_MIGRATE, MODE_ABANDON_AND_WIPE)
 
+_WIPE_RETIRED = (
+    "The combined switch-and-wipe mode (abandon_and_wipe) has been retired: run from "
+    "a separate process it erased the old storage while a running API was still "
+    "serving from it, and the API had not been told to stop. Switch first (mode "
+    "abandon), restart the API if you switched from the command line, confirm the "
+    "node is healthy on the new storage, then delete the old data yourself; a "
+    "guarded `ohm storage wipe` is planned (#547). Nothing was changed."
+)
+_MIGRATE_OVER_API_RETIRED = (
+    "Storage migration over the API has been retired: the background job could not "
+    "find the storage it was meant to copy from, so it never worked. Run "
+    "`ohm storage config set --mode migrate` on the node instead. Nothing was "
+    "changed."
+)
+
+
+def retired_switch_mode_message(mode: str, *, via_api: bool) -> Optional[str]:
+    """Why a switch mode is refused, or None when it is still supported.
+
+    One place, so the API and the CLI cannot drift apart on what they say. The CLI
+    still offers `migrate`; only the API's job version was retired.
+    """
+    if mode == MODE_ABANDON_AND_WIPE:
+        return _WIPE_RETIRED
+    if mode == MODE_MIGRATE and via_api:
+        return _MIGRATE_OVER_API_RETIRED
+    return None
+
 
 def build_candidate(
     provider: str,
@@ -270,81 +298,6 @@ def build_candidate(
         credentials=credentials,
         endpoint_url=endpoint_url,
     )
-
-
-async def switch_and_wipe(
-    service: StorageService,
-    candidate: StorageConfig,
-    wipe_confirm: str,
-    dry_run: bool = False,
-) -> Dict[str, Any]:
-    """Switch to ``candidate``, then erase what the instance was using.
-
-    The order matters and is not negotiable: the wipe happens **after** the
-    switch has succeeded. Erasing first would leave a window in which the old
-    data is gone and the new backend has not been proved — the one state from
-    which there is no recovery.
-
-    The echo guard is checked before anything happens, so a caller who names
-    the wrong bucket does not get a switch either. `dry_run` reports what would
-    be destroyed and performs no switch and no deletion.
-    """
-    from .storage_transfer import WipeGuardError, wipe_storage
-
-    previous = service.manager.config if service.manager else None
-    if previous is None:
-        raise StorageReconfigureError(
-            "There is no current storage configuration to wipe."
-        )
-
-    # Fail before the switch, not after it: a mismatched echo should leave the
-    # instance exactly as it was, not switched-but-not-wiped.
-    if wipe_confirm != previous.bucket_name:
-        raise StorageReconfigureError(
-            f"Refusing to wipe: the request named {wipe_confirm!r} but this "
-            f"instance's storage is {previous.bucket_name!r}. Nothing was "
-            "deleted and the configuration is unchanged."
-        )
-
-    old_manager = StorageManager(previous)
-    await old_manager.connect()
-
-    if dry_run:
-        try:
-            report = await wipe_storage(
-                old_manager, previous.bucket_name, wipe_confirm, dry_run=True
-            )
-        finally:
-            await old_manager.disconnect()
-        return {
-            "mode": MODE_ABANDON_AND_WIPE,
-            "dry_run": True,
-            "switched": False,
-            "wipe": report.to_dict(),
-        }
-
-    try:
-        result = await reconfigure_storage(
-            service,
-            provider=candidate.provider,
-            bucket=candidate.bucket_name,
-            region=candidate.region,
-            endpoint_url=candidate.endpoint_url,
-            credentials=candidate.credentials,
-        )
-
-        try:
-            report = await wipe_storage(old_manager, previous.bucket_name, wipe_confirm)
-        except WipeGuardError as exc:  # pragma: no cover — checked above
-            raise StorageReconfigureError(str(exc)) from exc
-    finally:
-        await old_manager.disconnect()
-
-    result["mode"] = MODE_ABANDON_AND_WIPE
-    result["dry_run"] = False
-    result["switched"] = True
-    result["wipe"] = report.to_dict()
-    return result
 
 
 async def migrate_and_switch(

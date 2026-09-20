@@ -672,18 +672,14 @@ async def config_show(
     "--mode",
     type=click.Choice(["abandon", "migrate", "abandon_and_wipe"]),
     default="abandon",
-    help="What happens to the data already in storage. Default: leave it.",
+    help="What happens to the data already in storage. Default: leave it. "
+    "'abandon_and_wipe' has been retired.",
 )
-@click.option(
-    "--wipe-confirm",
-    metavar="BUCKET",
-    help="Required for --mode abandon_and_wipe: the exact bucket being erased.",
-)
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="For abandon_and_wipe: report what would be destroyed, change nothing.",
-)
+# Retired with `abandon_and_wipe` (#543) and hidden from --help, but still accepted so
+# a caller following the old documentation gets the explanation instead of click's
+# "No such option". They return on the standalone `ohm storage wipe` (#547).
+@click.option("--wipe-confirm", metavar="BUCKET", hidden=True)
+@click.option("--dry-run", is_flag=True, hidden=True)
 @standard_cli_command(
     help_text="""
     Switch this instance to a different storage backend.
@@ -734,12 +730,27 @@ async def config_set(
         ensure_configured,
         migrate_and_switch,
         reconfigure_storage,
-        switch_and_wipe,
+        retired_switch_mode_message,
     )
 
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
     cli_ctx.start_command_tracking("storage-config-set")
+
+    # The combined switch-and-wipe is retired (#543): run from a separate process it
+    # erased the old storage while a running API was still serving from it. The old
+    # flags count as asking for it, so nobody is left guessing why they were ignored.
+    refusal = retired_switch_mode_message(
+        (
+            MODE_ABANDON_AND_WIPE
+            if (mode == MODE_ABANDON_AND_WIPE or wipe_confirm or dry_run)
+            else mode
+        ),
+        via_api=False,
+    )
+    if refusal:
+        cli_ctx.log(refusal, "error")
+        raise SystemExit(1)
 
     parsed: Dict[str, str] = {}
     for item in credentials:
@@ -764,19 +775,7 @@ async def config_set(
             credentials=parsed,
         )
 
-        if mode == MODE_ABANDON_AND_WIPE:
-            if not wipe_confirm:
-                raise StorageReconfigureError(
-                    "--mode abandon_and_wipe requires --wipe-confirm naming "
-                    "the exact bucket to erase. Nothing was changed."
-                )
-            result = await switch_and_wipe(
-                storage_service,
-                candidate,
-                wipe_confirm=wipe_confirm,
-                dry_run=dry_run,
-            )
-        elif mode == MODE_MIGRATE:
+        if mode == MODE_MIGRATE:
             # Inline here, unlike the API. A CLI invocation is already a
             # long-running foreground process the operator is watching, so a
             # job would add a broker dependency and a polling loop to buy
@@ -806,21 +805,7 @@ async def config_set(
 
     if output_format == "json":
         click.echo(json.dumps(result, indent=2))
-    elif result.get("dry_run"):
-        wipe = result.get("wipe", {})
-        cli_ctx.log(
-            f"Dry run: would delete {wipe.get('objects', 0)} object(s), "
-            f"{wipe.get('bytes', 0)} bytes. Nothing was changed.",
-            "success",
-        )
-        for key in wipe.get("keys", [])[:20]:
-            click.echo(f"  - {key}")
-        if wipe.get("keys_truncated"):
-            click.echo("  … (truncated)")
     else:
-        # `.get` throughout: a dry run and a wipe carry different keys, and
-        # indexing would turn a mode that worked into a KeyError at the point
-        # of reporting it.
         cli_ctx.log(
             f"Storage is now {result['provider']}: {result['bucket']}", "success"
         )
@@ -834,12 +819,7 @@ async def config_set(
             click.echo(f"  created:  {', '.join(result['prefixes_created'])}")
         if result.get("prefixes_found"):
             click.echo(f"  present:  {', '.join(result['prefixes_found'])}")
-        if result.get("wipe"):
-            click.echo(
-                f"  wiped:    {result['wipe']['objects']} object(s) from the "
-                "previous backend"
-            )
-        elif result.get("previous_provider"):
+        if result.get("previous_provider"):
             click.echo(
                 f"  previous: {result['previous_provider']} "
                 f"({result['previous_bucket']}) — data left in place"
