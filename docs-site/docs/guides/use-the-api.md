@@ -32,6 +32,12 @@ Every running instance serves its own interactive documentation:
 - `/v1/openapi.json` — the machine-readable specification, for generating a
   client in your language
 
+The paths in that document are relative to the server URL it declares
+(`/v1`). An entry written `/api/identity/whoami` is requested at
+`/v1/api/identity/whoami`. Generators and the browsable reference resolve this for
+you; if you read the document by hand, or write a client that ignores its
+`servers` field, prefix the paths yourself.
+
 **Prefer those over any hand-written list**, including anything on this site.
 They're generated from the running code, so they cannot be out of date in the way
 prose can.
@@ -46,6 +52,9 @@ Requests carry a bearer token:
 ```
 Authorization: Bearer <your-token>
 ```
+
+The specification declares this as an HTTP bearer scheme, so the reference's
+*Authorize* button takes the token alone, without the word `Bearer`.
 
 Read operations are generally open. Writes are checked against the credentials an
 instance is configured with — but **whether they are checked at all depends on
