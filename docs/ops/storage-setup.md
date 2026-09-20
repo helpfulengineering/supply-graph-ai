@@ -216,20 +216,11 @@ A running API therefore cannot see that its saved configuration has changed, and
 answered" in that state. How to make this visible and safe is being designed in
 #539.
 
-> **Warning: do not run `--mode abandon_and_wipe` from the CLI on a running node.**
-> It erases the old backend immediately, but the running API keeps serving from that
-> backend until it restarts. Shown with a live API holding one design: after the CLI
-> wiped it, the API's design count went from 1 to 0 and the file was gone. Over the
-> API the switch happens in the same process before the wipe, so the API itself is
-> not left on an erased backend (a second API replica would be). On a running node,
-> switch in the panel, restart if you used the CLI, confirm the node is healthy on
-> the new backend, and only then delete the old data yourself.
-
 ## What happens to the data already there
 
 Switching points the instance at a new backend and leaves the old data where it
-is — invisible, but intact. That is one of three answers, and `--mode` picks
-which (#381).
+is — invisible, but intact. That is one of two answers, and `--mode` picks
+which (#381). A third, `abandon_and_wipe`, has been retired (see below).
 
 ### abandon (the default)
 
@@ -271,45 +262,35 @@ an object deleted in that window stays in it, because the copy never carries
 deletions over. Restart straight after migrating, and stop whatever writes to the
 node first if the move must be complete.
 
-**Over the API, migration does not work.** `POST /api/storage/config` with
-`"mode": "migrate"` enqueues `migrate_storage_task` in the Celery worker, which builds
-a fresh `StorageService` for every task and never configures it, so
-`migrate_and_switch` stops with `There is no current storage to migrate from`,
-having changed nothing (reproduced in a fresh process; the CLI avoids it with
-`ensure_configured`; no test covered the task). Nothing in the repo calls it, the job
-message carries the destination's credentials through Redis as cleartext JSON, and
-the worker's idea of "current storage" is its own environment, which need not match
-the API's. It is being retired in favour of the CLI (#539); use the CLI.
+**Over the API, migration is retired (#543).** `POST /api/storage/config` with
+`"mode": "migrate"` answers 400 and points at the CLI; nothing is enqueued and
+nothing changes. The job it used to enqueue could never find the storage it was meant
+to copy from (it built a fresh, unconfigured `StorageService` per task, so it stopped
+with `There is no current storage to migrate from`), nothing called it, and it carried
+the destination's credentials through Redis as cleartext JSON.
 
 The CLI runs migration in the foreground instead, printing each stage. A CLI
 invocation is already a process the operator is watching, so a job would add a
 broker dependency and a polling loop to buy nothing.
 
-### abandon_and_wipe
+### abandon_and_wipe (retired)
 
-Switch, then erase the old backend.
+This mode switched and then erased the old backend in one step. It has been retired
+(#543), over both the CLI and the API, and now answers with an explanation and changes
+nothing.
 
-```bash
-# See what would go, first. Nothing is switched and nothing is deleted.
-ohm storage config set --provider local --bucket ~/new-data \
-  --mode abandon_and_wipe --wipe-confirm /old/path --dry-run
+Run from the CLI, it erased whatever the *CLI process* believed was the current
+backend, while a running API kept serving from that backend until it restarted, and
+had no way to know. Shown with a live API holding one design: after
+`--mode abandon_and_wipe --wipe-confirm <old>` the API's design count went from 1 to
+0 and the file was gone. The CLI's switch never reaches a running API, so that window
+is guaranteed, not rare.
 
-# Then for real.
-ohm storage config set --provider local --bucket ~/new-data \
-  --mode abandon_and_wipe --wipe-confirm /old/path
-```
-
-**You must name the bucket being erased.** `scripts/clear_storage.py` protects
-itself with an interactive "type DELETE to confirm" prompt, which does not
-survive the trip to HTTP — and a boolean `confirm: true` is not a guard, it is
-a checkbox a client sets by default. Echoing the exact bucket requires having
-read what you are about to destroy. A mismatch deletes nothing **and switches
-nothing**: "switched but not wiped" is a state nobody asked for, so the check
-runs before anything happens.
-
-The wipe runs **after** the switch has succeeded, never before. Erasing first
-would open a window in which the old data is gone and the new backend has not
-been proved — the one state there is no recovery from.
+Until the guarded replacement exists (`ohm storage wipe`, #547), erasing an old
+backend is a manual step: switch (and restart the API if you switched from the CLI),
+confirm the node is healthy on the new backend, then delete the old data yourself.
+`scripts/clear_storage.py` remains for development resets. The echo guard from #381
+(name the bucket you are erasing) and `wipe_storage` are kept for the replacement.
 
 ## A freshly installed node
 
