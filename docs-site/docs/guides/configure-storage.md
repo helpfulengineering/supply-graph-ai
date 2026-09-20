@@ -59,6 +59,24 @@ straight away.
 So after a command-line switch, restart the node's API, then check `/settings/storage`
 shows the new backend as what answered.
 
+### Checking whether a restart is pending
+
+```bash
+ohm storage status
+```
+
+reads a local file the node's API writes while it is running — a heartbeat, not
+an HTTP call, because the command line has no way to log in to the node as
+itself. It reports whether the node is running, what backend it is actually
+serving (not just configured for), and whether that agrees with what was just
+saved. When it does not agree, a restart is pending: the node keeps answering
+from the backend it booted with until you restart it.
+
+**A second switch or migrate is refused while one is already pending.** Restart
+first — switching twice without restarting in between would mean the first
+switch is silently lost the moment the node finally does restart, since only
+the most recently saved configuration survives to be applied.
+
 ## Moving or erasing data
 
 Moving data is available from the command line only. It is not in the panel: it
@@ -117,6 +135,9 @@ node no longer needs the old storage:
 ```bash
 ohm storage config show
 ```
+
+For whether a restart is pending specifically, `ohm storage status` is more
+direct — see above.
 
 ## Background jobs
 

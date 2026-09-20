@@ -27,6 +27,27 @@ from .progress import emit_status_line
 logger = get_logger(__name__)
 
 
+def _restart_notice(pending) -> str:
+    """A boxed reminder after every successful switch or migrate (#539 D1, #545).
+
+    ``pending.pending`` means a running API's marker already disagrees with
+    what was just saved — restarting it is what applies this. With no running
+    API, there is nothing to restart; the next one to start just picks this up.
+    """
+    if pending.pending:
+        lines = [
+            "Restart the API to apply this change.",
+            f"It is still serving {pending.live_provider} ({pending.live_bucket}).",
+        ]
+    else:
+        lines = ["The next API start will apply this — none is running now."]
+    width = max(len(line) for line in lines) + 2
+    top = "┌" + "─" * width + "┐"
+    bottom = "└" + "─" * width + "┘"
+    body = "\n".join(f"│ {line.ljust(width - 1)}│" for line in lines)
+    return f"{top}\n{body}\n{bottom}"
+
+
 @click.group()
 def storage_group() -> None:
     """
@@ -614,7 +635,7 @@ async def config_show(
     **_kwargs,
 ):
     """Show the storage configuration this instance is running on."""
-    from ..core.services.storage_reconfigure import current_config
+    from ..core.services.storage_reconfigure import current_config, restart_pending_info
 
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
@@ -623,10 +644,18 @@ async def config_show(
     storage_service = await StorageService.get_instance()
     view = await current_config(storage_service)
     fingerprint = await storage_service.get_config_fingerprint()
+    pending = restart_pending_info()
 
     if output_format == "json":
         click.echo(
-            json.dumps({"config": view.to_dict(), "fingerprint": fingerprint}, indent=2)
+            json.dumps(
+                {
+                    "config": view.to_dict(),
+                    "fingerprint": fingerprint,
+                    "runtime": pending.to_dict(),
+                },
+                indent=2,
+            )
         )
     else:
         cli_ctx.log("Storage configuration", "success")
@@ -646,6 +675,16 @@ async def config_show(
             click.echo(
                 f"  contents:    {fingerprint.get('okh_count')} OKH, "
                 f"{fingerprint.get('okw_count')} OKW"
+            )
+        if pending.pending:
+            click.echo(
+                f"  live:        {pending.live_provider} ({pending.live_bucket}), "
+                f"running since {pending.since} — DIFFERS from saved; restart "
+                "the API to apply it"
+            )
+        elif pending.live_provider:
+            click.echo(
+                f"  live:        {pending.live_provider} ({pending.live_bucket})"
             )
 
     cli_ctx.end_command_tracking()
@@ -730,6 +769,7 @@ async def config_set(
         ensure_configured,
         migrate_and_switch,
         reconfigure_storage,
+        restart_pending_info,
         retired_switch_mode_message,
     )
 
@@ -803,8 +843,14 @@ async def config_set(
         )
         raise SystemExit(1) from e
 
+    # Saved just now, above — so a running API's marker (if any) necessarily
+    # still names the backend it booted with, which is what makes this
+    # "pending" (#545): applying this switch to that process is exactly what
+    # a restart does.
+    pending = restart_pending_info()
+
     if output_format == "json":
-        click.echo(json.dumps(result, indent=2))
+        click.echo(json.dumps({**result, "runtime": pending.to_dict()}, indent=2))
     else:
         cli_ctx.log(
             f"Storage is now {result['provider']}: {result['bucket']}", "success"
@@ -824,6 +870,7 @@ async def config_set(
                 f"  previous: {result['previous_provider']} "
                 f"({result['previous_bucket']}) — data left in place"
             )
+        click.echo(_restart_notice(pending))
 
     cli_ctx.end_command_tracking()
 
@@ -869,7 +916,7 @@ async def storage_status(
     from ..core.services.storage_liveness import LivenessStatus
     from ..core.services.storage_liveness import forget as forget_marker
     from ..core.services.storage_liveness import marker_path, read as read_marker
-    from ..core.services.storage_reconfigure import current_config
+    from ..core.services.storage_reconfigure import current_config, restart_pending_info
 
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
@@ -878,6 +925,7 @@ async def storage_status(
     storage_service = await StorageService.get_instance()
     saved = await current_config(storage_service)
     live = read_marker()
+    pending = restart_pending_info()
 
     if forget:
         if live.status == LivenessStatus.RUNNING:
@@ -906,7 +954,14 @@ async def storage_status(
 
     if output_format == "json":
         click.echo(
-            json.dumps({"saved": saved.to_dict(), "live": live.to_dict()}, indent=2)
+            json.dumps(
+                {
+                    "saved": saved.to_dict(),
+                    "live": live.to_dict(),
+                    "runtime": pending.to_dict(),
+                },
+                indent=2,
+            )
         )
     else:
         cli_ctx.log("Storage status", "success")
@@ -925,9 +980,10 @@ async def storage_status(
             )
             if live.error:
                 click.echo(f"          ({live.error})")
-        if live.status != LivenessStatus.ABSENT and (
-            live.provider != saved.provider or live.bucket != saved.bucket
-        ):
+        # Only a RUNNING marker makes a restart "pending" (#545): a stale one
+        # may not be running at all, and the next boot just applies the saved
+        # config with nothing to refuse.
+        if pending.pending:
             click.echo(
                 "  note:   the running API is on a different backend than the "
                 "saved configuration — a restart is pending to apply it."

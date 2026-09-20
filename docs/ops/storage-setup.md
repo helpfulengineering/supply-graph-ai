@@ -257,6 +257,52 @@ The marker is node-local state, like the saved configuration and the identity
 keys beside it: the local provider refuses to list, read, or write it as an
 object, so nothing that walks the store (a migrate, a backup) can see it.
 
+### One switch at a time
+
+A restart is **pending** precisely when a *running* API's marker names a
+different backend than the saved configuration — the state the box above
+labels with `note:`. `ohm storage config set` (any mode) refuses to run while
+one is pending, from either the CLI or the panel/API's own inline switch:
+
+```
+$ ohm storage config set --provider local --bucket ~/newer-data
+❌ A restart is already pending: the API has been serving local (~/ohm-data)
+   since 2026-09-20T18:40:17+00:00, but the saved configuration is
+   azure_blob (new-container). Restart the API to apply that change before
+   switching again — one change at a time, so a second switch cannot be
+   lost underneath the first.
+```
+
+Without this, a second switch made before the first was ever applied would
+overwrite the *saved* configuration — the first switch's target is gone the
+moment the second one is written, and the running API, which never saw
+either, would apply only the second at its next restart. Restart to clear the
+pending state, then switch again.
+
+Both `GET /api/storage/config` and `/health` carry the same picture for
+anything watching over HTTP: a `runtime` block (`GET /api/storage/config`) or
+a `restart_required` flag inside the `storage` block (`/health`, which needs
+no admin credentials — the marker read behind it never touches storage
+itself, so it is as safe to expose as the rest of `/health`).
+
+Every successful switch or migrate — from the CLI — ends with a boxed
+reminder, so the next step is never left implicit:
+
+```
+┌─────────────────────────────────────────┐
+│ Restart the API to apply this change.   │
+│ It is still serving local (~/ohm-data). │
+└─────────────────────────────────────────┘
+```
+
+or, when no API is running to restart:
+
+```
+┌───────────────────────────────────────────────────────────┐
+│ The next API start will apply this — none is running now. │
+└───────────────────────────────────────────────────────────┘
+```
+
 ## What happens to the data already there
 
 Switching points the instance at a new backend and leaves the old data where it
