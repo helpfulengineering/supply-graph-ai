@@ -29,6 +29,12 @@ from typing import Any, Callable, Dict, List, Optional
 from ..storage.manager import StorageManager
 from ..utils.logging import get_logger
 
+#: One source object's fingerprint: size, modified time (ISO string, since a
+#: provider's own type varies), and etag where the provider gives one.
+SourceEntry = Dict[str, Any]
+#: key -> SourceEntry, everything a snapshot needs to detect drift later.
+Snapshot = Dict[str, SourceEntry]
+
 logger = get_logger(__name__)
 
 ProgressFn = Callable[[str, float, Optional[str]], None]
@@ -96,6 +102,95 @@ async def _all_keys(manager: StorageManager) -> List[Dict[str, Any]]:
         if key:
             entries.append(obj)
     return entries
+
+
+@dataclass
+class DriftReport:
+    """What changed in the source between two snapshots (#546).
+
+    A migration that verified is only trustworthy if the source held still
+    for the whole copy — "a copy that says it verified, did" is only true for
+    a quiet store. This is the comparison that proves it did, or names what
+    moved if it did not.
+    """
+
+    added: List[str] = field(default_factory=list)
+    removed: List[str] = field(default_factory=list)
+    changed: List[str] = field(default_factory=list)
+
+    @property
+    def clean(self) -> bool:
+        return not (self.added or self.removed or self.changed)
+
+    def describe(self) -> str:
+        parts = []
+        if self.added:
+            parts.append(f"{len(self.added)} added")
+        if self.changed:
+            parts.append(f"{len(self.changed)} changed")
+        if self.removed:
+            parts.append(f"{len(self.removed)} removed")
+        return ", ".join(parts) or "no drift"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "clean": self.clean,
+            "added": list(self.added),
+            "removed": list(self.removed),
+            "changed": list(self.changed),
+        }
+
+
+async def snapshot_source(manager: StorageManager) -> Snapshot:
+    """The fingerprint a later re-listing is compared against.
+
+    Not the full listing kept around — just what is cheap to compare and
+    expensive to fake: size, modified time, and an etag where the provider
+    hands one back. A local-disk write always changes at least the modified
+    time, so the fallback (no etag) still catches it.
+    """
+    snapshot: Snapshot = {}
+    for entry in await _all_keys(manager):
+        key = entry["key"]
+        modified = entry.get("last_modified")
+        snapshot[key] = {
+            "size": entry.get("size"),
+            "last_modified": (
+                modified.isoformat() if hasattr(modified, "isoformat") else modified
+            ),
+            "etag": entry.get("etag"),
+        }
+    return snapshot
+
+
+def detect_drift(before: Snapshot, after: Snapshot) -> DriftReport:
+    """Pure comparison of two snapshots — no I/O, so this is unit-testable
+    against fabricated snapshots rather than a real store (#546 AC4).
+
+    An etag is trusted over size/modified-time whenever *both* sides have
+    one: it is the provider's own answer to "did the bytes change", where
+    size-and-mtime is this module's approximation of the same question for a
+    provider (or a legacy object) that never recorded one.
+    """
+    before_keys = set(before)
+    after_keys = set(after)
+
+    changed = []
+    for key in sorted(before_keys & after_keys):
+        was, now = before[key], after[key]
+        if was.get("etag") and now.get("etag"):
+            if was["etag"] != now["etag"]:
+                changed.append(key)
+        elif was.get("size") != now.get("size") or was.get("last_modified") != now.get(
+            "last_modified"
+        ):
+            changed.append(key)
+
+    return DriftReport(
+        added=sorted(after_keys - before_keys),
+        removed=sorted(before_keys - after_keys),
+        changed=changed,
+    )
 
 
 async def copy_all_objects(

@@ -861,6 +861,11 @@ async def config_set(
                 f"  migrated: {migration['objects_copied']} object(s), "
                 f"{migration['objects_verified']} verified"
             )
+        if result.get("cutoff_at"):
+            click.echo(
+                f"  cutoff:   writes to the old backend after {result['cutoff_at']} "
+                "are not in the new one"
+            )
         if result.get("prefixes_created"):
             click.echo(f"  created:  {', '.join(result['prefixes_created'])}")
         if result.get("prefixes_found"):
