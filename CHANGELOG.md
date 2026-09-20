@@ -20,12 +20,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   find the log line by. It now answers the JSON error envelope, with the same
   request id that appears in the log. `HTTPException` and validation errors
   under `/v1` keep FastAPI's `{"detail": ...}` body, which the CLI reads.
+- Minting an identity returned a 500 on a node made by `install.sh`. The
+  installer never set `OHM_FEDERATION_DATA_DIR`, so the identity key store
+  defaulted to a path under a home directory the image does not create. It now
+  points at `<data dir>/federation` on the mounted volume, so the keys survive an
+  upgrade alongside the space claims they sign for. Nodes installed by an earlier
+  installer are not migrated.
 
 ### Added
 
 - CI starts the web image and the API image and requires Docker to report each
   one `healthy` (`scripts/wait_container_healthy.sh`). The web image was not
   built by any CI job before, and no job looked at container health state.
+- `tests/parity/test_home_rooted_defaults.py`: every `Path.home()` default in
+  server code must be declared, and the override it names must be set by the
+  installer and the compose files. A known gap remains, recorded in the test:
+  the compose files do not set `OHM_STORAGE_CONFIG_PATH`.
 
 ## [0.13.0] - 2026-09-17
 
