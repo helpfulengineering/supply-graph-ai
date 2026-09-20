@@ -7,19 +7,102 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Node-local state is no longer reachable as an object (#530). The identity model
+  says private keys live "node-local, never in the object store", but the compose
+  files mount one volume as the object root and keep the identity plane inside it,
+  so a full walk of the store listed the plaintext signing keys and the saved
+  storage configuration, and `--mode migrate` to a cloud provider (or a backup)
+  copied them into the destination. The local provider now derives what is
+  node-local from the node's own settings and neither lists it nor lets any
+  operation read, write, delete or copy it, whatever the key (`..` segments,
+  absolute paths and differently-cased names included). Layouts that keep the
+  state outside the object root, like the installer's, are unchanged, and no
+  provider loses any key name. The provider also now refuses keys that escape the
+  object store; it used to join the key onto the base path unchecked. No API route
+  passes a caller-supplied key to the storage layer, and the one service that
+  derives keys from untrusted content already used `safe_key`, so this is
+  defence in depth rather than a closed remote hole. Keys already copied to a
+  destination by an earlier migrate or backup are not recalled: rotate any
+  identity whose store was migrated or backed up from a compose deployment.
+
 ### Fixed
 
+- The compose files did not set `OHM_STORAGE_CONFIG_PATH`, so saving storage
+  settings from the UI wrote to a home directory the image does not create and
+  failed. They now point it at `/app/storage/config/storage-config.json`, which
+  is safe because the storage layer refuses to treat it as an object.
+- The image defaults `OHM_FEDERATION_DATA_DIR` to `/app/storage/federation`, the
+  path its own entrypoint already prepared. The application's default was under
+  the user's home, so the two disagreed and every deployment file had to remember
+  to override it. A bare `docker run` can now mint an identity.
 - The web image reported `unhealthy` in `docker ps` for its whole life while
   serving normally: its `HEALTHCHECK` probed `localhost`, which resolves to
   `::1` first inside the container while the server listens on IPv4 only. It now
   probes `127.0.0.1`, and a failing probe reports why instead of an empty
   string.
+- An unhandled exception under `/v1` answered a bare `text/plain "Internal
+  Server Error"`: `/v1` is a mounted sub-app, so the exception handlers
+  registered on the parent never saw it, and the client had no request id to
+  find the log line by. It now answers the JSON error envelope, with the same
+  request id that appears in the log. `HTTPException` and validation errors
+  under `/v1` keep FastAPI's `{"detail": ...}` body, which the CLI reads.
+- Minting an identity returned a 500 on a node made by `install.sh`. The
+  installer never set `OHM_FEDERATION_DATA_DIR`, so the identity key store
+  defaulted to a path under a home directory the image does not create. It now
+  points at `<data dir>/federation` on the mounted volume, so the keys survive an
+  upgrade alongside the space claims they sign for. Nodes installed by an earlier
+  installer are not migrated.
+- A node with nothing in it reported `okh_count: 1, okw_count: 1` on `/health`,
+  listed one facility with an empty name, and told federation it held a design.
+  Scaffolding writes a `.gitkeep` placeholder under each top-level prefix, and
+  most readers counted it as an object while the OKH listing happened to reject
+  it. One shared rule (`src/core/storage/placeholders.py`) now skips it in the
+  health counter and in file discovery, which feeds both listings, matching and
+  the federation catalogue. Whole-store operations (backup, transfer) are
+  unchanged: they must see everything.
+- The OpenAPI document declared the auth scheme as `apiKey` in the
+  `Authorization` header, while the server requires `Authorization: Bearer
+  <token>` and rejects anything else. A generated client, or the *Authorize*
+  button in `/v1/docs`, sent what the document said and was refused. It now
+  declares `http` / `bearer`. Authentication itself, and its error messages, are
+  unchanged.
 
 ### Added
 
 - CI starts the web image and the API image and requires Docker to report each
   one `healthy` (`scripts/wait_container_healthy.sh`). The web image was not
   built by any CI job before, and no job looked at container health state.
+- `make install-check` / `scripts/install_check.sh`, run by CI on every PR: the
+  real `install.sh` against images built from the tree (served through a
+  throwaway local registry, so the installer is untouched), then the node it
+  made is used. It checks that both containers report `healthy`, the web UI and
+  the admin key work through the proxy, the API port is loopback-only, storage
+  is on the mount, an empty node counts 0 designs and 0 facilities in health and
+  both listings, the served OpenAPI document declares http bearer, an identity
+  can be minted, its key lands on the mounted directory, and it survives
+  recreating the container. Calibrated against four known-broken variants (the
+  unfixed installer, the unfixed web image, the API bound wide, an API image
+  from before the placeholder and OpenAPI fixes), each failing exactly its own
+  checks.
+- `tests/parity/test_home_rooted_defaults.py`: every `Path.home()` default in
+  server code must be declared, and the override it names must be set by the
+  installer and the compose files; the image's own default must agree with its
+  entrypoint; and in every compose layout the node's real state must be
+  unreachable through the object store.
+
+### Changed
+
+- The API guide now says the paths in `/v1/openapi.json` are relative to the
+  `/v1` server URL. That was correct OpenAPI all along, but read by hand it looked
+  like paths that 404; `tests/api/test_openapi_contract.py` now pins it.
+- The storage documentation now says what a background worker does when the
+  backend changes: it takes its storage from its own environment, never from the
+  saved configuration, so after a switch its environment must be updated and the
+  worker restarted (restarting alone changes nothing). It also records that
+  `--mode migrate` requested over the API currently fails — the job cannot find its
+  source storage and changes nothing (#539) — and that the CLI's migrate works.
 
 ## [0.13.0] - 2026-09-17
 
