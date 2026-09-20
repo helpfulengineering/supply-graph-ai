@@ -82,6 +82,12 @@ services:
       - OHM_FEDERATION_NODE_NAME=${OHM_FEDERATION_NODE_NAME:-OHM Node}
       - OHM_FEDERATION_NODE_ROLE=${OHM_FEDERATION_NODE_ROLE:-peer}
       - OHM_FEDERATION_DATA_DIR=${OHM_FEDERATION_DATA_DIR:-/app/storage/federation}
+      # Beside the object root, not in it: this compose mounts one volume at
+      # /app/storage and uses it as the object root, so the saved storage
+      # configuration (credentials for the *next* backend) must not be listed,
+      # migrated or backed up as an object. The storage layer refuses any key that
+      # names it; see src/core/storage/node_local.py.
+      - OHM_STORAGE_CONFIG_PATH=${OHM_STORAGE_CONFIG_PATH:-/app/storage/config/storage-config.json}
       - OHM_FEDERATION_MANUAL_PEERS=${OHM_FEDERATION_MANUAL_PEERS:-}
       - OHM_FEDERATION_SYNC_INTERVAL_SEC=${OHM_FEDERATION_SYNC_INTERVAL_SEC:-60}
       # Cache (memory default; set CACHE_BACKEND=redis to share across replicas)
