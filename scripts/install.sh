@@ -75,9 +75,19 @@ HEALTH_TIMEOUT="${OHM_HEALTH_TIMEOUT:-180}"
 # rather than the mount root, so the config file is not itself an object in the
 # bucket it configures — it would otherwise be listed, served, and erased by a
 # storage wipe.
+#
+# The node's identity keys are a third thing that must live on the mount. Left
+# at its default, OHM_FEDERATION_DATA_DIR resolves under the unprivileged user's
+# home, which the image never creates: the first identity mint fails with a 500,
+# and the obvious workaround (mkdir /home/ohm) is worse, because the keys then
+# live inside the container while the space claim they sign for persists on the
+# mount — a claim whose admin can never sign again after the first upgrade.
+# tests/parity/test_home_rooted_defaults.py fails if a home-rooted default is
+# left unset here.
 CONTAINER_MOUNT="/app/storage"
 CONTAINER_OBJECTS="${CONTAINER_MOUNT}/objects"
 CONTAINER_CONFIG="${CONTAINER_MOUNT}/config/storage-config.json"
+CONTAINER_FEDERATION="${CONTAINER_MOUNT}/federation"
 
 die() {
     printf '\n[X] %s\n' "$1" >&2
@@ -234,6 +244,7 @@ docker run -d \
     -e "STORAGE_PROVIDER=local" \
     -e "LOCAL_STORAGE_PATH=${CONTAINER_OBJECTS}" \
     -e "OHM_STORAGE_CONFIG_PATH=${CONTAINER_CONFIG}" \
+    -e "OHM_FEDERATION_DATA_DIR=${CONTAINER_FEDERATION}" \
     -e "LLM_ENABLED=true" \
     -e "ENVIRONMENT=production" \
     "$IMAGE" >/dev/null || die \

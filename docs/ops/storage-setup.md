@@ -267,15 +267,24 @@ would fail — credential storage refuses to operate under the built-in default
 keys, so a node installed without one starts, looks healthy, and cannot be
 given storage credentials.
 
-The volume covers both the object store and the configuration file, which is
-why an upgrade keeps them:
+The volume covers the object store, the configuration file, and the node's
+identity keys, which is why an upgrade keeps them:
 
 ```
-<data dir>/objects   LOCAL_STORAGE_PATH        the object store
-<data dir>/config    OHM_STORAGE_CONFIG_PATH   the configuration written here
+<data dir>/objects     LOCAL_STORAGE_PATH        the object store
+<data dir>/config      OHM_STORAGE_CONFIG_PATH   the configuration written here
+<data dir>/federation  OHM_FEDERATION_DATA_DIR   the node's identity and its
+                                                 people's signing keys
 ```
 
 The config file sits beside the object store rather than inside it. Inside, it
 would be an object in the bucket it configures — listed, served, and erased by
 a storage wipe.
+
+The identity keys are on the volume for a different reason. Left at its default,
+`OHM_FEDERATION_DATA_DIR` resolves under the container user's home directory,
+which the image does not create, so minting an identity fails. Creating that
+directory by hand is worse than the failure: the keys then live inside the
+container, while the space claim they sign for is stored on the volume. After the
+next upgrade the claim names an admin whose key no longer exists.
 
