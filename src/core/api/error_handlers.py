@@ -319,17 +319,21 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     """Handle general exceptions."""
     request_id = getattr(request.state, "request_id", None)
 
-    # Log the full exception for debugging
-    logger.error(
-        f"Unhandled exception in {request.method} {request.url}: {str(exc)}",
-        extra={
-            "request_id": request_id,
-            "exception_type": type(exc).__name__,
-            "path": str(request.url.path),
-            "traceback": traceback.format_exc(),
-        },
-        exc_info=True,
-    )
+    # Registered on both the app and its mounted /v1 sub-app. The sub-app's
+    # handler answers first; Starlette then re-raises, so the parent's runs too,
+    # after the response has gone. Log once.
+    if not getattr(request.state, "unhandled_logged", False):
+        request.state.unhandled_logged = True
+        logger.error(
+            f"Unhandled exception in {request.method} {request.url}: {str(exc)}",
+            extra={
+                "request_id": request_id,
+                "exception_type": type(exc).__name__,
+                "path": str(request.url.path),
+                "traceback": traceback.format_exc(),
+            },
+            exc_info=True,
+        )
 
     # Create error response
     error_response = api_error_handler.create_error_response(
