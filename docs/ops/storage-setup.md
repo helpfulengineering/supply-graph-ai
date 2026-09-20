@@ -159,7 +159,8 @@ later.
 ### Where the configuration lives
 
 An encrypted file, by default `~/.ohm/storage-config.json`, overridable with
-`OHM_STORAGE_CONFIG_PATH`. It is read at boot **before** the storage service is
+`OHM_STORAGE_CONFIG_PATH`. The installer and the compose files both point it at
+`/app/storage/config/storage-config.json`, on the mounted volume. It is read at boot **before** the storage service is
 configured, and takes precedence over the environment.
 
 It cannot live in the object store like every other credential OHM holds:
@@ -167,6 +168,13 @@ credentials for the new provider would be written into the old one and orphaned
 the moment the switch took effect, leaving an instance that can neither reach
 its backend nor read the configuration that would explain why. Mount the
 directory as a volume and configuration survives a container replacement.
+
+The file may sit inside the object root — the compose files do exactly that, with
+one volume for everything. It is still never an object: the local storage provider
+refuses any key that names it, and does not list it, so a migrate, a backup or a
+wipe cannot carry it (or the node's identity keys) anywhere. The same protection
+covers a custom `OHM_FEDERATION_DATA_DIR` and any layout that puts either inside the
+object root; a layout that keeps them outside it has nothing to protect.
 
 The file is `0600` inside a `0700` directory, and credential values are
 encrypted with the same `OHM_ENCRYPTION_*` material as LLM provider keys.
