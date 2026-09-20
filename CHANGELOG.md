@@ -32,6 +32,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI starts the web image and the API image and requires Docker to report each
   one `healthy` (`scripts/wait_container_healthy.sh`). The web image was not
   built by any CI job before, and no job looked at container health state.
+- `make install-check` / `scripts/install_check.sh`, run by CI on every PR: the
+  real `install.sh` against images built from the tree (served through a
+  throwaway local registry, so the installer is untouched), then the node it
+  made is used. It checks that both containers report `healthy`, the web UI and
+  the admin key work through the proxy, the API port is loopback-only, storage
+  is on the mount, an identity can be minted, its key lands on the mounted
+  directory, and it survives recreating the container. Calibrated against three
+  known-broken variants (the unfixed installer, the unfixed web image, the API
+  bound wide), each failing exactly its own checks.
 - `tests/parity/test_home_rooted_defaults.py`: every `Path.home()` default in
   server code must be declared, and the override it names must be set by the
   installer and the compose files. A known gap remains, recorded in the test:

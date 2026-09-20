@@ -50,6 +50,13 @@ run = "sh scripts/wait_container_healthy.sh <container> [timeout_seconds]"
 mutates = false
 used_by = ["ci: docker-build-test"]
 
+[scripts.install_check]
+category = "verify"
+summary = "Run the real install.sh against images built from this tree (via a throwaway local registry) and check the node an operator would get: containers healthy, identity minting works, keys on the mount and durable across recreate."
+run = "make install-check   # or: OHM_CHECK_API_IMAGE=<tag> OHM_CHECK_WEB_IMAGE=<tag> sh scripts/install_check.sh"
+mutates = true
+used_by = ["make install-check", "ci: docker-build-test"]
+
 [scripts.check_doc_links]
 category = "verify"
 summary = "Fail when a documentation link cannot be followed: wrong host, an absolute link to a docs page that does not exist, or a repo-internal markdown link to a missing file."

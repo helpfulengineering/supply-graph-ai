@@ -165,6 +165,67 @@ jobs:
         if: always()
         run: docker rm -f test-frontend || true
 
+  # The install path an operator actually takes: the real scripts/install.sh, run
+  # against images built from this commit, then the node it produced is used.
+  #
+  # Every defect in the 0.12.2 clean-box install log shipped because CI tested
+  # things an operator never runs and never ran the thing they do. This job
+  # catches, in one run: a container that serves normally but reports unhealthy,
+  # an identity that cannot be minted (the key store defaulted under a home the
+  # image does not create), keys that do not survive recreating the container,
+  # and the API published on every interface. See scripts/install_check.sh for
+  # the checks and why the images are served from a throwaway local registry.
+  #
+  # `make install-check` runs the same thing locally.
+  installer:
+    name: Installer end to end
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Read the version from pyproject.toml
+        id: version
+        run: |
+          VERSION=$(grep -E '^version = ' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "expected=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build the API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ohm-check-api:local
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.expected }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build the web image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: false
+          load: true
+          tags: ohm-check-web:local
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      # Prints its own diagnostics (installer output, both containers' health
+      # probes and logs) on failure, and tears everything down either way.
+      - name: Install a node and use it
+        env:
+          OHM_CHECK_API_IMAGE: ohm-check-api:local
+          OHM_CHECK_WEB_IMAGE: ohm-check-web:local
+        run: sh scripts/install_check.sh
+
   # The self-host path, end to end. The job above proves one container answers
   # /health; it cannot see the failure that matters here, because a broken async
   # setup does not return an error — submissions are accepted and then sit in

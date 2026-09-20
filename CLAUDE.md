@@ -62,7 +62,13 @@ by kind under `tests/`: `unit`, `api` (contract, mocked service), `integration`
 is published; `notes/` is gitignored planning.
 
 **Gates.** `make ready` (13 steps) and, for anything touching `frontend/`,
-`cd frontend && npm run frontend-ready`. Both start their own servers.
+`cd frontend && npm run frontend-ready`. Both start their own servers. For
+anything that changes what an operator installs — `scripts/install.sh`, either
+Dockerfile, the entrypoint, the compose files, or where the app writes — also
+run `make install-check`: it runs the real installer against images built from
+your tree and uses the node it makes (needs Docker; CI runs it on every PR). It
+exists because the unit gates cannot see what only a container running as its
+unprivileged user, with a real mount, will show.
 
 **Parity is a ratchet, not a lint.** A new API endpoint must either be called by
 the frontend or get a row in `tests/parity/manifest.py` classifying why not; a

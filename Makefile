@@ -10,7 +10,7 @@
 # pyproject.toml is caught there rather than hidden here.
 export UV_FROZEN := 1
 
-.PHONY: format format-check lint test check black ruff links-check env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
+.PHONY: install-check format format-check lint test check black ruff links-check env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -24,6 +24,18 @@ frontend-ready:
 # match coverage without writing.
 seed-demo:
 	uv run python scripts/seed_demo_data.py
+
+# Run the real installer against images built from this tree and check what an
+# operator would get: both containers healthy, identity minting works, keys land
+# on the mount and survive recreating the container. Needs Docker; builds both
+# images (minutes cold, seconds warm). CI runs it on every PR; it is not a step
+# in `make ready` because that gate should not need Docker.
+install-check:
+	docker build -q -t ohm-check-api:local \
+		--build-arg APP_VERSION=$$(grep -E '^version = ' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/') .
+	docker build -q -t ohm-check-web:local frontend
+	OHM_CHECK_API_IMAGE=ohm-check-api:local OHM_CHECK_WEB_IMAGE=ohm-check-web:local \
+		sh scripts/install_check.sh
 
 # Multi-loop triage harness (parity / RED / synthetic smoke / client drift).
 # Modules load independently; stubs report ok until each judge comes online.
