@@ -54,11 +54,31 @@ class StorageFingerprint(BaseModel):
     error: Optional[str] = None
 
 
+class StorageRuntimeInfo(BaseModel):
+    """Whether a running API's live backend agrees with the saved one (#545).
+
+    Read from the API's on-disk liveness marker (#544), never an in-memory
+    flag: the CLI, which cannot authenticate to the API, reports the same
+    thing this way too. ``restart_required`` is the field to act on; the
+    others explain it.
+    """
+
+    restart_required: bool
+    live_provider: Optional[str] = None
+    live_bucket: Optional[str] = None
+    saved_provider: Optional[str] = None
+    saved_bucket: Optional[str] = None
+    #: When the live backend became live (the running API's own start time),
+    #: or null when nothing is running.
+    since: Optional[str] = None
+
+
 class StorageConfigView(BaseModel):
     """``data`` payload of the read endpoint."""
 
     config: StorageConfigData
     fingerprint: StorageFingerprint
+    runtime: StorageRuntimeInfo
 
 
 class StorageConfigResponse(SuccessResponse):

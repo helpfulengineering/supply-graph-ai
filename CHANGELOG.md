@@ -85,6 +85,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Restart-pending state, and one switch at a time (#545). A restart is
+  "pending" precisely when a *running* API's marker (#544) names a different
+  backend than the saved configuration. `ohm storage config set` — any mode,
+  and whether run from the CLI or the panel/API's own inline switch — now
+  refuses while one is pending, naming what is live, what is saved, and since
+  when, rather than letting a second switch silently overwrite a first one a
+  running API never picked up. `GET /api/storage/config` gains a `runtime`
+  block and `/health`'s `storage` block gains `restart_required` (no admin
+  credentials needed for the latter — it is as safe to expose as the rest of
+  `/health`). Every successful CLI switch or migrate now ends with a boxed
+  reminder to restart, or, with no API running, that the next start applies
+  it.
 - `ohm storage status` (#544): whether an API is running and what it is actually
   serving, read from a local heartbeat marker rather than an HTTP call — the CLI
   has no way to authenticate to the API. Reports `running` / `stale` / `absent`,

@@ -352,6 +352,17 @@ async def health_check():
         )
     except Exception as e:
         result["storage"] = {"error": str(e)}
+
+    # Whether this process's live backend still agrees with the saved
+    # configuration (#545). Best-effort and separate from the fingerprint
+    # try/except above: a marker read failing must not hide the fingerprint
+    # that did succeed, or vice versa.
+    try:
+        from .services.storage_reconfigure import restart_pending_info
+
+        result["storage"]["restart_required"] = restart_pending_info().pending
+    except Exception:
+        pass
     return result
 
 

@@ -26,6 +26,7 @@ from ...services.storage_reconfigure import (
     build_candidate,
     current_config,
     reconfigure_storage,
+    restart_pending_info,
     retired_switch_mode_message,
 )
 from ...services.storage_service import StorageService
@@ -38,6 +39,7 @@ from ..models.storage.config import (
     StorageConfigureResponse,
     StorageConfigView,
     StorageFingerprint,
+    StorageRuntimeInfo,
 )
 
 router = APIRouter()
@@ -65,6 +67,7 @@ async def read_storage_config(
     """
     view = await current_config(service)
     fingerprint = await service.get_config_fingerprint()
+    pending = restart_pending_info()
 
     return StorageConfigResponse(
         status="success",
@@ -73,6 +76,14 @@ async def read_storage_config(
         data=StorageConfigView(
             config=StorageConfigData(**view.to_dict()),
             fingerprint=StorageFingerprint(**fingerprint),
+            runtime=StorageRuntimeInfo(
+                restart_required=pending.pending,
+                live_provider=pending.live_provider,
+                live_bucket=pending.live_bucket,
+                saved_provider=pending.saved_provider,
+                saved_bucket=pending.saved_bucket,
+                since=pending.since,
+            ),
         ),
     )
 

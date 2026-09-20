@@ -167,6 +167,80 @@ async def current_config(service: StorageService) -> StorageConfigView:
     )
 
 
+@dataclass
+class RestartPendingInfo:
+    """Whether a running API's live backend disagrees with the saved one (#545).
+
+    Only meaningful while an API is actually running: with none running (marker
+    absent or stale), the saved configuration is simply what the next boot will
+    apply, and there is nothing "pending" about that.
+    """
+
+    pending: bool
+    live_provider: Optional[str] = None
+    live_bucket: Optional[str] = None
+    saved_provider: Optional[str] = None
+    saved_bucket: Optional[str] = None
+    #: When the live backend became live — the running API's own start time,
+    #: from its marker. Not "since the divergence": nothing persists when a
+    #: saved configuration changed, only when the process serving the old one
+    #: started.
+    since: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "pending": self.pending,
+            "live_provider": self.live_provider,
+            "live_bucket": self.live_bucket,
+            "saved_provider": self.saved_provider,
+            "saved_bucket": self.saved_bucket,
+            "since": self.since,
+        }
+
+
+def restart_pending_info() -> RestartPendingInfo:
+    """Read-only: never touches the marker or the saved configuration, just
+    compares them. Works identically from the CLI or the API process, because
+    both read the same on-disk marker rather than in-memory state — the CLI has
+    no other way to know what a separate API process is actually serving.
+    """
+    from . import storage_liveness
+
+    live = storage_liveness.read()
+    if live.status != storage_liveness.LivenessStatus.RUNNING:
+        return RestartPendingInfo(pending=False)
+
+    saved = load_config() or getattr(settings, "STORAGE_CONFIG", None)
+    if saved is None:
+        return RestartPendingInfo(
+            pending=False,
+            live_provider=live.provider,
+            live_bucket=live.bucket,
+            since=live.started_at,
+        )
+
+    pending = live.provider != saved.provider or live.bucket != saved.bucket_name
+    return RestartPendingInfo(
+        pending=pending,
+        live_provider=live.provider,
+        live_bucket=live.bucket,
+        saved_provider=saved.provider,
+        saved_bucket=saved.bucket_name,
+        since=live.started_at,
+    )
+
+
+def _pending_message(pending: RestartPendingInfo) -> str:
+    return (
+        f"A restart is already pending: the API has been serving "
+        f"{pending.live_provider} ({pending.live_bucket}) since {pending.since}, "
+        f"but the saved configuration is {pending.saved_provider} "
+        f"({pending.saved_bucket}). Restart the API to apply that change before "
+        "switching again — one change at a time, so a second switch cannot be "
+        "lost underneath the first."
+    )
+
+
 async def reconfigure_storage(
     service: StorageService,
     provider: str,
@@ -181,9 +255,14 @@ async def reconfigure_storage(
     instance reads and writes. Migration and wiping are #381.
 
     Raises:
-        StorageReconfigureError: the candidate was rejected, or the commit
-            failed and the previous configuration was restored.
+        StorageReconfigureError: the candidate was rejected, the commit
+            failed and the previous configuration was restored, or a restart
+            is already pending from an earlier switch (#545 D7).
     """
+    pending = restart_pending_info()
+    if pending.pending:
+        raise StorageReconfigureError(_pending_message(pending))
+
     credentials = {k: v for k, v in (credentials or {}).items() if v}
     _validate_credentials(provider, credentials)
 
@@ -321,6 +400,13 @@ async def migrate_and_switch(
     """
     from .storage_setup import StorageSetupError, setup_storage
     from .storage_transfer import copy_all_objects
+
+    # Checked again, redundantly, inside reconfigure_storage() at the end —
+    # this copy is checked here too so a pending restart fails before a
+    # possibly long copy runs at all, not after.
+    pending = restart_pending_info()
+    if pending.pending:
+        raise StorageReconfigureError(_pending_message(pending))
 
     previous = service.manager.config if service.manager else None
     if previous is None:
