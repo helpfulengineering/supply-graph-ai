@@ -8,6 +8,7 @@ from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..matching.match_modes import MATCH_MODE_SINGLE_LEVEL
 from ..storage.base import StorageConfig
+from ..storage.placeholders import is_scaffold_placeholder
 from ..storage.constants import (
     DEFAULT_SOLUTION_TTL_DAYS,
     STORAGE_OBJECT_TYPE_SOLUTION_METADATA,
@@ -238,8 +239,9 @@ class StorageService:
             fingerprint["account"] = (config.credentials or {}).get("account_name")
             for prefix, field in (("okh/", "okh_count"), ("okw/", "okw_count")):
                 count = 0
-                async for _ in self.manager.list_objects(prefix=prefix):
-                    count += 1
+                async for obj in self.manager.list_objects(prefix=prefix):
+                    if not is_scaffold_placeholder(obj.get("key", "")):
+                        count += 1
                 fingerprint[field] = count
         except Exception as e:  # never propagate to /health
             fingerprint["error"] = str(e)
