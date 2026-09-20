@@ -213,8 +213,49 @@ Three kinds of process can be involved, and they do not all hear about it:
 
 A running API therefore cannot see that its saved configuration has changed, and
 `GET /api/storage/config` reports the live bucket for both "configuration" and "what
-answered" in that state. How to make this visible and safe is being designed in
-#539.
+answered" in that state.
+
+### Checking whether a restart is pending
+
+```bash
+ohm storage status
+```
+
+reads two things and shows both: the saved configuration, and — separately — a
+local heartbeat marker the API writes beside it (`api-live.json`) while it is
+running. This is a file read, not an HTTP call: the CLI has no way to
+authenticate to the API, so it cannot just ask.
+
+```
+$ ohm storage status
+Storage status
+  saved:  azure_blob (new-container) [persisted]
+  live:   running — local (~/ohm-data), heartbeat 2.1s ago, pid 4821 on api-1
+  note:   the running API is on a different backend than the saved
+          configuration — a restart is pending to apply it.
+```
+
+The marker reports one of three states:
+
+- **running** — a fresh heartbeat. Also reported for a marker that cannot be
+  read or parsed at all: an unreadable marker must never look safer than a
+  readable one, so it fails closed rather than being treated as absent.
+- **stale** — the heartbeat has not been refreshed for three intervals
+  (~45s by default; `OHM_STORAGE_MARKER_HEARTBEAT_SECONDS` tunes the interval,
+  mainly for tests). The process behind it is gone — `kill -9`, an OOM kill, a
+  host crash — without running its clean-shutdown path.
+- **absent** — no API has started since the marker was last removed. A clean
+  shutdown (the normal path: SIGTERM/SIGINT, `docker stop`, a rolling restart)
+  removes it; a killed process leaves it to go stale on its own.
+
+`ohm storage status --forget` clears a marker the status output already shows
+as stale. It refuses while the marker still looks running — including an
+unreadable one, for the same fail-closed reason — so it cannot be used to paper
+over an API that is, in fact, still there.
+
+The marker is node-local state, like the saved configuration and the identity
+keys beside it: the local provider refuses to list, read, or write it as an
+object, so nothing that walks the store (a migrate, a backup) can see it.
 
 ## What happens to the data already there
 

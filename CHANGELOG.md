@@ -85,6 +85,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ohm storage status` (#544): whether an API is running and what it is actually
+  serving, read from a local heartbeat marker rather than an HTTP call — the CLI
+  has no way to authenticate to the API. Reports `running` / `stale` / `absent`,
+  and flags when a running API is on a different backend than the saved
+  configuration (a restart is pending to apply it). The marker fails closed: one
+  that cannot be parsed reads as `running`, never as safer-looking `absent`.
+  `--forget` clears a marker already showing `stale`; it refuses while the marker
+  still looks running. The marker is node-local state, like the saved
+  configuration beside it, and is invisible to a storage walk (migrate, backup).
 - CI starts the web image and the API image and requires Docker to report each
   one `healthy` (`scripts/wait_container_healthy.sh`). The web image was not
   built by any CI job before, and no job looked at container health state.

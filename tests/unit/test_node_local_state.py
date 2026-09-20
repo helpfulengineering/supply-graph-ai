@@ -49,6 +49,10 @@ def _node_state(root: Path, monkeypatch: pytest.MonkeyPatch, *, fed: Path, cfg: 
     (fed / "identity.json").write_text("{}")
     cfg.parent.mkdir(parents=True, exist_ok=True)
     cfg.write_text("{}")
+    # api-live.json (#544) lives beside the config file by construction
+    # (marker_path() derives from config_path()) — write it so the layout has
+    # one, same as a real node would.
+    (cfg.parent / "api-live.json").write_text('{"role": "api"}')
     monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(fed))
     monkeypatch.setenv("OHM_STORAGE_CONFIG_PATH", str(cfg))
 
@@ -72,6 +76,7 @@ PROTECTED_KEYS = [
     _KEY_FILE,
     "federation/identity.json",
     "config/storage-config.json",
+    "config/api-live.json",
     "federation",
     # Evasions: none of these may reach what the plain key cannot.
     "okh/../" + _KEY_FILE,
@@ -79,6 +84,7 @@ PROTECTED_KEYS = [
     "federation//identity.json",
     "Federation/identity.json",
     "CONFIG/Storage-Config.json",
+    "CONFIG/Api-Live.json",
 ]
 
 

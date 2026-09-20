@@ -116,6 +116,36 @@ async def lifespan(app: FastAPI):
                 f"This may be a temporary network issue."
             )
 
+        # Start the liveness marker (#544) so the CLI, which cannot
+        # authenticate to this API, and this API itself on its next boot, can
+        # tell it is running and what it is serving without an HTTP call. Only
+        # once storage actually connected — a marker for a backend the API
+        # never reached would be worse than no marker.
+        #
+        # Never fatal: this is a local-disk write to whatever directory holds
+        # the saved storage configuration, and that directory may not be
+        # writable — a bare `docker run` with no OHM_STORAGE_CONFIG_PATH falls
+        # back to a home directory this image does not create (the same class
+        # of failure OHM_FEDERATION_DATA_DIR's default already hit; see the
+        # Dockerfile). A node that refuses to start because it cannot write a
+        # heartbeat file would be a worse failure than the one this fixes;
+        # `ohm storage status` simply reports `absent` until this succeeds.
+        if getattr(storage_service, "_configured", False) and storage_service.manager:
+            try:
+                from .services import storage_liveness
+
+                storage_liveness.start(
+                    storage_service.manager.config.provider,
+                    storage_service.manager.config.bucket_name,
+                )
+            except Exception as e:  # noqa: BLE001 — see comment above
+                logger.warning(
+                    "Could not start the storage liveness marker: %s. "
+                    "`ohm storage status` will report no marker until this "
+                    "succeeds; storage itself is unaffected.",
+                    e,
+                )
+
         # Ensure directory structure exists (lazy initialization)
         # This allows the application to self-bootstrap on first run
         try:
@@ -513,6 +543,20 @@ async def cleanup_resources():
     """Cleanup resources on shutdown"""
     try:
         logger.info("Cleaning up resources")
+
+        # Clean shutdown removes the marker (#544): uvicorn reaches this on
+        # SIGTERM/SIGINT, so an operator-initiated restart or stop leaves no
+        # marker behind. A `kill -9` skips this and the marker ages into
+        # `stale` on its own, which is the point of the heartbeat. Its own
+        # try/except so a failure here (the marker directory going away
+        # mid-run, say) cannot skip the federation cleanup below it.
+        try:
+            from .services import storage_liveness
+
+            await storage_liveness.stop()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Error stopping the storage liveness marker: %s", e)
+
         if settings.OHM_FEDERATION_ENABLED:
             from .federation.service import FederationService
 
