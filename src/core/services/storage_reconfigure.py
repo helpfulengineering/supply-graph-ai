@@ -25,6 +25,7 @@ configuration before raising.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from ...config import settings
@@ -36,6 +37,11 @@ from .storage_service import StorageService
 from .storage_setup import StorageSetupError, setup_storage
 
 logger = get_logger(__name__)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
 
 #: Credential keys that may be supplied per provider. Anything else is
 #: rejected rather than silently dropped, so a typo in a credential name is a
@@ -397,9 +403,17 @@ async def migrate_and_switch(
     migration that fails partway — or is abandoned — leaves a working instance
     on its original storage and a partial copy on the destination, which is
     recoverable; the reverse is not.
+
+    A verified copy is only trustworthy if the source held still for the
+    whole thing (#546): the destination never receives deletions, and a copy
+    that read a key before a concurrent writer changed it verifies cleanly
+    while silently missing the change. So the source is snapshotted before
+    the copy and again right after, and any drift — anything added, changed,
+    or removed in between — refuses the switch rather than committing on a
+    copy that can no longer back up its own "verified".
     """
     from .storage_setup import StorageSetupError, setup_storage
-    from .storage_transfer import copy_all_objects
+    from .storage_transfer import copy_all_objects, detect_drift, snapshot_source
 
     # Checked again, redundantly, inside reconfigure_storage() at the end —
     # this copy is checked here too so a pending restart fails before a
@@ -424,7 +438,12 @@ async def migrate_and_switch(
     await destination.connect()
 
     try:
+        before = await snapshot_source(source)
         report = await copy_all_objects(source, destination, progress=progress)
+        drift = (
+            detect_drift(before, await snapshot_source(source)) if report.ok else None
+        )
+        cutoff_at = _now_iso()
     finally:
         await source.disconnect()
         await destination.disconnect()
@@ -437,7 +456,17 @@ async def migrate_and_switch(
             f"First failures: {'; '.join(report.failures[:3])}"
         )
 
-    # 2. Only now, with a verified copy, is it safe to swap.
+    if not drift.clean:
+        raise StorageReconfigureError(
+            f"The source changed while the copy was running ({drift.describe()}) "
+            f"and a copy that verified against a moving source is not trustworthy. "
+            f"Nothing was switched; {previous.bucket_name!r} is still what this "
+            "instance serves. Re-run once the source is quiet, or stop whatever "
+            "writes to it first."
+        )
+
+    # 2. Only now, with a verified copy of a source proven to have held still,
+    #    is it safe to swap.
     result = await reconfigure_storage(
         service,
         provider=candidate.provider,
@@ -448,4 +477,8 @@ async def migrate_and_switch(
     )
     result["mode"] = MODE_MIGRATE
     result["migration"] = report.to_dict()
+    result["drift"] = drift.to_dict()
+    # Anything written to the old backend after this instant is not in the
+    # new one: the copy's snapshot was taken here, before the switch.
+    result["cutoff_at"] = cutoff_at
     return result

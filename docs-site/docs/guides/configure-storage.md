@@ -102,12 +102,27 @@ before the switch happens: a copy that says it verified, did.
     `400` that points at the CLI, and changes nothing: the background job it used to
     start could never find the storage it was meant to copy from.
 
+!!! warning "A change to the old storage during the copy refuses the switch"
+    Verifying the copy proves it matches what was read — not that the old storage
+    held still while reading it. So it is checked again after the copy finishes,
+    and if anything was added, changed or deleted in between, the switch is
+    refused and nothing is touched:
+
+    ```
+    ❌ The source changed while the copy was running (1 changed) and a copy
+       that verified against a moving source is not trustworthy. Nothing
+       was switched.
+    ```
+
+    That is the migration doing its job. Re-run once nothing is writing to the
+    old storage and it will go through.
+
 !!! warning "Restart right after, and stop writers first if it must be complete"
-    The running node keeps writing to the old storage until you restart it. Anything
-    written between the start of the copy and the restart is not in the new storage,
-    and something deleted in that window stays there. Restart straight after
-    migrating; if the move has to be complete, stop whatever writes to the node
-    before you start.
+    The running node keeps writing to the old storage until you restart it. A
+    write *during* the copy is caught by the check above; one *after* the copy
+    finishes but before you restart is not — a successful migrate prints the
+    exact cutoff. Restart straight after migrating; if the move has to be
+    complete with nothing missed, stop whatever writes to the node first.
 
 Works between any two providers. Local to Azure, S3 to Google Cloud, whichever
 pair.

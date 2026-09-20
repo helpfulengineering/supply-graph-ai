@@ -79,6 +79,9 @@ async def test_migration_copies_verifies_then_switches(tmp_path):
     # Migration copies; it does not erase. The old backend is untouched, which
     # is what makes a migration reversible by hand if it turns out wrong.
     assert await _object_count(tmp_path / "old") == 3
+    # A quiet source (#546): nothing drifted between the two snapshots.
+    assert result["drift"] == {"clean": True, "added": [], "removed": [], "changed": []}
+    assert result["cutoff_at"] is not None
 
 
 async def test_a_migration_to_an_unusable_destination_does_not_switch(tmp_path):

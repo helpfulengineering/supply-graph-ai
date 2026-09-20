@@ -85,6 +85,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Migrate detects drift and refuses to commit rather than trust a moving
+  source (#546). Verifying the copy proves it matches what was read, not
+  that the source held still while reading it — so the source is
+  snapshotted (key, size, modified time, and an etag where the provider
+  gives one) before the copy and again right after; anything added,
+  changed, or removed in between refuses the switch, naming what moved,
+  rather than committing on a copy that can no longer back up its own
+  "verified". Re-running once the source is quiet just works — the refusal
+  leaves no state behind to get stuck in. A successful migrate now also
+  reports the exact cutoff after which a write to the old backend is not
+  in the new one.
 - Restart-pending state, and one switch at a time (#545). A restart is
   "pending" precisely when a *running* API's marker (#544) names a different
   backend than the saved configuration. `ohm storage config set` — any mode,

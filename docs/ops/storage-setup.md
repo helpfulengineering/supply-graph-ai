@@ -336,6 +336,27 @@ Verification re-reads every object at the destination and compares its digest
 to the source. That doubles the reads, which is the right trade for a one-time
 move whose failure mode is silent data loss.
 
+**Verification alone proves the copy was faithful to what it read — not that
+what it read is still what the source holds (#546).** So the source is
+snapshotted (key, size, modified time, and an etag where the provider gives
+one) before the copy starts and again right after it finishes. If anything was
+added, changed or removed in between, the switch is refused — even though
+every object that *was* copied verified cleanly — because a deletion is never
+carried over (the copy has no notion of "this used to exist") and a change
+read mid-copy can land as a stale version the destination will never learn
+about. A refusal here is the migration doing its job, not a bug:
+
+```
+$ ohm storage config set --provider local --bucket ~/new-data --mode migrate
+❌ The source changed while the copy was running (1 changed) and a copy that
+   verified against a moving source is not trustworthy. Nothing was
+   switched; '~/old-data' is still what this instance serves. Re-run once
+   the source is quiet, or stop whatever writes to it first.
+```
+
+Re-running once the source is quiet just works — migrate keeps no state from
+a refused attempt to get stuck in.
+
 The copy is provider-agnostic: it uses only list, get and put from the storage
 abstraction, so any supported provider can be migrated to any other.
 
@@ -343,11 +364,19 @@ Migration does **not** erase the source. If you want the old backend emptied,
 migrate first, **restart the API** (a command-line switch does not reach a running
 one), confirm the new backend is serving, then wipe separately.
 
-**The running node keeps writing to the old backend until it restarts.** Anything
-written between the start of the copy and the restart is not in the new backend, and
-an object deleted in that window stays in it, because the copy never carries
-deletions over. Restart straight after migrating, and stop whatever writes to the
-node first if the move must be complete.
+**The running node keeps writing to the old backend until it restarts.** A
+write *during* the copy is now caught by the drift check above; a write
+*after* the copy's final snapshot but before the restart is not — the
+snapshot is a point in time, not a lock. A successful migrate reports that
+cutoff:
+
+```
+cutoff:   writes to the old backend after 2026-09-20T21:01:04+00:00 are not in the new one
+```
+
+Restart straight after migrating, and stop whatever writes to the node first
+if the move must be complete — the zero-loss route, for when "mostly current"
+is not good enough.
 
 **Over the API, migration is retired (#543).** `POST /api/storage/config` with
 `"mode": "migrate"` answers 400 and points at the CLI; nothing is enqueued and
