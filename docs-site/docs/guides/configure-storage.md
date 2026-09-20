@@ -77,6 +77,12 @@ first — switching twice without restarting in between would mean the first
 switch is silently lost the moment the node finally does restart, since only
 the most recently saved configuration survives to be applied.
 
+The panel shows the same thing, without needing the command line: a banner on
+`/settings/storage` when a restart is pending, naming both the backend the
+node is still running on and the one it will switch to once restarted. The
+inline panel switch itself is unaffected — it still applies at once and never
+leaves anything pending.
+
 ## Moving or erasing data
 
 Moving data is available from the command line only. It is not in the panel: it
