@@ -36,6 +36,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | `validate_docs` | Validate documentation claims against the code implementation. | `uv run python scripts/validate_docs.py` |
 | `validate_okw_in_storage` | Read configured storage (local or remote) and report the OKW facilities found — quick config sanity check. | `uv run python scripts/validate_okw_in_storage.py` |
 | `verify_dev_env` | Verify the local dev environment is fully provisioned (historically fragile deps load). | `uv run python scripts/verify_dev_env.py` |
+| `wait_container_healthy` | Wait for a container's own HEALTHCHECK to report healthy; fail on unhealthy, exited, no HEALTHCHECK, or timeout. | `sh scripts/wait_container_healthy.sh <container> [timeout_seconds]` |
 
 ## Synthetic data & seeding
 

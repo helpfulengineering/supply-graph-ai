@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The web image reported `unhealthy` in `docker ps` for its whole life while
+  serving normally: its `HEALTHCHECK` probed `localhost`, which resolves to
+  `::1` first inside the container while the server listens on IPv4 only. It now
+  probes `127.0.0.1`, and a failing probe reports why instead of an empty
+  string.
+
+### Added
+
+- CI starts the web image and the API image and requires Docker to report each
+  one `healthy` (`scripts/wait_container_healthy.sh`). The web image was not
+  built by any CI job before, and no job looked at container health state.
+
 ## [0.13.0] - 2026-09-17
 
 The security pass. A node reachable by strangers had no known anonymous
