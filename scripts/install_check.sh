@@ -185,7 +185,67 @@ except Exception:
     && pass "storage is configured on the mount (local, /app/storage/objects)" \
     || fail "storage is configured on the mount (local, /app/storage/objects)" "GET /v1/api/storage/config -> ${storage}"
 
-# 6. The flow that 500ed on a clean install: mint an identity in the container as
+# 6. A node with nothing in it says so. Scaffolding writes a placeholder under
+#    each prefix, and health and the OKW listing used to count it: an empty node
+#    reported one design and one facility, the second with no name.
+health=$(curl -s -m 20 "http://localhost:${API_PORT}/health")
+health_counts=$(printf '%s' "$health" | python3 -c '
+import json, sys
+try:
+    s = json.load(sys.stdin)["storage"]
+    print(s["okh_count"], s["okw_count"])
+except Exception:
+    print("? ?")
+')
+total_of() {
+    curl -s -m 30 -H "Authorization: Bearer ${KEY}" "http://localhost:${PORT}/v1/api/$1" | python3 -c '
+import json, sys
+def find(o):
+    if isinstance(o, dict):
+        if "total_items" in o:
+            return o["total_items"]
+        for v in o.values():
+            r = find(v)
+            if r is not None:
+                return r
+    return None
+try:
+    print(find(json.load(sys.stdin)))
+except Exception:
+    print("?")
+'
+}
+okh_total=$(total_of okh)
+okw_total=$(total_of okw)
+counts="health=[${health_counts}] listings=[${okh_total} ${okw_total}]"
+if [ "$health_counts" = "0 0" ] && [ "$okh_total" = "0" ] && [ "$okw_total" = "0" ]; then
+    pass "an empty node reports 0 designs and 0 facilities everywhere"
+else
+    fail "an empty node reports 0 designs and 0 facilities everywhere" \
+        "$counts  (okh, okw)" \
+        "a scaffold placeholder is being counted as an object by some reader"
+fi
+
+# 7. What the API's own document promises a client. Read through the web proxy,
+#    as anyone finding the spec from the UI would: the scheme must be the one the
+#    server enforces (it declared apiKey, and refused what it declared), and the
+#    paths are relative to the /v1 server url (correct, and depended on by the UI).
+spec_ok=$(curl -s -m 30 "http://localhost:${PORT}/v1/openapi.json" | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    schemes = d["components"]["securitySchemes"].values()
+    bearer = bool(schemes) and all(x["type"] == "http" and x["scheme"].lower() == "bearer" for x in schemes)
+    print("yes" if bearer and d["servers"] == [{"url": "/v1"}] else "no")
+except Exception:
+    print("no")
+')
+[ "$spec_ok" = "yes" ] \
+    && pass "the served OpenAPI document declares http bearer, with /v1 as its server" \
+    || fail "the served OpenAPI document declares http bearer, with /v1 as its server" \
+        "GET /v1/openapi.json through the web proxy did not declare that"
+
+# 8. The flow that 500ed on a clean install: mint an identity in the container as
 #    the unprivileged user, and prove its key landed on the mount, not in the
 #    container's writable layer.
 reg=$(curl -s -m 30 -w '\n%{http_code}' -X POST "http://localhost:${PORT}/v1/api/identity/register" \
@@ -213,7 +273,7 @@ else
         "left at its default the key store writes under a home the image does not create"
 fi
 
-# 7. Durability: recreate the API container with the same mount, as an operator
+# 9. Durability: recreate the API container with the same mount, as an operator
 #    does to upgrade or to turn on federation, and read the identity back. Keys
 #    that lived in the container die here.
 envfile="${WORK}/api.env"
