@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Breaking:** the combined `abandon_and_wipe` switch mode, over the CLI and the API
+  (#543). Run from a separate process it erased the old storage while a running API
+  was still serving from it (a live API's design count went from 1 to 0). It now
+  answers 400 (API) or exits non-zero (CLI) with an explanation and changes nothing;
+  `--wipe-confirm` and `--dry-run` are hidden but still accepted for that message.
+  Until a guarded `ohm storage wipe` exists (#547), erasing old storage is manual.
+- **Breaking:** `mode: "migrate"` over the API, the `migrate_storage_task` worker job,
+  and `GET /api/storage/migration/{job_id}` (#543). The job never worked (it could not
+  find its source storage), nothing called it, and it sent the destination's
+  credentials through Redis as cleartext JSON. `ohm storage config set --mode migrate`
+  is unchanged. Migrate over the API answers 400 and points at the CLI.
+
 ### Security
 
 - Node-local state is no longer reachable as an object (#530). The identity model

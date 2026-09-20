@@ -61,9 +61,9 @@ shows the new backend as what answered.
 
 ## Moving or erasing data
 
-Two more modes, available from the CLI and the API. They are not in the panel:
-one copies potentially a great deal of data, and the other destroys some, and
-neither belongs behind a button you can press by accident.
+Moving data is available from the command line only. It is not in the panel: it
+copies potentially a great deal of data, and does not belong behind a button you can
+press by accident.
 
 ### Migrate — bring the data with you
 
@@ -79,11 +79,10 @@ fails partway — or that you give up on — leaves a working node on the storag
 you started with. Every object is read back from the destination and compared
 before the switch happens: a copy that says it verified, did.
 
-!!! warning "Migrate from the command line"
-    `--mode migrate` works from the CLI. Requested over the API it runs as a
-    background job, and that job currently cannot find the storage it is meant to
-    copy from: it stops with *"There is no current storage to migrate from"*,
-    having changed nothing. Use the CLI until that is fixed.
+!!! note "Migrate is a command-line operation"
+    `--mode migrate` works from the CLI. Requested over the API it is refused with a
+    `400` that points at the CLI, and changes nothing: the background job it used to
+    start could never find the storage it was meant to copy from.
 
 !!! warning "Restart right after, and stop writers first if it must be complete"
     The running node keeps writing to the old storage until you restart it. Anything
@@ -98,30 +97,20 @@ pair.
 It does **not** erase the source. If you want the old backend emptied, migrate
 first, **restart the node**, confirm the new one is serving, then wipe separately.
 
-### Move and erase — the destructive one
+### Erasing the old storage
 
-!!! danger "Not from the command line on a running node"
-    A running node keeps serving from the old storage until it is restarted, so
-    erasing it from the command line deletes data the node is still using. Switch in
-    the panel instead, confirm the node is healthy on the new storage, and only then
-    delete the old data yourself.
+There is no single command that switches *and* erases: it has been retired, because
+run from the command line it deleted the old storage while the running node was still
+serving from it. `--mode abandon_and_wipe` now answers with an explanation and changes
+nothing.
 
-```bash
-# See what would go. Nothing is switched and nothing is deleted.
-ohm storage config set --provider local --bucket ~/ohm-data \
-  --mode abandon_and_wipe --wipe-confirm /old/path --dry-run
+Until a guarded wipe exists, erasing is a manual step, taken after you are sure the
+node no longer needs the old storage:
 
-# Then for real.
-ohm storage config set --provider local --bucket ~/ohm-data \
-  --mode abandon_and_wipe --wipe-confirm /old/path
-```
-
-You have to type the name of the bucket being erased, and it refuses if it does
-not match — a checkbox is something you tick without reading, and a name is
-something you have to go and look up. A mismatch deletes nothing **and switches
-nothing**.
-
-Erasing happens **after** the switch succeeds, never before.
+1. Switch (in the panel, or from the command line followed by a restart).
+2. Confirm `/settings/storage` shows the new backend as what answered, and that your
+   designs and facilities are there.
+3. Delete the old data yourself.
 
 ### Reading the current configuration
 

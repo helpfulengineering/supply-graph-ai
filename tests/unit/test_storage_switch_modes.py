@@ -1,14 +1,18 @@
-"""The three switch modes, and the orderings they depend on (#381).
+"""The migrate switch mode and the orderings it depends on (#381, #543).
 
 Switching points an instance at an empty backend and leaves the old data where
-it is, invisible. These are the other two answers, and both have an ordering
-that is a safety property rather than an implementation detail:
+it is, invisible. **migrate** is the other answer, and its ordering is a safety
+property rather than an implementation detail: validate, copy, verify, *then*
+swap. A failure at any point before the swap leaves a working instance on its
+original backend and a partial copy on the destination — recoverable. The
+reverse is not.
 
-- **migrate**: validate, copy, verify, *then* swap. A failure at any point
-  before the swap leaves a working instance on its original backend and a
-  partial copy on the destination — recoverable. The reverse is not.
-- **abandon_and_wipe**: swap, *then* erase. Erasing first would open a window
-  in which the old data is gone and the new backend is unproven.
+The third mode, `abandon_and_wipe`, is retired (#543): run from a separate
+process it erased the backend a running API was still serving from. Its
+replacement is a standalone, guarded wipe (#547); `wipe_storage` and its echo
+guard are covered in `test_storage_transfer.py`, and the refusals in
+`tests/api/test_storage_retired_modes.py` and
+`tests/cli/test_storage_config_set_retired_modes.py`.
 """
 
 from __future__ import annotations
@@ -21,7 +25,6 @@ from src.core.services.storage_reconfigure import (
     StorageReconfigureError,
     build_candidate,
     migrate_and_switch,
-    switch_and_wipe,
 )
 from src.core.services.storage_service import StorageService
 from src.core.storage.base import StorageConfig
@@ -118,60 +121,6 @@ async def test_a_migration_that_fails_partway_leaves_the_instance_working(tmp_pa
     assert "still serving" in str(excinfo.value)
     assert service.manager.config.bucket_name == str(tmp_path / "old")
     assert await _object_count(tmp_path / "old") == 3
-
-
-async def test_wipe_with_a_mismatched_echo_neither_switches_nor_deletes(tmp_path):
-    """ "Switched but not wiped" is a state nobody asked for, so fail first."""
-    await _seed(tmp_path / "old", 3)
-    service = await _service_on(tmp_path / "old")
-
-    with pytest.raises(StorageReconfigureError) as excinfo:
-        await switch_and_wipe(
-            service,
-            build_candidate("local", str(tmp_path / "new")),
-            wipe_confirm="a-different-bucket",
-        )
-
-    assert "Nothing was deleted" in str(excinfo.value)
-    assert service.manager.config.bucket_name == str(tmp_path / "old")
-    assert await _object_count(tmp_path / "old") == 3
-
-
-async def test_a_wipe_dry_run_switches_nothing_and_deletes_nothing(tmp_path):
-    await _seed(tmp_path / "old", 4)
-    service = await _service_on(tmp_path / "old")
-
-    result = await switch_and_wipe(
-        service,
-        build_candidate("local", str(tmp_path / "new")),
-        wipe_confirm=str(tmp_path / "old"),
-        dry_run=True,
-    )
-
-    assert result["dry_run"] is True
-    assert result["switched"] is False
-    assert result["wipe"]["objects"] == 4
-    assert service.manager.config.bucket_name == str(tmp_path / "old")
-    assert await _object_count(tmp_path / "old") == 4
-
-
-async def test_wipe_happens_only_after_the_switch_succeeds(tmp_path):
-    await _seed(tmp_path / "old", 4)
-    service = await _service_on(tmp_path / "old")
-
-    result = await switch_and_wipe(
-        service,
-        build_candidate("local", str(tmp_path / "new")),
-        wipe_confirm=str(tmp_path / "old"),
-    )
-
-    assert result["switched"] is True
-    assert result["wipe"]["objects"] == 4
-    assert service.manager.config.bucket_name == str(tmp_path / "new")
-    assert await _object_count(tmp_path / "old") == 0
-    # The new backend is set up and serving, not merely selected.
-    assert service._configured is True
-    assert await _object_count(tmp_path / "new") > 0
 
 
 async def test_a_fresh_process_adopts_the_instance_configuration(tmp_path):
