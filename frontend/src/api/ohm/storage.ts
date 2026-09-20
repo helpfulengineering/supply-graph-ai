@@ -16,6 +16,7 @@ import type { components } from "../generated/schema";
 
 export type StorageConfigData = components["schemas"]["StorageConfigData"];
 export type StorageFingerprint = components["schemas"]["StorageFingerprint"];
+export type StorageRuntimeInfo = components["schemas"]["StorageRuntimeInfo"];
 export type StorageConfigView = components["schemas"]["StorageConfigView"];
 export type StorageConfigureData =
   components["schemas"]["StorageConfigureData"];

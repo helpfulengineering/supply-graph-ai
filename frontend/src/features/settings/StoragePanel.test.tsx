@@ -107,6 +107,45 @@ describe("StoragePanel", () => {
     expect(alert).toHaveTextContent(/still serving from its previous/i);
   });
 
+  it("shows no restart-pending banner when nothing is pending", async () => {
+    renderPanel();
+
+    await screen.findByText(/12 designs, 5 facilities/);
+    expect(screen.queryByText(/restart pending/i)).not.toBeInTheDocument();
+  });
+
+  it("shows a restart-pending banner with both the live and saved backend", async () => {
+    server.use(
+      http.get("*/v1/api/storage/config", () =>
+        HttpResponse.json({
+          ...storageConfigFixture,
+          data: {
+            ...storageConfigFixture.data,
+            runtime: {
+              restart_required: true,
+              live_provider: "local",
+              live_bucket: "/var/ohm-data",
+              saved_provider: "azure_blob",
+              saved_bucket: "production",
+              since: "2026-09-20T18:40:17+00:00",
+            },
+          },
+        }),
+      ),
+    );
+    renderPanel();
+
+    await screen.findByText(/restart pending/i);
+    // Anchored on the containing "status" region, not just the heading text,
+    // so the assertion covers what an assistive-tech user actually hears.
+    const restartBanner = (await screen.findAllByRole("status")).find((el) =>
+      el.textContent?.match(/restart pending/i),
+    );
+    expect(restartBanner).toBeDefined();
+    expect(restartBanner).toHaveTextContent(/local: \/var\/ohm-data/);
+    expect(restartBanner).toHaveTextContent(/azure_blob: production/);
+  });
+
   it("offers the credential fields the chosen provider actually takes", async () => {
     const user = userEvent.setup();
     renderPanel();

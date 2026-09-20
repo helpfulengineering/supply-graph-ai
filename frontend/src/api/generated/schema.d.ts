@@ -10341,6 +10341,7 @@ export interface components {
         StorageConfigView: {
             config: components["schemas"]["StorageConfigData"];
             fingerprint: components["schemas"]["StorageFingerprint"];
+            runtime: components["schemas"]["StorageRuntimeInfo"];
         };
         /**
          * StorageConfigureData
@@ -10473,6 +10474,29 @@ export interface components {
             okw_count?: number | null;
             /** Error */
             error?: string | null;
+        };
+        /**
+         * StorageRuntimeInfo
+         * @description Whether a running API's live backend agrees with the saved one (#545).
+         *
+         *     Read from the API's on-disk liveness marker (#544), never an in-memory
+         *     flag: the CLI, which cannot authenticate to the API, reports the same
+         *     thing this way too. ``restart_required`` is the field to act on; the
+         *     others explain it.
+         */
+        StorageRuntimeInfo: {
+            /** Restart Required */
+            restart_required: boolean;
+            /** Live Provider */
+            live_provider?: string | null;
+            /** Live Bucket */
+            live_bucket?: string | null;
+            /** Saved Provider */
+            saved_provider?: string | null;
+            /** Saved Bucket */
+            saved_bucket?: string | null;
+            /** Since */
+            since?: string | null;
         };
         /**
          * SuccessResponse

@@ -4,7 +4,7 @@ import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
-import { PANEL, PANEL_INSET } from "../../components/ui/surface";
+import { PANEL, PANEL_INSET, PANEL_WARNING } from "../../components/ui/surface";
 import {
   SECTION_LABEL_SM,
   SECTION_TITLE,
@@ -81,6 +81,7 @@ export function StoragePanel() {
   const credentialFields = STORAGE_PROVIDERS[provider];
   const config = current.data?.config;
   const fingerprint = current.data?.fingerprint;
+  const runtime = current.data?.runtime;
 
   return (
     <div className="space-y-6">
@@ -90,6 +91,26 @@ export function StoragePanel() {
         the directory structure — before anything changes. If the check fails,
         the instance keeps serving from its current configuration.
       </p>
+
+      {runtime?.restart_required && (
+        <div className={cn(PANEL_WARNING, "text-sm")} role="status">
+          <p className="font-medium text-warning">Restart pending</p>
+          <p className="mt-1 text-warning">
+            Saved storage configuration differs from what this node is running.
+            Restart the API to apply it. Until then it serves from{" "}
+            <span className="font-mono text-xs">
+              {runtime.live_provider}: {runtime.live_bucket}
+            </span>
+            .
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            Saved:{" "}
+            <span className="font-mono text-xs">
+              {runtime.saved_provider}: {runtime.saved_bucket}
+            </span>
+          </p>
+        </div>
+      )}
 
       <section aria-labelledby="storage-current-heading" className={PANEL}>
         <h2 id="storage-current-heading" className={SECTION_TITLE}>

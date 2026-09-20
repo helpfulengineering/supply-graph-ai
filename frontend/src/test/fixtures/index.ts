@@ -1347,6 +1347,17 @@ export const storageConfigFixture = {
       okw_count: 5,
       error: null,
     },
+    // No restart pending by default (#545/#548): no API marker is running in
+    // this fixture's world, so there is nothing for the saved configuration
+    // to disagree with.
+    runtime: {
+      restart_required: false,
+      live_provider: null,
+      live_bucket: null,
+      saved_provider: null,
+      saved_bucket: null,
+      since: null,
+    },
   },
   metadata: {},
 };

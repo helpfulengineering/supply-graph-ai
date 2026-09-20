@@ -85,6 +85,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A restart-pending banner on `/settings/storage` (#548): when the saved
+  storage configuration differs from what the node is actually running,
+  the panel now says so, naming both sides, instead of only the CLI and
+  the API knowing. The inline panel switch is unaffected — it still
+  applies at once and never leaves anything pending. Also regenerates
+  `frontend/src/api/generated/schema.d.ts` to pick up the `runtime` field
+  #545 added to `GET /api/storage/config`, which was missed when that
+  slice shipped.
 - Restart-pending state, and one switch at a time (#545). A restart is
   "pending" precisely when a *running* API's marker (#544) names a different
   backend than the saved configuration. `ohm storage config set` — any mode,

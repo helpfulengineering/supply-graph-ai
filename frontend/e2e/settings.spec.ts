@@ -1,5 +1,6 @@
 import { test, expect } from "./mock-api";
 import { expectNoA11yViolations } from "./a11y";
+import { storageConfigFixture } from "../src/test/fixtures";
 
 test("settings session is reachable without an admin key (paste bootstrap)", async ({
   page,
@@ -186,4 +187,61 @@ test("matching rules: the panel offers no way to change them", async ({
   await expect(
     page.getByRole("button", { name: "Check", exact: true }),
   ).toBeVisible();
+});
+
+test("storage: no restart-pending banner when nothing is pending (#548)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "mocked storage config only");
+  await page.addInitScript(() => {
+    sessionStorage.setItem("ohm_api_key", "test-admin-token");
+  });
+  await page.goto("/settings/storage");
+
+  await expect(
+    page.getByRole("heading", { name: "Current configuration" }),
+  ).toBeVisible();
+  await expect(page.getByText(/restart pending/i)).toHaveCount(0);
+  await expectNoA11yViolations(page);
+});
+
+test("storage: a pending restart shows a banner with both backends (#545, #548)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "mocked storage config only");
+  await page.addInitScript(() => {
+    sessionStorage.setItem("ohm_api_key", "test-admin-token");
+  });
+  // Overrides the mock-api fixture's default (a route added inside the test
+  // body runs before the one the fixture registered on the page, per
+  // Playwright's most-recent-first matching).
+  await page.route("**/v1/api/storage/config", (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    return route.fulfill({
+      json: {
+        ...storageConfigFixture,
+        data: {
+          ...storageConfigFixture.data,
+          runtime: {
+            restart_required: true,
+            live_provider: "local",
+            live_bucket: "/var/ohm-data",
+            saved_provider: "azure_blob",
+            saved_bucket: "production",
+            since: "2026-09-20T18:40:17+00:00",
+          },
+        },
+      },
+    });
+  });
+
+  await page.goto("/settings/storage");
+
+  const banner = page
+    .getByRole("status")
+    .filter({ hasText: /restart pending/i });
+  await expect(banner).toBeVisible();
+  await expect(banner).toContainText("local: /var/ohm-data");
+  await expect(banner).toContainText("azure_blob: production");
+  await expectNoA11yViolations(page);
 });
