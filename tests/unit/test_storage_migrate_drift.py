@@ -30,6 +30,17 @@ from src.core.services.storage_transfer import CopyReport, detect_drift, snapsho
 from src.core.storage.base import StorageConfig
 from src.core.storage.manager import StorageManager
 
+
+@pytest.fixture(autouse=True)
+def isolated(monkeypatch, tmp_path):
+    """Without this, `save_config()` inside `migrate_and_switch` writes to
+    the real default `~/.ohm/storage-config.json` on whatever machine runs
+    the test — this file was missing it, and did exactly that."""
+    monkeypatch.setenv("OHM_STORAGE_CONFIG_PATH", str(tmp_path / "cfg.json"))
+    monkeypatch.setenv("OHM_ENCRYPTION_SALT", "migrate-drift-salt")
+    monkeypatch.setenv("OHM_ENCRYPTION_PASSWORD", "migrate-drift-password")
+
+
 # ---------------------------------------------------------------------------
 # detect_drift: pure, no I/O (#546 AC4)
 # ---------------------------------------------------------------------------
@@ -159,9 +170,7 @@ async def test_a_write_during_the_copy_refuses_the_switch(tmp_path, monkeypatch)
 
 
 @pytest.mark.asyncio
-async def test_a_drift_refusal_converges_once_the_source_is_quiet(
-    tmp_path, monkeypatch
-):
+async def test_a_drift_refusal_converges_once_the_source_is_quiet(tmp_path):
     """#546 AC3: re-running the identical call, once the source has stopped
     moving, just works — migrate keeps no retry state that a refusal could
     get stuck in."""
@@ -175,7 +184,15 @@ async def test_a_drift_refusal_converges_once_the_source_is_quiet(
         )
         return CopyReport(objects_copied=2, objects_verified=2)
 
-    monkeypatch.setattr(
+    # A separate, scoped MonkeyPatch rather than the function's own fixture:
+    # `.undo()` below must restore only this one patch. Undoing the shared
+    # fixture would also roll back the autouse `isolated` fixture's env vars
+    # (they use the same underlying instance), and the second, real
+    # `migrate_and_switch` call below would then persist to whatever
+    # `OHM_STORAGE_CONFIG_PATH` resolves to outside the test — this test
+    # caught that exact bug once already.
+    patcher = pytest.MonkeyPatch()
+    patcher.setattr(
         "src.core.services.storage_transfer.copy_all_objects", copy_that_races_a_writer
     )
     with pytest.raises(StorageReconfigureError, match="changed while the copy"):
@@ -184,7 +201,7 @@ async def test_a_drift_refusal_converges_once_the_source_is_quiet(
 
     # The writer has stopped now — re-run the identical call with the real
     # (unpatched) copy and nothing else touching the source in between.
-    monkeypatch.undo()
+    patcher.undo()
     result = await migrate_and_switch(service, build_candidate("local", str(new)))
 
     assert result["drift"]["clean"] is True
