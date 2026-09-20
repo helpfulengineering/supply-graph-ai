@@ -19,9 +19,15 @@ So this asks the question at the source rather than at the deployment file:
 2. Every declared override must be set by the installer and by the compose files.
 
 Like `test_compose_defaults.py` and `test_installer_ports.py`, it does not forbid
-the exception, it forbids the **undeclared** one. `KNOWN_GAPS` is the ratchet's
-backlog: the change that closes a gap deletes its row, and a row that has stopped
-being true fails, so the list cannot go stale.
+the exception, it forbids the **undeclared** one.
+
+3. The image's own default agrees with its entrypoint, so a bare `docker run` and
+   any deployment file that forgets are still correct.
+4. In every compose layout the node's state is *unreachable through the object
+   store*. Compose uses one volume as the object root and keeps the identity plane
+   inside it, so a full walk (migrate, backup) used to copy plaintext signing keys
+   into the destination (#530). The storage layer now refuses them; this proves it
+   for each compose file's real paths rather than for a hand-built example.
 
 `expanduser` is deliberately not scanned. It expands a *caller-supplied* path,
 which is a different (and separately sandboxed) concern; only a default the
@@ -84,22 +90,6 @@ COMPOSE_API_SERVICES = {
         "ohm-edge",
         "ohm-relay",
     ),
-}
-
-#: (env var, compose file) pairs the compose files do not yet set, and why.
-#: Delete a row when the gap closes — a row that is no longer true fails.
-_STORAGE_CONFIG_GAP = (
-    "Saving storage settings from the UI writes to ~/.ohm/storage-config.json, "
-    "which does not exist in the container, so the save fails with a clear "
-    "error. The installer avoids it by keeping the config outside the object "
-    "root (/app/storage/config vs /app/storage/objects). Compose cannot do the "
-    "same without moving existing data: its object root IS /app/storage, so a "
-    "config file there would be listed, served and erased as an object of the "
-    "bucket it configures. Needs a decision on where the file lives."
-)
-KNOWN_GAPS = {
-    ("OHM_STORAGE_CONFIG_PATH", "docker-compose.yml"): _STORAGE_CONFIG_GAP,
-    ("OHM_STORAGE_CONFIG_PATH", "docker-compose.federation.yml"): _STORAGE_CONFIG_GAP,
 }
 
 
@@ -185,25 +175,116 @@ def test_the_installer_sets_every_override(env: str) -> None:
         for env in _overrides()
         for compose_file, services in COMPOSE_API_SERVICES.items()
         for service in services
-        if (env, compose_file) not in KNOWN_GAPS
     ],
 )
 def test_compose_sets_every_override(env: str, compose_file: str, service: str) -> None:
     assert env in _compose_env(compose_file, service), (
         f"{compose_file} service {service} does not set {env}. Set it to a path "
-        "on the service's storage volume, or record the gap in KNOWN_GAPS."
+        "on the service's storage volume."
     )
 
 
-@pytest.mark.parametrize("env,compose_file", sorted(KNOWN_GAPS))
-def test_known_gaps_are_still_gaps(env: str, compose_file: str) -> None:
-    """A gap that has closed must have its row deleted, or the list rots."""
-    still_missing = [
-        service
-        for service in COMPOSE_API_SERVICES[compose_file]
-        if env not in _compose_env(compose_file, service)
-    ]
-    assert still_missing, (
-        f"{compose_file} now sets {env} on every API service. "
-        "Delete its row from KNOWN_GAPS."
+def test_the_image_default_agrees_with_its_entrypoint() -> None:
+    """The entrypoint creates and chowns one path; the image must default to it.
+
+    The application's own default is under the user's home. The entrypoint
+    already assumed `/app/storage/federation`, so the two disagreed and every
+    deployment file had to paper over it — which is how the installer shipped
+    without it.
+    """
+    dockerfile = (_ROOT / "Dockerfile").read_text(encoding="utf-8")
+    entrypoint = (_ROOT / "deploy" / "docker" / "docker-entrypoint.sh").read_text(
+        encoding="utf-8"
     )
+
+    image = re.search(r"^ENV\s+OHM_FEDERATION_DATA_DIR=(\S+)", dockerfile, re.M)
+    assumed = re.search(r"\$\{OHM_FEDERATION_DATA_DIR:-([^}]+)\}", entrypoint)
+
+    assert image, "the Dockerfile does not set OHM_FEDERATION_DATA_DIR"
+    assert assumed, "the entrypoint no longer names a default identity directory"
+    assert image.group(1) == assumed.group(1), (
+        f"the image defaults to {image.group(1)} but its entrypoint prepares "
+        f"{assumed.group(1)}"
+    )
+
+
+_DEFAULT = re.compile(r"^\$\{[A-Z_]+:-(?P<default>.*)\}$")
+
+
+def _compose_settings(compose_file: str, service: str) -> dict[str, str]:
+    """A service's `environment:` as {name: value}, with `${X:-default}` resolved."""
+    services = yaml.safe_load((_ROOT / compose_file).read_text("utf-8"))["services"]
+    env = services[service].get("environment") or []
+    pairs = env.items() if isinstance(env, dict) else (e.split("=", 1) for e in env)
+    settings_ = {}
+    for name, value in pairs:
+        value = str(value)
+        match = _DEFAULT.match(value)
+        settings_[name] = match.group("default") if match else value
+    return settings_
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "compose_file,service",
+    [(f, svc) for f, services in COMPOSE_API_SERVICES.items() for svc in services],
+)
+async def test_the_nodes_state_is_unreachable_through_the_object_store(
+    compose_file: str, service: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Build this service's real layout and walk its object store.
+
+    The container paths are mapped onto a temp directory, the node's identity and
+    saved configuration are written where the compose file says they go, and the
+    object store is pointed where the compose file points it. Whatever the compose
+    file arranges, a walk must find only real objects and no key may reach the
+    node's state.
+    """
+    from src.config import settings
+    from src.core.storage.base import StorageConfig
+    from src.core.storage.node_local import NodeLocalKeyError
+    from src.core.storage.providers.local import LocalStorageProvider
+
+    env = _compose_settings(compose_file, service)
+    mount = "/app/storage"
+
+    def on_disk(container_path: str) -> Path:
+        # Relative paths resolve against the image's WORKDIR, /app.
+        absolute = (
+            container_path
+            if container_path.startswith("/")
+            else f"/app/{container_path}"
+        )
+        assert absolute == mount or absolute.startswith(mount + "/"), (
+            f"{compose_file}:{service} puts {container_path} outside the storage "
+            f"mount {mount}; extend this test to model where it lives"
+        )
+        return tmp_path / absolute.removeprefix(mount).lstrip("/")
+
+    root = on_disk(env["LOCAL_STORAGE_PATH"])
+    fed = on_disk(env["OHM_FEDERATION_DATA_DIR"])
+    cfg = on_disk(env["OHM_STORAGE_CONFIG_PATH"])
+
+    (fed / "identities").mkdir(parents=True)
+    (fed / "identities" / "did:key:z6MkTEST.json").write_text('{"private_key": "x"}')
+    (fed / "identity.json").write_text("{}")
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text("{}")
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(fed))
+    monkeypatch.setenv("OHM_STORAGE_CONFIG_PATH", str(cfg))
+
+    provider = LocalStorageProvider(
+        StorageConfig(provider="local", bucket_name=str(root))
+    )
+    await provider.put_object("okh/d.json", b"{}")
+
+    keys = [o["key"] async for o in provider.list_objects()]
+    assert keys == ["okh/d.json"], (
+        f"{compose_file}:{service} lists node-local state as objects: {keys}. "
+        "A migrate or backup would copy identity keys into the destination."
+    )
+    for state in (fed / "identity.json", cfg):
+        key = state.relative_to(root).as_posix() if root in state.parents else None
+        if key is not None:  # state outside the object root has nothing to reach
+            with pytest.raises(NodeLocalKeyError):
+                await provider.get_object(key)

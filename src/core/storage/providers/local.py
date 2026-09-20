@@ -7,7 +7,9 @@ from typing import Any, AsyncIterator, Dict, List, Optional
 
 import aiofiles
 
+from ...utils.safe_paths import UnsafePathError
 from ..base import StorageConfig, StorageMetadata, StorageProvider
+from ..node_local import NodeLocalKeyError, node_local_paths
 
 
 class LocalStorageProvider(StorageProvider):
@@ -27,6 +29,7 @@ class LocalStorageProvider(StorageProvider):
         # Expand path (handles ~, environment variables)
         self.base_path = self._expand_path(config.bucket_name)
         self._connected = False
+        self._node_local: Optional[List[str]] = None
 
     def _expand_path(self, path_str: str) -> Path:
         """Expand path to handle ~, environment variables, and make absolute
@@ -123,12 +126,55 @@ class LocalStorageProvider(StorageProvider):
         if not self._connected:
             await self.connect()
 
+    def _node_local_inside(self) -> List[str]:
+        """Casefolded paths of this node's own state that lie inside this store.
+
+        Only state strictly *inside* the object root needs protecting: the
+        installer keeps it outside (objects/ beside federation/), and there is
+        nothing to reach. Computed once, because `list_objects` asks per file.
+        Casefolded because the filesystems people run this on (macOS, Windows)
+        are case-insensitive, so `Federation/` is `federation/`.
+        """
+        if self._node_local is None:
+            root = os.path.abspath(self.base_path)
+            inside = []
+            for path in node_local_paths():
+                resolved = os.path.abspath(path)
+                if resolved != root and resolved.startswith(root + os.sep):
+                    inside.append(resolved.casefold())
+            self._node_local = inside
+        return self._node_local
+
+    def _is_node_local(self, path: str) -> bool:
+        folded = os.path.abspath(path).casefold()
+        return any(
+            folded == local or folded.startswith(local + os.sep)
+            for local in self._node_local_inside()
+        )
+
     def _get_object_path(self, key: str) -> Path:
-        """Get filesystem path for an object"""
-        return self.base_path / key
+        """Get the filesystem path for an object, or refuse the key.
+
+        This used to be `base_path / key`, which reaches anywhere the key says:
+        `../x` leaves the store, and an absolute key *replaces* the base
+        (`Path("/store") / "/etc/x"` is `/etc/x`). It also could not tell an
+        object from the node's own identity keys, which Compose keeps inside the
+        object root. Both are refused here, once, for every operation.
+        """
+        root = os.path.abspath(self.base_path)
+        candidate = os.path.abspath(os.path.join(root, key))
+        if candidate != root and not candidate.startswith(root + os.sep):
+            raise UnsafePathError(f"Object key {key!r} escapes the object store")
+        if self._is_node_local(candidate):
+            raise NodeLocalKeyError(
+                f"Object key {key!r} names this node's own state (identity keys or "
+                "saved storage configuration), which is never an object"
+            )
+        return Path(candidate)
 
     def _get_metadata_path(self, key: str) -> Path:
         """Get filesystem path for object metadata"""
+        self._get_object_path(key)  # refuse the key before naming its sidecar
         return self.base_path / f"{key}.meta"
 
     async def _save_metadata(self, key: str, metadata: StorageMetadata) -> None:
@@ -215,6 +261,7 @@ class LocalStorageProvider(StorageProvider):
         """Delete an object from the filesystem"""
         await self.ensure_connected()
 
+        # Outside the try: a refused key must raise, not be reported as "False".
         object_path = self._get_object_path(key)
         metadata_path = self._get_metadata_path(key)
 
@@ -249,12 +296,19 @@ class LocalStorageProvider(StorageProvider):
         normalised_prefix = prefix.replace(os.sep, "/") if prefix else None
 
         count = 0
-        for root, _, files in os.walk(self.base_path):
+        for root, dirs, files in os.walk(self.base_path):
+            # The node's own state is not content: not listed, and not descended
+            # into, so a full walk (migrate, backup, wipe) never sees it.
+            dirs[:] = [
+                d for d in dirs if not self._is_node_local(os.path.join(root, d))
+            ]
             for file in files:
                 if file.endswith(".meta"):
                     continue
 
                 abs_path = os.path.join(root, file)
+                if self._is_node_local(abs_path):
+                    continue
                 rel_path = os.path.relpath(abs_path, self.base_path)
                 # Always use forward slashes for storage keys so that callers
                 # on Windows and Unix see consistent key strings.
@@ -343,6 +397,9 @@ class LocalStorageProvider(StorageProvider):
 
         buckets = []
         for root, dirs, _ in os.walk(self.base_path):
+            dirs[:] = [
+                d for d in dirs if not self._is_node_local(os.path.join(root, d))
+            ]
             for dir_name in dirs:
                 rel_path = os.path.relpath(os.path.join(root, dir_name), self.base_path)
                 buckets.append(rel_path)
