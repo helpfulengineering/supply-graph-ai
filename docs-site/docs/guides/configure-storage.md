@@ -48,6 +48,17 @@ data stays on the old backend — invisible to the node, still there.
 That is usually what you want. If you need the data to come with you, or the
 old backend emptied, use the command line.
 
+## Switching from the command line
+
+`ohm storage config set` works from a shell on the node, but it is a separate
+process from the running node. It saves the new configuration, and **the running node
+does not pick it up until it is restarted** — until then it keeps serving from the
+old storage. The panel does not have this limit: a switch made there takes effect
+straight away.
+
+So after a command-line switch, restart the node's API, then check `/settings/storage`
+shows the new backend as what answered.
+
 ## Moving or erasing data
 
 Two more modes, available from the CLI and the API. They are not in the panel:
@@ -74,13 +85,26 @@ before the switch happens: a copy that says it verified, did.
     copy from: it stops with *"There is no current storage to migrate from"*,
     having changed nothing. Use the CLI until that is fixed.
 
+!!! warning "Restart right after, and stop writers first if it must be complete"
+    The running node keeps writing to the old storage until you restart it. Anything
+    written between the start of the copy and the restart is not in the new storage,
+    and something deleted in that window stays there. Restart straight after
+    migrating; if the move has to be complete, stop whatever writes to the node
+    before you start.
+
 Works between any two providers. Local to Azure, S3 to Google Cloud, whichever
 pair.
 
 It does **not** erase the source. If you want the old backend emptied, migrate
-first, confirm the new one is serving, then wipe separately.
+first, **restart the node**, confirm the new one is serving, then wipe separately.
 
 ### Move and erase — the destructive one
+
+!!! danger "Not from the command line on a running node"
+    A running node keeps serving from the old storage until it is restarted, so
+    erasing it from the command line deletes data the node is still using. Switch in
+    the panel instead, confirm the node is healthy on the new storage, and only then
+    delete the old data yourself.
 
 ```bash
 # See what would go. Nothing is switched and nothing is deleted.
@@ -105,25 +129,12 @@ Erasing happens **after** the switch succeeds, never before.
 ohm storage config show
 ```
 
-## If your node runs a background worker
+## Background jobs
 
-A node deployed with Docker Compose or on Azure runs a second process, the
-**worker**, for background jobs such as importing a design from a URL. (A node
-made by the installer does not have one.)
-
-**The worker does not follow a switch.** It takes its storage settings from its
-own environment — `STORAGE_PROVIDER` and the provider's variables — and never from
-the configuration you save here. Nothing tells it you switched.
-
-So after you change backend, in the panel or with `ohm storage config set`:
-
-1. Give the worker the same backend in its environment: the same provider and the
-   same bucket, container or path settings you switched to.
-2. Restart the worker.
-
-Restarting alone is not enough. A restarted worker reads its environment again, and
-its environment still names the old backend. Until both steps are done, background
-jobs that read or write storage use the old one.
+A node deployed with Docker Compose or on Azure also runs a **worker** for background
+jobs such as importing a design from a URL. Those jobs do not read or write your
+object storage, so switching storage does not affect them and there is nothing to
+change on the worker.
 
 ## Where the configuration lives
 

@@ -103,6 +103,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   worker restarted (restarting alone changes nothing). It also records that
   `--mode migrate` requested over the API currently fails — the job cannot find its
   source storage and changes nothing (#539) — and that the CLI's migrate works.
+- Corrected the storage documentation. It said the API applies a switch made from
+  the CLI "at once" (it does not: the CLI is a separate process, so a running API
+  keeps serving from the old backend until restarted) and that a backend change
+  needs the worker's environment updated and the worker restarted (no background
+  job uses the object store). It now says both accurately, warns that
+  `--mode abandon_and_wipe` from the CLI erases storage a running node is still
+  serving from, and that a command-line migrate leaves writes made until the restart
+  behind. Design work is in #539.
 
 ## [0.13.0] - 2026-09-17
 

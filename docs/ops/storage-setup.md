@@ -190,28 +190,40 @@ with material that has since changed, it is ignored and the instance falls back
 to its environment configuration, with the reason logged. A node that will not
 start is worse than one running on the settings it was deployed with.
 
-### Background workers
+### Who learns of a switch
 
-A deployment with a worker (the compose files, the Azure deployment; not the
-installer) has two processes that use storage, and they learn their configuration
-differently:
+Three kinds of process can be involved, and they do not all hear about it:
 
 - **The API** reads the saved configuration file at boot, before it configures
-  storage (`main.py`), and applies a switch made through the API or CLI at once.
-- **The worker** builds its storage from its **environment** on each task
-  (`get_default_storage_config`: `STORAGE_PROVIDER` and the provider's variables).
-  It never reads the saved file, and is not told about a switch.
+  storage (`main.py`). A switch made **through its own API** (the panel, or
+  `POST /api/storage/config`) is applied at once, in that process.
+- **The CLI is a separate process.** `ohm storage config set`, in any mode, runs the
+  switch inside the CLI process: it saves the configuration, but a running API is not
+  told and **keeps serving from the old backend until it is restarted**. Shown with
+  two real processes: after a CLI switch the running API still reported the old
+  bucket as both its configuration and what answered, while the saved file named the
+  new one. Restart the API to apply a command-line switch.
+- **The worker** (the compose files and the Azure deployment; not the installer) does
+  not read or write the object store at all. `generate_from_url`, its only task, has
+  no storage calls, and nothing under `src/core/generation` touches it. It connects a
+  backend from its own environment when a service initialises, but no job uses it, so
+  a backend change does not affect background jobs. If a task ever starts using the
+  object store it would take its storage from that environment, never from the saved
+  file.
 
-After changing backend, the worker must be given the same backend in its
-environment **and** restarted. A restart alone re-reads an environment that still
-names the old backend, so it changes nothing. Until both are done, worker jobs use
-the old backend while the API uses the new one. The user guide says the same in
-plain terms (`configure-storage.md`).
+A running API therefore cannot see that its saved configuration has changed, and
+`GET /api/storage/config` reports the live bucket for both "configuration" and "what
+answered" in that state. How to make this visible and safe is being designed in
+#539.
 
-Making the worker follow the saved configuration is possible but deliberately not
-done: it would take a per-task read of a file the worker's deployment may not have
-mounted, and put the process-model hazards described in `CLAUDE.md` (services that
-outlive the event loop that built them) on a path that is currently simple.
+> **Warning: do not run `--mode abandon_and_wipe` from the CLI on a running node.**
+> It erases the old backend immediately, but the running API keeps serving from that
+> backend until it restarts. Shown with a live API holding one design: after the CLI
+> wiped it, the API's design count went from 1 to 0 and the file was gone. Over the
+> API the switch happens in the same process before the wipe, so the API itself is
+> not left on an erased backend (a second API replica would be). On a running node,
+> switch in the panel, restart if you used the CLI, confirm the node is healthy on
+> the new backend, and only then delete the old data yourself.
 
 ## What happens to the data already there
 
@@ -250,28 +262,24 @@ The copy is provider-agnostic: it uses only list, get and put from the storage
 abstraction, so any supported provider can be migrated to any other.
 
 Migration does **not** erase the source. If you want the old backend emptied,
-switch with `--mode migrate` first, confirm the new one is serving, then wipe
-separately.
+migrate first, **restart the API** (a command-line switch does not reach a running
+one), confirm the new backend is serving, then wipe separately.
 
-**Over the API, migration runs as a job — and that job does not currently work.**
-`migrate_storage_task` runs in the Celery worker, which builds a fresh
-`StorageService` for every task (`reset_loop_bound_singletons`) and never
-configures it, so `migrate_and_switch` finds no current storage and stops with
-`There is no current storage to migrate from`, having changed nothing. The CLI
-avoids this by calling `ensure_configured` first; the task has no equivalent, and
-no test covers it. Use the CLI until it is fixed.
+**The running node keeps writing to the old backend until it restarts.** Anything
+written between the start of the copy and the restart is not in the new backend, and
+an object deleted in that window stays in it, because the copy never carries
+deletions over. Restart straight after migrating, and stop whatever writes to the
+node first if the move must be complete.
 
-A fix has to do more than configure the service: `migrate_and_switch` swaps the
-storage service of the process it runs in, which for the job is the *worker*, so
-the API would keep serving from the old backend until it restarted, and writes made
-in between would be stranded there. What follows describes the intended behaviour.
-
-A copy of a populated backend takes
-far longer than an ingress timeout allows, and a caller that cannot observe it
-cannot tell a slow copy from a stalled one. `POST /api/storage/config` with
-`"mode": "migrate"` returns a job id, and `GET /api/storage/migration/{job_id}`
-reports cumulative progress — the same event log the generation timeline uses.
-Pass back `next_cursor` as `since` and only new events arrive.
+**Over the API, migration does not work.** `POST /api/storage/config` with
+`"mode": "migrate"` enqueues `migrate_storage_task` in the Celery worker, which builds
+a fresh `StorageService` for every task and never configures it, so
+`migrate_and_switch` stops with `There is no current storage to migrate from`,
+having changed nothing (reproduced in a fresh process; the CLI avoids it with
+`ensure_configured`; no test covered the task). Nothing in the repo calls it, the job
+message carries the destination's credentials through Redis as cleartext JSON, and
+the worker's idea of "current storage" is its own environment, which need not match
+the API's. It is being retired in favour of the CLI (#539); use the CLI.
 
 The CLI runs migration in the foreground instead, printing each stage. A CLI
 invocation is already a process the operator is watching, so a job would add a
