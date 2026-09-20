@@ -182,6 +182,29 @@ with material that has since changed, it is ignored and the instance falls back
 to its environment configuration, with the reason logged. A node that will not
 start is worse than one running on the settings it was deployed with.
 
+### Background workers
+
+A deployment with a worker (the compose files, the Azure deployment; not the
+installer) has two processes that use storage, and they learn their configuration
+differently:
+
+- **The API** reads the saved configuration file at boot, before it configures
+  storage (`main.py`), and applies a switch made through the API or CLI at once.
+- **The worker** builds its storage from its **environment** on each task
+  (`get_default_storage_config`: `STORAGE_PROVIDER` and the provider's variables).
+  It never reads the saved file, and is not told about a switch.
+
+After changing backend, the worker must be given the same backend in its
+environment **and** restarted. A restart alone re-reads an environment that still
+names the old backend, so it changes nothing. Until both are done, worker jobs use
+the old backend while the API uses the new one. The user guide says the same in
+plain terms (`configure-storage.md`).
+
+Making the worker follow the saved configuration is possible but deliberately not
+done: it would take a per-task read of a file the worker's deployment may not have
+mounted, and put the process-model hazards described in `CLAUDE.md` (services that
+outlive the event loop that built them) on a path that is currently simple.
+
 ## What happens to the data already there
 
 Switching points the instance at a new backend and leaves the old data where it
@@ -222,7 +245,20 @@ Migration does **not** erase the source. If you want the old backend emptied,
 switch with `--mode migrate` first, confirm the new one is serving, then wipe
 separately.
 
-**Over the API, migration runs as a job.** A copy of a populated backend takes
+**Over the API, migration runs as a job — and that job does not currently work.**
+`migrate_storage_task` runs in the Celery worker, which builds a fresh
+`StorageService` for every task (`reset_loop_bound_singletons`) and never
+configures it, so `migrate_and_switch` finds no current storage and stops with
+`There is no current storage to migrate from`, having changed nothing. The CLI
+avoids this by calling `ensure_configured` first; the task has no equivalent, and
+no test covers it. Use the CLI until it is fixed.
+
+A fix has to do more than configure the service: `migrate_and_switch` swaps the
+storage service of the process it runs in, which for the job is the *worker*, so
+the API would keep serving from the old backend until it restarted, and writes made
+in between would be stranded there. What follows describes the intended behaviour.
+
+A copy of a populated backend takes
 far longer than an ingress timeout allows, and a caller that cannot observe it
 cannot tell a slow copy from a stalled one. `POST /api/storage/config` with
 `"mode": "migrate"` returns a job id, and `GET /api/storage/migration/{job_id}`
