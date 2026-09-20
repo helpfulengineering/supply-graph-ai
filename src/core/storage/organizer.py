@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 from ..utils.logging import get_logger
 from .manager import StorageManager
 from .smart_discovery import SmartFileDiscovery
+from .placeholders import PLACEHOLDER_FILENAME
 
 logger = get_logger(__name__)
 
@@ -81,9 +82,9 @@ class StorageOrganizer:
         # No subdirectory structure is enforced; users may organise freely beneath
         # these roots. OHM searches recursively from each top-level prefix.
         directories = {
-            "okh/": ".gitkeep",
-            "okw/": ".gitkeep",
-            "packages/": ".gitkeep",
+            "okh/": PLACEHOLDER_FILENAME,
+            "okw/": PLACEHOLDER_FILENAME,
+            "packages/": PLACEHOLDER_FILENAME,
         }
 
         created_dirs = []
