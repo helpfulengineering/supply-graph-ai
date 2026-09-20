@@ -13,6 +13,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | --- | --- | --- |
 | `bump_version` ✎ | Bump the OHM version across pyproject.toml and the doc registry in lockstep; --check gates drift. | `uv run python scripts/bump_version.py <X.Y.Z> \| --check` |
 | `extract_changelog_section` | Extract one version's section from CHANGELOG.md for GitHub Release notes. | `uv run python scripts/extract_changelog_section.py <X.Y.Z> [-o FILE]` |
+| `render_changelog` ✎ | Changelog fragments (changelog.d/): --check gates a hand-edited [Unreleased] section; --consolidate folds fragments in; --refreeze re-baselines after a deliberate edit. | `uv run python scripts/render_changelog.py --check \| --consolidate \| --refreeze` |
 | `validate_release_version` | Validate a git release tag matches pyproject.toml version; emits version/major_minor to GITHUB_OUTPUT. | `uv run python scripts/validate_release_version.py [--tag vX.Y.Z]` |
 
 ## Code / doc generation

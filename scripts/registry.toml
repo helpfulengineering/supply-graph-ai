@@ -36,6 +36,13 @@ run = "uv run python scripts/extract_changelog_section.py <X.Y.Z> [-o FILE]"
 mutates = false
 used_by = ["ci: release", "docs/RELEASE.md"]
 
+[scripts.render_changelog]
+category = "release"
+summary = "Changelog fragments (changelog.d/): --check gates a hand-edited [Unreleased] section; --consolidate folds fragments in; --refreeze re-baselines after a deliberate edit."
+run = "uv run python scripts/render_changelog.py --check | --consolidate | --refreeze"
+mutates = true
+used_by = ["make ready (changelog-check)", "docs/RELEASE.md", "changelog.d/README.md"]
+
 [scripts.generate_env_template]
 category = "generate"
 summary = "Regenerate the schema-owned block of .env.example from the config schema; --check gates staleness."
