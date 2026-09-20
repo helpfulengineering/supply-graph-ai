@@ -166,7 +166,15 @@ class MarkerWriter:
     async def _loop(self) -> None:
         interval = heartbeat_seconds()
         while not self._stop.is_set():
-            self.beat()
+            try:
+                self.beat()
+            except Exception as e:  # noqa: BLE001
+                # Keep retrying rather than dying silently — an asyncio task
+                # whose exception is never retrieved logs nothing useful, and
+                # a transient failure (disk full, a mount that comes back)
+                # should heal on its own instead of leaving the marker stuck
+                # at its last heartbeat forever.
+                logger.warning("Storage liveness heartbeat failed: %s", e)
             try:
                 await asyncio.wait_for(self._stop.wait(), timeout=interval)
             except asyncio.TimeoutError:
@@ -197,20 +205,36 @@ _active: Optional[MarkerWriter] = None
 
 def start(provider: str, bucket: str) -> MarkerWriter:
     """Start this process's marker. Replaces any writer already running here
-    (defensive; production calls this once, at boot)."""
+    (defensive; production calls this once, at boot).
+
+    ``_active`` is only set once ``writer.start()`` (a real disk write) has
+    succeeded. If it raises — an unwritable marker directory, the same class
+    of failure ``OHM_FEDERATION_DATA_DIR``'s own default has already hit —
+    ``_active`` is left as it was rather than pointing at a writer whose
+    heartbeat task never started, so a later :func:`refresh_backend` stays a
+    safe no-op instead of raising again on the next switch. The caller (the
+    API lifespan) is still expected not to let this exception stop startup.
+    """
     global _active
     if _active is not None:
         logger.warning("Replacing an already-active storage marker writer")
-    _active = MarkerWriter(provider, bucket)
-    _active.start()
-    return _active
+        _active = None
+    writer = MarkerWriter(provider, bucket)
+    writer.start()
+    _active = writer
+    return writer
 
 
 def refresh_backend(provider: str, bucket: str) -> None:
     """Update the active marker after an inline switch. A no-op in a process
-    with no marker (the CLI, which never starts one)."""
+    with no marker (the CLI, which never starts one, or an API whose marker
+    failed to start) — never lets a marker-write failure undo an otherwise
+    successful storage switch."""
     if _active is not None:
-        _active.update_backend(provider, bucket)
+        try:
+            _active.update_backend(provider, bucket)
+        except Exception as e:  # noqa: BLE001 — see start()'s docstring
+            logger.warning("Could not refresh the storage liveness marker: %s", e)
 
 
 async def stop() -> None:

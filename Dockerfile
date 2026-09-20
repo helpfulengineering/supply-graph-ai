@@ -87,6 +87,15 @@ RUN mkdir -p logs storage storage/federation temp_context temp_matching_context 
 # used to have to remember to set it, and the one that forgot shipped broken.
 ENV OHM_FEDERATION_DATA_DIR=/app/storage/federation
 
+# Same reasoning, for the saved storage configuration and its liveness marker
+# (#544): both default to under the user's home when unset, which this image
+# does not create either — a bare `docker run` hit exactly the same
+# PermissionError starting the API, the first time anything tried to write
+# there at boot rather than only on an explicit `ohm storage config set`. The
+# compose files already set this; this is the bare-image default so a plain
+# `docker run` (no compose, no override) works too.
+ENV OHM_STORAGE_CONFIG_PATH=/app/storage/config/storage-config.json
+
 RUN chmod +x docker-entrypoint.sh healthcheck.sh && \
     mv docker-entrypoint.sh healthcheck.sh /usr/local/bin/
 
