@@ -7,8 +7,8 @@ in FastAPI routes.
 
 from typing import Callable, Optional
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import APIKeyHeader
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPBearer
 
 from src.config import get_security_policy
 
@@ -16,8 +16,31 @@ from ..models.auth import AuthenticatedUser
 from ..models.visibility import DEV_LOCAL_ACCOUNT, ViewerScope
 from ..services.auth_service import AuthenticationService
 
-# Define API key header dependency
-API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
+
+class _BearerHeader(HTTPBearer):
+    """Declares `http` / `bearer` in the OpenAPI document; returns the raw header.
+
+    The scheme used to be `APIKeyHeader(name="Authorization")`, which the document
+    renders as `apiKey`. The server has always required `Authorization: Bearer
+    <token>` and refuses anything else, so a generated client, or a person in
+    Swagger UI, sent what the document said and was rejected.
+
+    FastAPI reads the declared scheme from this object's `model`, and what a route
+    receives from `__call__`. Overriding only the latter keeps the parsing — and
+    the specific 401 messages for a missing, malformed or empty token — exactly
+    where they are, in `get_current_user`, instead of letting `HTTPBearer`
+    swallow a non-Bearer scheme into "missing".
+    """
+
+    async def __call__(self, request: Request) -> Optional[str]:  # type: ignore[override]
+        return request.headers.get("Authorization") or None
+
+
+API_KEY_HEADER = _BearerHeader(
+    scheme_name="BearerAuth",
+    description="An OHM API key, sent as `Authorization: Bearer <key>`.",
+    auto_error=False,
+)
 
 
 async def get_current_user(

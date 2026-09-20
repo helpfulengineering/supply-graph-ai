@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The OpenAPI document declared the auth scheme as `apiKey` in the
+  `Authorization` header, while the server requires `Authorization: Bearer
+  <token>` and rejects anything else. A generated client, or the *Authorize*
+  button in `/v1/docs`, sent what the document said and was refused. It now
+  declares `http` / `bearer`. Authentication itself, and its error messages, are
+  unchanged.
+
+### Changed
+
+- The API guide now says the paths in `/v1/openapi.json` are relative to the
+  `/v1` server URL. That was correct OpenAPI all along, but read by hand it looked
+  like paths that 404; `tests/api/test_openapi_contract.py` now pins it.
+
 ## [0.13.0] - 2026-09-17
 
 The security pass. A node reachable by strangers had no known anonymous
