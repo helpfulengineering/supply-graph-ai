@@ -117,18 +117,27 @@ first, **restart the node**, confirm the new one is serving, then wipe separatel
 
 ### Erasing the old storage
 
-There is no single command that switches *and* erases: it has been retired, because
-run from the command line it deleted the old storage while the running node was still
-serving from it. `--mode abandon_and_wipe` now answers with an explanation and changes
-nothing.
-
-Until a guarded wipe exists, erasing is a manual step, taken after you are sure the
+There is no single command that switches *and* erases: that was retired, because
+run from the command line it deleted the old storage while the running node was
+still serving from it. Erasing is its own step now, taken after you are sure the
 node no longer needs the old storage:
 
-1. Switch (in the panel, or from the command line followed by a restart).
-2. Confirm `/settings/storage` shows the new backend as what answered, and that your
-   designs and facilities are there.
-3. Delete the old data yourself.
+```bash
+ohm storage wipe --provider local --bucket ~/old-data --wipe-confirm ~/old-data
+```
+
+1. Switch or migrate (in the panel, or from the command line followed by a
+   restart).
+2. Confirm `/settings/storage` shows the new backend as what answered, and that
+   your designs and facilities are there.
+3. Wipe the old backend — same echo guard as a switch (name the bucket you are
+   erasing, exactly), and `--dry-run` reports what would go without deleting
+   anything.
+
+It refuses on its own if you get ahead of yourself: wiping the backend a
+running node is still live on, the saved configuration, the environment
+default with nothing saved, or anything while a restart is pending, all come
+back as an explained refusal rather than a deletion.
 
 ### Reading the current configuration
 

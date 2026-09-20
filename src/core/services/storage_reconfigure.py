@@ -449,3 +449,133 @@ async def migrate_and_switch(
     result["mode"] = MODE_MIGRATE
     result["migration"] = report.to_dict()
     return result
+
+
+# ---------------------------------------------------------------------------
+# Standalone guarded wipe (#547)
+#
+# #543 retired the combined switch-and-wipe: run from a separate process it
+# erased the backend a running API was still serving from. This restores the
+# ability to erase an old backend, as its own explicit step, guarded against
+# erasing anything a boot or a running process still needs.
+# ---------------------------------------------------------------------------
+
+
+def _wipe_refusal(reason: str) -> "StorageReconfigureError":
+    return StorageReconfigureError(f"Refusing to wipe: {reason} Nothing was deleted.")
+
+
+async def guarded_wipe(
+    provider: str,
+    bucket: str,
+    wipe_confirm: str,
+    dry_run: bool = False,
+    credentials: Optional[Dict[str, str]] = None,
+    region: Optional[str] = None,
+    endpoint_url: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Erase a backend's contents — but only once nothing live needs it.
+
+    Refuses when the target is:
+
+    - **pending** (#545): a restart is already owed elsewhere, and wiping
+      anything while the node's own picture of its storage is out of date is
+      one step from repeating #543's incident at a different layer.
+    - the **saved configuration** — what the next boot applies.
+    - the **environment-configured backend**, when there is no saved
+      configuration (a fresh process without one falls back to it, so it is
+      exactly as live as a saved one would be).
+    - what a **running API's marker says it is live on** (#544), matched by
+      provider and bucket. An unreadable or ambiguous marker refuses
+      regardless of the target, the same fail-closed rule the marker itself
+      follows: it must never look safer than a readable one. A *stale*
+      marker does not refuse — that is what staleness means — but it is
+      still there for `ohm storage status --forget` to clear by hand.
+
+    Raises:
+        StorageReconfigureError: the wipe was refused for one of the reasons
+            above. Nothing was touched.
+        WipeGuardError: ``wipe_confirm`` did not match ``bucket``.
+    """
+    from . import storage_liveness
+    from .storage_transfer import wipe_storage
+
+    credentials = {k: v for k, v in (credentials or {}).items() if v}
+    _validate_credentials(provider, credentials)
+    candidate = StorageConfig(
+        provider=provider,
+        bucket_name=bucket,
+        region=region,
+        credentials=credentials,
+        endpoint_url=endpoint_url,
+    )
+
+    def _same(other: Optional[StorageConfig]) -> bool:
+        return (
+            other is not None
+            and other.provider == candidate.provider
+            and other.bucket_name == candidate.bucket_name
+        )
+
+    # Live-marker first, deliberately: whenever the marker is running and
+    # readable, "not pending" (checked next) is only true when live already
+    # equals saved — so a match here always also matches the saved-config
+    # check below. Checking live first means the message names the sharper,
+    # more concrete reason ("a running API is serving from this") rather
+    # than the structurally-redundant "it's the saved configuration" one.
+    live = storage_liveness.read()
+    if live.status == storage_liveness.LivenessStatus.RUNNING:
+        if live.provider is None and live.bucket is None:
+            raise _wipe_refusal(
+                "a running API's liveness marker is unreadable "
+                f"({live.error}), so it cannot be ruled out as the backend a "
+                "live process is serving from. Wait for it to go stale "
+                "(~45s by default) and try again, or confirm independently "
+                "that the process is dead."
+            )
+        if live.provider == candidate.provider and live.bucket == candidate.bucket_name:
+            age = (
+                f"{live.age_seconds:.1f}s"
+                if live.age_seconds is not None
+                else "unknown"
+            )
+            raise _wipe_refusal(
+                f"a running API (heartbeat {age} old) is still serving from "
+                f"{bucket!r}. Switch it elsewhere and restart first."
+            )
+
+    pending = restart_pending_info()
+    if pending.pending:
+        # Reuses the same explanation the switch guard gives — same
+        # condition, same fix (restart first) — rather than a second copy of
+        # "what pending means" that could drift from it.
+        raise StorageReconfigureError(_pending_message(pending))
+
+    saved = load_config()
+    if _same(saved):
+        raise _wipe_refusal(
+            f"{bucket!r} is the saved storage configuration — the backend the "
+            "node applies at its next boot. Switch away from it first (and "
+            "restart, if you switched from the CLI), then wipe."
+        )
+    if saved is None and _same(getattr(settings, "STORAGE_CONFIG", None)):
+        raise _wipe_refusal(
+            f"{bucket!r} is the environment-configured backend — what a fresh "
+            "process with no saved configuration would use. Set a saved "
+            "configuration pointing elsewhere first, then wipe."
+        )
+
+    manager = StorageManager(candidate)
+    await manager.connect()
+    try:
+        report = await wipe_storage(
+            manager, candidate.bucket_name, wipe_confirm, dry_run=dry_run
+        )
+    finally:
+        await manager.disconnect()
+
+    return {
+        "provider": candidate.provider,
+        "bucket": candidate.bucket_name,
+        "wipe": report.to_dict(),
+    }

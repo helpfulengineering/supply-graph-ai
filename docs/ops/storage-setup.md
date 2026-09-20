@@ -373,11 +373,47 @@ had no way to know. Shown with a live API holding one design: after
 0 and the file was gone. The CLI's switch never reaches a running API, so that window
 is guaranteed, not rare.
 
-Until the guarded replacement exists (`ohm storage wipe`, #547), erasing an old
-backend is a manual step: switch (and restart the API if you switched from the CLI),
-confirm the node is healthy on the new backend, then delete the old data yourself.
-`scripts/clear_storage.py` remains for development resets. The echo guard from #381
-(name the bucket you are erasing) and `wipe_storage` are kept for the replacement.
+The replacement is a standalone, guarded `ohm storage wipe` (#547) — its own
+step, taken after a restart rather than folded into the switch itself.
+
+### wipe
+
+```bash
+ohm storage wipe --provider local --bucket ~/old-data --wipe-confirm ~/old-data
+```
+
+Same echo guard as before (name the bucket you are erasing, exactly, or nothing
+happens) and the same `wipe_storage` from #381 — what changed is *when* it can
+run. It refuses when the target is anything a boot or a running process might
+still need:
+
+- **a restart is pending** (#545) — the node's own picture of its storage is
+  already out of date; resolve that first.
+- **the saved configuration** — what the next boot applies.
+- **the environment-configured backend**, when there is no saved configuration
+  (a fresh process without one would use it, so it is exactly as live as a
+  saved one).
+- **what a running API's marker says it is live on** (#544), by provider and
+  bucket. An unreadable or ambiguous marker refuses *regardless* of the
+  target — the same fail-closed rule the marker itself follows, since it
+  cannot be ruled out. A marker gone **stale** does not refuse; that is what
+  staleness means. `ohm storage status --forget` clears a marker you have
+  confirmed is dead sooner than waiting out the interval, but staleness alone
+  already unblocks the wipe.
+
+```
+$ ohm storage wipe --provider local --bucket ~/old-data --wipe-confirm ~/old-data
+❌ Refusing to wipe: a running API (heartbeat 2.1s old) is still serving from
+   '~/old-data'. Switch it elsewhere and restart first.
+```
+
+`--dry-run` reports what would be destroyed and deletes nothing, same as
+before. The documented sequence: switch or migrate, **restart the API**,
+confirm it is healthy on the new backend, then wipe the old one.
+
+`scripts/clear_storage.py` remains for development resets, which is a
+different case entirely — there is no "old backend" to protect when the whole
+point is emptying the one in use.
 
 ## A freshly installed node
 

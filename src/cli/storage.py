@@ -990,3 +990,138 @@ async def storage_status(
             )
 
     cli_ctx.end_command_tracking()
+
+
+@storage_group.command("wipe")
+@click.option(
+    "--provider",
+    type=click.Choice(["local", "gcs", "azure_blob", "aws_s3"]),
+    required=True,
+    help="Provider the backend to erase is on",
+)
+@click.option(
+    "--bucket", required=True, help="Bucket, container, or local path to erase"
+)
+@click.option("--region", help="Region for cloud providers")
+@click.option("--endpoint-url", help="Override endpoint, for S3-compatible backends")
+@click.option(
+    "--credential",
+    "credentials",
+    multiple=True,
+    metavar="NAME=VALUE",
+    help="Provider credential, repeatable. Names are checked per provider.",
+)
+@click.option(
+    "--wipe-confirm",
+    required=True,
+    metavar="BUCKET",
+    help="The exact bucket being erased. Must match --bucket.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Report what would be destroyed. Nothing is deleted.",
+)
+@standard_cli_command(
+    help_text="""
+    Erase a backend's contents — standalone, guarded (#539, #547).
+
+    This is the successor to the combined switch-and-wipe mode retired in
+    #543: run from a separate process, that mode erased a backend a running
+    API was still serving from. This is its own explicit step, and it
+    refuses to touch a backend that a boot or a running API still needs:
+    the saved configuration, the environment-configured backend (when there
+    is no saved one), or what a running API's marker says it is live on.
+    It also refuses while a restart is pending — wipe after restarting, not
+    instead of it.
+
+    You must name the exact bucket being erased, twice: once to point at it,
+    once to confirm it. A mismatch deletes nothing.
+    """,
+    epilog="""
+    Examples:
+      # See what would go, first. Nothing is deleted.
+      ohm storage wipe --provider local --bucket ~/old-data \\
+        --wipe-confirm ~/old-data --dry-run
+
+      # Then for real, once you've switched, restarted, and confirmed the
+      # node is healthy on its new backend.
+      ohm storage wipe --provider local --bucket ~/old-data \\
+        --wipe-confirm ~/old-data
+    """,
+    async_cmd=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def wipe(
+    ctx,
+    provider: str,
+    bucket: str,
+    region: Optional[str],
+    endpoint_url: Optional[str],
+    credentials: tuple,
+    wipe_confirm: str,
+    dry_run: bool,
+    verbose: bool,
+    output_format: str,
+    **_kwargs,
+):
+    """Erase a backend's contents, guarded against erasing anything live."""
+    from ..core.services.storage_reconfigure import (
+        StorageReconfigureError,
+        guarded_wipe,
+    )
+    from ..core.services.storage_transfer import WipeGuardError
+
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+    cli_ctx.start_command_tracking("storage-wipe")
+
+    parsed: Dict[str, str] = {}
+    for item in credentials:
+        name, sep, value = item.partition("=")
+        if not sep or not name.strip():
+            raise click.BadParameter(
+                f"--credential expects NAME=VALUE, got {item!r}",
+                param_hint="--credential",
+            )
+        parsed[name.strip()] = value
+
+    try:
+        result = await guarded_wipe(
+            provider=provider,
+            bucket=bucket,
+            wipe_confirm=wipe_confirm,
+            dry_run=dry_run,
+            credentials=parsed,
+            region=region,
+            endpoint_url=endpoint_url,
+        )
+    except (StorageReconfigureError, WipeGuardError) as e:
+        cli_ctx.log(str(e), "error")
+        raise SystemExit(1) from e
+
+    wipe_report = result["wipe"]
+    if output_format == "json":
+        click.echo(json.dumps(result, indent=2))
+    elif dry_run:
+        cli_ctx.log(
+            f"Dry run: would delete {wipe_report['objects']} object(s), "
+            f"{wipe_report['bytes']} bytes. Nothing was changed.",
+            "success",
+        )
+        for key in wipe_report.get("keys", [])[:20]:
+            click.echo(f"  - {key}")
+        if wipe_report.get("keys_truncated"):
+            click.echo("  … (truncated)")
+    else:
+        deleted = wipe_report["objects"] - len(wipe_report.get("failures", []))
+        cli_ctx.log(f"Wiped {deleted} object(s) from {result['bucket']}", "success")
+        if wipe_report.get("failures"):
+            click.echo(f"  failed: {len(wipe_report['failures'])} object(s)")
+            for failure in wipe_report["failures"][:5]:
+                click.echo(f"    - {failure}")
+
+    cli_ctx.end_command_tracking()
