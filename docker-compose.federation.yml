@@ -51,6 +51,7 @@ services:
       - OHM_FEDERATION_NODE_NAME=OHM Peer A
       - OHM_FEDERATION_NODE_ROLE=peer
       - OHM_FEDERATION_DATA_DIR=/app/storage/federation
+      - OHM_STORAGE_CONFIG_PATH=/app/storage/config/storage-config.json
       - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-b:8001
       - OHM_FEDERATION_MDNS_ENABLED=false
       - OHM_FEDERATION_SYNC_INTERVAL_SEC=30
@@ -90,6 +91,7 @@ services:
       - OHM_FEDERATION_NODE_NAME=OHM Peer B
       - OHM_FEDERATION_NODE_ROLE=peer
       - OHM_FEDERATION_DATA_DIR=/app/storage/federation
+      - OHM_STORAGE_CONFIG_PATH=/app/storage/config/storage-config.json
       - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-a:8001
       - OHM_FEDERATION_MDNS_ENABLED=false
       - OHM_FEDERATION_SYNC_INTERVAL_SEC=30
@@ -135,6 +137,7 @@ services:
       - OHM_FEDERATION_NODE_NAME=OHM Edge
       - OHM_FEDERATION_NODE_ROLE=edge
       - OHM_FEDERATION_DATA_DIR=/app/storage/federation
+      - OHM_STORAGE_CONFIG_PATH=/app/storage/config/storage-config.json
       - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-a:8001
       - OHM_FEDERATION_MDNS_ENABLED=false
     volumes:
@@ -173,6 +176,7 @@ services:
       - OHM_FEDERATION_NODE_NAME=OHM Relay
       - OHM_FEDERATION_NODE_ROLE=relay
       - OHM_FEDERATION_DATA_DIR=/app/storage/federation
+      - OHM_STORAGE_CONFIG_PATH=/app/storage/config/storage-config.json
       - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-a:8001,http://ohm-peer-b:8001
       - OHM_FEDERATION_MDNS_ENABLED=false
     volumes:

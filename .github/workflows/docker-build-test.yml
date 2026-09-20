@@ -286,6 +286,37 @@ jobs:
           echo "::error::API never became healthy"
           exit 1
 
+      # #530. This compose file mounts one volume at /app/storage and uses it as
+      # the object root, with the identity plane inside it, so a full walk of the
+      # object store (storage migrate, backup) used to list plaintext signing
+      # keys and copy them into the destination. The storage layer now refuses
+      # them. Checked on the real image in the real layout: a key that exists on
+      # disk for the node and is absent from every listing.
+      - name: The node's identity keys are not objects
+        run: |
+          curl -fsS -X POST http://localhost:8001/v1/api/identity/register \
+            -H 'Content-Type: application/json' -d '{"display_name":"ci"}' > /dev/null
+          docker compose exec -T -w /app ohm-api python - <<'PY'
+          import asyncio, os, sys, logging
+          logging.disable(logging.CRITICAL)
+          from src.core.storage.base import StorageConfig
+          from src.core.storage.manager import StorageManager
+
+          async def main() -> int:
+              manager = StorageManager(
+                  StorageConfig(provider="local", bucket_name=os.environ["LOCAL_STORAGE_PATH"])
+              )
+              await manager.connect()
+              listed = [o["key"] async for o in manager.list_objects()]
+              leaked = [k for k in listed if k.startswith(("federation", "config"))]
+              keys = "/app/storage/federation/identities"
+              on_disk = os.path.isdir(keys) and bool(os.listdir(keys))
+              print("identity keys on disk for the node:", on_disk, "| listed as objects:", leaked)
+              return 0 if on_disk and not leaked else 1
+
+          sys.exit(asyncio.run(main()))
+          PY
+
       # A 400 here means jobs are unavailable — the regression this job exists
       # to catch. Anything else and we have a job id to follow.
       - name: Submit a real background import
