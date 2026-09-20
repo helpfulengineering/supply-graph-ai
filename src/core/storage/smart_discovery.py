@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from ..utils.logging import get_logger
 from .manager import StorageManager
+from .placeholders import is_scaffold_placeholder
 
 logger = get_logger(__name__)
 
@@ -268,6 +269,11 @@ class SmartFileDiscovery:
         for strategy in self.discovery_strategies:
             try:
                 files = await strategy(file_type)
+                # Scaffold placeholders are bookkeeping, not content. Dropped
+                # here, after the strategy, so its own "found nothing" warning
+                # still reflects what the store held, and an empty node stays an
+                # authoritative empty answer rather than cascading to a scan.
+                files = [f for f in files if not is_scaffold_placeholder(f.key)]
                 if files:
                     logger.info(
                         "Discovery strategy selected",
