@@ -68,6 +68,12 @@ fails partway — or that you give up on — leaves a working node on the storag
 you started with. Every object is read back from the destination and compared
 before the switch happens: a copy that says it verified, did.
 
+!!! warning "Migrate from the command line"
+    `--mode migrate` works from the CLI. Requested over the API it runs as a
+    background job, and that job currently cannot find the storage it is meant to
+    copy from: it stops with *"There is no current storage to migrate from"*,
+    having changed nothing. Use the CLI until that is fixed.
+
 Works between any two providers. Local to Azure, S3 to Google Cloud, whichever
 pair.
 
@@ -98,6 +104,26 @@ Erasing happens **after** the switch succeeds, never before.
 ```bash
 ohm storage config show
 ```
+
+## If your node runs a background worker
+
+A node deployed with Docker Compose or on Azure runs a second process, the
+**worker**, for background jobs such as importing a design from a URL. (A node
+made by the installer does not have one.)
+
+**The worker does not follow a switch.** It takes its storage settings from its
+own environment — `STORAGE_PROVIDER` and the provider's variables — and never from
+the configuration you save here. Nothing tells it you switched.
+
+So after you change backend, in the panel or with `ohm storage config set`:
+
+1. Give the worker the same backend in its environment: the same provider and the
+   same bucket, container or path settings you switched to.
+2. Restart the worker.
+
+Restarting alone is not enough. A restarted worker reads its environment again, and
+its environment still names the old backend. Until both steps are done, background
+jobs that read or write storage use the old one.
 
 ## Where the configuration lives
 
