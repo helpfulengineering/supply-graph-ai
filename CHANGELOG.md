@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A node with nothing in it reported `okh_count: 1, okw_count: 1` on `/health`,
+  listed one facility with an empty name, and told federation it held a design.
+  Scaffolding writes a `.gitkeep` placeholder under each top-level prefix, and
+  most readers counted it as an object while the OKH listing happened to reject
+  it. One shared rule (`src/core/storage/placeholders.py`) now skips it in the
+  health counter and in file discovery, which feeds both listings, matching and
+  the federation catalogue. Whole-store operations (backup, transfer) are
+  unchanged: they must see everything.
+
 ## [0.13.0] - 2026-09-17
 
 The security pass. A node reachable by strangers had no known anonymous
