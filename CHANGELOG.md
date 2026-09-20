@@ -26,6 +26,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   points at `<data dir>/federation` on the mounted volume, so the keys survive an
   upgrade alongside the space claims they sign for. Nodes installed by an earlier
   installer are not migrated.
+- A node with nothing in it reported `okh_count: 1, okw_count: 1` on `/health`,
+  listed one facility with an empty name, and told federation it held a design.
+  Scaffolding writes a `.gitkeep` placeholder under each top-level prefix, and
+  most readers counted it as an object while the OKH listing happened to reject
+  it. One shared rule (`src/core/storage/placeholders.py`) now skips it in the
+  health counter and in file discovery, which feeds both listings, matching and
+  the federation catalogue. Whole-store operations (backup, transfer) are
+  unchanged: they must see everything.
+- The OpenAPI document declared the auth scheme as `apiKey` in the
+  `Authorization` header, while the server requires `Authorization: Bearer
+  <token>` and rejects anything else. A generated client, or the *Authorize*
+  button in `/v1/docs`, sent what the document said and was refused. It now
+  declares `http` / `bearer`. Authentication itself, and its error messages, are
+  unchanged.
 
 ### Added
 
@@ -45,6 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   server code must be declared, and the override it names must be set by the
   installer and the compose files. A known gap remains, recorded in the test:
   the compose files do not set `OHM_STORAGE_CONFIG_PATH`.
+
+### Changed
+
+- The API guide now says the paths in `/v1/openapi.json` are relative to the
+  `/v1` server URL. That was correct OpenAPI all along, but read by hand it looked
+  like paths that 404; `tests/api/test_openapi_contract.py` now pins it.
 
 ## [0.13.0] - 2026-09-17
 
