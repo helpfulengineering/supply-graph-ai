@@ -15,7 +15,7 @@ how. It federates: your node holds your data, and shares only what you choose.
 You need Docker, and nothing else. Download the installer, check it, run it:
 
 ```bash
-curl -fsSLO https://openhardwaremanager.org/install.sh
+curl -fsSLO https://www.openhardwaremanager.org/install.sh
 curl -fsSLO https://github.com/helpfulengineering/supply-graph-ai/releases/latest/download/install.sh.sha256
 sha256sum -c install.sh.sha256
 sh install.sh
@@ -24,7 +24,7 @@ sh install.sh
 The one-liner is there if you prefer it:
 
 ```bash
-curl -fsSL https://openhardwaremanager.org/install.sh | sh
+curl -fsSL https://www.openhardwaremanager.org/install.sh | sh
 ```
 
 We show the checked form first on purpose. OHM exists to make supply chains

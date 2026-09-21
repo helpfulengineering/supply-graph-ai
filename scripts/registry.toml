@@ -185,10 +185,14 @@ mutates = true
 [scripts.install]
 category = "deploy"
 summary = "Install and start a node on a host with Docker: mint secrets, resolve the latest release, start, wait for health, print the admin key."
-run = "curl -fsSLO https://openhardwaremanager.org/install.sh && sha256sum -c install.sh.sha256 && sh install.sh"
+run = "curl -fsSLO https://www.openhardwaremanager.org/install.sh && sha256sum -c install.sh.sha256 && sh install.sh"
 mutates = true
 # Shipped as a checksummed release asset by the github-release job, and served
-# at openhardwaremanager.org/install.sh by frontend/app/install.sh/route.ts.
+# at www.openhardwaremanager.org/install.sh by frontend/app/install.sh/route.ts.
+# The bare apex (no www) does not currently route to the app at all — it
+# resolves to an unrelated domain-forwarding host — so every documented
+# command uses www until that DNS is fixed. The route itself is host-agnostic
+# and would serve the apex too the moment its DNS points here.
 used_by = [".github/workflows/release.yml", "frontend/app/install.sh/route.ts"]
 
 [scripts.setup_storage]
