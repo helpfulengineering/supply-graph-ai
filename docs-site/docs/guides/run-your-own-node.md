@@ -19,7 +19,7 @@ You need Docker. Everything else the installer does for you.
 
 ```bash
 # Download it and its checksum
-curl -fsSLO https://openhardwaremanager.org/install.sh
+curl -fsSLO https://www.openhardwaremanager.org/install.sh
 curl -fsSLO https://github.com/helpfulengineering/supply-graph-ai/releases/latest/download/install.sh.sha256
 
 # Check it is what we published
@@ -38,7 +38,7 @@ minute.
 If you would rather have the one-liner, it is there:
 
 ```bash
-curl -fsSL https://openhardwaremanager.org/install.sh | sh
+curl -fsSL https://www.openhardwaremanager.org/install.sh | sh
 ```
 
 Either form does the same thing, and asks nothing. On macOS, `shasum -a 256 -c`
