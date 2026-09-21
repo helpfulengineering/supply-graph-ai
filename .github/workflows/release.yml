@@ -763,3 +763,81 @@ jobs:
             echo "| \`dry_run\` | false |"
             echo "| \`deploy\` | true |"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # Every check above this line — docker-smoke, "Verify frontend deployment",
+  # "Verify documentation site is served" — talks to either a local container
+  # or the raw Azure Container App hostname. None of them ever asks the
+  # PUBLIC domain names for anything. That is exactly how the apex host went
+  # dark with nothing turning red: the app was healthy, the right build was
+  # live, and DNS routing to it broke anyway, outside anything CI looks at.
+  # This job is the one that dials the number a user would actually dial.
+  #
+  # install.sh/checksum come from github-release, which runs on every tag —
+  # deploy is a separate, manual, opt-in act (see deploy-frontend-azure's
+  # `if:`). The docs-site and /healthz checks only mean anything relative to
+  # a build this run actually shipped, so they're skipped (not failed) when
+  # deploy-frontend-azure didn't run.
+  verify-published-surface:
+    name: Verify published surface (public domains)
+    runs-on: ubuntu-latest
+    needs: [github-release, deploy-frontend-azure]
+    if: always() && needs.github-release.result == 'success'
+    steps:
+      - name: install.sh via www, checked against its published checksum
+        run: |
+          curl -fsSL --max-time 20 -o /tmp/install.sh \
+            "https://github.com/${{ github.repository }}/releases/latest/download/install.sh"
+          curl -fsSL --max-time 20 -o /tmp/install.sh.sha256 \
+            "https://github.com/${{ github.repository }}/releases/latest/download/install.sh.sha256"
+          ( cd /tmp && sha256sum -c install.sh.sha256 ) \
+            || { echo "::error::install.sh downloaded from the release does not match its own published checksum"; exit 1; }
+
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -L https://www.openhardwaremanager.org/install.sh)
+          test "$code" = "200" \
+            || { echo "::error::https://www.openhardwaremanager.org/install.sh -> $code, expected 200"; exit 1; }
+          diff /tmp/install.sh <(curl -fsSL --max-time 20 -L https://www.openhardwaremanager.org/install.sh) \
+            || { echo "::error::install.sh served from www does not match the release asset"; exit 1; }
+          echo "www install.sh OK, matches release checksum"
+
+      # Known broken: openhardwaremanager.org (no www) resolves to an unrelated
+      # domain-forwarding host, not this app — a DNS/registrar problem, fixed
+      # outside this repo (see notes/Test Install and Federated Connection
+      # Part 1/ohm-install-friction-log.md, entries 01/02; docs now say `www`
+      # everywhere for the same reason). Warn, don't block, until that's fixed.
+      # Once it is: drop the warning wrapper below so this becomes a hard gate
+      # like the www check above, so a future regression here doesn't go
+      # unnoticed the same way this one did.
+      - name: install.sh via apex (known broken — warns only, does not fail the build)
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -L https://openhardwaremanager.org/install.sh || echo "000")
+          if [ "$code" = "200" ]; then
+            echo "apex install.sh -> 200. DNS looks fixed — remove the warning-only wrapper on this step and fold it into the www check above."
+          else
+            echo "::warning::apex install.sh -> HTTP $code (expected 200). Known DNS issue, not a code regression; www works and is what's documented."
+          fi
+
+      - name: Documentation site is served (public domain)
+        if: needs.deploy-frontend-azure.result == 'success'
+        run: |
+          host=www.openhardwaremanager.org
+          body=$(curl -sfL --max-time 20 "https://$host/docs/about/what-is-ohm/")
+          echo "$body" | grep -q "What is OHM" \
+            || { echo "::error::/docs on the public domain served a page without its expected content"; exit 1; }
+
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://$host/docs/definitely-not-a-page/")
+          test "$code" = "404" \
+            || { echo "::error::missing docs page on the public domain returned $code, expected 404"; exit 1; }
+          echo "public docs site OK (content verified, 404s correctly)"
+
+      - name: Frontend /healthz (public domain)
+        if: needs.deploy-frontend-azure.result == 'success'
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://www.openhardwaremanager.org/healthz)
+          test "$code" = "200" \
+            || { echo "::error::public frontend /healthz -> $code, expected 200"; exit 1; }
+          echo "public frontend /healthz OK"
+
+      - name: Note skipped deploy-dependent checks
+        if: needs.deploy-frontend-azure.result != 'success'
+        run: |
+          echo "::notice::Skipped public docs-site/healthz checks — this run did not deploy (deploy-frontend-azure: ${{ needs.deploy-frontend-azure.result }}). install.sh/checksum checks above still ran."
