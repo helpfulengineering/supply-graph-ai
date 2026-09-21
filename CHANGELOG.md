@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-09-21
+
 ### Removed
 
 - **Breaking:** the combined `abandon_and_wipe` switch mode, over the CLI and the API
@@ -82,6 +84,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   button in `/v1/docs`, sent what the document said and was refused. It now
   declares `http` / `bearer`. Authentication itself, and its error messages, are
   unchanged.
+- The README, Docker Hub overview, the self-hoster guide, and `install.sh`'s
+  own header all documented `curl ... https://openhardwaremanager.org/install.sh`
+  — the bare apex host, which currently 404s. `www.openhardwaremanager.org`
+  serves it correctly; the apex resolves to an unrelated domain-forwarding
+  host and does not route to the app at all right now. Every documented
+  command now uses `www` until that DNS is fixed — the redirect route itself
+  (`frontend/app/install.sh/route.ts`) is host-agnostic and will serve the
+  apex too the moment its DNS points here.
+- A failed peer identify used to log `Could not identify peer at <url>: ` with
+  nothing after the colon — an `httpx` connect/read timeout stringifies to
+  `""`, so the message told an operator nothing about whether it was a
+  timeout, a refused connection, or a bad response (friction log entry 12).
+  It now includes the exception type and elapsed time, e.g. `ConnectTimeout
+  after 13.1s`.
 
 ### Added
 
@@ -137,6 +153,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   installer and the compose files; the image's own default must agree with its
   entrypoint; and in every compose layout the node's real state must be
   unreachable through the object store.
+- Standalone, guarded `ohm storage wipe` (#547), the replacement for the
+  combined switch-and-wipe mode retired in #543. Same echo guard and
+  `wipe_storage` as before; what changed is when it can run. It refuses to
+  erase a backend that is: pending a restart (#545), the saved
+  configuration, the environment-configured backend when nothing is saved,
+  or what a running API's marker says it is live on (#544) — an unreadable
+  or ambiguous marker refuses regardless of the target, the same
+  fail-closed rule the marker itself follows; a stale one does not refuse,
+  since that is what staleness means. `--dry-run` reports what would be
+  destroyed and deletes nothing. The documented sequence: switch or
+  migrate, restart the API, confirm it is healthy on the new backend, then
+  wipe the old one.
+- A restart-pending banner on `/settings/storage` (#548): when the saved
+  storage configuration differs from what the node is actually running,
+  the panel now says so, naming both sides, instead of only the CLI and
+  the API knowing. The inline panel switch is unaffected — it still
+  applies at once and never leaves anything pending. Also regenerates
+  `frontend/src/api/generated/schema.d.ts` to pick up the `runtime` field
+  #545 added to `GET /api/storage/config`, which was missed when that
+  slice shipped.
+- CI now checks what a visitor actually gets, not just what the container
+  reports. A new `verify-published-surface` job (#557) runs after every
+  release: `install.sh` from `www.openhardwaremanager.org` against its
+  published checksum (hard gate), the same from the bare apex host (warns
+  only — known broken by DNS, not code, see #556), and the docs site plus
+  `/healthz` on the public domain after an actual deploy. Every existing
+  post-deploy check talks to the raw Azure Container App hostname, which
+  is exactly why the apex install.sh regression (#556) went unnoticed: the
+  app was healthy and the release was correct, and DNS routing to it broke
+  anyway, outside anything CI looked at.
+- Claim space guidance, closing friction log entry 08: helper text on both
+  fields, a real `did:key:z6Mk…` format example, client-side validation that
+  keeps an obvious typo from reaching the server, the admin DID prefilled
+  from the session's own identity (or a "mint a person identity for me"
+  action when the session has none — the bootstrap admin key's actual
+  state on a fresh install), a "generate a new space DID" action instead of
+  requiring one up front, a plain-language confirmation step naming exactly
+  what will be bound before TOFU takes effect, and a link to `/v1/docs` for
+  anything the form doesn't cover.
+
+  Also closes the second half of entry 07: the storage panel's "Change
+  backend" path field suggested `~/ohm-data`, which fails validation on
+  every install — the image's unprivileged user has no home directory, so
+  `~` expands to a parent that doesn't exist. The field now suggests the
+  currently active path (or a real mount-backed one) instead.
 
 ### Changed
 
