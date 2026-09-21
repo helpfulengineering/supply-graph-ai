@@ -83,6 +83,16 @@ export function StoragePanel() {
   const fingerprint = current.data?.fingerprint;
   const runtime = current.data?.runtime;
 
+  // The image never creates a home directory for its unprivileged user
+  // (friction log entry 07): `~` expands to `/home/ohm`, which doesn't exist
+  // and whose parent isn't writable by that user, so the old `~/ohm-data`
+  // placeholder failed validation for anyone who typed it as shown. Suggest
+  // the current path when it's local (an example that's already proven to
+  // validate), or a real mount-backed path otherwise.
+  const localPathPlaceholder =
+    (config?.provider === "local" ? config.bucket : "") ||
+    "/app/storage/objects";
+
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
@@ -234,17 +244,34 @@ export function StoragePanel() {
             </select>
           </label>
 
-          <label className={LABEL}>
-            <span className="font-medium text-foreground">
-              {provider === "local" ? "Path" : "Bucket or container"}
-            </span>
-            <input
-              value={bucket}
-              onChange={(e) => setBucket(e.target.value)}
-              placeholder={provider === "local" ? "~/ohm-data" : "my-container"}
-              className={`${FIELD} mt-1 w-full`}
-            />
-          </label>
+          <div>
+            <label className={LABEL}>
+              <span className="font-medium text-foreground">
+                {provider === "local" ? "Path" : "Bucket or container"}
+              </span>
+              <input
+                value={bucket}
+                onChange={(e) => setBucket(e.target.value)}
+                placeholder={
+                  provider === "local" ? localPathPlaceholder : "my-container"
+                }
+                aria-describedby={
+                  provider === "local" ? "storage-local-path-hint" : undefined
+                }
+                className={`${FIELD} mt-1 w-full`}
+              />
+            </label>
+            {provider === "local" && (
+              <p
+                id="storage-local-path-hint"
+                className="mt-1 text-xs text-muted-foreground"
+              >
+                An absolute path under this container&apos;s own storage mount
+                — <code className="font-mono">~</code> does not expand to a
+                writable directory here.
+              </p>
+            )}
+          </div>
 
           {provider !== "local" && (
             <label className={LABEL}>
