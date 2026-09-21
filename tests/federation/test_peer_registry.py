@@ -126,6 +126,41 @@ async def test_peer_registry_skips_local_did(tmp_path) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
+async def test_a_failed_identify_logs_the_exception_type_and_elapsed_time(
+    tmp_path, caplog
+) -> None:
+    """Friction log entry 12: an httpx timeout stringifies to "", so the old
+    log line ("Could not identify peer at X: ") told an operator nothing.
+    """
+    store = FederationStore(tmp_path)
+    registry = PeerRegistry(store)
+
+    def raise_timeout(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectTimeout("", request=request)
+
+    transport = httpx.MockTransport(raise_timeout)
+
+    with (
+        patch(
+            "src.core.federation.peer_registry.httpx.AsyncClient",
+            return_value=httpx.AsyncClient(transport=transport),
+        ),
+        caplog.at_level("WARNING"),
+    ):
+        peers = await registry.refresh(
+            manual_urls=["http://unreachable:8001"],
+            mdns_peers=[],
+            local_did="did:key:z6Mklocal",
+        )
+
+    assert peers == []
+    [record] = [r for r in caplog.records if "Could not identify peer" in r.message]
+    assert "ConnectTimeout" in record.message
+    assert "s:" in record.message  # "<N.N>s:" — elapsed time, not just the type
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
 async def test_peer_registry_merges_mdns_peers(tmp_path) -> None:
     from src.core.federation.discovery import DiscoveredPeer
 

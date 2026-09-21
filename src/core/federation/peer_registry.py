@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 from urllib.parse import urlparse
 
@@ -86,10 +87,20 @@ class PeerRegistry:
                 if base_url in seen_urls:
                     continue
                 seen_urls.add(base_url)
+                started = time.monotonic()
                 try:
                     info = await identify_peer(client, base_url)
                 except Exception as e:
-                    logger.warning(f"Could not identify peer at {base_url}: {e}")
+                    elapsed = time.monotonic() - started
+                    # An httpx connect/read timeout stringifies to "" — an
+                    # empty message after the colon told an operator nothing
+                    # (friction log entry 12). The type name and elapsed time
+                    # distinguish a timeout from a refused connection or a
+                    # bad response even when str(e) is empty.
+                    logger.warning(
+                        f"Could not identify peer at {base_url}: "
+                        f"{type(e).__name__} after {elapsed:.1f}s: {e}"
+                    )
                     continue
 
                 did = str(info.get("did", ""))
