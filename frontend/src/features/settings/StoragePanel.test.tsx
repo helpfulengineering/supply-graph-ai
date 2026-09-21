@@ -146,6 +146,21 @@ describe("StoragePanel", () => {
     expect(restartBanner).toHaveTextContent(/azure_blob: production/);
   });
 
+  it("suggests the current path, not a home directory the container never creates", async () => {
+    // Friction log entry 07: the image's unprivileged user has no home
+    // directory, so a placeholder of `~/ohm-data` failed validation for
+    // anyone who typed exactly what they were shown. The field should
+    // suggest something that is already known to work.
+    renderPanel();
+
+    // Anchored on the loaded config, same as the first test — the
+    // placeholder only reflects it once the query settles.
+    await screen.findByText(/12 designs, 5 facilities/);
+
+    const input = screen.getByLabelText(/^path$/i);
+    expect(input).toHaveAttribute("placeholder", "/var/ohm-data");
+  });
+
   it("offers the credential fields the chosen provider actually takes", async () => {
     const user = userEvent.setup();
     renderPanel();
