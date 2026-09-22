@@ -5,7 +5,9 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.14.1] - 2026-09-22
+
+### Minor fixes to install.sh, such that it now checks host machine for docker installation, and if not present will install as per official docker installation instructions.
 
 ## [0.14.0] - 2026-09-21
 
