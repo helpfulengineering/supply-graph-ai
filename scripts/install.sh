@@ -122,42 +122,111 @@ fetch() {
 
 printf '\nOpen Hardware Manager\n\n'
 
+# Run a command as root. `-n` on sudo: this script cannot supply a password
+# (see the piped-stdin note at the top), so a sudo that needs one must fail
+# fast, not hang.
+as_root() {
+    if [ "$(id -u)" -eq 0 ]; then
+        "$@"
+    elif command -v sudo >/dev/null 2>&1; then
+        sudo -n "$@"
+    else
+        return 1
+    fi
+}
+
+# Install Docker Engine from Docker's apt repository. Ubuntu/Debian only —
+# that is the droplet / cloud-host case this script automates. Every apt call
+# redirects stdin from /dev/null so a `curl | sh` pipe cannot feed the rest of
+# this script into dpkg's prompts.
+install_docker_apt() {
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    codename="${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}"
+    arch=$(dpkg --print-architecture)
+    case "${ID:-}" in
+        ubuntu) docker_distro="ubuntu" ;;
+        debian) docker_distro="debian" ;;
+        *) return 1 ;;
+    esac
+    [ -n "$codename" ] && [ -n "$arch" ] || return 1
+
+    export DEBIAN_FRONTEND=noninteractive
+    as_root apt-get update -qq </dev/null || return 1
+    as_root apt-get install -y -qq ca-certificates curl </dev/null || return 1
+    as_root install -m 0755 -d /etc/apt/keyrings || return 1
+    as_root curl -fsSL "https://download.docker.com/linux/${docker_distro}/gpg" \
+        -o /etc/apt/keyrings/docker.asc || return 1
+    as_root chmod a+r /etc/apt/keyrings/docker.asc || return 1
+
+    # Heredoc on as_root's stdin reaches tee; do not redirect it away.
+    as_root tee /etc/apt/sources.list.d/docker.sources >/dev/null <<EOF || return 1
+Types: deb
+URIs: https://download.docker.com/linux/${docker_distro}
+Suites: ${codename}
+Components: stable
+Architectures: ${arch}
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+    as_root apt-get update -qq </dev/null || return 1
+    as_root apt-get install -y -qq \
+        docker-ce docker-ce-cli containerd.io \
+        docker-buildx-plugin docker-compose-plugin </dev/null || return 1
+
+    # apt may leave the unit installed but inactive on a headless host.
+    if command -v systemctl >/dev/null 2>&1; then
+        as_root systemctl enable --now docker >/dev/null 2>&1 || \
+            as_root systemctl start docker >/dev/null 2>&1 || true
+    fi
+    command -v docker >/dev/null 2>&1
+}
+
+# Convenience installer for non-apt Linux: Docker's own non-interactive script.
+install_docker_get() {
+    (command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1) || return 1
+    installer=$(fetch "https://get.docker.com") && [ -n "$installer" ] || return 1
+    if [ "$(id -u)" -eq 0 ]; then
+        printf '%s' "$installer" | sh
+    else
+        printf '%s' "$installer" | as_root sh
+    fi
+    command -v docker >/dev/null 2>&1
+}
+
 # --- Docker ---------------------------------------------------------------
 # Auto-installed rather than a die-with-instructions, matching this script's
 # no-prompt design: a fresh Linux host without Docker is the common case (a
-# cloud droplet, a bare CI runner), and get.docker.com is Docker's own
-# non-interactive installer. macOS is different — Docker Desktop needs a GUI
-# to accept its license and start, so there is genuinely nothing to automate
-# there, and that path still dies with instructions.
+# cloud droplet, a bare CI runner). Ubuntu/Debian get Docker's apt repo
+# directly; other Linux falls back to get.docker.com. macOS is different —
+# Docker Desktop needs a GUI to accept its license and start, so there is
+# genuinely nothing to automate there, and that path still dies with
+# instructions.
 if ! command -v docker >/dev/null 2>&1; then
     case "$(uname -s)" in
         Linux)
             say "Docker: not found, installing ..."
-            (command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1) || die \
-                "Docker is not installed and neither curl nor wget is available to fetch the installer." \
-                "Install curl or wget, or install Docker yourself:" \
-                "  https://docs.docker.com/get-docker/"
-            installer=$(fetch "https://get.docker.com") && [ -n "$installer" ] || die \
-                "Could not download the Docker installer from get.docker.com." \
-                "Check network access, or install Docker yourself:" \
-                "  https://docs.docker.com/get-docker/"
-            # `|| true` on both: a failed installer run must fall through to the
-            # PATH check below rather than exit here under `set -e` with no
-            # explanation — e.g. sudo needing a password this non-interactive
-            # script cannot supply.
-            if [ "$(id -u)" -eq 0 ]; then
-                printf '%s' "$installer" | sh >/dev/null 2>&1 || true
-            elif command -v sudo >/dev/null 2>&1; then
-                printf '%s' "$installer" | sudo -n sh >/dev/null 2>&1 || true
-            else
+            if ! as_root true >/dev/null 2>&1; then
                 die \
-                    "Docker is not installed, and this script is running as a non-root user with no sudo available." \
-                    "Install Docker yourself, then run this again:" \
+                    "Docker is not installed, and this script cannot elevate to root." \
+                    "Run as root, or install Docker yourself, then run this again:" \
                     "  https://docs.docker.com/get-docker/"
             fi
-            command -v docker >/dev/null 2>&1 || die \
-                "The Docker installer did not leave a working 'docker' on PATH." \
-                "This can happen if passwordless sudo isn't set up for this user." \
+            installed=""
+            if [ -r /etc/os-release ]; then
+                # shellcheck disable=SC1091
+                . /etc/os-release
+                case "${ID:-}" in
+                    ubuntu|debian)
+                        install_docker_apt && installed="yes"
+                        ;;
+                esac
+            fi
+            if [ -z "$installed" ]; then
+                install_docker_get && installed="yes"
+            fi
+            [ -n "$installed" ] || die \
+                "Could not install Docker automatically." \
                 "Install Docker yourself, then run this again:" \
                 "  https://docs.docker.com/get-docker/"
             say "Docker: installed"
