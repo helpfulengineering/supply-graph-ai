@@ -427,11 +427,16 @@ $DOCKER run -d \
         "The API container has been removed so you can run this again."
 }
 
+# 127.0.0.1 and /healthz, not localhost and /. Same trap the web image's own
+# HEALTHCHECK hit: on Ubuntu, localhost prefers ::1, the published port is
+# IPv4-only, and curl -f then fails every attempt while Next.js is up and
+# logging Ready. /healthz is the cheap probe that does not SSR the homepage —
+# material on a 1 GB droplet where / can stall under memory pressure.
 printf '  Waiting for the web interface '
 elapsed=0
 web_up=""
 while [ "$elapsed" -lt "$HEALTH_TIMEOUT" ]; do
-    if fetch "http://localhost:${PORT}/" >/dev/null 2>&1; then
+    if fetch "http://127.0.0.1:${PORT}/healthz" >/dev/null 2>&1; then
         web_up="yes"
         break
     fi
