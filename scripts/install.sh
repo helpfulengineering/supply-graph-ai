@@ -123,16 +123,73 @@ fetch() {
 printf '\nOpen Hardware Manager\n\n'
 
 # --- Docker ---------------------------------------------------------------
-command -v docker >/dev/null 2>&1 || die \
-    "Docker is not installed." \
-    "OHM runs as a container. Install Docker, then run this again:" \
-    "  https://docs.docker.com/get-docker/"
+# Auto-installed rather than a die-with-instructions, matching this script's
+# no-prompt design: a fresh Linux host without Docker is the common case (a
+# cloud droplet, a bare CI runner), and get.docker.com is Docker's own
+# non-interactive installer. macOS is different — Docker Desktop needs a GUI
+# to accept its license and start, so there is genuinely nothing to automate
+# there, and that path still dies with instructions.
+if ! command -v docker >/dev/null 2>&1; then
+    case "$(uname -s)" in
+        Linux)
+            say "Docker: not found, installing ..."
+            (command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1) || die \
+                "Docker is not installed and neither curl nor wget is available to fetch the installer." \
+                "Install curl or wget, or install Docker yourself:" \
+                "  https://docs.docker.com/get-docker/"
+            installer=$(fetch "https://get.docker.com") && [ -n "$installer" ] || die \
+                "Could not download the Docker installer from get.docker.com." \
+                "Check network access, or install Docker yourself:" \
+                "  https://docs.docker.com/get-docker/"
+            # `|| true` on both: a failed installer run must fall through to the
+            # PATH check below rather than exit here under `set -e` with no
+            # explanation — e.g. sudo needing a password this non-interactive
+            # script cannot supply.
+            if [ "$(id -u)" -eq 0 ]; then
+                printf '%s' "$installer" | sh >/dev/null 2>&1 || true
+            elif command -v sudo >/dev/null 2>&1; then
+                printf '%s' "$installer" | sudo -n sh >/dev/null 2>&1 || true
+            else
+                die \
+                    "Docker is not installed, and this script is running as a non-root user with no sudo available." \
+                    "Install Docker yourself, then run this again:" \
+                    "  https://docs.docker.com/get-docker/"
+            fi
+            command -v docker >/dev/null 2>&1 || die \
+                "The Docker installer did not leave a working 'docker' on PATH." \
+                "This can happen if passwordless sudo isn't set up for this user." \
+                "Install Docker yourself, then run this again:" \
+                "  https://docs.docker.com/get-docker/"
+            say "Docker: installed"
+            ;;
+        *)
+            die \
+                "Docker is not installed." \
+                "OHM runs as a container. Install Docker, then run this again:" \
+                "  https://docs.docker.com/get-docker/"
+            ;;
+    esac
+fi
 
-docker info >/dev/null 2>&1 || die \
-    "Docker is installed but not running." \
-    "Start Docker Desktop (or the docker service) and run this again."
+# A user just added to the docker group by the install above isn't in that
+# group in THIS shell — group membership is read at login, not re-checked —
+# so a plain `docker info` can fail here even though the daemon is fine and
+# `docker` will work for the operator on their next login. Fall back to sudo
+# for the rest of this run rather than telling them to log out and back in.
+# `-n`: this script cannot supply a password (see the piped-stdin note at the
+# top), so a sudo that needs one must fail fast, not hang.
+if docker info >/dev/null 2>&1; then
+    DOCKER="docker"
+elif [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1 && sudo -n docker info >/dev/null 2>&1; then
+    DOCKER="sudo -n docker"
+    say "Docker: ok (via sudo — log out and back in to use docker without sudo)"
+else
+    die \
+        "Docker is installed but not running." \
+        "Start Docker Desktop (or the docker service) and run this again."
+fi
 
-say "Docker: ok"
+[ "$DOCKER" = "docker" ] && say "Docker: ok"
 
 # --- Version --------------------------------------------------------------
 # Resolved at install time rather than hardcoded. A pinned version in this file
@@ -155,7 +212,7 @@ IMAGE="${IMAGE_REPO}:${VERSION}"
 FRONTEND_IMAGE="${FRONTEND_REPO}:${VERSION}"
 
 # --- Port -----------------------------------------------------------------
-in_use=$(docker ps --format '{{.Ports}}' 2>/dev/null || true)
+in_use=$($DOCKER ps --format '{{.Ports}}' 2>/dev/null || true)
 for p in "$PORT" "$API_PORT"; do
     if printf '%s' "$in_use" | grep -q ":${p}->"; then
         die "Port ${p} is already in use by another container." \
@@ -164,7 +221,7 @@ for p in "$PORT" "$API_PORT"; do
     fi
 done
 
-existing=$(docker ps -a --format '{{.Names}}' 2>/dev/null || true)
+existing=$($DOCKER ps -a --format '{{.Names}}' 2>/dev/null || true)
 for n in "$API_NAME" "$WEB_NAME"; do
     if printf '%s' "$existing" | grep -qx "${n}"; then
         die "A container named '${n}' already exists." \
@@ -213,24 +270,24 @@ say "Data: ${DATA_DIR}"
 
 # --- Start ----------------------------------------------------------------
 printf '  Pulling %s ...\n' "$IMAGE"
-docker pull "$IMAGE" >/dev/null 2>&1 || die \
+$DOCKER pull "$IMAGE" >/dev/null 2>&1 || die \
     "Could not pull ${IMAGE}." \
     "Check the version exists and that this host can reach Docker Hub."
 
 printf '  Pulling %s ...\n' "$FRONTEND_IMAGE"
-docker pull "$FRONTEND_IMAGE" >/dev/null 2>&1 || die \
+$DOCKER pull "$FRONTEND_IMAGE" >/dev/null 2>&1 || die \
     "Could not pull ${FRONTEND_IMAGE}." \
     "Check the version exists and that this host can reach Docker Hub."
 
 # A user-defined network, so the web container can reach the API by name.
-docker network create "$NETWORK" >/dev/null 2>&1 || true
+$DOCKER network create "$NETWORK" >/dev/null 2>&1 || true
 
 # LLM is enabled with no credential on purpose. It resolves from the credential
 # store before the environment, and enabled-with-nothing-configured reports
 # cleanly as unavailable — so "enabled" here means "a key added in Settings
 # works without a restart". Installing with it disabled would produce a node
 # that can never be given an LLM without reinstalling.
-docker run -d \
+$DOCKER run -d \
     --name "$API_NAME" \
     --network "$NETWORK" \
     --restart unless-stopped \
@@ -264,7 +321,7 @@ while [ "$elapsed" -lt "$HEALTH_TIMEOUT" ]; do
         healthy="yes"
         break
     fi
-    if [ -z "$(docker ps -q -f "name=^${API_NAME}$")" ]; then
+    if [ -z "$($DOCKER ps -q -f "name=^${API_NAME}$")" ]; then
         printf '\n'
         die "The API container exited while starting." \
             "See why with:  docker logs ${API_NAME}"
@@ -278,8 +335,8 @@ printf '\n'
 if [ -z "$healthy" ]; then
     # A half-installed node is worse than none: the next run would fail on the
     # name collision and the operator would have to work out why themselves.
-    docker rm -f "$API_NAME" >/dev/null 2>&1 || true
-    docker network rm "$NETWORK" >/dev/null 2>&1 || true
+    $DOCKER rm -f "$API_NAME" >/dev/null 2>&1 || true
+    $DOCKER network rm "$NETWORK" >/dev/null 2>&1 || true
     die "The API did not become healthy within ${HEALTH_TIMEOUT}s." \
         "The container has been removed so you can run this again." \
         "If it keeps happening, start it by hand to see the logs:" \
@@ -288,15 +345,15 @@ fi
 
 say "API: healthy"
 
-docker run -d \
+$DOCKER run -d \
     --name "$WEB_NAME" \
     --network "$NETWORK" \
     --restart unless-stopped \
     -p "${PORT}:8080" \
     -e "API_UPSTREAM_URL=http://${API_NAME}:8001" \
     "$FRONTEND_IMAGE" >/dev/null || {
-    docker rm -f "$API_NAME" >/dev/null 2>&1 || true
-    docker network rm "$NETWORK" >/dev/null 2>&1 || true
+    $DOCKER rm -f "$API_NAME" >/dev/null 2>&1 || true
+    $DOCKER network rm "$NETWORK" >/dev/null 2>&1 || true
     die "The web container failed to start." \
         "The API container has been removed so you can run this again."
 }
