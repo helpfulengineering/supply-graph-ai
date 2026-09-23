@@ -435,7 +435,9 @@ jobs:
 
       - name: Verify storage fingerprint (drift + emptiness gate)
         # Assert the live app is actually pointed at the container the repo
-        # declares (config/environments/production.toml) AND that it is non-empty.
+        # declares (config/environments/production.toml) AND that it holds
+        # designs. okw_count is not gated: facilities live in Maps of Making
+        # and are not expected as local OKW objects on this node.
         # Emptiness is a deploy-gate failure (never promote a release onto an
         # empty/mis-pointed prod container) even though it is only a startup warning.
         env:
@@ -467,8 +469,6 @@ jobs:
               errors.append(f"container drift: live {container!r} != config {expected!r}")
           if not okh:
               errors.append("okh_count is 0 or missing")
-          if not okw:
-              errors.append("okw_count is 0 or missing")
           if errors:
               sys.exit("DEPLOY GATE FAILED: " + "; ".join(errors))
           print("deploy gate passed")
