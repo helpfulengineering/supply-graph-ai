@@ -55,6 +55,9 @@ nav:
     - Facility claim ladder ADR: architecture/facility-claim-ladder-adr.md
     - Process Taxonomy ADR: architecture/process-taxonomy-adr.md
     - File type taxonomy ADR: architecture/file-type-taxonomy-adr.md
+    - Members visibility ADR: architecture/members-visibility-adr.md
+    - Member sign-in ADR: architecture/member-sign-in-adr.md
+    - Curated lists ADR: architecture/curated-lists-adr.md
     - Identity Model: architecture/identity-model.md
     - Security Modes: architecture/security-modes.md
     - Optional Site Layer: architecture/site-layer.md
