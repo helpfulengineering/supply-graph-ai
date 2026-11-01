@@ -73,6 +73,7 @@ from ..models.okh.collection import (
     CollectionImportResponse,
     OKHTemplateResponse,
 )
+from ...models.okh_process_fields import derive_process_fields
 from ...models.provenance import RecordProvenance
 from ...models.visibility import (
     BulkVisibilityBody,
@@ -103,6 +104,7 @@ from ..models.okh.request import (
     OKHGenerateRequest,
     OKHGenerateSpendGate,
     OKHHarvestRequest,
+    OKHNormalizeRequest,
     OKHUpdateRequest,
     OKHValidateRequest,
 )
@@ -116,6 +118,7 @@ from ..models.okh.response import (
     OKHGenerateResponse,
     OKHHarvestResponse,
     OKHImportRepairDocResponse,
+    OKHNormalizeResponse,
     OKHRepairExtractResponse,
     OKHResponse,
     OKHUploadResponse,
@@ -1080,6 +1083,19 @@ async def validate_okh(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),
         )
+
+
+@router.post(
+    "/normalize",
+    response_model=OKHNormalizeResponse,
+    summary="Derive a manifest's process copies from its process list",
+    description="Returns the posted manifest with `manufacturing_specs."
+    "process_requirements` and the process codes in `tsdc` derived from "
+    "`manufacturing_processes`, as a save would store them. Nothing is stored, "
+    "and the manifest may be an unfinished draft.",
+)
+async def normalize_okh(request: OKHNormalizeRequest) -> Any:
+    return OKHNormalizeResponse(content=derive_process_fields(request.content))
 
 
 @router.post("/extract", response_model=OKHExtractResponse)

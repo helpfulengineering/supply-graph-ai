@@ -155,6 +155,12 @@ class OKHExtractResponse(BaseModel):
     requirements: List[ProcessRequirement]
 
 
+class OKHNormalizeResponse(BaseModel):
+    """The posted manifest with its process copies derived from its process list."""
+
+    content: Dict[str, Any]
+
+
 class OKHListResponse(BaseModel):
     """Response model for listing OKH manifests"""
 

@@ -65,6 +65,13 @@ def test_listing_offers_only_your_own_records():
         assert "--mine" in result.output
 
 
+def test_okh_normalize_takes_a_file_and_an_output():
+    """`ohm okh normalize` mirrors POST /api/okh/normalize (#562)."""
+    cmd = okh_group.commands["normalize"]
+    names = {p.name for p in cmd.params}
+    assert {"manifest_file", "output"} <= names
+
+
 def test_okw_exposes_create_visibility_and_disclosure():
     runner = CliRunner()
     result = runner.invoke(okw_group, ["--help"])

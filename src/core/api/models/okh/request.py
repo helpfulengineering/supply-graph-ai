@@ -78,6 +78,12 @@ class OKHExtractRequest(BaseModel):
     content: Dict[str, Any]
 
 
+class OKHNormalizeRequest(BaseModel):
+    """A manifest, possibly an unfinished draft, to derive process copies for."""
+
+    content: Dict[str, Any]
+
+
 class OKHUploadRequest(BaseModel):
     """Request model for uploading an OKH file"""
 

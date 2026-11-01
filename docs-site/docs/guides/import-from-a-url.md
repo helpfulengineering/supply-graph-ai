@@ -79,6 +79,13 @@ your time than anything else on the page. **Check the materials especially** —
 they're the most error-prone part of extraction, and prose gets misread as
 components more often than we'd like.
 
+**The process list is the one to edit.** A manifest also records each process
+as a requirement entry and, for processes that have one, a TSDC code. Those
+follow the list whenever a design is saved, by any client: remove a process
+and its requirement and code go with it, while detail you added to a process
+you kept stays. To apply the same rule to a file without saving it, use
+`ohm okh normalize my-design.okh.yaml` or `POST /api/okh/normalize`.
+
 **Being found** — description, repository, keywords.
 
 **Everything else** — collapsed, but present. Nothing extracted is hidden from

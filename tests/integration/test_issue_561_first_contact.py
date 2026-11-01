@@ -113,7 +113,6 @@ def _register(client):
     return {"Authorization": f"Bearer {resp.json()['key']['token']}"}
 
 
-@_open("#562", "process_requirements and tsdc are stored as sent")
 def test_a_removed_process_is_gone_from_every_place_it_was_stored(client):
     """'The YAML also included "Sheet metal forming" when I had removed that.'
 

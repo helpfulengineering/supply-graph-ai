@@ -100,6 +100,9 @@ async def test_verify_and_store_persists_followed_record(tmp_path) -> None:
 
     assert result.action == "stored"
     okh_service.create.assert_awaited_once()
+    # The publisher signed and hashed this record; local derivation (#562)
+    # would make the stored copy diverge from it.
+    assert okh_service.create.call_args.kwargs["verbatim"] is True
 
 
 def _signed_provenance():
