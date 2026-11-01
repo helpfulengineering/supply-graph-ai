@@ -48,7 +48,7 @@ async def test_mom_routes_through_network_path_only(monkeypatch):
         "src.core.services.mom_bridge.fetch_mom_facilities_for_manifest", fetch
     )
 
-    result = await resolve_match_facilities(effective_source="mom")
+    result = await resolve_match_facilities(effective_source="mom", viewer=None)
 
     assert result == [mom_fac]
     fetch.assert_not_awaited()
@@ -98,5 +98,5 @@ async def test_mom_wins_over_local_json_dir(tmp_path, monkeypatch):
     )
     _mock_network(monkeypatch, [mom_fac])
 
-    result = await resolve_match_facilities(effective_source="mom")
+    result = await resolve_match_facilities(effective_source="mom", viewer=None)
     assert result == [mom_fac]

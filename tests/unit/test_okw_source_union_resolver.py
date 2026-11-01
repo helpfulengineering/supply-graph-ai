@@ -75,7 +75,7 @@ async def test_union_includes_mom(clean_env, monkeypatch):
     from src.core.services.okw_service import resolve_match_facilities
 
     svc = _mock_network(monkeypatch)
-    await resolve_match_facilities(effective_source="union")
+    await resolve_match_facilities(effective_source="union", viewer=None)
     kwargs = svc.get_network_match_facilities.await_args.kwargs
     assert kwargs["include_mom"] is True
     assert kwargs.get("source") is None
@@ -87,7 +87,7 @@ async def test_storage_excludes_mom(clean_env, monkeypatch):
     from src.core.services.okw_service import resolve_match_facilities
 
     svc = _mock_network(monkeypatch)
-    await resolve_match_facilities(effective_source="storage")
+    await resolve_match_facilities(effective_source="storage", viewer=None)
     kwargs = svc.get_network_match_facilities.await_args.kwargs
     assert kwargs["include_mom"] is False
 
@@ -121,7 +121,7 @@ async def test_local_dir_is_storage_only_never_unioned(clean_env, monkeypatch):
     )
 
     # Even with the union default, a local dir is never unioned with MoM.
-    result = await resolve_match_facilities(effective_source="union")
+    result = await resolve_match_facilities(effective_source="union", viewer=None)
     assert result == sentinel
 
 

@@ -2488,6 +2488,7 @@ async def _get_filtered_facilities(
                 effective_source = resolve_effective_source()
                 facilities = await resolve_match_facilities(
                     effective_source=effective_source,
+                    viewer=viewer,
                     domain=domain,
                     request_id=request_id,
                 )

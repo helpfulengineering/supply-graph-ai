@@ -550,6 +550,7 @@ async def requirements(
                     )
                     facilities = await resolve_match_facilities(
                         effective_source=effective_source,
+                        viewer=None,
                         domain="manufacturing",
                         request_id="cli",
                     )

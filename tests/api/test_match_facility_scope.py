@@ -34,6 +34,21 @@ pytestmark = pytest.mark.contract
 OWNER = ViewerScope(account_id="acct-owner")
 FACILITY_ID = uuid4()
 
+# Inline manifest, so the request reaches the facility fetch without a design
+# lookup — the scope hand-off is what is under test, not resolution.
+_PROBE_MATCH = {
+    "max_depth": 0,
+    "okh_manifest": {
+        "title": "Probe",
+        "repo": "https://example.com/probe",
+        "version": "1.0.0",
+        "license": {"hardware": "CERN-OHL-S-2.0"},
+        "licensor": "Someone",
+        "documentation_language": "en",
+        "function": "probe",
+    },
+}
+
 
 def _service():
     from src.core.services.okw_service import OKWService
@@ -103,6 +118,58 @@ async def test_match_facilities_carries_the_scope_through():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("source", ["storage", "union", "mom"])
+async def test_the_shared_resolver_carries_the_scope_through(source, monkeypatch):
+    """The pool a plain match draws from (#595): #503 scoped network_filter only."""
+    from src.core.services import okw_service as okw_mod
+
+    monkeypatch.setattr(okw_mod, "resolve_matching_local_okw_json_dir", lambda: None)
+    service = _service()
+    seen = {}
+
+    async def fake_match_facilities(**kwargs):
+        seen["viewer"] = kwargs.get("viewer", "NOT PASSED")
+        return []
+
+    service.get_network_match_facilities = fake_match_facilities
+    monkeypatch.setattr(
+        okw_mod.OKWService, "get_instance", AsyncMock(return_value=service)
+    )
+    await okw_mod.resolve_match_facilities(effective_source=source, viewer=OWNER)
+    assert seen["viewer"] is OWNER
+
+
+@pytest.mark.asyncio
+async def test_a_plain_match_hands_the_callers_scope_to_the_resolver(monkeypatch):
+    """No network_filter, no inline facilities: the branch #503 missed (#595)."""
+    import httpx
+    from fastapi import FastAPI
+
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "production")
+
+    from src.core.api.routes import match as match_routes
+    from src.core.main import api_v1
+
+    seen = {}
+
+    async def fake_resolver(**kwargs):
+        seen["viewer"] = kwargs.get("viewer", "NOT PASSED")
+        return []
+
+    app = FastAPI()
+    app.mount("/v1", api_v1)
+    with patch.object(match_routes, "resolve_match_facilities", new=fake_resolver):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            await client.post("/v1/api/match", json=_PROBE_MATCH)
+
+    assert seen.get("viewer") != "NOT PASSED", "the route passed no scope at all"
+    assert seen["viewer"] == ANONYMOUS_SCOPE
+
+
+@pytest.mark.asyncio
 async def test_match_hands_the_callers_scope_to_the_candidate_pool(monkeypatch):
     """End to end through the route.
 
@@ -130,27 +197,12 @@ async def test_match_hands_the_callers_scope_to_the_candidate_pool(monkeypatch):
 
     app = FastAPI()
     app.mount("/v1", api_v1)
-    # Inline manifest, so the request reaches the facility fetch without a
-    # design lookup — the scope hand-off is what is under test, not resolution.
-    payload = {
-        "max_depth": 0,
-        "okh_manifest": {
-            "title": "Probe",
-            "repo": "https://example.com/probe",
-            "version": "1.0.0",
-            "license": {"hardware": "CERN-OHL-S-2.0"},
-            "licensor": "Someone",
-            "documentation_language": "en",
-            "function": "probe",
-        },
-    }
-
     with patch.object(match_routes, "_get_filtered_facilities", new=fake_filtered):
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(
             transport=transport, base_url="http://testserver"
         ) as client:
-            await client.post("/v1/api/match", json=payload)
+            await client.post("/v1/api/match", json=_PROBE_MATCH)
 
     assert seen.get("viewer") != "NOT PASSED", "the route passed no scope at all"
     assert seen["viewer"] == ANONYMOUS_SCOPE

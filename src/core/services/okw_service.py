@@ -1358,6 +1358,7 @@ class OKWService(BaseService["OKWService"]):
 async def resolve_match_facilities(
     *,
     effective_source: str,
+    viewer: Optional[ViewerScope],
     domain: str = "manufacturing",
     request_id: str = "",
     force_refresh: bool = False,
@@ -1386,6 +1387,10 @@ async def resolve_match_facilities(
     The service instance is only loaded for the branches that read from storage,
     so the local-dir path touches no remote storage. Facilities are matched
     regardless of geography (``require_coords=False``).
+
+    ``viewer`` scopes the storage half and has no default: a request handler
+    that forgot it would match against every private facility on the node
+    (#595). ``None`` is the unscoped path, for trusted callers like the CLI.
     """
     if effective_source == "mom":
         svc = await OKWService.get_instance()
@@ -1400,6 +1405,7 @@ async def resolve_match_facilities(
             status=status,
             region=region,
             access_type=access_type,
+            viewer=viewer,
         )
 
     local_dir = resolve_matching_local_okw_json_dir()
@@ -1417,4 +1423,5 @@ async def resolve_match_facilities(
         status=status,
         region=region,
         access_type=access_type,
+        viewer=viewer,
     )
