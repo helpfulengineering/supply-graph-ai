@@ -134,7 +134,8 @@ content hash). It is **not** federated: a receiving node decides what to re-shar
 | `public` | Yes (same catalog filter today; reserved for registry listing later) |
 
 Pre-Slice-4 records with no visibility object are treated as `followers` so existing
-catalogs do not empty. New creates stamp `private` — promote explicitly to share:
+catalogs do not empty. Matching follows the same rule: a private facility is a
+candidate only in its owner's matches. New creates stamp `private` — promote explicitly to share:
 
 ```bash
 ohm okh visibility set <manifest_id> public
