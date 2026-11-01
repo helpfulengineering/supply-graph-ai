@@ -1121,15 +1121,21 @@ class OKWService(BaseService["OKWService"]):
             # preserving any user-defined subdirectory organisation under okw/.
             existing_key = await self._find_key_for_id(facility_id)
 
+            # The owner and other ohm_* stamps come from the stored record,
+            # never from the request, so an update cannot reassign them.
+            stored: Dict[str, Any] = {}
             if existing_key is None:
                 existing_key = f"okw/{str(facility_id)}.json"
                 logger.warning(
                     f"OKW facility {facility_id} not found during update; "
                     f"writing to fallback key {existing_key}"
                 )
+            else:
+                stored = json.loads(await self.storage.manager.get_object(existing_key))
 
+            payload = apply_ohm_metadata(facility.to_dict(), stored)
             facility_json = json.dumps(
-                facility.to_dict(), indent=2, ensure_ascii=False, default=str
+                payload, indent=2, ensure_ascii=False, default=str
             )
             await self.storage.manager.put_object(
                 existing_key, facility_json.encode("utf-8")

@@ -778,6 +778,9 @@ class OKHService(BaseService["OKHService"]):
             # preserving any user-defined subdirectory organisation under okh/.
             existing_key = await self._find_key_for_id(manifest_id, "okh")
 
+            # The owner and other ohm_* stamps come from the stored record,
+            # never from the request, so an update cannot reassign them.
+            stored: Dict[str, Any] = {}
             if existing_key is None:
                 # Fallback: write to a canonical flat key and log the miss.
                 existing_key = f"okh/{str(manifest_id)}.json"
@@ -785,9 +788,12 @@ class OKHService(BaseService["OKHService"]):
                     f"OKH manifest {manifest_id} not found during update; "
                     f"writing to fallback key {existing_key}"
                 )
+            else:
+                stored = json.loads(await self.storage.manager.get_object(existing_key))
 
+            payload = apply_ohm_metadata(manifest.to_dict(), stored)
             manifest_json = json.dumps(
-                manifest.to_dict(), indent=2, ensure_ascii=False, default=str
+                payload, indent=2, ensure_ascii=False, default=str
             )
             await self.storage.manager.put_object(
                 existing_key, manifest_json.encode("utf-8")
