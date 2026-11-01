@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge } from "../../components/ui/Badge";
 import type { NetworkSpace } from "../../api/ohm/network";
+import { VisibilityBadge } from "../okh/VisibilityBadge";
 import { humanizeProcessId } from "./deriveFilterOptions";
 import { SOURCE_STYLES } from "./networkSummary";
 import { displayCountryName, displayRegionName } from "../match/geoDisplay";
@@ -49,9 +50,12 @@ export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
           >
             {space.name || "Unnamed"}
           </h3>
-          <Badge variant={space.source === "local" ? "indigo" : "green"}>
-            {SOURCE_STYLES[space.source].label}
-          </Badge>
+          <div className="flex shrink-0 gap-1">
+            <VisibilityBadge level={space.visibility} />
+            <Badge variant={space.source === "local" ? "indigo" : "green"}>
+              {SOURCE_STYLES[space.source].label}
+            </Badge>
+          </div>
         </div>
         {location && (
           <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">

@@ -306,6 +306,35 @@ async def test_get_network_spaces_unions_and_counts(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_network_spaces_carries_visibility_for_local_spaces_only(
+    monkeypatch,
+):
+    """Facility cards badge their visibility (#576); MoM has none to show."""
+    from uuid import uuid4
+    from src.core.models.visibility import VisibilityLevel
+    from src.core.services.okw_service import OKWService
+    import src.core.services.mom_bridge as mom
+
+    svc = OKWService()
+    svc.list = AsyncMock(
+        return_value=([_facility(uuid4(), "Local A", "40.0, -70.0", [])], 1)
+    )
+    svc.get_visibility = AsyncMock(return_value=VisibilityLevel.MEMBERS)
+
+    async def fake_get(force_refresh=False):
+        return (
+            [{"space": "urn:z", "name": "MoM Z", "lat": 1.0, "lon": 2.0}],
+            True,
+        )
+
+    monkeypatch.setattr(mom.mom_spaces_cache, "get", fake_get)
+
+    result = await svc.get_network_spaces()
+    by_source = {s["source"]: s["visibility"] for s in result["spaces"]}
+    assert by_source == {"local": "members", "mom": None}
+
+
+@pytest.mark.asyncio
 async def test_get_network_spaces_applies_source_filter(monkeypatch):
     from uuid import uuid4
     from src.core.services.okw_service import OKWService

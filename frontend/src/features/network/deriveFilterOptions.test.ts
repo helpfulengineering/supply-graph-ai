@@ -4,9 +4,21 @@ import type { NetworkSpace } from "../../api/ohm/network";
 
 function space(p: Partial<NetworkSpace>): NetworkSpace {
   return {
-    id: "x", name: "X", lat: 0, lon: 0, source: "local", city: null, region: null,
-    country: null, status: null, processes: [], access_type: null, url: null,
-    ambiguous: false, ...p,
+    id: "x",
+    name: "X",
+    lat: 0,
+    lon: 0,
+    source: "local",
+    city: null,
+    region: null,
+    country: null,
+    status: null,
+    processes: [],
+    access_type: null,
+    url: null,
+    visibility: null,
+    ambiguous: false,
+    ...p,
   };
 }
 
@@ -20,8 +32,21 @@ describe("humanizeProcessId", () => {
 describe("deriveFilterOptions", () => {
   it("derives distinct, sorted options across spaces", () => {
     const spaces = [
-      space({ country: "US", region: "TX", status: "active", access_type: "Public", processes: ["laser_cutting"] }),
-      space({ country: "IT", region: null, status: "active", access_type: null, processes: ["cnc_machining", "laser_cutting"], source: "mom" }),
+      space({
+        country: "US",
+        region: "TX",
+        status: "active",
+        access_type: "Public",
+        processes: ["laser_cutting"],
+      }),
+      space({
+        country: "IT",
+        region: null,
+        status: "active",
+        access_type: null,
+        processes: ["cnc_machining", "laser_cutting"],
+        source: "mom",
+      }),
     ];
     const o = deriveFilterOptions(spaces);
     // Country options are display names, not ISO codes: 0.10.2 normalised
@@ -31,8 +56,13 @@ describe("deriveFilterOptions", () => {
     expect(o.regions).toEqual(["TX"]);
     expect(o.statuses).toEqual(["active"]);
     expect(o.accessTypes).toEqual(["Public"]);
-    expect(o.processes.map((p) => p.id)).toEqual(["cnc_machining", "laser_cutting"]);
-    expect(o.processes.find((p) => p.id === "laser_cutting")?.label).toBe("Laser Cutting");
+    expect(o.processes.map((p) => p.id)).toEqual([
+      "cnc_machining",
+      "laser_cutting",
+    ]);
+    expect(o.processes.find((p) => p.id === "laser_cutting")?.label).toBe(
+      "Laser Cutting",
+    );
   });
 
   it("handles an empty set", () => {

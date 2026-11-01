@@ -27,8 +27,10 @@ Every record has one of four settings.
 **New records are private.** Nothing is shared because you created it — sharing
 is a decision you make afterwards.
 
-Each design in the list and in search results carries a badge with its
-setting, so a design you have not shared yet is visible at a glance.
+Each design and facility in the lists, search results and map carries a badge
+with its setting, so a record you have not shared yet is visible at a glance.
+Maps of Making entries have none: they come from a public directory, not from
+this instance.
 
 **Members** suits a volunteer sharing a home printer with the organisation that
 runs the instance. It is only as narrow as the instance's sign-up policy: if
