@@ -1,0 +1,54 @@
+name: Dependency audit
+
+# Advisories are published against a lockfile that has not changed, so a pull
+# request's audit only answers for its own dependency changes (ci-cd.yml). This
+# is where drift on main is found: daily, reported to maintainers as one issue
+# rather than to whichever contributor happened to open the next PR (#594).
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    name: Audit main's lockfile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Audit
+        run: |
+          set -o pipefail
+          make audit 2>&1 | tee audit.log
+
+      - name: Open or update the tracking issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Dependency audit failing on main"
+          {
+            echo "The scheduled audit found known vulnerabilities: $RUN_URL"
+            echo
+            echo '```'
+            grep -v '^WARNING' audit.log | tail -n 60
+            echo '```'
+            echo
+            echo "Raise the floors in \`pyproject.toml\` and relock; see docs/RELEASE.md."
+          } > body.md
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file body.md
+          else
+            gh issue create --title "$title" --label bug --label component-security --body-file body.md
+          fi

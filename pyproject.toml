@@ -109,7 +109,8 @@ docs = [
     # would silently break both sites on a routine `uv sync`. Revisit when 2.0
     # is licensed and its hook/theme story is settled.
     "mkdocs>=1.6,<2",
-    "mkdocs-material>=9.7,<10",
+    # >=9.7.7 fixes PYSEC-2026-3864.
+    "mkdocs-material>=9.7.7,<10",
     # Transitive via mkdocs-material; pinned directly since pip-audit flags it on
     # its own. Security pin: PYSEC-2026-2999, PYSEC-2026-3609, PYSEC-2026-3654
     # (fixed 11.0.1).
@@ -152,7 +153,8 @@ override-dependencies = [
     "tornado>=6.6",
     "urllib3>=2.8.0",
     "idna>=3.15",
-    # Security pins (pip-audit / OSV) — bump when CI security gate fails.
+    # Security pins (pip-audit / OSV) — raise from the Dependabot PR or the
+    # daily audit issue; see "Dependency audit" in docs/RELEASE.md.
     # GHSA-fjr4-x663-mwxc, GHSA-6p8h-3wgx-97gf, GHSA-r9mr-m37c-5fr3 (fixed 3.1.54)
     # and GHSA-94p4-4cq8-9g67 (fixed 3.1.55).
     # >=3.1.58 fixes GHSA-9rj7-rf2p-w77r, GHSA-4gmw-gg2m-w46p,

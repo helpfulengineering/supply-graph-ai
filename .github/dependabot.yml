@@ -1,0 +1,15 @@
+version: 2
+
+# Security fixes for the Python lockfile arrive as one grouped PR (#594).
+# Version updates are off (limit 0); security updates use this configuration
+# and need "Dependabot security updates" enabled in the repository settings.
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
+    groups:
+      python-security:
+        applies-to: security-updates
+        patterns: ["*"]
