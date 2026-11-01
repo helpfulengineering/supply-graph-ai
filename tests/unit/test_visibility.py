@@ -17,6 +17,8 @@ def test_default_visibility_is_private():
 def test_is_shareable():
     assert not is_shareable(VisibilityLevel.PRIVATE)
     assert not is_shareable(None)
+    # members-visibility-adr.md: visible on this node only, never catalogued.
+    assert not is_shareable(VisibilityLevel.MEMBERS)
     assert is_shareable(VisibilityLevel.FOLLOWERS)
     assert is_shareable(VisibilityLevel.PUBLIC)
 

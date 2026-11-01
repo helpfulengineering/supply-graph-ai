@@ -20,6 +20,7 @@ from src.core.models.auth import AuthenticatedUser
 from src.core.models.provenance import OHM_CREATED_BY_DID_KEY, OHM_CREATED_BY_KEY
 from src.core.models.visibility import (
     ANONYMOUS_SCOPE,
+    DEV_LOCAL_SCOPE,
     ViewerScope,
     VisibilityLevel,
     visible_to,
@@ -33,8 +34,8 @@ BOB_DID = "did:key:zBob"
 ADA_ACCOUNT = "11111111-1111-4111-8111-111111111111"
 BOB_ACCOUNT = "22222222-2222-4222-8222-222222222222"
 
-ADA = ViewerScope(account_id=ADA_ACCOUNT, dids=frozenset({ADA_DID}))
-BOB = ViewerScope(account_id=BOB_ACCOUNT, dids=frozenset({BOB_DID}))
+ADA = ViewerScope(account_id=ADA_ACCOUNT, dids=frozenset({ADA_DID}), authenticated=True)
+BOB = ViewerScope(account_id=BOB_ACCOUNT, dids=frozenset({BOB_DID}), authenticated=True)
 
 
 def _entry(record_id: str, did=None, account=None) -> dict:
@@ -54,10 +55,25 @@ def _entry(record_id: str, did=None, account=None) -> dict:
         (VisibilityLevel.PRIVATE, ANONYMOUS_SCOPE, False),
         (VisibilityLevel.PRIVATE, ADA, True),
         (VisibilityLevel.PRIVATE, BOB, False),
+        (VisibilityLevel.MEMBERS, ANONYMOUS_SCOPE, False),
+        (VisibilityLevel.MEMBERS, DEV_LOCAL_SCOPE, False),
+        (VisibilityLevel.MEMBERS, BOB, True),
     ],
 )
 def test_visibility_decision_matrix(level, scope, expected):
     assert visible_to(level, scope, ADA_DID, ADA_ACCOUNT) is expected
+
+
+def test_a_resolved_user_is_a_member_and_dev_local_is_not(tmp_path, monkeypatch):
+    """`members` means signed in to this node (#574).
+
+    Dev-local is an identity for owning what you wrote without a key, not a
+    sign-in, so it must not widen to other people's member records.
+    """
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "development")
+    svc = _service_with_identities(tmp_path)
+    assert svc.viewer_scope(_user(BOB_ACCOUNT, BOB_DID, ["read"])).authenticated
+    assert not svc.viewer_scope(None).authenticated
 
 
 def test_account_fallback_covers_records_and_keys_that_have_no_did():

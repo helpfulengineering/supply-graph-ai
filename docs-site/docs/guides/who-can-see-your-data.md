@@ -15,16 +15,21 @@ of it* goes.
 
 ## Visibility: whether, and to whom
 
-Every record has one of three settings.
+Every record has one of four settings.
 
 | Setting | What happens |
 |---|---|
 | **Private** | The record stays on this instance. Nothing is exported to anyone. |
+| **Members** | Anyone signed in to this instance can see it. It is never exported, and anonymous visitors don't see it. |
 | **Followers** | Shared with peer instances that this one has chosen to connect to. |
 | **Public** | Available to anyone who asks this instance for its catalogue. |
 
 **New records are private.** Nothing is shared because you created it — sharing
 is a decision you make afterwards.
+
+**Members** suits a volunteer sharing a home printer with the organisation that
+runs the instance. It is only as narrow as the instance's sign-up policy: if
+anyone can register, anyone can become a member.
 
 Visibility governs **both** ways a record can leave: the federation catalogue
 that peer instances read, and this instance's own public API. A private record

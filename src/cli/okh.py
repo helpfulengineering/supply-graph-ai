@@ -14,6 +14,7 @@ import click
 
 from ..core.generation.built_directory import BuiltDirectoryExporter
 from ..core.models.okh import OKHManifest
+from ..core.models.visibility import VisibilityLevel
 from ..core.packaging.collection import (
     analyse_import,
     diff_collection,
@@ -596,10 +597,12 @@ async def visibility_show(
 @visibility_group.command("set")
 @click.argument("manifest_id", type=str)
 @click.argument(
-    "level", type=click.Choice(["private", "followers", "public"], case_sensitive=False)
+    "level",
+    type=click.Choice([v.value for v in VisibilityLevel], case_sensitive=False),
 )
 @standard_cli_command(
-    help_text="Set share visibility: private (local only), followers, or public.",
+    help_text="Set share visibility: private (you only), members (signed-in "
+    "accounts on this node), followers, or public.",
     epilog="""
     Examples:
       ohm okh visibility set 123e4567-… public

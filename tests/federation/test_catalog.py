@@ -90,7 +90,8 @@ async def test_build_catalog_index_from_manifests() -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_build_catalog_index_excludes_private_records() -> None:
+@pytest.mark.parametrize("hidden", [VisibilityLevel.PRIVATE, VisibilityLevel.MEMBERS])
+async def test_build_catalog_index_excludes_private_records(hidden) -> None:
     identity = generate_identity("Catalog Filter")
     private = MagicMock()
     private.id = UUID("340b030e-e3c6-4869-b947-4a24c52daaf1")
@@ -114,7 +115,7 @@ async def test_build_catalog_index_excludes_private_records() -> None:
     okh_service.get_provenance.return_value = None
 
     async def _visibility(mid):
-        return VisibilityLevel.PRIVATE if mid == private.id else VisibilityLevel.PUBLIC
+        return hidden if mid == private.id else VisibilityLevel.PUBLIC
 
     okh_service.get_visibility.side_effect = _visibility
 

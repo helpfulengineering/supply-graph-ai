@@ -1441,7 +1441,7 @@ async def get_okw_visibility(
     "/{id}/visibility",
     response_model=VisibilityResponse,
     summary="Set OKW facility visibility",
-    description="Set share policy: private (local only), followers, or public.",
+    description="Set share policy: private (you only), members (signed-in accounts on this node), followers, or public.",
 )
 async def set_okw_visibility(
     body: VisibilityBody,

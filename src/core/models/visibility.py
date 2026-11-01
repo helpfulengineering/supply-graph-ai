@@ -16,12 +16,15 @@ from pydantic import BaseModel, Field
 class VisibilityLevel(str, Enum):
     """How far a record may leave this node.
 
-    ``followers`` and ``public`` are both catalog-shareable today (federation
-    sync is already follow-gated). ``public`` is reserved for broader registry
-    listing later without another migration.
+    ``members`` is visible to every account signed in to this node but never
+    catalogued (members-visibility-adr.md). ``followers`` and ``public`` are
+    both catalog-shareable today (federation sync is already follow-gated).
+    ``public`` is reserved for broader registry listing later without another
+    migration.
     """
 
     PRIVATE = "private"
+    MEMBERS = "members"
     FOLLOWERS = "followers"
     PUBLIC = "public"
 
@@ -45,7 +48,9 @@ def is_shareable(level: VisibilityLevel | None) -> bool:
 class VisibilityBody(BaseModel):
     """Request body for PUT …/visibility."""
 
-    visibility: VisibilityLevel = Field(..., description="private | followers | public")
+    visibility: VisibilityLevel = Field(
+        ..., description="private | members | followers | public"
+    )
 
 
 class VisibilityResponse(BaseModel):
@@ -68,13 +73,16 @@ class ViewerScope:
     key rotation does not hide the rotator's own drafts from them.
 
     An empty scope is anonymous: it owns nothing, and sees only what is
-    shareable. Note that ``admin`` grants nothing extra here — an admin's record
-    scope is deliberately identical to any other authenticated user's, and
-    operators enumerate through the inventory surface instead (ADR §9).
+    shareable. ``authenticated`` adds ``members`` records; it is false for the
+    development identity, which is not a sign-in. Note that ``admin`` grants
+    nothing extra here — an admin's record scope is deliberately identical to
+    any other authenticated user's, and operators enumerate through the
+    inventory surface instead (ADR §9).
     """
 
     account_id: Optional[str] = None
     dids: frozenset[str] = frozenset()
+    authenticated: bool = False
 
     def owns(
         self,
@@ -130,4 +138,8 @@ def visible_to(
     created_by_account: Optional[str],
 ) -> bool:
     """True when ``viewer`` may see a record with this visibility and attribution."""
-    return is_shareable(level) or viewer.owns(created_by_did, created_by_account)
+    return (
+        is_shareable(level)
+        or (level is VisibilityLevel.MEMBERS and viewer.authenticated)
+        or viewer.owns(created_by_did, created_by_account)
+    )

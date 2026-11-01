@@ -27,7 +27,7 @@ class InventoryRow(BaseModel):
     created_by_did: Optional[str] = None
     #: The owning account id. The fallback identifier where no DID exists.
     created_by_account: Optional[str] = None
-    #: How far this record may travel — private, followers, public.
+    #: How far this record may travel — private, members, followers, public.
     visibility: str
     #: Bytes on the object store. What a migration needs to plan, and what
     #: makes an orphan or a runaway upload visible.

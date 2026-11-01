@@ -454,7 +454,7 @@ export interface paths {
         get: operations["get_okh_visibility_api_okh__id__visibility_get"];
         /**
          * Set OKH manifest visibility
-         * @description Set share policy: private (local only), followers, or public.
+         * @description Set share policy: private (you only), members (signed-in accounts on this node), followers, or public.
          */
         put: operations["set_okh_visibility_api_okh__id__visibility_put"];
         post?: never;
@@ -1413,7 +1413,7 @@ export interface paths {
         get: operations["get_okw_visibility_api_okw__id__visibility_get"];
         /**
          * Set OKW facility visibility
-         * @description Set share policy: private (local only), followers, or public.
+         * @description Set share policy: private (you only), members (signed-in accounts on this node), followers, or public.
          */
         put: operations["set_okw_visibility_api_okw__id__visibility_put"];
         post?: never;
@@ -10952,19 +10952,21 @@ export interface components {
          * @description Request body for PUT …/visibility.
          */
         VisibilityBody: {
-            /** @description private | followers | public */
+            /** @description private | members | followers | public */
             visibility: components["schemas"]["VisibilityLevel"];
         };
         /**
          * VisibilityLevel
          * @description How far a record may leave this node.
          *
-         *     ``followers`` and ``public`` are both catalog-shareable today (federation
-         *     sync is already follow-gated). ``public`` is reserved for broader registry
-         *     listing later without another migration.
+         *     ``members`` is visible to every account signed in to this node but never
+         *     catalogued (members-visibility-adr.md). ``followers`` and ``public`` are
+         *     both catalog-shareable today (federation sync is already follow-gated).
+         *     ``public`` is reserved for broader registry listing later without another
+         *     migration.
          * @enum {string}
          */
-        VisibilityLevel: "private" | "followers" | "public";
+        VisibilityLevel: "private" | "members" | "followers" | "public";
         /**
          * VisibilityResponse
          * @description Visibility for one record.

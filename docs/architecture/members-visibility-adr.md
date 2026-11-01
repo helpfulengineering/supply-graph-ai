@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — not yet implemented.
+Accepted — implemented in #574.
 
 ## Date
 

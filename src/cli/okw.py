@@ -541,10 +541,12 @@ async def visibility_show(
 @visibility_group.command("set")
 @click.argument("facility_id", type=str)
 @click.argument(
-    "level", type=click.Choice(["private", "followers", "public"], case_sensitive=False)
+    "level",
+    type=click.Choice([v.value for v in VisibilityLevel], case_sensitive=False),
 )
 @standard_cli_command(
-    help_text="Set share visibility: private (local only), followers, or public.",
+    help_text="Set share visibility: private (you only), members (signed-in "
+    "accounts on this node), followers, or public.",
     epilog="""
     Examples:
       ohm okw visibility set 123e4567-… public
