@@ -58,6 +58,7 @@ nav:
     - Members visibility ADR: architecture/members-visibility-adr.md
     - Member sign-in ADR: architecture/member-sign-in-adr.md
     - Curated lists ADR: architecture/curated-lists-adr.md
+    - Organisation attribution ADR: architecture/organisation-attribution-adr.md
     - Identity Model: architecture/identity-model.md
     - Security Modes: architecture/security-modes.md
     - Optional Site Layer: architecture/site-layer.md

@@ -54,7 +54,7 @@ _Avoid_: calling a member an "edge node" or "user node".
 **Organisation** — An identity that members publish on behalf of, administered by one or more persons. A makerspace is one kind; a relief organisation such as Distribute Aid is another. Independent of nodes: an organisation may run its own node, or be one of several hosted on someone else's.
 _Avoid_: "space" outside code (it reads as makerspace only).
 
-**Affiliation** — An organisation's signed statement that a given person belongs to it. A person may hold several. Only an affiliated person may publish on behalf of an organisation. Distinct from being a member of a node.
+**Affiliation** — An organisation's signed, revocable, expiring permission for a person to publish on its behalf. A person may hold several. Only an affiliated person may publish on behalf of an organisation; a lapsed affiliation stops new records naming the organisation but does not change records made while it was held. Distinct from being a member of a node.
 
 ---
 

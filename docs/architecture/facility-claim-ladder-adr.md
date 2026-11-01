@@ -12,9 +12,12 @@ onboarding does not treat local write admin as global ownership.
 ## Context
 
 OHM facility admin (create / edit / delete / Sharing) uses **local write
-permission** on this node. Optional soft attribution (`author` /
-`on_behalf_of`) is self-asserted provenance, not an exclusive claim that a
-facility “belongs” to someone across the federation.
+permission** on this node. Optional soft attribution (`author`) is
+self-asserted provenance, not an exclusive claim that a facility “belongs” to
+someone across the federation. `on_behalf_of` is no longer self-asserted: it
+requires an affiliation (see [Organisation attribution ADR](organisation-attribution-adr.md)),
+and even then attributes the record to an organisation rather than claiming
+the facility.
 
 Operators and users will still ask “how do I prove this is my fablab?” under
 adversarial or multi-operator conditions. Building exclusive claim UX now would
@@ -29,7 +32,7 @@ MoM cards are remote adaptors).
 
 | Rung | Mechanism | Trust gained | Notes |
 |---|---|---|---|
-| 0 | Soft `author` / `on_behalf_of` on create | Self-asserted | Already available on the facility form |
+| 0 | Soft `author` on create; `on_behalf_of` requires an affiliation | `author` self-asserted; `on_behalf_of` grant-backed | `on_behalf_of` superseded by the [Organisation attribution ADR](organisation-attribution-adr.md) |
 | 1 | Domain bind for a space DID | Control of a DNS/web origin | Existing bindings surface |
 | 2 | Peer attestations / vouches | Social endorsement | Attestation / reputation APIs exist; scoring deferred |
 | 3 | Out-of-band challenge (operator-mediated) | Human verification | Not designed yet |
