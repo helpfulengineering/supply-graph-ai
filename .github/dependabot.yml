@@ -1,6 +1,6 @@
 version: 2
 
-# Security fixes for the Python lockfile arrive as one grouped PR (#594).
+# Security fixes arrive as one grouped PR per lockfile (#594, #601).
 # Version updates are off (limit 0); security updates use this configuration
 # and need "Dependabot security updates" enabled in the repository settings.
 updates:
@@ -11,5 +11,14 @@ updates:
     open-pull-requests-limit: 0
     groups:
       python-security:
+        applies-to: security-updates
+        patterns: ["*"]
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
+    groups:
+      frontend-security:
         applies-to: security-updates
         patterns: ["*"]

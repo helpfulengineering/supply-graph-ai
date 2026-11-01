@@ -153,24 +153,30 @@ docker build --build-arg APP_VERSION=0.8.0 -t openhardwaremanager:0.8.0 .
 
 ## Dependency audit
 
-`make audit` runs pip-audit against the lockfile, all extras included. It asks
-a live advisory database, so its answer can change while the code doesn't.
-That's why it is not part of `make ready`, and why CI runs it in three places:
+`make audit` audits both lockfiles: pip-audit against `uv.lock` (all extras
+included), then `npm audit` against `frontend/package-lock.json`. The npm audit
+fails on high and critical advisories only. It asks a live advisory database, so
+its answer can change while the code doesn't. That's why it is not part of
+`make ready`, and why CI runs it in three places:
 
-- **Pull requests**: only when `pyproject.toml`, `uv.lock`, the `Makefile` or
+- **Pull requests**: only when `pyproject.toml`, `uv.lock`,
+  `frontend/package.json`, `frontend/package-lock.json`, the `Makefile` or
   `ci-cd.yml` changes, so a PR answers for its own dependency changes and not
   for advisories published since the last bump.
 - **Daily on `main`** (`dependency-audit.yml`): on failure it opens, or comments
   on, one issue titled *Dependency audit failing on main*.
 - **Every release** (`release.yml`): unconditionally.
 
-Dependabot (`.github/dependabot.yml`) opens one grouped PR for Python security
-fixes; it needs *Dependabot security updates* enabled in the repository
-settings. To fix a finding by hand, raise the package's floor in
+Dependabot (`.github/dependabot.yml`) opens one grouped security PR per
+lockfile; it needs *Dependabot security updates* enabled in the repository
+settings. To fix a Python finding by hand, raise the package's floor in
 `pyproject.toml` (with the advisory IDs in a comment), run
 `uv lock --upgrade-package <name>==<fixed version>`, and re-run `make audit`.
 In the output, the *Skip Reason* table is informational: the spaCy model is
-installed from a URL, so pip-audit can't check it.
+installed from a URL, so pip-audit can't check it. For a frontend finding, run
+`npm audit fix` (without `--force`) in `frontend/`. That stays within the ranges
+in `package.json`. If the fix needs a major upgrade, do it as its own change and
+gate it with `npm run frontend-ready`.
 
 ## Post-publish smoke test
 

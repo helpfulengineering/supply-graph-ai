@@ -40,13 +40,28 @@ def test_every_workflow_audits_through_one_definition():
         assert "pip-audit" not in text, f"{path.name} calls pip-audit directly"
 
 
-def test_the_audit_reads_the_lockfile_not_the_venv():
-    """The venv also holds whatever tools CI installed to run the audit."""
+def _audit_recipe() -> str:
     recipe = re.search(
         r"^audit:.*?(?=^\S|\Z)", (_ROOT / "Makefile").read_text(), re.S | re.M
     )
     assert recipe, "no `audit` target in the Makefile"
-    assert "uv export" in recipe.group(0)
+    return recipe.group(0)
+
+
+def test_the_audit_reads_the_lockfile_not_the_venv():
+    """The venv also holds whatever tools CI installed to run the audit."""
+    assert "uv export" in _audit_recipe()
+
+
+def test_the_audit_covers_the_frontend_lockfile():
+    """#601: 81 npm advisories accrued because only Python was audited.
+
+    Moderate and low are tolerated: what remains there is dev tooling whose
+    only fix is a downgrade or a major upgrade.
+    """
+    recipe = _audit_recipe()
+    assert "npm audit" in recipe and "--package-lock-only" in recipe
+    assert "--audit-level=high" in recipe
 
 
 def test_a_pull_request_audits_only_its_own_dependency_changes():
@@ -54,7 +69,8 @@ def test_a_pull_request_audits_only_its_own_dependency_changes():
     changes = ci["jobs"]["changes"]
     assert "deps" in changes["outputs"]
     filter_script = "\n".join(str(s.get("run", "")) for s in changes["steps"])
-    assert r"pyproject\.toml" in filter_script and r"uv\.lock" in filter_script
+    for lockfile in (r"pyproject\.toml", r"uv\.lock", r"frontend/package"):
+        assert lockfile in filter_script
 
     security = ci["jobs"]["security"]
     assert "changes" in security["needs"]
@@ -81,7 +97,7 @@ def test_drift_on_main_is_found_on_a_schedule_and_reported():
     assert report and "gh issue" in report[0]["run"]
 
 
-def test_dependabot_raises_python_security_fixes():
+def test_dependabot_raises_security_fixes_for_both_lockfiles():
     config = yaml.safe_load((_ROOT / ".github" / "dependabot.yml").read_text())
-    ecosystems = {u["package-ecosystem"] for u in config["updates"]}
-    assert "uv" in ecosystems
+    ecosystems = {(u["package-ecosystem"], u["directory"]) for u in config["updates"]}
+    assert {("uv", "/"), ("npm", "/frontend")} <= ecosystems
