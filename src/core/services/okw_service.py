@@ -836,6 +836,7 @@ class OKWService(BaseService["OKWService"]):
         status: Optional[str] = None,
         region: Optional[str] = None,
         access_type: Optional[str] = None,
+        viewer: Optional[ViewerScope] = None,
     ) -> Dict[str, Any]:
         """Build the unified, server-filtered network surface: local OKW ∪ MoM.
 
@@ -847,13 +848,16 @@ class OKWService(BaseService["OKWService"]):
         coordinates are counted (``dropped_no_coords``) rather than plotted. MoM
         comes from a 24h TTL cache and degrades gracefully (``mom_available``).
 
+        ``viewer`` scopes the local half, as for matching (#503, #611). Pass one
+        from any request handler; ``None`` is for trusted internal callers.
+
         Returns:
             Dict with ``spaces`` (filtered/ranked), ``total``, per-source counts,
             ``dropped_no_coords``, and ``mom_available``.
         """
         candidates, dropped_no_coords, mom_available = (
             await self._load_network_candidates(
-                include_mom=include_mom, force_refresh=force_refresh
+                include_mom=include_mom, force_refresh=force_refresh, viewer=viewer
             )
         )
         filtered = filter_network_spaces(
