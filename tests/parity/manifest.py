@@ -664,6 +664,15 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "cannot show the claim behind any of them.",
         "/api/identity/spaces/{space_did}/claim",
     ),
+    *_decision(
+        "planned",
+        "backlog",
+        "Bulk visibility change (#576). The account page's 'Your records' "
+        "table calls these once it lists the caller's records with mine=true "
+        "and previews the audience before applying.",
+        "/api/okh/visibility",
+        "/api/okw/visibility",
+    ),
 )
 
 

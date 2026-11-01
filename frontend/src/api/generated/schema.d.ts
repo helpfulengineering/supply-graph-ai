@@ -464,6 +464,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set visibility on many OKH manifests
+         * @description Set one share policy on many manifests. Each id reports changed, not_yours (you did not create it), or not_found (missing, or you cannot see it).
+         */
+        post: operations["set_okh_visibility_bulk_api_okh_visibility_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/manifests/{id}": {
         parameters: {
             query?: never;
@@ -1420,6 +1440,26 @@ export interface paths {
          */
         put: operations["set_okw_visibility_api_okw__id__visibility_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set visibility on many OKW facilities
+         * @description Set one share policy on many facilities. Each id reports changed, not_yours (you did not create it), or not_found (missing, or you cannot see it).
+         */
+        post: operations["set_okw_visibility_bulk_api_okw_visibility_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4223,6 +4263,41 @@ export interface components {
         BreakGlassRequest: {
             /** Reason */
             reason: string;
+        };
+        /**
+         * BulkVisibilityBody
+         * @description Request body for POST …/visibility: one level for many records.
+         */
+        BulkVisibilityBody: {
+            /** Ids */
+            ids: string[];
+            /** @description private | members | followers | public */
+            visibility: components["schemas"]["VisibilityLevel"];
+        };
+        /**
+         * BulkVisibilityResponse
+         * @description One result per requested id, in request order.
+         */
+        BulkVisibilityResponse: {
+            /** Results */
+            results: components["schemas"]["BulkVisibilityResult"][];
+        };
+        /**
+         * BulkVisibilityResult
+         * @description What happened to one id. ``visibility`` is set only when ``changed``.
+         */
+        BulkVisibilityResult: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "changed" | "not_yours" | "not_found";
+            visibility?: components["schemas"]["VisibilityLevel"] | null;
         };
         /**
          * Capability
@@ -11978,6 +12053,58 @@ export interface operations {
             };
         };
     };
+    set_okh_visibility_bulk_api_okh_visibility_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkVisibilityBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkVisibilityResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     delete_okh_manifest_alias_api_okh_manifests__id__delete: {
         parameters: {
             query?: never;
@@ -14214,6 +14341,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VisibilityResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_okw_visibility_bulk_api_okw_visibility_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkVisibilityBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkVisibilityResponse"];
                 };
             };
             /** @description Bad Request */

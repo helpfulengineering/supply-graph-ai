@@ -54,6 +54,18 @@ ohm okw list-facilities --mine
 Over the API, add `mine=true` to `GET /api/okh`, `GET /api/okw` or
 `GET /api/okw/search`.
 
+To change several records at once, give `visibility set` more than one id:
+
+```bash
+ohm okh visibility set <id> <id> <id> members
+```
+
+Each id reports one of three results: `changed`; `not_yours`, if someone else
+created it; or `not_found`, if it doesn't exist or you can't see it. The
+records you own are changed even when others in the same request are refused.
+Over the API, `POST /api/okh/visibility` and `POST /api/okw/visibility` take
+`{"ids": [...], "visibility": "members"}`, with at most 500 ids per request.
+
 Choosing a new setting on a design or facility doesn't apply it straight away.
 The page first says who will receive the record at that setting, and the change
 happens only when you confirm it.

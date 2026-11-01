@@ -15,7 +15,9 @@ from src.config import get_security_policy
 from ..models.auth import AuthenticatedUser
 from ..models.visibility import (
     DEV_LOCAL_ACCOUNT,
+    BulkVisibilityResult,
     ViewerScope,
+    VisibilityLevel,
     is_shareable,
     visible_to,
 )
@@ -299,6 +301,36 @@ async def require_ownership(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"You do not have write access to this {noun}.",
         )
+
+
+async def set_visibility_each(
+    service: Any,
+    ids: list[Any],
+    level: VisibilityLevel,
+    user: Optional[AuthenticatedUser],
+) -> list[BulkVisibilityResult]:
+    """Apply the single-record visibility rule to each id, reporting per id.
+
+    ``not_found`` covers both a missing id and one ``user`` may not read, as
+    ``can_read`` callers do; ``not_yours`` is the 403 of ``require_ownership``.
+    """
+    viewer = await viewer_scope(user)
+    results = []
+    for record_id in ids:
+        if await service.get(record_id) is None or not await can_read(
+            service, record_id, user
+        ):
+            results.append(BulkVisibilityResult(id=record_id, outcome="not_found"))
+        elif not viewer.owns(*await service.owner_attribution(str(record_id))):
+            results.append(BulkVisibilityResult(id=record_id, outcome="not_yours"))
+        else:
+            changed = await service.set_visibility(record_id, level)
+            results.append(
+                BulkVisibilityResult(
+                    id=record_id, outcome="changed", visibility=changed
+                )
+            )
+    return results
 
 
 async def resolve_provenance(
