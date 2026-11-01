@@ -7,7 +7,7 @@ manifest content hash. Not federated: a receiving node decides what to re-share.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -58,6 +58,29 @@ class VisibilityResponse(BaseModel):
 
     id: UUID
     visibility: VisibilityLevel
+
+
+class BulkVisibilityBody(BaseModel):
+    """Request body for POST …/visibility: one level for many records."""
+
+    ids: list[UUID] = Field(..., min_length=1, max_length=500)
+    visibility: VisibilityLevel = Field(
+        ..., description="private | members | followers | public"
+    )
+
+
+class BulkVisibilityResult(BaseModel):
+    """What happened to one id. ``visibility`` is set only when ``changed``."""
+
+    id: UUID
+    outcome: Literal["changed", "not_yours", "not_found"]
+    visibility: Optional[VisibilityLevel] = None
+
+
+class BulkVisibilityResponse(BaseModel):
+    """One result per requested id, in request order."""
+
+    results: list[BulkVisibilityResult]
 
 
 @dataclass(frozen=True)

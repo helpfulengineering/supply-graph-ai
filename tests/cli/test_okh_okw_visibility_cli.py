@@ -45,6 +45,14 @@ def test_visibility_set_accepts_every_level():
         assert list(level.type.choices) == [v.value for v in VisibilityLevel]
 
 
+def test_visibility_set_takes_many_ids():
+    """Several ids go to the bulk endpoint, POST …/visibility (#576)."""
+    for group in (okh_group, okw_group):
+        cmd = group.commands["visibility"].commands["set"]
+        [ids] = [p for p in cmd.params if p.name == "ids"]
+        assert ids.nargs == -1 and ids.required
+
+
 def test_listing_offers_only_your_own_records():
     """`--mine` mirrors the API's mine=true filter (#576)."""
     runner = CliRunner()

@@ -27,6 +27,8 @@ from ...models.disclosure import (
     DisclosureResponse,
 )
 from ...models.visibility import (
+    BulkVisibilityBody,
+    BulkVisibilityResponse,
     VisibilityBody,
     VisibilityLevel,
     VisibilityResponse,
@@ -53,6 +55,7 @@ from ..dependencies import (
     require_ownership,
     require_write,
     resolve_provenance,
+    set_visibility_each,
     viewer_scope,
 )
 from ..constants.client_errors import (
@@ -1472,6 +1475,23 @@ async def set_okw_visibility(
     )
     level = await okw_service.set_visibility(id, body.visibility)
     return VisibilityResponse(id=id, visibility=level)
+
+
+@router.post(
+    "/visibility",
+    response_model=BulkVisibilityResponse,
+    summary="Set visibility on many OKW facilities",
+    description="Set one share policy on many facilities. Each id reports changed, "
+    "not_yours (you did not create it), or not_found (missing, or you cannot see it).",
+)
+async def set_okw_visibility_bulk(
+    body: BulkVisibilityBody,
+    okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> Any:
+    return BulkVisibilityResponse(
+        results=await set_visibility_each(okw_service, body.ids, body.visibility, user)
+    )
 
 
 @router.get(

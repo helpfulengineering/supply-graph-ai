@@ -539,17 +539,19 @@ async def visibility_show(
 
 
 @visibility_group.command("set")
-@click.argument("facility_id", type=str)
+@click.argument("ids", nargs=-1, required=True, type=str)
 @click.argument(
     "level",
     type=click.Choice([v.value for v in VisibilityLevel], case_sensitive=False),
 )
 @standard_cli_command(
     help_text="Set share visibility: private (you only), members (signed-in "
-    "accounts on this node), followers, or public.",
+    "accounts on this node), followers, or public. Several ids are changed in "
+    "one request, with a result per id.",
     epilog="""
     Examples:
       ohm okw visibility set 123e4567-… public
+      ohm okw visibility set 123e4567-… 89abcdef-… members
     """,
     async_cmd=True,
     track_performance=True,
@@ -560,7 +562,7 @@ async def visibility_show(
 @click.pass_context
 async def visibility_set(
     ctx,
-    facility_id: str,
+    ids: tuple[str, ...],
     level: str,
     verbose: bool,
     output_format: str,
@@ -574,11 +576,18 @@ async def visibility_set(
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okw-visibility-set")
     try:
-        response = await cli_ctx.api_client.request(
-            "PUT",
-            f"/api/okw/{facility_id}/visibility",
-            json_data={"visibility": level.lower()},
-        )
+        if len(ids) == 1:
+            response = await cli_ctx.api_client.request(
+                "PUT",
+                f"/api/okw/{ids[0]}/visibility",
+                json_data={"visibility": level.lower()},
+            )
+        else:
+            response = await cli_ctx.api_client.request(
+                "POST",
+                "/api/okw/visibility",
+                json_data={"ids": list(ids), "visibility": level.lower()},
+            )
         click.echo(json.dumps(response, indent=2, default=str))
         cli_ctx.end_command_tracking()
     except Exception as e:

@@ -55,6 +55,7 @@ from ..dependencies import (
     require_ownership,
     require_write,
     resolve_provenance,
+    set_visibility_each,
     viewer_scope,
 )
 from ...models.auth import AuthenticatedUser
@@ -73,7 +74,12 @@ from ..models.okh.collection import (
     OKHTemplateResponse,
 )
 from ...models.provenance import RecordProvenance
-from ...models.visibility import VisibilityBody, VisibilityResponse
+from ...models.visibility import (
+    BulkVisibilityBody,
+    BulkVisibilityResponse,
+    VisibilityBody,
+    VisibilityResponse,
+)
 from ..error_handlers import create_error_response
 from ..okh_file_urls import api_base_from_request, enrich_manifest_file_urls
 
@@ -487,6 +493,23 @@ async def set_okh_visibility(
     )
     level = await okh_service.set_visibility(id, body.visibility)
     return VisibilityResponse(id=id, visibility=level)
+
+
+@router.post(
+    "/visibility",
+    response_model=BulkVisibilityResponse,
+    summary="Set visibility on many OKH manifests",
+    description="Set one share policy on many manifests. Each id reports changed, "
+    "not_yours (you did not create it), or not_found (missing, or you cannot see it).",
+)
+async def set_okh_visibility_bulk(
+    body: BulkVisibilityBody,
+    okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> Any:
+    return BulkVisibilityResponse(
+        results=await set_visibility_each(okh_service, body.ids, body.visibility, user)
+    )
 
 
 @router.delete(
