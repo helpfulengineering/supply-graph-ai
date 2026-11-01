@@ -130,7 +130,23 @@ test("LLM generation without an account says to register, in plain words", async
 test("a process removed in the editor is gone from the downloaded YAML", async ({
   page,
 }) => {
-  test.fail(true, "#562: process_requirements and tsdc keep the old process");
+  // Stands in for the node's derivation, which the backend suite covers; what
+  // this checks is that the editor applies it before anything leaves.
+  await page.route("**/api/okh/normalize", async (route) => {
+    const { content } = route.request().postDataJSON();
+    const names: string[] = content.manufacturing_processes;
+    await route.fulfill({
+      json: {
+        content: {
+          ...content,
+          manufacturing_specs: {
+            process_requirements: names.map((process_name) => ({ process_name })),
+          },
+          tsdc: names.includes("PCB Fabrication") ? ["PCB"] : [],
+        },
+      },
+    });
+  });
   await mockGeneration(page);
   await generate(page);
 

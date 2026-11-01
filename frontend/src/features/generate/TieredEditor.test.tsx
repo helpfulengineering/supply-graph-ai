@@ -16,6 +16,22 @@ const base = {
 };
 
 describe("TieredEditor", () => {
+  it("shows TSDC codes as following the processes, not as their own list (#562)", () => {
+    render(
+      <TieredEditor manifest={{ ...base, tsdc: ["3DP", "LAS"] }} onChange={vi.fn()} />,
+    );
+    const codes = screen.getByRole("list", {
+      name: "Technology-specific documentation criteria values",
+    });
+    expect(codes).toHaveTextContent("3DP");
+    expect(codes).toHaveTextContent("LAS");
+    expect(screen.queryByRole("button", { name: "Remove 3DP" })).toBeNull();
+    expect(
+      screen.queryByPlaceholderText(/add technology-specific/i),
+    ).toBeNull();
+    expect(screen.getByText(/follow the manufacturing processes/i)).toBeInTheDocument();
+  });
+
   it("flags required fields that were not extracted", () => {
     render(<TieredEditor manifest={{ ...base, title: "" }} onChange={vi.fn()} />);
     expect(screen.getAllByText("not extracted").length).toBeGreaterThan(0);

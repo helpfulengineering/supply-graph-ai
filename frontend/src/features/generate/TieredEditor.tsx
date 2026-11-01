@@ -161,6 +161,40 @@ function ListField({
   );
 }
 
+/** A list the node derives from another field: shown, never edited here. */
+function DerivedField({ field, manifest }: EditorProps & { field: FieldSpec }) {
+  const raw = getPath(manifest, field.path);
+  const items = Array.isArray(raw) ? raw.map(asText) : [];
+  return (
+    <div>
+      <span className="block text-sm font-medium text-foreground">
+        {field.label}
+      </span>
+      {field.hint && (
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {field.hint}
+        </span>
+      )}
+      <ul
+        className="mt-1 flex flex-wrap gap-1.5"
+        aria-label={`${field.label} values`}
+      >
+        {items.map((item, i) => (
+          <li
+            key={`${item}-${i}`}
+            className="rounded-full bg-muted px-2.5 py-1 text-xs"
+          >
+            {item}
+          </li>
+        ))}
+        {items.length === 0 && (
+          <li className="text-xs text-muted-foreground">none</li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
 /** Nested values: read-only view plus a raw-JSON editor that validates on change. */
 function NestedField({
   field,
@@ -234,6 +268,7 @@ function NestedField({
 function Field(props: EditorProps & { field: FieldSpec }) {
   if (props.field.kind === "list") return <ListField {...props} />;
   if (props.field.kind === "nested") return <NestedField {...props} />;
+  if (props.field.kind === "derived") return <DerivedField {...props} />;
   return <ScalarField {...props} />;
 }
 

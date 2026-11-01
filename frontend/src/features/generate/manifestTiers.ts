@@ -17,7 +17,8 @@
  * why a proper nested editor is the top follow-up.
  */
 
-export type FieldKind = "scalar" | "list" | "nested";
+/** `derived` lists are shown, not edited: the node computes them from another field. */
+export type FieldKind = "scalar" | "list" | "nested" | "derived";
 
 export interface FieldSpec {
   /** Dot path into the manifest, e.g. "license.hardware". */
@@ -69,7 +70,12 @@ export const TIER2_GROUPS: TierGroup[] = [
         kind: "list",
         hint: "The processes needed to produce this design.",
       },
-      { path: "tsdc", label: "Technology-specific documentation criteria", kind: "list" },
+      {
+        path: "tsdc",
+        label: "Technology-specific documentation criteria",
+        kind: "derived",
+        hint: "These follow the manufacturing processes above: remove a process and its code goes too.",
+      },
       {
         path: "materials",
         label: "Materials",
