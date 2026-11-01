@@ -13,10 +13,15 @@ import { Badge } from "../../components/ui/Badge";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_LABEL } from "../../components/ui/typography";
 
-const LEVELS: VisibilityLevel[] = ["private", "members", "followers", "public"];
+export const LEVELS: VisibilityLevel[] = [
+  "private",
+  "members",
+  "followers",
+  "public",
+];
 
 /** Who receives a record at each level — shown before a change applies (#576). */
-const AUDIENCE: Record<VisibilityLevel, string> = {
+export const AUDIENCE: Record<VisibilityLevel, string> = {
   private:
     "Only you. Nobody else can list, search or open it, and it is never sent to another node.",
   members:

@@ -37,6 +37,8 @@ export interface FetchOkhListParams {
   sort_by?: string;
   sort_order?: "asc" | "desc";
   filter?: string;
+  /** Only the caller's own manifests, whatever their visibility. */
+  mine?: boolean;
 }
 
 const EMPTY_PAGINATION: OkhPagination = {
@@ -64,6 +66,7 @@ export async function fetchOkhList(
         sort_by: params.sort_by,
         sort_order: params.sort_order,
         filter: params.filter,
+        mine: params.mine,
       },
     },
   });
@@ -177,6 +180,8 @@ export async function validateOkh(
 export type RecordProvenance = components["schemas"]["RecordProvenance"];
 export type VisibilityLevel = components["schemas"]["VisibilityLevel"];
 export type VisibilityResponse = components["schemas"]["VisibilityResponse"];
+export type BulkVisibilityResult =
+  components["schemas"]["BulkVisibilityResult"];
 
 export interface CreateProvenanceOpts {
   author?: string;
@@ -271,6 +276,24 @@ export async function setOkhVisibility(
     );
   }
   return data;
+}
+
+/** Set one level on many manifests; one result per id, in request order. */
+export async function setOkhVisibilityBulk(
+  ids: string[],
+  visibility: VisibilityLevel,
+): Promise<BulkVisibilityResult[]> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/okh/visibility",
+    { body: { ids, visibility } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to set visibility (HTTP ${response.status})`),
+    );
+  }
+  return data.results;
 }
 
 // --- generate-from-URL ----------------------------------------------------
