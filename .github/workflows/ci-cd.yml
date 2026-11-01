@@ -63,7 +63,7 @@ jobs:
           # A PR's dependency audit answers for the PR's own dependency changes.
           # Advisories published against an unchanged lockfile are drift on
           # main, found by dependency-audit.yml instead (#594).
-          deps_pattern='^(pyproject\.toml|uv\.lock|Makefile|\.github/workflows/ci-cd\.yml)$'
+          deps_pattern='^(pyproject\.toml|uv\.lock|frontend/package(-lock)?\.json|Makefile|\.github/workflows/ci-cd\.yml)$'
           if echo "$changed" | grep -qE "$deps_pattern"; then deps=true; else deps=false; fi
           echo "dependencies touched: $deps"
           echo "deps=$deps" >> "$GITHUB_OUTPUT"
