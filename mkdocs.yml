@@ -57,6 +57,7 @@ nav:
     - File type taxonomy ADR: architecture/file-type-taxonomy-adr.md
     - Members visibility ADR: architecture/members-visibility-adr.md
     - Member sign-in ADR: architecture/member-sign-in-adr.md
+    - Member sign-in security design: architecture/member-sign-in-security.md
     - Curated lists ADR: architecture/curated-lists-adr.md
     - Organisation attribution ADR: architecture/organisation-attribution-adr.md
     - Identity Model: architecture/identity-model.md

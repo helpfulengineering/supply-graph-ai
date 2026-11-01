@@ -52,5 +52,6 @@ endpoint is rate limited.
 
 ## Related
 
+- [Member sign-in: security design](member-sign-in-security.md)
 - [Identity Model](identity-model.md)
 - [Security Modes](security-modes.md)
