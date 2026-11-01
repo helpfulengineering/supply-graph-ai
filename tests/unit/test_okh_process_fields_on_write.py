@@ -43,6 +43,9 @@ class _CapturingManager:
     async def put_object(self, key, data, *args, **kwargs):
         self.written[key] = data
 
+    async def get_object(self, key):
+        return self.written.get(key, b"{}")
+
 
 class _FakeStorage:
     def __init__(self) -> None:
