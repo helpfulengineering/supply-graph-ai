@@ -12,7 +12,7 @@ const BADGES: Record<
 };
 
 /** Who a record is shared with, on list cards and search results (#576). */
-export function VisibilityBadge({ level }: { level?: VisibilityLevel }) {
+export function VisibilityBadge({ level }: { level?: VisibilityLevel | null }) {
   if (!level) return null;
   const { label, variant } = BADGES[level];
   return <Badge variant={variant}>{label}</Badge>;

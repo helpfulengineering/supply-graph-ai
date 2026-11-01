@@ -539,7 +539,7 @@ async def get_okw_template(http_request: Request = None) -> Any:
     Return the unified network surface for the map + list views: local OKW
     facilities unioned with Maps of Making (MoM) spaces, source-labeled and
     projected to a common shape `{id, name, lat, lon, city, region, country,
-    source, status, processes, url}`.
+    source, status, processes, url, visibility}` — `visibility` is null for MoM.
 
     Server-side filters:
     - Cross-source (hard): `country`, `city`, `process` (canonical id), `source`

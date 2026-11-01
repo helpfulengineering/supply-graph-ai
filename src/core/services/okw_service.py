@@ -870,8 +870,18 @@ class OKWService(BaseService["OKWService"]):
             region=region,
             access_type=access_type,
         )
-        # Strip the internal facility back-reference from the browse payload.
-        spaces = [{k: v for k, v in sp.items() if k != "_facility"} for sp in filtered]
+        # Strip the internal facility back-reference from the browse payload, and
+        # badge local spaces with their visibility (#576) — here rather than in
+        # the shared loader, which the match pool uses and has no need of it.
+        spaces = []
+        for sp in filtered:
+            space = {k: v for k, v in sp.items() if k != "_facility"}
+            space["visibility"] = (
+                (await self.get_visibility(sp["_facility"].id)).value
+                if sp["source"] == "local"
+                else None
+            )
+            spaces.append(space)
         return {
             "spaces": spaces,
             "total": len(spaces),
