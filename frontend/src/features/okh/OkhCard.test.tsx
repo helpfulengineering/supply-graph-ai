@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { OkhManifest } from "../../types/okh";
 import { OkhCard } from "./OkhCard";
+import { OkhListRow } from "./OkhListRow";
 
 function baseOkh(overrides: Partial<OkhManifest> = {}): OkhManifest {
   return {
@@ -63,5 +64,17 @@ describe("OkhCard", () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText(/4148beb6/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^EN$/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the design's visibility, as list and search rows carry it (#576)", () => {
+    render(<OkhCard okh={{ ...baseOkh(), visibility: "members" }} />);
+    expect(screen.getByText("Members")).toBeInTheDocument();
+  });
+});
+
+describe("OkhListRow", () => {
+  it("shows the design's visibility (#576)", () => {
+    render(<OkhListRow okh={{ ...baseOkh(), visibility: "private" }} />);
+    expect(screen.getByText("Private")).toBeInTheDocument();
   });
 });

@@ -5,15 +5,16 @@ import { useRouter } from "next/navigation";
 import { Badge } from "../../components/ui/Badge";
 import { ProcessChip } from "../../components/ui/ProcessChip";
 import { humanizeProcessId } from "../network/deriveFilterOptions";
-import type { OkhManifest } from "../../types/okh";
+import type { OkhListItem } from "../../api/ohm/okh";
 import { deriveCategories, UNCATEGORIZED } from "./categories";
 import { formatOkhDisplayTitle } from "./formatOkhDisplayTitle";
 import { normalizeHardwareLicense } from "./normalizeHardwareLicense";
+import { VisibilityBadge } from "./VisibilityBadge";
 import { CARD_TITLE } from "../../components/ui/typography";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  okh: OkhManifest;
+  okh: OkhListItem;
 }
 
 export function OkhCard({ okh }: Props) {
@@ -61,6 +62,7 @@ export function OkhCard({ okh }: Props) {
         )}
 
         <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <VisibilityBadge level={okh.visibility} />
           {author && <span className="truncate max-w-[180px]">{author}</span>}
           {okh.version && <span>v{okh.version}</span>}
           {license && <span className="truncate max-w-[140px]">{license}</span>}
