@@ -33,7 +33,7 @@ dependencies = [
     "networkx",
     # Storage / cloud
     "aiofiles>=23.2.1",
-    "aiohttp>=3.14.3",
+    "aiohttp>=3.14.4",
     "boto3>=1.26.0",
     "azure-storage-blob>=12.14.0",
     "google-cloud-storage>=2.7.0",
@@ -73,11 +73,12 @@ dependencies = [
     "pydeck>=0.8.0",
     # Synthetic data
     "faker>=19.0.0",
-    "geopy>=2.3.0",
+    "geopy>=2.5.0",
     # Document parsing
     # >=6.15.0 fixes PYSEC-2026-3655 and PYSEC-2026-3656.
     # >=6.16.1 fixes CVE-2026-84309, CVE-2026-84310, CVE-2026-84311.
-    "pypdf>=6.16.1",
+    # >=6.21.4 fixes 26 advisories published Sep–Oct 2026 (#594).
+    "pypdf>=6.21.4",
     "python-docx>=1.0.0",
     # TOML
     "tomli_w>=1.2.0",
@@ -99,7 +100,7 @@ dev = [
     "httpx>=0.24.0",
     # Pin to match .pre-commit-config.yaml so `make format` and the black hook agree.
     # 26.3.1+ required for CVE-2026-32274 (arbitrary cache path writes).
-    "black==26.3.1",
+    "black==26.10.1",
 ]
 docs = [
     # Pinned below 2.0 deliberately. MkDocs 2.0 (https://www.encode.io/mkdocs/)
@@ -148,8 +149,8 @@ markers = [
 override-dependencies = [
     "starlette>=1.3.1",
     # >=6.5.8 fixes GHSA-wwv5-g3v4-889x and GHSA-8423-8fgw-73vq.
-    "tornado>=6.5.8",
-    "urllib3>=2.7.0",
+    "tornado>=6.6",
+    "urllib3>=2.8.0",
     "idna>=3.15",
     # Security pins (pip-audit / OSV) — bump when CI security gate fails.
     # GHSA-fjr4-x663-mwxc, GHSA-6p8h-3wgx-97gf, GHSA-r9mr-m37c-5fr3 (fixed 3.1.54)
@@ -157,10 +158,10 @@ override-dependencies = [
     # >=3.1.58 fixes GHSA-9rj7-rf2p-w77r, GHSA-4gmw-gg2m-w46p,
     # GHSA-hh9p-6wh2-4mfc, GHSA-wvpp-8hx9-p66j and GHSA-jm78-9fvv-mhgr.
     # >=3.1.60 fixes PYSEC-2026-3982, PYSEC-2026-3983 and PYSEC-2026-3984.
-    "gitpython>=3.1.60",
-    "pillow>=12.3.0",
-    "pyasn1>=0.6.4",
-    "setuptools>=83.0.0",
+    "gitpython>=3.2.1",
+    "pillow>=13.0.0",
+    "pyasn1>=0.6.5",
+    "setuptools>=84.1.0",
 ]
 
 [tool.black]
