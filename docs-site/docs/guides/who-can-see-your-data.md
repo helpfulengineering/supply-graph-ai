@@ -41,6 +41,10 @@ not, it is not listed, not searchable, and fetching its id directly answers
 "not found" rather than confirming it exists. Visibility decides who *else* can
 see a record, never whether you can.
 
+Choosing a new setting on a design or facility doesn't apply it straight away.
+The page first says who will receive the record at that setting, and the change
+happens only when you confirm it.
+
 ## Disclosure profiles: how much
 
 This is the part that matters most, and the part most systems get wrong. Being

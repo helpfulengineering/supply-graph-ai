@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "../../components/ui/button";
 import { FIELD, LABEL } from "../../components/ui/field";
 import {
   getOkhVisibility,
@@ -12,6 +14,18 @@ import { PANEL } from "../../components/ui/surface";
 import { SECTION_LABEL } from "../../components/ui/typography";
 
 const LEVELS: VisibilityLevel[] = ["private", "members", "followers", "public"];
+
+/** Who receives a record at each level — shown before a change applies (#576). */
+const AUDIENCE: Record<VisibilityLevel, string> = {
+  private:
+    "Only you. Nobody else can list, search or open it, and it is never sent to another node.",
+  members:
+    "Everyone signed in to this node. Anonymous visitors and other nodes do not receive it.",
+  followers:
+    "Anyone visiting this node, signed in or not, and the nodes that follow this one.",
+  public:
+    "Anyone who asks this node for its catalogue: every visitor and any other node.",
+};
 
 export function VisibilityControl({
   kind,
@@ -29,6 +43,7 @@ export function VisibilityControl({
   const { hasWrite, reportAuthFailure } = useAuth();
   const queryClient = useQueryClient();
   const queryKey = [kind, "visibility", id];
+  const [chosen, setChosen] = useState<VisibilityLevel | null>(null);
 
   const query = useQuery({
     queryKey,
@@ -53,6 +68,7 @@ export function VisibilityControl({
   });
 
   const level = query.data?.visibility;
+  const pending = chosen && chosen !== level ? chosen : null;
   const showHint =
     hint !== undefined
       ? hint
@@ -84,9 +100,9 @@ export function VisibilityControl({
         <label className={LABEL}>
           <span className="sr-only">Visibility level</span>
           <select
-            value={level ?? "private"}
+            value={pending ?? level ?? "private"}
             disabled={!hasWrite || mutation.isPending}
-            onChange={(e) => mutation.mutate(e.target.value as VisibilityLevel)}
+            onChange={(e) => setChosen(e.target.value as VisibilityLevel)}
             className={`${FIELD} mt-1 w-full max-w-xs`}
           >
             {LEVELS.map((l) => (
@@ -96,6 +112,31 @@ export function VisibilityControl({
             ))}
           </select>
         </label>
+      )}
+      {pending && (
+        <div className="mt-3 space-y-2 text-sm" role="status">
+          <p className="text-foreground">
+            <span className="font-medium">Who will see this: </span>
+            {AUDIENCE[pending]}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={mutation.isPending}
+              onClick={() => mutation.mutate(pending)}
+            >
+              {mutation.isPending ? "Applying…" : `Apply ${pending}`}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={mutation.isPending}
+              onClick={() => setChosen(null)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
       )}
       {showHint ? (
         <p className="mt-2 text-xs text-muted-foreground">{showHint}</p>
