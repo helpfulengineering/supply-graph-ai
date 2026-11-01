@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { OkhManifest } from "../../types/okh";
+import type { OkhListItem } from "../../api/ohm/okh";
 import { deriveCategories, UNCATEGORIZED } from "./categories";
 import { formatOkhDisplayTitle } from "./formatOkhDisplayTitle";
 import { normalizeHardwareLicense } from "./normalizeHardwareLicense";
+import { VisibilityBadge } from "./VisibilityBadge";
 
 interface Props {
-  okh: OkhManifest;
+  okh: OkhListItem;
 }
 
 export function OkhListRow({ okh }: Props) {
@@ -27,7 +28,8 @@ export function OkhListRow({ okh }: Props) {
         className="min-w-0 flex-1 no-underline hover:text-primary-ink"
       >
         <div className="font-medium text-foreground break-words">{title}</div>
-        <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+          <VisibilityBadge level={okh.visibility} />
           <span>{category}</span>
           {processes && <span>{processes}</span>}
           <span>{author}</span>
