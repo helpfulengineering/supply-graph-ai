@@ -447,6 +447,7 @@ async def get_okh_provenance(
 async def get_okh_visibility(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     if await okh_service.get(id) is None:
         raise HTTPException(
@@ -454,6 +455,12 @@ async def get_okh_visibility(
             detail=f"OKH manifest with ID {id} not found",
         )
     level = await okh_service.get_visibility(id)
+    # Same rule as GET /{id}: an anonymous caller must not learn a private id exists.
+    if user is None and not is_shareable(level):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKH manifest with ID {id} not found",
+        )
     return VisibilityResponse(id=id, visibility=level)
 
 
@@ -469,13 +476,15 @@ async def set_okh_visibility(
     okh_service: OKHService = Depends(get_okh_service),
     user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
-    try:
-        level = await okh_service.set_visibility(id, body.visibility)
-    except LookupError:
+    if await okh_service.get(id) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"OKH manifest with ID {id} not found",
         )
+    await require_ownership(
+        await okh_service.owner_attribution(str(id)), user, "manifest"
+    )
+    level = await okh_service.set_visibility(id, body.visibility)
     return VisibilityResponse(id=id, visibility=level)
 
 
