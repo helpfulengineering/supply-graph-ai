@@ -201,7 +201,9 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
             "narrowed by these filters — same keys as GET /api/okw/spaces "
             "(include_mom, country, city, process, source, status, region, access_type). "
             "When set, it supersedes the storage/okw_ids candidate pool so a design can "
-            "be matched against exactly the filtered set the network browse view shows."
+            "be matched against exactly the filtered set the network browse view shows. "
+            "members_only=true keeps only facilities created by this node's members "
+            "(its enabled person accounts), excluding synced and Maps of Making ones."
         ),
     )
 
