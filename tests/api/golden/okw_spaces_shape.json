@@ -19,7 +19,8 @@
       "region": "*",
       "source": "*",
       "status": "*",
-      "url": "*"
+      "url": "*",
+      "visibility": "*"
     }
   ],
   "success": "*",

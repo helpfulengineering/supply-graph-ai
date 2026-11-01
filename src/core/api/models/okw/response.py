@@ -3,6 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from ....models.visibility import VisibilityLevel
 from ..base import LLMResponseMixin, SuccessResponse
 from ..base import ValidationResult as BaseValidationResult
 
@@ -159,6 +160,9 @@ class NetworkSpace(BaseModel):
     processes: List[str]
     access_type: Optional[str]
     url: Optional[str]
+    #: Who a local facility is shared with; null for Maps of Making, which is a
+    #: public directory and not a record this node holds.
+    visibility: Optional[VisibilityLevel]
     #: Set when the country could not be resolved unambiguously; these sort last.
     ambiguous: bool
 
