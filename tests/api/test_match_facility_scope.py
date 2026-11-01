@@ -233,6 +233,7 @@ async def test_a_private_facility_is_not_reverse_matchable(monkeypatch):
     svc = MagicMock()
     svc.get = AsyncMock(return_value=facility)
     svc.get_visibility = AsyncMock(return_value=VisibilityLevel.PRIVATE)
+    svc.owner_attribution = AsyncMock(return_value=(None, None))
 
     app = FastAPI()
     app.mount("/v1", api_v1)

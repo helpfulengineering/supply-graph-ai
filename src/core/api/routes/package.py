@@ -17,14 +17,13 @@ from starlette.background import BackgroundTask
 from ...models.auth import AuthenticatedUser
 from ...models.okh import OKHManifest
 from ...models.package import BuildOptions
-from ...models.visibility import is_shareable
 from ...packaging.builder import PackageAssetDownloadError
 from ...packaging.remote_storage import PackageRemoteStorage
 from ...services.okh_service import OKHService
 from ...services.package_service import PackageService
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_422_500
-from ..dependencies import require_write
+from ..dependencies import can_read, require_write
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
@@ -362,9 +361,7 @@ async def build_package_from_storage(
         # just because the caller holds any write credential — same shape
         # #513 fixed for okh/from-storage. 404 rather than 403 so the
         # response does not confirm the id exists.
-        if user is None and not is_shareable(
-            await okh_service.get_visibility(manifest_id)
-        ):
+        if not await can_read(okh_service, manifest_id, user):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKH manifest not found: {manifest_id}",

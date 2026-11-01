@@ -46,6 +46,7 @@ from ..decorators import (
     track_performance,
 )
 from ..dependencies import (
+    can_read,
     created_by,
     require_admin,
     created_by_did,
@@ -72,7 +73,7 @@ from ..models.okh.collection import (
     OKHTemplateResponse,
 )
 from ...models.provenance import RecordProvenance
-from ...models.visibility import VisibilityBody, VisibilityResponse, is_shareable
+from ...models.visibility import VisibilityBody, VisibilityResponse
 from ..error_handlers import create_error_response
 from ..okh_file_urls import api_base_from_request, enrich_manifest_file_urls
 
@@ -455,8 +456,8 @@ async def get_okh_visibility(
             detail=f"OKH manifest with ID {id} not found",
         )
     level = await okh_service.get_visibility(id)
-    # Same rule as GET /{id}: an anonymous caller must not learn a private id exists.
-    if user is None and not is_shareable(level):
+    # Same rule as GET /{id}: a caller who may not read it must not learn it exists.
+    if not await can_read(okh_service, id, user):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"OKH manifest with ID {id} not found",
@@ -676,9 +677,9 @@ async def get_okh(
                 detail=f"OKH manifest with ID {id} not found",
             )
 
-        # A private record must not leave the instance. 404 rather than 403 so
-        # the response does not confirm that the id exists.
-        if user is None and not is_shareable(await okh_service.get_visibility(id)):
+        # Only those who could list it may read it. 404 rather than 403 so the
+        # response does not confirm that the id exists.
+        if not await can_read(okh_service, id, user):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKH manifest with ID {id} not found",
@@ -1312,9 +1313,7 @@ async def get_okh_from_storage(
         # not confirm the id exists. require_write (#485) required a
         # credential to reach this point at all, but didn't scope which
         # manifest a resolved caller could read — this does.
-        if user is None and not is_shareable(
-            await okh_service.get_visibility(manifest_id)
-        ):
+        if not await can_read(okh_service, manifest_id, user):
             error_response = create_error_response(
                 error=f"OKH manifest with ID {manifest_id} not found in storage",
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -2210,9 +2209,7 @@ async def harvest_parts(
         # per id, not once for the whole batch, so a shareable id cannot
         # smuggle out results for a private one listed alongside it. Same
         # 404-not-403 shape as GET /api/okh/{id}.
-        if user is None and not is_shareable(
-            await okh_service.get_visibility(manifest_id)
-        ):
+        if not await can_read(okh_service, manifest_id, user):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Manifest {mid!r} not found.",

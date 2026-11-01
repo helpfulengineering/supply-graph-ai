@@ -30,7 +30,6 @@ from ...models.visibility import (
     VisibilityBody,
     VisibilityLevel,
     VisibilityResponse,
-    is_shareable,
 )
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
@@ -45,6 +44,7 @@ from ..models.inventory import (
 )
 from ...utils.logging import get_logger
 from ..dependencies import (
+    can_read,
     created_by,
     require_admin,
     created_by_did,
@@ -678,9 +678,9 @@ async def get_okw(
                 detail=f"OKW facility with ID {id} not found",
             )
 
-        # A private facility must not leave the instance. 404 rather than 403 so
-        # the response does not confirm that the id exists.
-        if user is None and not is_shareable(await okw_service.get_visibility(id)):
+        # Only those who could list it may read it. 404 rather than 403 so the
+        # response does not confirm that the id exists.
+        if not await can_read(okw_service, id, user):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKW facility with ID {id} not found",
@@ -1428,8 +1428,8 @@ async def get_okw_visibility(
             detail=f"OKW facility with ID {id} not found",
         )
     level = await okw_service.get_visibility(id)
-    # Same rule as GET /{id}: an anonymous caller must not learn a private id exists.
-    if user is None and not is_shareable(level):
+    # Same rule as GET /{id}: a caller who may not read it must not learn it exists.
+    if not await can_read(okw_service, id, user):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"OKW facility with ID {id} not found",

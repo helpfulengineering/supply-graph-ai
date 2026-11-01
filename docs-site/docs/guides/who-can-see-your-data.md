@@ -32,11 +32,11 @@ runs the instance. It is only as narrow as the instance's sign-up policy: if
 anyone can register, anyone can become a member.
 
 Visibility governs **both** ways a record can leave: the federation catalogue
-that peer instances read, and this instance's own public API. A private record
-is not returned to an unauthenticated caller on either — it is not listed, not
-searchable, and fetching its id directly answers "not found" rather than
-confirming it exists. Signing in to the instance that holds the record still
-shows it to you; visibility decides who *else* can see it, not whether you can.
+that peer instances read, and this instance's own API. A private record is
+returned only to the account that created it. For anyone else, signed in or
+not, it is not listed, not searchable, and fetching its id directly answers
+"not found" rather than confirming it exists. Visibility decides who *else* can
+see a record, never whether you can.
 
 ## Disclosure profiles: how much
 
