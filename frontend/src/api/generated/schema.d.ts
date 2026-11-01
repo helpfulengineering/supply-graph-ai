@@ -6436,7 +6436,7 @@ export interface components {
             okw_ids?: string[] | null;
             /**
              * Network Filter
-             * @description Match against the unified network surface (local OKW ∪ Maps of Making) narrowed by these filters — same keys as GET /api/okw/spaces (include_mom, country, city, process, source, status, region, access_type). When set, it supersedes the storage/okw_ids candidate pool so a design can be matched against exactly the filtered set the network browse view shows.
+             * @description Match against the unified network surface (local OKW ∪ Maps of Making) narrowed by these filters — same keys as GET /api/okw/spaces (include_mom, country, city, process, source, status, region, access_type). When set, it supersedes the storage/okw_ids candidate pool so a design can be matched against exactly the filtered set the network browse view shows. members_only=true keeps only facilities created by this node's members (its enabled person accounts), excluding synced and Maps of Making ones.
              */
             network_filter?: {
                 [key: string]: unknown;

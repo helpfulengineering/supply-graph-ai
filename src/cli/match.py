@@ -110,6 +110,14 @@ def match_group() -> None:
 @click.option(
     "--network-process", help="Network match: filter to this canonical process id."
 )
+@click.option(
+    "--network-members",
+    is_flag=True,
+    help=(
+        "Match only against facilities created by this node's members (its "
+        "enabled person accounts) — no synced or Maps of Making facilities."
+    ),
+)
 @click.option("--location", help="Filter by location (city, country, or region)")
 @click.option(
     "--country", help="Filter facilities by country (exact match, case-insensitive)"
@@ -285,6 +293,7 @@ async def requirements(
     network: bool,
     network_country: Optional[str],
     network_process: Optional[str],
+    network_members: bool,
     location: Optional[str],
     country: Optional[str],
     region: Optional[str],
@@ -376,14 +385,10 @@ async def requirements(
             okw_ids,
         )
 
-        # Network-match mode: match against local ∪ Maps of Making, optionally
-        # narrowed by country/process (same contract as GET /api/okw/spaces).
-        if network or network_country or network_process:
-            network_filter = {"include_mom": True}
-            if network_country:
-                network_filter["country"] = network_country
-            if network_process:
-                network_filter["process"] = network_process
+        network_filter = _network_filter(
+            network, network_country, network_process, members=network_members
+        )
+        if network_filter:
             filters["network_filter"] = network_filter
 
         # Add nested matching parameters
@@ -1539,6 +1544,28 @@ def _apply_cli_facility_filters(facilities: list, filters: dict) -> list:
         return True
 
     return [f for f in facilities if _keep(f)]
+
+
+def _network_filter(
+    network: bool,
+    country: Optional[str],
+    process: Optional[str],
+    *,
+    members: bool,
+) -> Optional[Dict[str, Any]]:
+    """The request's ``network_filter``: local ∪ Maps of Making narrowed by
+    country/process (same contract as GET /api/okw/spaces), or this node's
+    member facilities only. None when no network option was given."""
+    if not (network or country or process or members):
+        return None
+    network_filter: Dict[str, Any] = {"include_mom": not members}
+    if members:
+        network_filter["members_only"] = True
+    if country:
+        network_filter["country"] = country
+    if process:
+        network_filter["process"] = process
+    return network_filter
 
 
 def _parse_match_filters(

@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import UUID, uuid5, NAMESPACE_URL
 
 from ..domains.cooking.models import KitchenCapability
@@ -947,6 +947,7 @@ class OKWService(BaseService["OKWService"]):
         region: Optional[str] = None,
         access_type: Optional[str] = None,
         okw_ids: Optional[List[str]] = None,
+        authors: Optional[Set[str]] = None,
         viewer: Optional[ViewerScope] = None,
     ) -> List[ManufacturingFacility]:
         """Return the filtered network as matchable facilities (local full objects
@@ -962,9 +963,14 @@ class OKWService(BaseService["OKWService"]):
         ``viewer`` scopes the local half: a private facility is not matchable by
         someone who cannot see it (#503). Pass one from any request handler —
         ``None`` is the unscoped path, for trusted internal callers.
+
+        ``authors`` keeps only local facilities created by one of these account
+        ids — this node's members (#575). Maps of Making stubs have no author
+        here, so they never pass, and neither does a synced facility, whose
+        attribution names an account on its origin node.
         """
         candidates, _, _ = await self._load_network_candidates(
-            include_mom=include_mom,
+            include_mom=include_mom and authors is None,
             force_refresh=force_refresh,
             require_coords=require_coords,
             viewer=viewer,
@@ -982,6 +988,13 @@ class OKWService(BaseService["OKWService"]):
         if okw_ids:
             id_subset = {str(i) for i in okw_ids if i is not None}
             filtered = [sp for sp in filtered if str(sp.get("id")) in id_subset]
+        if authors is not None:
+            by_member = {
+                row["id"]
+                for row in await self.inventory()
+                if row.get("created_by_account") in authors
+            }
+            filtered = [sp for sp in filtered if str(sp.get("id")) in by_member]
         return [sp["_facility"] for sp in filtered]
 
     async def list_kitchens(self) -> List[KitchenCapability]:

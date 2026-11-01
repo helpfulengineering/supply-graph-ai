@@ -22,6 +22,25 @@ source. This matters more than it looks:
 - **It's dramatically faster.** An unfiltered match against the whole network can
   take around a minute. A filtered one typically returns in a few seconds.
 
+### Only this node's members
+
+An organisation running a node often wants to answer "who among *us* can build
+this" before looking further afield. Matching against **member facilities only**
+keeps the facilities created by this node's members (its enabled person
+accounts) and leaves out everything else: facilities synced from other nodes,
+facilities from Maps of Making, and anything no current member created.
+
+```bash
+ohm match requirements design.okh.json --network-members
+```
+
+Over the API, send `"network_filter": {"members_only": true}` with the match.
+The contact export and the request for quotation work from the results you
+select, so they reflect the narrower match too.
+
+A member still only matches against facilities they can see: a facility another
+member keeps private stays out of your results.
+
 ## Reading the results
 
 Each result is a workshop, with a confidence badge (High / Medium / Low and a

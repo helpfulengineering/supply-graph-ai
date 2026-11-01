@@ -30,7 +30,7 @@ from ..federation.identity import (
     sign_payload,
     verify_payload,
 )
-from ..models.account import ROOT_ACCOUNT_ID, Account, AccountCreate
+from ..models.account import ROOT_ACCOUNT_ID, Account, AccountCreate, AccountKind
 from ..models.auth import (
     APIKey,
     APIKeyCreate,
@@ -800,6 +800,17 @@ class AuthenticationService:
         if not self._account_storage:
             return []
         return await self._account_storage.list_accounts()
+
+    async def member_account_ids(self) -> Set[str]:
+        """Ids of this node's members: its enabled person accounts.
+
+        Spaces are organisations, not members; a disabled account no longer is.
+        """
+        return {
+            str(a.id)
+            for a in await self.list_accounts()
+            if a.kind == AccountKind.PERSON and not a.disabled
+        }
 
     async def disable_account(self, account_id: UUID) -> Account:
         """Disable an account so it can no longer be used for new grants/keys."""

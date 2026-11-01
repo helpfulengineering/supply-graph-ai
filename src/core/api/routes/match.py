@@ -43,6 +43,7 @@ from ...models.match_explanation import (
 from ...models.okh import OKHManifest
 from ...models.okw import ManufacturingFacility
 from ...registry.domain_registry import DomainRegistry
+from ...services.auth_service import AuthenticationService
 from ...services.domain_service import DomainDetector
 from ...services.matching_service import MatchingService
 from ...models.auth import AuthenticatedUser
@@ -2427,6 +2428,9 @@ async def _get_filtered_facilities(
             okw_id_subset = [str(i) for i in (request.okw_ids or []) if i is not None]
             if okw_id_subset:
                 kwargs["okw_ids"] = okw_id_subset
+            if network_filter.get("members_only"):
+                auth_service = await AuthenticationService.get_instance()
+                kwargs["authors"] = await auth_service.member_account_ids()
             okw_service = await OKWService.get_instance()
             kwargs["viewer"] = viewer
             facilities = await okw_service.get_network_match_facilities(**kwargs)
