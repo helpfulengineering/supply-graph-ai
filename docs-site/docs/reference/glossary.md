@@ -54,6 +54,11 @@ of these to use OHM — they're here for when you meet one and want to check.
 :   One running copy of OHM, holding its own records. The one at
     openhardwaremanager.org is an instance; so is one you run yourself.
 
+**Member**
+:   Someone with an account on an instance. Being a member is what lets you add
+    designs and list facilities there; it needs nothing installed. See
+    [join a node](../guides/join-a-node.md).
+
 **Peer**
 :   Another instance that yours has chosen to follow. Their records flow into your
     view; yours flow to them only as far as your visibility settings allow.
