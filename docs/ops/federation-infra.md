@@ -172,6 +172,7 @@ Promote a record to share it with peers that sync from you:
 | Visibility | In `/catalog`? |
 |---|---|
 | `private` | No (default on create) |
+| `members` | No (signed-in accounts on this node only) |
 | `followers` | Yes |
 | `public` | Yes |
 

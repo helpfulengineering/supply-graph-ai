@@ -130,6 +130,7 @@ content hash). It is **not** federated: a receiving node decides what to re-shar
 | Level | In federation catalog? |
 |---|---|
 | `private` | No (create default) |
+| `members` | No — visible to every account signed in to this node ([ADR](members-visibility-adr.md)) |
 | `followers` | Yes (peers that sync from this node) |
 | `public` | Yes (same catalog filter today; reserved for registry listing later) |
 

@@ -11,7 +11,7 @@ import { Badge } from "../../components/ui/Badge";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_LABEL } from "../../components/ui/typography";
 
-const LEVELS: VisibilityLevel[] = ["private", "followers", "public"];
+const LEVELS: VisibilityLevel[] = ["private", "members", "followers", "public"];
 
 export function VisibilityControl({
   kind,
@@ -57,7 +57,7 @@ export function VisibilityControl({
     hint !== undefined
       ? hint
       : kind === "okw"
-        ? "private keeps the facility local; followers/public export a redacted projection controlled by disclosure below."
+        ? "private keeps the facility to you; members shows it to everyone signed in here; followers/public export a redacted projection controlled by disclosure below."
         : null;
 
   const body = (

@@ -19,7 +19,8 @@ from src.core.models.visibility import VisibilityLevel
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_okw_catalog_excludes_private() -> None:
+@pytest.mark.parametrize("hidden", [VisibilityLevel.PRIVATE, VisibilityLevel.MEMBERS])
+async def test_okw_catalog_excludes_private(hidden) -> None:
     identity = generate_identity("OKW Cat")
     facility = MagicMock()
     facility.id = UUID("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
@@ -33,7 +34,7 @@ async def test_okw_catalog_excludes_private() -> None:
 
     okw = AsyncMock()
     okw.list.return_value = ([facility], 1)
-    okw.get_visibility.return_value = VisibilityLevel.PRIVATE
+    okw.get_visibility.return_value = hidden
 
     index = await build_okw_catalog_index(okw, identity)
     assert index.record_count == 0

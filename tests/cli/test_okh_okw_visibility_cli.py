@@ -35,6 +35,16 @@ def test_okh_visibility_subgroup():
     assert "set" in result.output
 
 
+def test_visibility_set_accepts_every_level():
+    """The CLI's choices are the model's levels, so a new one cannot be API-only (#574)."""
+    from src.core.models.visibility import VisibilityLevel
+
+    for group in (okh_group, okw_group):
+        cmd = group.commands["visibility"].commands["set"]
+        [level] = [p for p in cmd.params if p.name == "level"]
+        assert list(level.type.choices) == [v.value for v in VisibilityLevel]
+
+
 def test_okw_exposes_create_visibility_and_disclosure():
     runner = CliRunner()
     result = runner.invoke(okw_group, ["--help"])

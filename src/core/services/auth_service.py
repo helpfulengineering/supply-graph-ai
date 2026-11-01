@@ -366,7 +366,9 @@ class AuthenticationService:
             )
             if identity:
                 dids.update(link.from_did for link in identity.links_in)
-        return ViewerScope(account_id=str(user.account_id), dids=frozenset(dids))
+        return ViewerScope(
+            account_id=str(user.account_id), dids=frozenset(dids), authenticated=True
+        )
 
     async def check_permission(
         self,
