@@ -43,6 +43,17 @@ not, it is not listed, not searchable, and fetching its id directly answers
 "not found" rather than confirming it exists. Visibility decides who *else* can
 see a record, never whether you can.
 
+To see everything you have created, shared or not, ask for your own records
+only:
+
+```bash
+ohm okh list-manifests --mine
+ohm okw list-facilities --mine
+```
+
+Over the API, add `mine=true` to `GET /api/okh`, `GET /api/okw` or
+`GET /api/okw/search`.
+
 Choosing a new setting on a design or facility doesn't apply it straight away.
 The page first says who will receive the record at that setting, and the change
 happens only when you confirm it.

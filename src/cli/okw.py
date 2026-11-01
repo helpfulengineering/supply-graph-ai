@@ -733,6 +733,11 @@ async def disclosure_preview(
 @click.option("--facility-type", help="Filter by facility type")
 @click.option("--status", help="Filter by facility status")
 @click.option("--location", help="Filter by location")
+@click.option(
+    "--mine",
+    is_flag=True,
+    help="Only facilities you created, whatever their visibility (needs a server).",
+)
 @standard_cli_command(
     help_text="""
     List stored OKW facilities in the system.
@@ -771,6 +776,7 @@ async def list_facilities(
     facility_type: Optional[str],
     status: Optional[str],
     location: Optional[str],
+    mine: bool,
     verbose: bool,
     output_format: str,
     use_llm: bool,
@@ -806,6 +812,7 @@ async def list_facilities(
                 "facility_type": facility_type,
                 "status": status,
                 "location": location,
+                "mine": "true" if mine else None,
             }
             # Remove None values
             params = {k: v for k, v in params.items() if v is not None}
@@ -816,6 +823,10 @@ async def list_facilities(
 
         async def fallback_list():
             """List using direct service calls"""
+            if mine:
+                raise click.ClickException(
+                    "--mine needs a server: direct mode has no caller identity."
+                )
             cli_ctx.log("Using direct service listing...", "info")
             okw_service = await OKWService.get_instance()
             facilities = await okw_service.list_facilities(

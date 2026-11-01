@@ -12292,6 +12292,8 @@ export interface operations {
             query?: {
                 /** @description Filter criteria (e.g., 'title=contains:Hardware') */
                 filter?: string | null;
+                /** @description Only manifests you created, whatever their visibility */
+                mine?: boolean;
                 page?: number;
                 page_size?: number;
                 sort_by?: string | null;
@@ -13358,6 +13360,8 @@ export interface operations {
                 page?: number;
                 /** @description Results per page */
                 page_size?: number;
+                /** @description Only facilities you created, whatever their visibility */
+                mine?: boolean;
             };
             header?: never;
             path?: never;
@@ -13870,6 +13874,8 @@ export interface operations {
             query?: {
                 /** @description Filter criteria */
                 filter?: string | null;
+                /** @description Only facilities you created, whatever their visibility */
+                mine?: boolean;
                 page?: number;
                 page_size?: number;
                 sort_by?: string | null;

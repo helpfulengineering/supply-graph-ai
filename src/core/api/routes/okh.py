@@ -756,6 +756,9 @@ async def list_okh(
     filter: Optional[str] = Query(
         None, description="Filter criteria (e.g., 'title=contains:Hardware')"
     ),
+    mine: bool = Query(
+        False, description="Only manifests you created, whatever their visibility"
+    ),
     okh_service: OKHService = Depends(get_okh_service),
     user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
@@ -784,6 +787,7 @@ async def list_okh(
             pagination.page_size,
             filter_params,
             viewer=await viewer_scope(user),
+            mine=mine,
         )
 
         # Convert OKHManifest objects to dict format
