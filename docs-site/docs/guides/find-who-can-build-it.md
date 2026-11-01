@@ -30,6 +30,10 @@ keeps the facilities created by this node's members (its enabled person
 accounts) and leaves out everything else: facilities synced from other nodes,
 facilities from Maps of Making, and anything no current member created.
 
+On the **Match** page, tick **This node's members' facilities only**. There is no
+facility list to pick from — the match runs against every member facility you
+can see. From the command line:
+
 ```bash
 ohm match requirements design.okh.json --network-members
 ```

@@ -42,7 +42,7 @@ import {
   PANEL_WARNING,
 } from "../../components/ui/surface";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
-import { FIELD_SM } from "../../components/ui/field";
+import { CHECKBOX, CHOICE_ROW, FIELD_SM } from "../../components/ui/field";
 import { humanizeProcessId } from "../network/deriveFilterOptions";
 import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
 import { cn } from "@/lib/utils";
@@ -99,6 +99,12 @@ const MATCH_NETWORK_SCOPE: Record<string, string | boolean> = {
   include_mom: true,
 };
 
+/** Facilities created by this node's members — no synced or MoM ones (#575). */
+const MEMBERS_SCOPE: Record<string, string | boolean> = {
+  include_mom: false,
+  members_only: true,
+};
+
 export function MatchView({
   okhId,
   okwId,
@@ -146,6 +152,7 @@ export function MatchView({
   const [facilityIds, setFacilityIds] = useState<string[]>(() =>
     okwId ? [okwId] : [],
   );
+  const [membersOnly, setMembersOnly] = useState(false);
   const [selectedSolutionKeys, setSelectedSolutionKeys] = useState<string[]>(
     [],
   );
@@ -160,11 +167,16 @@ export function MatchView({
       m: SystemMode;
       ids: string[];
     }) => {
-      const scope = networkMode ? networkFilter : MATCH_NETWORK_SCOPE;
+      const scope = networkMode
+        ? networkFilter
+        : membersOnly
+          ? MEMBERS_SCOPE
+          : MATCH_NETWORK_SCOPE;
+      const subset = membersOnly ? [] : ids;
       return runMatch(
         inlineManifest
-          ? buildInlineMatchRequest(inlineManifest, m, undefined, ids, scope)
-          : buildMatchRequest(id, m, undefined, ids, scope, domain),
+          ? buildInlineMatchRequest(inlineManifest, m, undefined, subset, scope)
+          : buildMatchRequest(id, m, undefined, subset, scope, domain),
       );
     },
     onSuccess: (raw, variables) => {
@@ -239,7 +251,8 @@ export function MatchView({
   // default (local ∪ MoM). The user asked "who can build this", not "who among
   // these facilities" — making them pick facilities first would be friction
   // that answers a question they did not ask. They can still narrow below.
-  const requiresFacilityChoice = !networkMode && !inlineManifest;
+  const requiresFacilityChoice =
+    !networkMode && !inlineManifest && !membersOnly;
   const canRun =
     (!!selected || !!inlineManifest) &&
     !mutation.isPending &&
@@ -370,13 +383,34 @@ export function MatchView({
             </p>
           </div>
         ) : (
-          <FacilityFilter
-            facilities={facilityOptions}
-            selectedIds={facilityIds}
-            onChange={setFacilityIds}
-            isLoading={facilitiesQuery.isLoading}
-            isError={facilitiesQuery.isError}
-          />
+          <>
+            <label className={CHOICE_ROW}>
+              <input
+                type="checkbox"
+                className={CHECKBOX}
+                checked={membersOnly}
+                onChange={(e) => setMembersOnly(e.target.checked)}
+              />
+              <span className="text-sm text-foreground">
+                This node&apos;s members&apos; facilities only
+              </span>
+            </label>
+            {membersOnly ? (
+              <p className={cn(PANEL_MUTED, "text-sm text-muted-foreground")}>
+                Matching against every facility a member of this node created
+                and you can see. Facilities synced from other nodes and Maps of
+                Making are left out.
+              </p>
+            ) : (
+              <FacilityFilter
+                facilities={facilityOptions}
+                selectedIds={facilityIds}
+                onChange={setFacilityIds}
+                isLoading={facilitiesQuery.isLoading}
+                isError={facilitiesQuery.isError}
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -501,7 +535,9 @@ export function MatchView({
                       disabled={view.solutions.length === 0}
                       onClick={() =>
                         setSelectedSolutionKeys(
-                          view.solutions.map((s, i) => solutionSelectionKey(s, i)),
+                          view.solutions.map((s, i) =>
+                            solutionSelectionKey(s, i),
+                          ),
                         )
                       }
                     >
@@ -549,12 +585,17 @@ export function MatchView({
                         selectedSolutionKeys.length === 0 || !selectedDesign
                       }
                       onClick={() => {
-                        const selectedSolutions = view.solutions.filter((s, i) =>
-                          selectedSolutionKeys.includes(solutionSelectionKey(s, i)),
+                        const selectedSolutions = view.solutions.filter(
+                          (s, i) =>
+                            selectedSolutionKeys.includes(
+                              solutionSelectionKey(s, i),
+                            ),
                         );
                         const state: RfqNavigationState = {
                           okhId: selectedDesign!.id,
-                          okhTitle: formatOkhDisplayTitle(selectedDesign!.title),
+                          okhTitle: formatOkhDisplayTitle(
+                            selectedDesign!.title,
+                          ),
                           okhFunction: selectedDesign!.function ?? undefined,
                           okhVersion: selectedDesign!.version ?? undefined,
                           solutions: toRfqSolutions(
