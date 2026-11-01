@@ -60,6 +60,7 @@ def _svc(visibility: VisibilityLevel):
     svc = MagicMock()
     svc.get = AsyncMock(return_value=_manifest())
     svc.get_visibility = AsyncMock(return_value=visibility)
+    svc.owner_attribution = AsyncMock(return_value=(None, None))
     return svc
 
 
@@ -115,6 +116,7 @@ async def test_harvest_parts_404s_for_anonymous_when_any_manifest_is_private():
     svc.get_visibility = AsyncMock(
         side_effect=[VisibilityLevel.PUBLIC, VisibilityLevel.PRIVATE]
     )
+    svc.owner_attribution = AsyncMock(return_value=(None, None))
     api_v1.dependency_overrides[get_okh_service] = lambda: svc
 
     import httpx

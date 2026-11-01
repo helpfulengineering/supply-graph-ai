@@ -107,18 +107,26 @@ async def test_the_owner_can_change_who_sees_a_record(domain, path, body, setter
 @pytest.mark.asyncio
 @pytest.mark.parametrize("domain", ["okh", "okw"])
 @pytest.mark.parametrize(
-    "viewer,visibility,expected",
+    "viewer,owner,visibility,expected",
     [
-        (None, VisibilityLevel.PRIVATE, 404),
-        (None, VisibilityLevel.FOLLOWERS, 200),
-        (_caller, VisibilityLevel.PRIVATE, 200),
+        (None, _STRANGER_ACCOUNT, VisibilityLevel.PRIVATE, 404),
+        (None, _STRANGER_ACCOUNT, VisibilityLevel.FOLLOWERS, 200),
+        (_caller, _STRANGER_ACCOUNT, VisibilityLevel.PRIVATE, 404),
+        (_caller, _OWNER_ACCOUNT, VisibilityLevel.PRIVATE, 200),
     ],
-    ids=["anonymous-private", "anonymous-shareable", "authenticated-private"],
+    ids=[
+        "anonymous-private",
+        "anonymous-shareable",
+        "stranger-private",
+        "owner-private",
+    ],
 )
-async def test_visibility_read_matches_get_by_id(domain, viewer, visibility, expected):
+async def test_visibility_read_matches_get_by_id(
+    domain, viewer, owner, visibility, expected
+):
     from src.core.api.dependencies import get_viewer
 
-    svc = _service((None, _STRANGER_ACCOUNT), visibility)
+    svc = _service((None, owner), visibility)
     resolve = viewer or (lambda: None)
     resp = await _call(domain, svc, "GET", "visibility", {get_viewer: resolve})
 

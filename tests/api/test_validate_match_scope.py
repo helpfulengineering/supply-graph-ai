@@ -66,6 +66,7 @@ async def test_validate_match_404s_for_anonymous_when_private(monkeypatch):
     okh_svc = MagicMock()
     okh_svc.get = AsyncMock(return_value=_manifest())
     okh_svc.get_visibility = AsyncMock(return_value=VisibilityLevel.PRIVATE)
+    okh_svc.owner_attribution = AsyncMock(return_value=(None, None))
 
     api_v1.dependency_overrides[get_okh_service] = lambda: okh_svc
 

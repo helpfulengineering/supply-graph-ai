@@ -148,8 +148,10 @@ ohm okw disclosure preview <facility_id> followers
 ```
 
 Only the record's creator may change its visibility or disclosure — anyone else,
-admins included, gets 403. Reading a private record's visibility anonymously
-returns 404, the same answer as fetching the record.
+admins included, gets 403. Reads by id follow the list rule: a caller who
+would not see the record in a list gets 404 for it, for its visibility, and
+from every route that loads it by id (from-storage, harvest, package build,
+match), so the response does not confirm that it exists.
 
 OKW federation additionally applies **disclosure profiles** (field groups:
 `identity`, `location`, `equipment`, `operations`, `supply`) per audience

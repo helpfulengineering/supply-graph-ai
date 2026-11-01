@@ -47,8 +47,8 @@ from ...services.domain_service import DomainDetector
 from ...services.matching_service import MatchingService
 from ...models.auth import AuthenticatedUser
 from ..dependencies import created_by as owner_of
-from ...models.visibility import ViewerScope, is_shareable
-from ..dependencies import get_viewer, require_write, viewer_scope
+from ...models.visibility import ViewerScope
+from ..dependencies import can_read, get_viewer, require_write, viewer_scope
 from ...services.okh_service import OKHService
 from ...services.okw_service import (
     OKWService,
@@ -265,7 +265,11 @@ async def match_requirements_to_capabilities(
                 await _ensure_okh_service()
             # Extract OKH manifest
             okh_manifest = await _extract_okh_manifest(
-                request, okh_service, storage_service, request_id
+                request,
+                okh_service,
+                storage_service,
+                request_id,
+                user=viewer,
             )
 
             if not okh_manifest:
@@ -664,9 +668,7 @@ async def validate_match(
         # A private design must not leave the instance. 404 rather than 403 so
         # the response does not confirm the id exists — the same check
         # GET /api/okh/{id} applies (#486, same shape as #503/#504).
-        if user is None and not is_shareable(
-            await okh_service.get_visibility(request.okh_id)
-        ):
+        if not await can_read(okh_service, request.okh_id, user):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKH manifest {request.okh_id} not found",
@@ -1102,21 +1104,12 @@ async def match_designs_for_facility(
 
     try:
         facility = await okw_service.get(request.okw_id)
-        # A facility nobody may see must not be reverse-matchable either: the
-        # answer would confirm it exists and describe what it can make (#503).
-        # 404 rather than 403, so the response does not confirm the id.
-        #
-        # This is deliberately the same check GET /api/okw/{id} applies, not a
-        # stricter one — a reverse match should not be harder to do than simply
-        # reading the record. Both share a wider gap: an authenticated
-        # non-owner still passes, because attribution is dropped by to_dict()
-        # before either sees the record. Fixing that means a viewer-aware
-        # OKWService.get, as assets have, and belongs with the detail route.
-        hidden = facility is not None and (
-            user is None
-            and not is_shareable(await okw_service.get_visibility(request.okw_id))
-        )
-        if facility is None or hidden:
+        # A facility the caller may not read must not be reverse-matchable
+        # either: the answer would confirm it exists and describe what it can
+        # make (#503). Deliberately the same check as GET /api/okw/{id} — a
+        # reverse match should not be harder than reading the record. 404
+        # rather than 403, so the response does not confirm the id.
+        if facility is None or not await can_read(okw_service, request.okw_id, user):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Facility {request.okw_id} not found",
@@ -2096,8 +2089,13 @@ async def _extract_okh_manifest(
     okh_service: Optional[OKHService],
     storage_service: StorageService,
     request_id: str,
+    *,
+    user: Optional[AuthenticatedUser],
 ) -> Optional[OKHManifest]:
-    """Extract OKH manifest from request."""
+    """Extract OKH manifest from request.
+
+    ``user`` gates ``okh_id``: a design the caller may not read is not found.
+    """
     try:
         # Debug logging to understand why okh_id might be None
         logger.info(
@@ -2129,7 +2127,9 @@ async def _extract_okh_manifest(
                 extra={"request_id": request_id, "okh_id": str(request.okh_id)},
             )
             okh_manifest = await okh_service.get(str(request.okh_id))
-            if okh_manifest is None:
+            if okh_manifest is None or not await can_read(
+                okh_service, request.okh_id, user
+            ):
                 logger.warning(
                     f"OKH manifest with ID {request.okh_id} not found in storage",
                     extra={"request_id": request_id, "okh_id": str(request.okh_id)},

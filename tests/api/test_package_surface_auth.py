@@ -102,6 +102,7 @@ async def test_reachable_anonymously_when_not_enforced(monkeypatch, method, path
 def _okh_service(visibility: VisibilityLevel):
     svc = MagicMock()
     svc.get_visibility = AsyncMock(return_value=visibility)
+    svc.owner_attribution = AsyncMock(return_value=(None, None))
     return svc
 
 

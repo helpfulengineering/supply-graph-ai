@@ -5,7 +5,7 @@ This module provides dependencies for authentication and authorization
 in FastAPI routes.
 """
 
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer
@@ -13,7 +13,12 @@ from fastapi.security import HTTPBearer
 from src.config import get_security_policy
 
 from ..models.auth import AuthenticatedUser
-from ..models.visibility import DEV_LOCAL_ACCOUNT, ViewerScope
+from ..models.visibility import (
+    DEV_LOCAL_ACCOUNT,
+    ViewerScope,
+    is_shareable,
+    visible_to,
+)
 from ..services.auth_service import AuthenticationService
 
 
@@ -253,6 +258,22 @@ async def viewer_scope(user: Optional[AuthenticatedUser]) -> ViewerScope:
     """Which records ``user`` may see in a list (anonymous → shareable only)."""
     svc = await AuthenticationService.get_instance()
     return svc.viewer_scope(user)
+
+
+async def can_read(
+    service: Any, record_id: Any, user: Optional[AuthenticatedUser]
+) -> bool:
+    """Whether ``user`` may read ``record_id`` by id: the list rule (#606).
+
+    ``service`` is the OKH or OKW service. Callers answer 404 on ``False``, not
+    403, so the response does not confirm the id exists. Shareable records skip
+    the attribution lookup, which is a storage scan.
+    """
+    level = await service.get_visibility(record_id)
+    if is_shareable(level):
+        return True
+    did, account = await service.owner_attribution(str(record_id))
+    return visible_to(level, await viewer_scope(user), did, account)
 
 
 async def require_ownership(

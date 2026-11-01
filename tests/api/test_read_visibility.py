@@ -107,6 +107,7 @@ async def test_okw_get_404s_for_anonymous_when_private() -> None:
     svc = MagicMock()
     svc.get = AsyncMock(return_value=_record(PRIVATE_ID, "Secret Workshop"))
     svc.get_visibility = AsyncMock(return_value=VisibilityLevel.PRIVATE)
+    svc.owner_attribution = AsyncMock(return_value=(None, None))
     api_v1.dependency_overrides[get_okw_service] = lambda: svc
     try:
         transport = httpx.ASGITransport(app=app)
@@ -129,6 +130,7 @@ async def test_okh_get_404s_for_anonymous_when_private() -> None:
     svc = MagicMock()
     svc.get = AsyncMock(return_value=_record(PRIVATE_ID, "Secret Design"))
     svc.get_visibility = AsyncMock(return_value=VisibilityLevel.PRIVATE)
+    svc.owner_attribution = AsyncMock(return_value=(None, None))
     api_v1.dependency_overrides[get_okh_service] = lambda: svc
     try:
         transport = httpx.ASGITransport(app=app)
