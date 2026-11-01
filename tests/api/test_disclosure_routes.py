@@ -17,6 +17,7 @@ from src.core.models.disclosure import (
     DisclosureProfile,
     default_disclosure_profile,
 )
+from src.core.models.visibility import DEV_LOCAL_ACCOUNT
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
@@ -93,6 +94,8 @@ async def test_put_okw_disclosure_partial_merge():
         public=AudienceDisclosure(groups=[DisclosureGroup.IDENTITY]),
     )
     svc = MagicMock()
+    svc.get = AsyncMock(return_value=MagicMock())
+    svc.owner_attribution = AsyncMock(return_value=(None, DEV_LOCAL_ACCOUNT))
     svc.get_disclosure = AsyncMock(return_value=current)
     svc.set_disclosure = AsyncMock(return_value=updated)
     api_v1.dependency_overrides[get_okw_service] = lambda: svc
@@ -125,8 +128,7 @@ async def test_put_okw_disclosure_404_when_missing_record():
     app, api_v1 = _get_app()
     facility_id = uuid4()
     svc = MagicMock()
-    svc.get_disclosure = AsyncMock(return_value=default_disclosure_profile())
-    svc.set_disclosure = AsyncMock(side_effect=LookupError("missing"))
+    svc.get = AsyncMock(return_value=None)
     api_v1.dependency_overrides[get_okw_service] = lambda: svc
     try:
         transport = httpx.ASGITransport(app=app)

@@ -1420,6 +1420,7 @@ async def get_okw_provenance(
 async def get_okw_visibility(
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
     if await okw_service.get(id) is None:
         raise HTTPException(
@@ -1427,6 +1428,12 @@ async def get_okw_visibility(
             detail=f"OKW facility with ID {id} not found",
         )
     level = await okw_service.get_visibility(id)
+    # Same rule as GET /{id}: an anonymous caller must not learn a private id exists.
+    if user is None and not is_shareable(level):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
     return VisibilityResponse(id=id, visibility=level)
 
 
@@ -1442,13 +1449,15 @@ async def set_okw_visibility(
     okw_service: OKWService = Depends(get_okw_service),
     user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
-    try:
-        level = await okw_service.set_visibility(id, body.visibility)
-    except LookupError:
+    if await okw_service.get(id) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"OKW facility with ID {id} not found",
         )
+    await require_ownership(
+        await okw_service.owner_attribution(str(id)), user, "facility"
+    )
+    level = await okw_service.set_visibility(id, body.visibility)
     return VisibilityResponse(id=id, visibility=level)
 
 
@@ -1509,6 +1518,14 @@ async def set_okw_disclosure(
     okw_service: OKWService = Depends(get_okw_service),
     user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
+    if await okw_service.get(id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
+    await require_ownership(
+        await okw_service.owner_attribution(str(id)), user, "facility"
+    )
     current = await okw_service.get_disclosure(id)
     updated = current.model_copy(
         update={
@@ -1520,13 +1537,7 @@ async def set_okw_disclosure(
             if v is not None
         }
     )
-    try:
-        profile = await okw_service.set_disclosure(id, updated)
-    except LookupError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"OKW facility with ID {id} not found",
-        )
+    profile = await okw_service.set_disclosure(id, updated)
     return DisclosureResponse(id=id, disclosure=profile)
 
 
