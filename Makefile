@@ -10,7 +10,7 @@
 # pyproject.toml is caught there rather than hidden here.
 export UV_FROZEN := 1
 
-.PHONY: install-check format format-check lint test check black ruff links-check env-template env-template-check validate-docs version-check lock-check scripts scripts-check demo-world-check parity secrets-check changelog-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
+.PHONY: install-check format format-check lint test check black ruff links-check env-template env-template-check validate-docs version-check lock-check audit scripts scripts-check demo-world-check parity secrets-check changelog-check ready setup verify-env frontend-setup frontend-ready seed-demo harness harness-probes match-harness docs-site docs-status taxonomy taxonomy-check
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -146,6 +146,18 @@ version-check:
 # (unlike `uv lock`/`uv sync`), so it is safe in the `ready` gate.
 lock-check:
 	uv lock --check
+
+# Dependency vulnerability audit of the lockfile (every extra), not the venv:
+# the venv also holds whatever was installed to run the audit. Not in `ready` —
+# it asks a live advisory database, so its answer changes without the code
+# changing. CI runs it on dependency changes, daily on main, and on release
+# (#594); see docs/RELEASE.md.
+audit:
+	@req=$$(mktemp) && trap 'rm -f "$$req"' EXIT && \
+	uv export --all-extras --no-emit-project --format requirements-txt -q -o "$$req" && \
+	uvx pip-audit -r "$$req" --disable-pip --no-deps --progress-spinner off || { \
+		echo "::error::Dependency audit failed. The vulnerable packages are in the table above; the 'Skip Reason' table is informational. Raise the floor in pyproject.toml and relock (docs/RELEASE.md)."; \
+		exit 1; }
 
 # Regenerate scripts/README.md from scripts/registry.toml.
 scripts:

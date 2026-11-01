@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
+      deps: ${{ steps.filter.outputs.deps }}
     # Only one job reads this today (site-layer-enabled), and it exists to keep
     # ~4 minutes of Playwright off every backend-only pull request.
     #
@@ -48,6 +49,7 @@ jobs:
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "not a pull request — running everything"
             echo "frontend=true" >> "$GITHUB_OUTPUT"
+            echo "deps=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # The workflow itself counts: editing the job that runs the suite has
@@ -58,6 +60,13 @@ jobs:
           if echo "$changed" | grep -qE "$pattern"; then touched=true; else touched=false; fi
           echo "frontend touched: $touched"
           echo "frontend=$touched" >> "$GITHUB_OUTPUT"
+          # A PR's dependency audit answers for the PR's own dependency changes.
+          # Advisories published against an unchanged lockfile are drift on
+          # main, found by dependency-audit.yml instead (#594).
+          deps_pattern='^(pyproject\.toml|uv\.lock|Makefile|\.github/workflows/ci-cd\.yml)$'
+          if echo "$changed" | grep -qE "$deps_pattern"; then deps=true; else deps=false; fi
+          echo "dependencies touched: $deps"
+          echo "deps=$deps" >> "$GITHUB_OUTPUT"
 
   quality:
     name: Quality (format, lint)
@@ -182,7 +191,7 @@ jobs:
   security:
     name: Security (dependency and static checks)
     runs-on: ubuntu-latest
-    needs: quality
+    needs: [quality, changes]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -193,10 +202,11 @@ jobs:
       - name: Install dependencies and security tools
         run: |
           uv sync --extra dev
-          uv pip install pip-audit bandit
+          uv pip install bandit
 
       - name: Dependency vulnerability scan
-        run: uv run pip-audit --skip-editable
+        if: needs.changes.outputs.deps == 'true'
+        run: make audit
 
       - name: Static security scan
         run: uv run bandit -q -r src -c pyproject.toml -x tests
