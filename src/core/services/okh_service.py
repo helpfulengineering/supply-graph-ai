@@ -18,6 +18,7 @@ from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
+from ..models.okh_process_fields import derive_process_fields
 from ..models.provenance import (
     RecordProvenance,
     apply_ohm_metadata,
@@ -48,6 +49,13 @@ if TYPE_CHECKING:
     from ..generation.engine import GenerationEngine
 
 logger = get_logger(__name__)
+
+
+def _with_derived_process_fields(manifest: OKHManifest) -> OKHManifest:
+    as_dict = manifest.to_dict()
+    derived = derive_process_fields(as_dict)
+    return manifest if derived == as_dict else OKHManifest.from_dict(derived)
+
 
 # Blob reads issued at once when assembling the catalogue. Objects were
 # previously read one at a time, so the cost was one network round trip per
@@ -173,6 +181,7 @@ class OKHService(BaseService["OKHService"]):
         created_by: Optional[str] = None,
         created_by_did: Optional[str] = None,
         provenance: Optional[RecordProvenance] = None,
+        verbatim: bool = False,
     ) -> OKHManifest:
         """Persist a new manifest under ``okh/`` when storage is available.
 
@@ -182,6 +191,9 @@ class OKHService(BaseService["OKHService"]):
                 alongside the manifest JSON (see federated-identity Slice 1).
             provenance: Optional record-level authorship/publication provenance
                 (federated-identity Slice 3).
+            verbatim: Store the record as sent, without deriving its process
+                copies from its process list. For federation ingest only: the
+                record is the publisher's, signed and hashed by them.
 
         New records stamp ``private`` visibility (Slice 4); promote with
         :meth:`set_visibility` to share via the federation catalog.
@@ -198,6 +210,8 @@ class OKHService(BaseService["OKHService"]):
                 manifest = manifest_data
             else:
                 manifest = OKHManifest.from_dict(manifest_data)
+            if not verbatim:
+                manifest = _with_derived_process_fields(manifest)
 
             # Store directly under okh/ with a human-readable, ID-anchored filename.
             # No subdirectory is enforced; users may organise beneath okh/ freely.
@@ -771,7 +785,7 @@ class OKHService(BaseService["OKHService"]):
         await self.ensure_initialized()
         logger.info(f"Updating OKH manifest with ID {manifest_id}")
 
-        manifest = OKHManifest.from_dict(manifest_data)
+        manifest = _with_derived_process_fields(OKHManifest.from_dict(manifest_data))
 
         if self.storage and self.storage.manager:
             # Discover the existing file so we overwrite at the same key,

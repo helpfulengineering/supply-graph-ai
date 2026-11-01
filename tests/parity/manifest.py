@@ -615,6 +615,15 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
     *_decision(
         "planned",
         "backlog",
+        "#562: the Generate editor's Download YAML/JSON is built in the "
+        "browser, so a process removed in the editor stayed in "
+        "process_requirements and tsdc. The download will pass the draft "
+        "through this first; that change deletes this row.",
+        "/api/okh/normalize",
+    ),
+    *_decision(
+        "planned",
+        "backlog",
         "Returns what GET /api/match/rules/ already carries for every rule, so "
         "the settings panel reads the list rather than fetching one at a time. "
         "A per-rule editor would want it; nothing does yet.",

@@ -354,6 +354,79 @@ async def validate(
 
 
 @okh_group.command()
+@click.argument("manifest_file", type=click.Path(exists=True))
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Write the result here (.yaml/.yml for YAML) instead of printing it",
+)
+@standard_cli_command(
+    help_text="""
+    Derive a manifest's process copies from its process list.
+
+    Rewrites manufacturing_specs.process_requirements and the process codes
+    in tsdc to match manufacturing_processes, as a save would store them.
+    Nothing is stored.
+    """,
+    epilog="""
+    Examples:
+      ohm okh normalize my-project.okh.yaml
+      ohm okh normalize my-project.okh.json -o fixed.okh.json
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def normalize(
+    ctx,
+    manifest_file: str,
+    output: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Derive process copies via the node, or locally when it is unreachable."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-normalize")
+    manifest_data = await _read_manifest_file(manifest_file)
+
+    async def http_normalize():
+        response = await cli_ctx.api_client.request(
+            "POST", "/api/okh/normalize", json_data={"content": manifest_data}
+        )
+        return response["content"]
+
+    async def fallback_normalize():
+        from ..core.models.okh_process_fields import derive_process_fields
+
+        return derive_process_fields(manifest_data)
+
+    content = await SmartCommand(cli_ctx).execute_with_fallback(
+        http_normalize, fallback_normalize
+    )
+    if Path(output or manifest_file).suffix.lower() in (".yaml", ".yml"):
+        import yaml
+
+        text = yaml.safe_dump(content, sort_keys=False, allow_unicode=True)
+    else:
+        text = json.dumps(content, indent=2, ensure_ascii=False, default=str)
+    if output:
+        Path(output).write_text(text)
+        cli_ctx.log(f"Written to {output}", "success")
+    else:
+        click.echo(text)
+    cli_ctx.end_command_tracking()
+
+
+@okh_group.command()
 @click.argument("manifest_id", type=str)
 @click.option("--output", "-o", help="Output file path")
 @standard_cli_command(

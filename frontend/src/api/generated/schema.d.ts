@@ -638,6 +638,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/normalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Derive a manifest's process copies from its process list
+         * @description Returns the posted manifest with `manufacturing_specs.process_requirements` and the process codes in `tsdc` derived from `manufacturing_processes`, as a save would store them. Nothing is stored, and the manifest may be an unfinished draft.
+         */
+        post: operations["normalize_okh_api_okh_normalize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/extract": {
         parameters: {
             query?: never;
@@ -7100,6 +7120,26 @@ export interface components {
             annotation_reminder: string;
         };
         /**
+         * OKHNormalizeRequest
+         * @description A manifest, possibly an unfinished draft, to derive process copies for.
+         */
+        OKHNormalizeRequest: {
+            /** Content */
+            content: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * OKHNormalizeResponse
+         * @description The posted manifest with its process copies derived from its process list.
+         */
+        OKHNormalizeResponse: {
+            /** Content */
+            content: {
+                [key: string]: unknown;
+            };
+        };
+        /**
          * OKHRepairExtractResponse
          * @description Response model for repair document extraction.
          */
@@ -12496,6 +12536,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValidationResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    normalize_okh_api_okh_normalize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OKHNormalizeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OKHNormalizeResponse"];
                 };
             };
             /** @description Bad Request */

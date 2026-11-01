@@ -167,6 +167,10 @@ READS_EXPRESSED_AS_POST: dict[tuple[str, str], str] = {
     # body via `okh_service.extract_requirements(request.content)` — a pure
     # function of what the caller sent, not a lookup by id.
     ("POST", "/v1/api/okh/extract"): "none",
+    # #562: derives process copies for the manifest posted in the body — a
+    # pure function of it. No storage read or write; the Generate editor
+    # calls it before downloading a draft an anonymous visitor may own.
+    ("POST", "/v1/api/okh/normalize"): "none",
     # #485: already correctly scoped — reads the caller's own visible OKH
     # collection via `okh_service.list(viewer=await viewer_scope(user))` to
     # diff against an uploaded archive, and returns only the diff, never the

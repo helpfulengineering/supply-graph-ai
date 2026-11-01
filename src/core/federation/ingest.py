@@ -112,7 +112,7 @@ async def verify_and_store(
     # Re-stamp provenance into this node's own provenance plane (keyed by record
     # id) so authorship survives the hop — the acceptance criterion for Slice 3.
     await okh_service.create(
-        record.manifest, provenance=record.catalog_record.provenance
+        record.manifest, provenance=record.catalog_record.provenance, verbatim=True
     )
 
     # Re-stamp verified attestations into the local attestation plane.
