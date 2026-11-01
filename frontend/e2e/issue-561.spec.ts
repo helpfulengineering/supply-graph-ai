@@ -104,7 +104,6 @@ test("the landing page offers adding a design, not only finding one", async ({
 test("LLM generation without an account says to register, in plain words", async ({
   page,
 }) => {
-  test.fail(true, "#565: the raw API text is shown");
   await page.route("**/api/okh/generate-from-url/jobs", (route) =>
     route.fulfill({
       status: 401,
@@ -125,7 +124,7 @@ test("LLM generation without an account says to register, in plain words", async
   await expect(alert.getByRole("link", { name: /register/i })).toBeVisible();
   await expect(alert.getByRole("link", { name: /sign in/i })).toBeVisible();
   await expect(
-    alert.getByRole("button", { name: /without the llm/i }),
+    alert.getByRole("button", { name: /without the language model/i }),
   ).toBeVisible();
 });
 

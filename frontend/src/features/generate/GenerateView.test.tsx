@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
+import { server } from "../../test/msw/server";
 import { ApiError } from "../../api/ohm/client";
 import { GenerateView, generationErrorMessage } from "./GenerateView";
 
@@ -52,6 +54,69 @@ describe("generationErrorMessage", () => {
 
   it("handles a non-Error throw", () => {
     expect(generationErrorMessage("boom")).toBe("Generation failed.");
+  });
+});
+
+describe("GenerateView — LLM generation without an account (#561)", () => {
+  const RAW =
+    "LLM-enabled generation requires authentication. Pass Authorization: Bearer <token>, or set no_llm=true.";
+
+  function refuseLlm(bodies: Record<string, unknown>[]) {
+    server.use(
+      http.post("*/v1/api/okh/generate-from-url/jobs", async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        bodies.push(body);
+        return body.no_llm
+          ? HttpResponse.json(
+              { batch_id: "b", jobs: [{ job_id: "j", url: "u" }] },
+              { status: 202 },
+            )
+          : HttpResponse.json({ detail: RAW }, { status: 401 });
+      }),
+    );
+  }
+
+  async function generate() {
+    await userEvent.type(
+      screen.getByLabelText(/Repository URL/i),
+      "https://github.com/mitra42/frugal-iot-hw-sensor",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+  }
+
+  it("says an account is needed, and where to get one, in plain words", async () => {
+    refuseLlm([]);
+    renderView();
+    await generate();
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/needs an account on this node/i);
+    expect(alert).not.toHaveTextContent("Authorization");
+    expect(
+      await within(alert).findByRole("link", { name: "Register" }),
+    ).toHaveAttribute("href", "/register");
+    expect(within(alert).getByRole("link", { name: "Sign in" })).toHaveAttribute(
+      "href",
+      "/settings/session",
+    );
+  });
+
+  it("reruns the same URL without the language model from the message", async () => {
+    const bodies: Record<string, unknown>[] = [];
+    refuseLlm(bodies);
+    renderView();
+    await generate();
+
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Generate without the language model",
+      }),
+    );
+    await waitFor(() => expect(bodies).toHaveLength(2));
+    expect(bodies[1]).toMatchObject({
+      urls: ["https://github.com/mitra42/frugal-iot-hw-sensor"],
+      no_llm: true,
+    });
   });
 });
 

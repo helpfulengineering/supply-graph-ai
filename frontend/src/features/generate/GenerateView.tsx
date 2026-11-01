@@ -43,6 +43,7 @@ import { missingRequired } from "./manifestTiers";
 import { TieredEditor } from "./TieredEditor";
 import { ProvenanceRecord } from "./ProvenanceRecord";
 import { ReopenRecord } from "./ReopenRecord";
+import { LlmAccountNotice } from "./LlmAccountNotice";
 import {
   liveRecordFrom,
   readGenerationProvenance,
@@ -157,6 +158,7 @@ export function GenerateView() {
     null,
   );
   const [noLlm, setNoLlm] = useState(false);
+  const [needsAccount, setNeedsAccount] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [report, setReport] = useState<OkhQualityReport | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -250,7 +252,7 @@ export function GenerateView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- finalize once when the batch ends
   }, [active, allTerminal, statuses]);
 
-  const run = async () => {
+  const run = async (withoutLlm = noLlm) => {
     const parsed = parseRepoUrlList(url);
     if (!parsed.valid) {
       setUrlError(parsed.message ?? "That URL can't be used.");
@@ -258,6 +260,7 @@ export function GenerateView() {
     }
     setUrlError(null);
     setError(null);
+    setNeedsAccount(false);
     setManifest(null);
     setReport(null);
     setSelectedJobId(null);
@@ -266,11 +269,17 @@ export function GenerateView() {
 
     try {
       setStartedAt(Date.now());
-      const batch = await submitGenerateJobs(parsed.urls, { noLlm });
+      const batch = await submitGenerateJobs(parsed.urls, {
+        noLlm: withoutLlm,
+      });
       setJobs(batch.jobs);
     } catch (err) {
       setActive(false);
-      setError(generationErrorMessage(err));
+      if (err instanceof ApiError && err.status === 401 && !withoutLlm) {
+        setNeedsAccount(true);
+      } else {
+        setError(generationErrorMessage(err));
+      }
     }
   };
 
@@ -447,6 +456,15 @@ export function GenerateView() {
           is still going. */}
       {!provenance && liveRecord && (
         <ProvenanceRecord record={liveRecord} live={!allTerminal} />
+      )}
+
+      {needsAccount && (
+        <LlmAccountNotice
+          onContinueWithoutLlm={() => {
+            setNoLlm(true);
+            void run(true);
+          }}
+        />
       )}
 
       {error && (
