@@ -85,6 +85,24 @@ def test_a_release_always_audits():
     assert "if" not in step
 
 
+def test_the_image_scan_on_main_replaces_the_code_scanning_alerts():
+    """Its alerts froze in Dec 2025 when the scan was dropped, so they could never close.
+
+    Uploading under the old category supersedes that analysis. Like the audit,
+    the scan reports rather than gates: its database moves without the code.
+    """
+    job = _workflow("docker-build-test.yml")["jobs"]["docker-test"]
+    assert job["permissions"]["security-events"] == "write"
+    [scan] = [s for s in job["steps"] if "trivy-action" in s.get("uses", "")]
+    [upload] = [s for s in job["steps"] if "upload-sarif" in s.get("uses", "")]
+    assert re.fullmatch(r"aquasecurity/trivy-action@[0-9a-f]{40}", scan["uses"])
+    assert scan["with"]["image-ref"] == "${{ env.IMAGE }}:test"
+    assert scan["with"]["exit-code"] == "0"
+    assert upload["with"]["category"] == ".github/workflows/ci-cd.yml:security"
+    for step in (scan, upload):
+        assert "github.event_name != 'pull_request'" in step["if"]
+
+
 def test_drift_on_main_is_found_on_a_schedule_and_reported():
     scheduled = _workflow("dependency-audit.yml")
     # PyYAML reads the bare `on:` key as boolean True.

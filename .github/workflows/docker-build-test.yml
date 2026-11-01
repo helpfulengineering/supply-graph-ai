@@ -14,6 +14,9 @@ jobs:
   docker-test:
     name: Test Docker Image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -39,6 +42,30 @@ jobs:
             APP_VERSION=${{ steps.version.outputs.expected }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Reports to code scanning rather than failing the build: the
+      # vulnerability database changes without the image changing (#594).
+      # Pinned by SHA because this action's tags have been hijacked before.
+      - name: Scan image for vulnerabilities (Trivy)
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}:test
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          limit-severities-for-sarif: true
+          ignore-unfixed: true
+          exit-code: "0"
+
+      # The category is the one the alerts were first filed under, so this
+      # upload supersedes them instead of leaving them open beside it.
+      - name: Upload scan to code scanning
+        if: github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        with:
+          sarif_file: trivy-results.sarif
+          category: .github/workflows/ci-cd.yml:security
 
       - name: Test Docker image
         run: |
