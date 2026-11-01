@@ -579,6 +579,7 @@ class OKWService(BaseService["OKWService"]):
         filter_params: Optional[Dict[str, Any]] = None,
         *,
         viewer: Optional[ViewerScope] = None,
+        mine: bool = False,
     ) -> Tuple[List[ManufacturingFacility], int]:
         """List manufacturing facilities found under the ``okw/`` prefix.
 
@@ -602,7 +603,11 @@ class OKWService(BaseService["OKWService"]):
                 Filtering happens before pagination so ``total`` and the page
                 contents agree; doing it in the caller would return short pages
                 against an inflated count.
+            mine: Keep only facilities ``viewer`` created, whatever their
+                visibility (#576). Requires a viewer.
         """
+        if mine and viewer is None:
+            raise ValueError("mine=True needs a viewer to say whose records")
         await self.ensure_initialized()
         logger.info(
             f"Listing manufacturing facilities (page={page}, page_size={page_size})"
@@ -682,7 +687,7 @@ class OKWService(BaseService["OKWService"]):
         unique_facilities = list(facilities_by_id.values())
         if viewer is not None:
             unique_facilities = await self._visible_facilities(
-                unique_facilities, attribution_by_id, viewer
+                unique_facilities, attribution_by_id, viewer, mine=mine
             )
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
@@ -770,6 +775,7 @@ class OKWService(BaseService["OKWService"]):
         facilities: List[ManufacturingFacility],
         attribution: Dict[UUID, Tuple[Optional[str], Optional[str]]],
         viewer: ViewerScope,
+        mine: bool = False,
     ) -> List[ManufacturingFacility]:
         """Drop facilities ``viewer`` may not see.
 
@@ -781,6 +787,10 @@ class OKWService(BaseService["OKWService"]):
         allowed: List[ManufacturingFacility] = []
         for facility in facilities:
             did, account = attribution.get(facility.id, (None, None))
+            if mine:
+                if viewer.owns(did, account):
+                    allowed.append(facility)
+                continue
             level = await self.get_visibility(facility.id)
             if visible_to(level, viewer, did, account):
                 allowed.append(facility)

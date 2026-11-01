@@ -801,6 +801,11 @@ async def extract(
 @okh_group.command()
 @click.option("--limit", default=10, help="Maximum number of manifests to list")
 @click.option("--offset", default=0, help="Number of manifests to skip")
+@click.option(
+    "--mine",
+    is_flag=True,
+    help="Only manifests you created, whatever their visibility (needs a server).",
+)
 @standard_cli_command(
     help_text="""
     List stored OKH manifests in the system.
@@ -836,6 +841,7 @@ async def list_manifests(
     ctx,
     limit: int,
     offset: int,
+    mine: bool,
     verbose: bool,
     output_format: str,
     use_llm: bool,
@@ -866,6 +872,8 @@ async def list_manifests(
             """List via HTTP API"""
             cli_ctx.log("Listing via HTTP API...", "info")
             params = {"limit": limit, "offset": offset}
+            if mine:
+                params["mine"] = "true"
             response = await cli_ctx.api_client.request(
                 "GET", "/api/okh/", params=params
             )
@@ -873,6 +881,10 @@ async def list_manifests(
 
         async def fallback_list():
             """List using direct service calls"""
+            if mine:
+                raise click.ClickException(
+                    "--mine needs a server: direct mode has no caller identity."
+                )
             cli_ctx.log("Using direct service listing...", "info")
             okh_service = await OKHService.get_instance()
             manifests = await okh_service.list_manifests(limit=limit, offset=offset)

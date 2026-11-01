@@ -217,6 +217,9 @@ async def search_okw(
     facility_status: Optional[str] = Query(None, description="Facility status filter"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Results per page"),
+    mine: bool = Query(
+        False, description="Only facilities you created, whatever their visibility"
+    ),
     okw_service: OKWService = Depends(get_okw_service),
     user: Optional[AuthenticatedUser] = Depends(get_viewer),
 ) -> Any:
@@ -233,6 +236,7 @@ async def search_okw(
                 page_size=fetch_page_size,
                 filter_params=None,
                 viewer=scope,
+                mine=mine,
             )
             facilities.extend(batch)
             if len(batch) < fetch_page_size or len(facilities) >= total:
@@ -865,6 +869,9 @@ async def get_okw_spaceapi(
 async def list_okw(
     pagination: PaginationParams = Depends(),
     filter: Optional[str] = Query(None, description="Filter criteria"),
+    mine: bool = Query(
+        False, description="Only facilities you created, whatever their visibility"
+    ),
     okw_service: OKWService = Depends(get_okw_service),
     http_request: Request = None,
     user: Optional[AuthenticatedUser] = Depends(get_viewer),
@@ -881,6 +888,7 @@ async def list_okw(
             pagination.page_size,
             None,
             viewer=await viewer_scope(user),
+            mine=mine,
         )
 
         # Convert ManufacturingFacility objects to dict format

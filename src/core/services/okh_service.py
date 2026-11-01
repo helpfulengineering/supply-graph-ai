@@ -435,6 +435,7 @@ class OKHService(BaseService["OKHService"]):
         filter_params: Optional[Dict[str, Any]] = None,
         *,
         viewer: Optional[ViewerScope] = None,
+        mine: bool = False,
     ) -> Tuple[List[OKHManifest], int]:
         """Return a page of minimal OKH manifests discovered under the ``okh/`` prefix.
 
@@ -449,10 +450,14 @@ class OKHService(BaseService["OKHService"]):
                 Filtering happens before pagination so ``total`` and the page
                 contents agree; doing it in the caller would return short pages
                 against an inflated count.
+            mine: Keep only manifests ``viewer`` created, whatever their
+                visibility (#576). Requires a viewer.
 
         Returns:
             ``(manifests, total_count)`` after deduplication by manifest id (newest file wins).
         """
+        if mine and viewer is None:
+            raise ValueError("mine=True needs a viewer to say whose records")
         async with self.track_request("list_okh_manifests"):
             await self.ensure_initialized()
             self.logger.info(
@@ -472,7 +477,7 @@ class OKHService(BaseService["OKHService"]):
             # keeps the cached path identical to the uncached one.
             entries = await self._catalog_entries()
             if viewer is not None:
-                entries = await self._visible_entries(entries, viewer)
+                entries = await self._visible_entries(entries, viewer, mine=mine)
 
             all_manifests = [OKHManifest.from_dict(e["manifest"]) for e in entries]
             total = len(all_manifests)
@@ -608,7 +613,7 @@ class OKHService(BaseService["OKHService"]):
         )
 
     async def _visible_entries(
-        self, entries: List[Dict[str, Any]], viewer: ViewerScope
+        self, entries: List[Dict[str, Any]], viewer: ViewerScope, mine: bool = False
     ) -> List[Dict[str, Any]]:
         """Drop catalogue entries ``viewer`` may not see.
 
@@ -621,6 +626,10 @@ class OKHService(BaseService["OKHService"]):
         for entry in entries:
             manifest = entry["manifest"]
             did, account = record_attribution(manifest)
+            if mine:
+                if viewer.owns(did, account):
+                    kept.append(entry)
+                continue
             level = await self.get_visibility(manifest.get("id"))
             if visible_to(level, viewer, did, account):
                 kept.append(entry)

@@ -45,6 +45,18 @@ def test_visibility_set_accepts_every_level():
         assert list(level.type.choices) == [v.value for v in VisibilityLevel]
 
 
+def test_listing_offers_only_your_own_records():
+    """`--mine` mirrors the API's mine=true filter (#576)."""
+    runner = CliRunner()
+    for group, command in (
+        (okh_group, "list-manifests"),
+        (okw_group, "list-facilities"),
+    ):
+        result = runner.invoke(group, [command, "--help"])
+        assert result.exit_code == 0
+        assert "--mine" in result.output
+
+
 def test_okw_exposes_create_visibility_and_disclosure():
     runner = CliRunner()
     result = runner.invoke(okw_group, ["--help"])
