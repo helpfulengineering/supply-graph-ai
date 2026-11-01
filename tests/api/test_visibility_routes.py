@@ -11,7 +11,7 @@ import httpx
 import pytest
 from fastapi import FastAPI
 
-from src.core.models.visibility import VisibilityLevel
+from src.core.models.visibility import DEV_LOCAL_ACCOUNT, VisibilityLevel
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
@@ -33,6 +33,7 @@ async def test_put_okh_visibility():
     manifest_id = uuid4()
     svc = MagicMock()
     svc.get = AsyncMock(return_value=MagicMock())
+    svc.owner_attribution = AsyncMock(return_value=(None, DEV_LOCAL_ACCOUNT))
     svc.set_visibility = AsyncMock(return_value=VisibilityLevel.PUBLIC)
     api_v1.dependency_overrides[get_okh_service] = lambda: svc
     try:
@@ -79,6 +80,8 @@ async def test_put_okw_visibility():
     app, api_v1 = _get_app()
     facility_id = uuid4()
     svc = MagicMock()
+    svc.get = AsyncMock(return_value=MagicMock())
+    svc.owner_attribution = AsyncMock(return_value=(None, DEV_LOCAL_ACCOUNT))
     svc.set_visibility = AsyncMock(return_value=VisibilityLevel.FOLLOWERS)
     api_v1.dependency_overrides[get_okw_service] = lambda: svc
     try:

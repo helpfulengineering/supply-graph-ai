@@ -146,6 +146,10 @@ ohm okw disclosure set <facility_id> followers identity location
 ohm okw disclosure preview <facility_id> followers
 ```
 
+Only the record's creator may change its visibility or disclosure — anyone else,
+admins included, gets 403. Reading a private record's visibility anonymously
+returns 404, the same answer as fetching the record.
+
 OKW federation additionally applies **disclosure profiles** (field groups:
 `identity`, `location`, `equipment`, `operations`, `supply`) per audience
 (`followers` / `public`). Defaults are fail-closed (identity only). Preview the

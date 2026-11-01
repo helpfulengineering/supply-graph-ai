@@ -577,10 +577,8 @@ class OKHService(BaseService["OKHService"]):
     async def owner_did(self, record_id: str) -> Optional[str]:
         """The DID that created ``record_id``, or None if unattributed.
 
-        Reads the inventory pass rather than re-deriving attribution, so there
-        is one place that knows how a record names its owner. Break-glass is a
-        rare, deliberate act, so a full pass is the right trade against a
-        second implementation of the same lookup.
+        Delegates to :meth:`owner_attribution`, so there is one place that
+        knows how a record names its owner.
         """
         did, _ = await self.owner_attribution(record_id)
         return did
@@ -591,18 +589,23 @@ class OKHService(BaseService["OKHService"]):
         """The ``(creator DID, creator account)`` pair ``record_id`` was
         stamped with, or ``(None, None)`` if unattributed.
 
-        Same one-inventory-pass lookup as :meth:`owner_did`, but keeps the
-        account fallback :class:`ViewerScope.owns` needs — DID-only misses
-        the two populations with no DID (environment-configured API keys,
-        and records written before #403). Used to gate a write to an
+        Keeps the account fallback :class:`ViewerScope.owns` needs — DID-only
+        misses the two populations with no DID (environment-configured API
+        keys, and records written before #403). Used to gate a write to an
         *existing* record by who created it (#514), distinct from
         ``get_visibility``/``is_shareable``, which gate whether a record may
         be read at all.
+
+        Resolves the record the way :meth:`get` does, falling back to a
+        storage scan: the catalogue skips non-minimal manifests, and a record
+        ``get`` can find but this cannot would refuse its own creator (#590).
         """
-        for row in await self.inventory():
-            if row["id"] == str(record_id):
-                return row["created_by_did"], row["created_by_account"]
-        return None, None
+        key = await self._find_key_for_id(record_id, "okh")
+        if key is None:
+            return None, None
+        return record_attribution(
+            json.loads(await self.storage.manager.get_object(key))
+        )
 
     async def _visible_entries(
         self, entries: List[Dict[str, Any]], viewer: ViewerScope
