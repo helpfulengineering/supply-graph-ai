@@ -54,7 +54,13 @@ ohm okw list-facilities --mine
 Over the API, add `mine=true` to `GET /api/okh`, `GET /api/okw` or
 `GET /api/okw/search`.
 
-To change several records at once, give `visibility set` more than one id:
+In the web interface, your account page lists every design and facility you
+created, with its visibility. Tick the ones to change, pick a level, and the
+page says who will receive them before you apply. Each record then shows
+whether it changed.
+
+To change several records at once from the command line, give
+`visibility set` more than one id:
 
 ```bash
 ohm okh visibility set <id> <id> <id> members

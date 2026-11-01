@@ -20,6 +20,8 @@ export interface SearchOkwParams {
   location?: string;
   access_type?: string;
   facility_status?: string;
+  /** Only the caller's own facilities, whatever their visibility. */
+  mine?: boolean;
 }
 
 /**
@@ -38,6 +40,7 @@ export async function searchOkw(
         location: params.location,
         access_type: params.access_type,
         facility_status: params.facility_status,
+        mine: params.mine,
       },
     },
   });
@@ -99,6 +102,8 @@ export async function validateOkw(
 export type RecordProvenance = components["schemas"]["RecordProvenance"];
 export type VisibilityLevel = components["schemas"]["VisibilityLevel"];
 export type VisibilityResponse = components["schemas"]["VisibilityResponse"];
+export type BulkVisibilityResult =
+  components["schemas"]["BulkVisibilityResult"];
 
 export interface CreateProvenanceOpts {
   author?: string;
@@ -196,6 +201,24 @@ export async function setOkwVisibility(
     );
   }
   return data;
+}
+
+/** Set one level on many facilities; one result per id, in request order. */
+export async function setOkwVisibilityBulk(
+  ids: string[],
+  visibility: VisibilityLevel,
+): Promise<BulkVisibilityResult[]> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/okw/visibility",
+    { body: { ids, visibility } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to set visibility (HTTP ${response.status})`),
+    );
+  }
+  return data.results;
 }
 
 export type DisclosureGroup = components["schemas"]["DisclosureGroup"];

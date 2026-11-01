@@ -1,45 +1,60 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { EyeOff, UserPlus } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { UserPlus } from "lucide-react";
 import { PageHero } from "../../components/layout/PageHero";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Badge } from "../../components/ui/Badge";
+import { Button } from "../../components/ui/button";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_LABEL_SM, SECTION_TITLE } from "../../components/ui/typography";
-import { FIELD_SM } from "../../components/ui/field";
+import {
+  CHECKBOX,
+  CHECKBOX_HIT,
+  FIELD,
+  FIELD_SM,
+  LABEL,
+} from "../../components/ui/field";
 import { useAuth } from "../../context/AuthContext";
-import { fetchOkhList } from "../../api/ohm/okh";
+import {
+  fetchOkhList,
+  setOkhVisibilityBulk,
+  type BulkVisibilityResult,
+  type VisibilityLevel,
+} from "../../api/ohm/okh";
 import { MyKeysPanel } from "./MyKeysPanel";
-import { searchOkw } from "../../api/ohm/okw";
+import { searchOkw, setOkwVisibilityBulk } from "../../api/ohm/okw";
+import { VisibilityBadge } from "../okh/VisibilityBadge";
+import { AUDIENCE, LEVELS } from "../okh/VisibilityControl";
+
+const DESIGNS_KEY = ["okh-list", "account", "mine"] as const;
+const FACILITIES_KEY = ["okw-search", "account", "mine"] as const;
 
 /**
  * Where a signed-in visitor goes.
  *
  * Settings is admin-only and stays that way, so a registered non-admin needs
- * somewhere that is theirs. Its job is the one thing the CLI could do and the
- * UI could not: show you what you have made that nobody else can see, and get
- * you from there to shared.
+ * somewhere that is theirs: everything you have made, who can see each one,
+ * and a way to change that for many at once (#576).
  *
- * "Unshared" is exactly derivable from the list payload, and deliberately not
- * called "everything you made": a caller sees shareable records plus their
- * own, so a non-shareable row is necessarily theirs — but their *shared*
- * records are indistinguishable from anyone else's, and a section that claimed
- * to be all of yours would quietly be missing half.
+ * The lists ask for `mine=true`. Without it a caller sees shareable records
+ * plus their own, so their *shared* records are indistinguishable from anyone
+ * else's and a section claiming to be all of yours would quietly miss half.
  */
 export function AccountView() {
   const { token, user, isLoading, clear, sessionOrigin } = useAuth();
 
   const designs = useQuery({
-    queryKey: ["okh-list", "account"],
-    queryFn: () => fetchOkhList({ page_size: 100 }),
+    queryKey: DESIGNS_KEY,
+    queryFn: () => fetchOkhList({ page_size: 100, mine: true }),
     enabled: Boolean(token),
   });
   const facilities = useQuery({
-    queryKey: ["okw-search", "account"],
-    queryFn: () => searchOkw({ page_size: 100 }),
+    queryKey: FACILITIES_KEY,
+    queryFn: () => searchOkw({ page_size: 100, mine: true }),
     enabled: Boolean(token),
   });
 
@@ -73,15 +88,6 @@ export function AccountView() {
       </div>
     );
   }
-
-  const unsharedDesigns = (designs.data?.items ?? []).filter(
-    (d) => d.visibility === "private",
-  );
-  const unsharedFacilities = (facilities.data?.results ?? []).filter(
-    (f) => f.visibility === "private",
-  );
-  const anyDesigns = (designs.data?.items ?? []).length > 0;
-  const anyFacilities = (facilities.data?.results ?? []).length > 0;
 
   return (
     <>
@@ -141,67 +147,113 @@ export function AccountView() {
 
         <MyKeysPanel />
 
-        <UnsharedSection
+        <YourRecordsSection
           id="designs"
-          title="Designs only you can see"
+          title="Your designs"
+          nouns={{ one: "design", many: "designs" }}
           browseHref="/okh"
+          listKey={DESIGNS_KEY}
           loading={designs.isPending}
-          rows={unsharedDesigns.map((d) => ({
+          rows={(designs.data?.items ?? []).map((d) => ({
             id: String(d.id),
             label: d.title ?? String(d.id),
             href: `/okh/${d.id}`,
+            visibility: d.visibility,
           }))}
-          empty={{
-            madeNothing: anyDesigns === false,
-            nothing: "You have not created a design yet.",
-            allShared: "Every design you can see is shared.",
-          }}
+          nothing="You have not created a design yet."
+          apply={setOkhVisibilityBulk}
         />
 
-        <UnsharedSection
+        <YourRecordsSection
           id="facilities"
-          title="Facilities only you can see"
+          title="Your facilities"
+          nouns={{ one: "facility", many: "facilities" }}
           browseHref="/facilities"
+          listKey={FACILITIES_KEY}
           loading={facilities.isPending}
-          rows={unsharedFacilities.map((f) => ({
+          rows={(facilities.data?.results ?? []).map((f) => ({
             id: String(f.id),
             label: f.name ?? String(f.id),
             href: `/facilities/${f.id}`,
+            visibility: f.visibility,
           }))}
-          empty={{
-            madeNothing: anyFacilities === false,
-            nothing: "You have not created a facility yet.",
-            allShared: "Every facility you can see is shared.",
-          }}
+          nothing="You have not created a facility yet."
+          apply={setOkwVisibilityBulk}
         />
       </div>
     </>
   );
 }
 
-function UnsharedSection({
+const OUTCOME: Record<BulkVisibilityResult["outcome"], string> = {
+  changed: "Changed",
+  not_yours: "Not yours",
+  not_found: "Not found",
+};
+
+function YourRecordsSection({
   id,
   title,
+  nouns,
   browseHref,
+  listKey,
   loading,
   rows,
-  empty,
+  nothing,
+  apply,
 }: {
   id: string;
   title: string;
+  nouns: { one: string; many: string };
   browseHref: string;
+  /** The list query to refetch once a change lands, so badges catch up. */
+  listKey: readonly unknown[];
   loading: boolean;
-  rows: { id: string; label: string; href: string }[];
-  /** The two silences travel together, and they mean opposite things. */
-  empty: { madeNothing: boolean; nothing: string; allShared: string };
+  rows: {
+    id: string;
+    label: string;
+    href: string;
+    visibility?: VisibilityLevel;
+  }[];
+  nothing: string;
+  apply: (
+    ids: string[],
+    level: VisibilityLevel,
+  ) => Promise<BulkVisibilityResult[]>;
 }) {
+  const { hasWrite, reportAuthFailure } = useAuth();
+  const queryClient = useQueryClient();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [level, setLevel] = useState<VisibilityLevel | null>(null);
+  const [outcomes, setOutcomes] = useState<
+    Record<string, BulkVisibilityResult["outcome"]>
+  >({});
+
+  const mutation = useMutation({
+    mutationFn: (to: VisibilityLevel) => apply(selected, to),
+    onSuccess: (results) => {
+      setOutcomes(Object.fromEntries(results.map((r) => [r.id, r.outcome])));
+      setSelected([]);
+      setLevel(null);
+      void queryClient.invalidateQueries({ queryKey: listKey });
+    },
+    onError: reportAuthFailure,
+  });
+
+  const toggle = (rowId: string) =>
+    setSelected((s) =>
+      s.includes(rowId) ? s.filter((x) => x !== rowId) : [...s, rowId],
+    );
+  const count = selected.length;
+  const pending = count > 0 && level;
+
   return (
-    <section className={PANEL} aria-labelledby={`unshared-${id}`}>
-      <h2 id={`unshared-${id}`} className={SECTION_TITLE}>
+    <section className={PANEL} aria-labelledby={`yours-${id}`}>
+      <h2 id={`yours-${id}`} className={SECTION_TITLE}>
         {title}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        New records start private. Open one to share it.
+        Everything you created, whoever can see it. New records start private.
       </p>
 
       {loading ? (
@@ -210,22 +262,103 @@ function UnsharedSection({
         </div>
       ) : rows.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">
-          {empty.madeNothing ? empty.nothing : empty.allShared}{" "}
+          {nothing}{" "}
           <Link href={browseHref} className="underline">
             Browse
           </Link>
         </p>
       ) : (
-        <ul className="mt-3 space-y-1">
-          {rows.map((row) => (
-            <li key={row.id} className="flex items-center gap-2 text-sm">
-              <EyeOff aria-hidden="true" className="h-4 w-4 text-text-faint" />
-              <Link href={row.href} className="underline">
-                {row.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="mt-3 space-y-1">
+            {rows.map((row) => (
+              <li key={row.id} className="flex items-center gap-3 text-sm">
+                <label className={CHECKBOX_HIT}>
+                  <input
+                    type="checkbox"
+                    className={CHECKBOX}
+                    aria-label={`Select ${row.label}`}
+                    checked={selected.includes(row.id)}
+                    disabled={!hasWrite || mutation.isPending}
+                    onChange={() => toggle(row.id)}
+                  />
+                </label>
+                <Link
+                  href={row.href}
+                  className="block min-w-0 truncate py-0.5 underline"
+                >
+                  {row.label}
+                </Link>
+                <VisibilityBadge level={row.visibility} />
+                {outcomes[row.id] && (
+                  <span className="text-xs text-muted-foreground">
+                    {OUTCOME[outcomes[row.id]]}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          <label className={`${LABEL} mt-4`}>
+            <span className="sr-only">
+              New visibility for selected {nouns.many}
+            </span>
+            <select
+              value={level ?? ""}
+              disabled={!hasWrite || count === 0 || mutation.isPending}
+              onChange={(e) =>
+                setLevel((e.target.value || null) as VisibilityLevel | null)
+              }
+              className={`${FIELD} w-full max-w-xs`}
+            >
+              <option value="">Change visibility of selected…</option>
+              {LEVELS.map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {pending && (
+            <div className="mt-3 space-y-2 text-sm" role="status">
+              <p className="text-foreground">
+                <span className="font-medium">Who will see these: </span>
+                {AUDIENCE[level]}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  disabled={mutation.isPending}
+                  onClick={() => mutation.mutate(level)}
+                >
+                  {mutation.isPending
+                    ? "Applying…"
+                    : `Apply ${level} to ${count} ${count === 1 ? nouns.one : nouns.many}`}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={mutation.isPending}
+                  onClick={() => setLevel(null)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+          {!hasWrite && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Changing visibility requires a write-capable API key.
+            </p>
+          )}
+          {mutation.isError && (
+            <p className="mt-2 text-sm text-destructive" role="alert">
+              {mutation.error instanceof Error
+                ? mutation.error.message
+                : "Update failed."}
+            </p>
+          )}
+        </>
       )}
     </section>
   );
