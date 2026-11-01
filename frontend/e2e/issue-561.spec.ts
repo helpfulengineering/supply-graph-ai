@@ -94,7 +94,6 @@ test.beforeEach(async ({}, testInfo) => {
 test("the landing page offers adding a design, not only finding one", async ({
   page,
 }) => {
-  test.fail(true, "#567: the landing page is only about finding designs");
   await page.goto("/");
   await expect(
     page.getByRole("link", { name: /add your design/i }),

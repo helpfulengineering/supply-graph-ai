@@ -776,6 +776,13 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         requires_fe_call="/api/okh",
     ),
     SiteDoc(
+        "okh",
+        "Add your design as a member of a node",
+        "deployed",
+        path="guides/for-designers.md",
+        requires_fe_call="/api/okh/generate-from-url/jobs",
+    ),
+    SiteDoc(
         "match",
         "Match a design to facilities",
         "deployed",
