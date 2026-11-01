@@ -1178,6 +1178,9 @@ export interface paths {
          *           axis (e.g. MoM) are kept, flagged `ambiguous`, and sorted last rather than
          *           excluded.
          *
+         *         Local facilities are scoped to the caller: shareable ones, `members` ones
+         *         for a signed-in account, and the caller's own.
+         *
          *         Local facilities without coordinates are counted in `dropped_no_coords`. MoM
          *         comes from a 24h TTL cache and degrades gracefully (`mom_available: false`).
          *         `include_mom=false` returns local only; `force_refresh=true` refreshes MoM.
