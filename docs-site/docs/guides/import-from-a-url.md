@@ -152,6 +152,12 @@ explaining is invariably the one you did not think to ask about.
 public repositories work — private ones need credentials that belong to you,
 which needs accounts.
 
+**"Generating with the language model needs an account on this node."** The
+node has a language model, and spends it only for people with an account here.
+Register or sign in from the message, then generate again. Or choose
+**Generate without the language model** to run the same address on rules
+alone, straight away.
+
 **"The shared rate limit has been reached."** Everyone using the hosted instance
 shares one quota for reading repositories, so heavy use by one person affects
 others. Waiting is the fix. This goes away if you
