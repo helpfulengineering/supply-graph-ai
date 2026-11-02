@@ -7,6 +7,155 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-02
+
+### Added
+
+- The generation canary corpus gains its first electronics repository with ground
+  truth, `mitra42/frugal-iot-hw-sensor` from #561 (#563). The baseline report now
+  scores version, manufacturing processes, BOM file and file roles against ground
+  truth, and tracks known defects as expected failures that flag themselves once
+  fixed.
+- A signed-in designer can save a generated design to this node. It is stored
+  private, and the generation record is kept beside it so the record page can
+  open that view again. The design's content hash is unchanged.
+- The home page's Getting started section now has a second path, **Add your
+  design**, leading to Generate, alongside the steps for finding something to
+  build (#567). A new [For designers](https://www.openhardwaremanager.org/docs/guides/for-designers/)
+  guide explains that a designer becomes a member of an existing node and installs
+  nothing; running a node is for organisations.
+- Members sign in with a username and password. The browser keeps the session
+  in a cookie. Registering on the website no longer returns an API token. The
+  command-line registration still does, for one release.
+- Recovering an account sets a new password and signs the browser in. Signup
+  shows only the recovery code, with a download and a confirmation before
+  continuing. A token for a script is created from the account page.
+- Signing up from Generate stays on the page, so an edited result and the
+  repository address are still there afterwards. The form names the node and
+  who runs it.
+- A fourth visibility level, `members` (#574): visible to every account signed in
+  to the node, never entered in the federation catalogue or sync. Settable through
+  the API, `ohm okh|okw visibility set`, and the visibility control in the web UI.
+- Match against this node's member facilities only (#575): tick "This node's
+  members' facilities only" on the Match page, send
+  `network_filter: {"members_only": true}` with a match, or pass
+  `ohm match requirements --network-members`. Only facilities created by the
+  node's enabled person accounts are candidates; synced and Maps of Making
+  facilities are left out.
+- Design list cards and rows show each design's visibility as a badge —
+  Private, Members, Followers or Public (#576).
+- Change the visibility of many designs or facilities at once: `POST /api/okh/visibility` and `POST /api/okw/visibility` take a list of ids and report, per id, whether it was changed, isn't yours, or wasn't found. `ohm okh|okw visibility set` accepts several ids.
+- Facility cards on the facilities list and map show each facility's visibility
+  (#576). `GET /api/okw/spaces` returns `visibility` per space — the level for a
+  local facility, null for Maps of Making.
+- List only your own records, shared or not (#576): `mine=true` on
+  `GET /api/okh`, `GET /api/okw` and `GET /api/okw/search`, and `--mine` on
+  `ohm okh list-manifests` and `ohm okw list-facilities`.
+
+### Changed
+
+- The account page lists every design and facility you created, shared or not, with its visibility, and changes the visibility of the ones you select in one step, showing who will receive them before it applies.
+- Changing a design's or facility's visibility now shows who will receive it at
+  the new level, and applies only when confirmed (#576). Picking a level in the
+  web UI no longer changes it immediately.
+- The dependency audit no longer fails unrelated pull requests (#594). PRs audit
+  only when they change dependencies; a daily audit of `main` reports drift as
+  one tracking issue; releases always audit; Dependabot opens grouped Python
+  security PRs. `make audit` runs the same check locally against the lockfile
+  (all extras), which also surfaced and fixed mkdocs-material PYSEC-2026-3864
+  (9.7.7) in the docs extra.
+- `make audit` now also audits `frontend/package-lock.json`, failing on high and
+  critical npm advisories (#601). It runs under the same rules as the Python audit:
+  on PRs that change frontend dependencies, daily on `main`, and on every release.
+  Dependabot opens grouped npm security PRs as well.
+
+### Fixed
+
+- The Generate editor keeps process requirements and TSDC codes in line with the
+  process list as you edit, so a process you remove is gone from the downloaded
+  YAML and JSON and from what "Find who can build this" matches on (#562, #561).
+  TSDC codes are now shown read-only under the processes.
+- Saving an OKH manifest now derives `manufacturing_specs.process_requirements`
+  and the process codes in `tsdc` from `manufacturing_processes`, whichever
+  client saves it, so a removed process no longer lingers in the other two
+  (#562). Detail on kept processes and codes that are not process codes are
+  preserved; records received over federation are stored as their publisher
+  signed them. `POST /api/okh/normalize` and `ohm okh normalize` apply the same
+  rule without saving.
+- Generation recognises electronics design drawings (#563, from #561): a file named
+  as a schematic (`SCHEMATIC.pdf`, `power-supply-schematic.png`) or a PCB layout
+  (`PCB-LAYOUT.pdf`) is categorised as a design file wherever it lives, and
+  KiCad schematics (`.kicad_sch`) by their extension. These used to fall through
+  to the default category at confidence 0.3.
+- The review form explains the bill of materials (#564, from #561): what it is,
+  the parts needed to build the design, and which file it was read from.
+- Generated designs carry their bill of materials (#564, from #561). The BOM file
+  is linked as `bom.external_file`, assembly-service exports such as
+  `BOM_JLCPCB.csv` are recognised, and KiCad and JLCPCB CSV exports are read into
+  components (quoted fields, parts named by value, quantity from the designator
+  count when there is no quantity column). Web and API generation now embed the
+  full component list in the manifest; the CLI keeps writing it to a separate
+  file unless `--unified-bom` is given.
+- Generation keeps only manufacturing processes the taxonomy knows (#564, from
+  #561). A phrase used to be kept, title-cased, when it merely contained a word
+  like "bend" or "cast"; those invented processes are now dropped, and a known
+  process is recorded under its taxonomy name.
+- Generation no longer adds Sheet Metal Forming to a design because its
+  documentation says "sheet", as in "see the data sheet" (#564, from #561). The
+  word on its own is no longer a process alias, and a process code found in text
+  counts only when written as a code (`SHEET`); "sheet metal" still matches.
+- Generation no longer invents a version (#564, from #561). The version is read
+  from a release or tag, a root version file (`VERSION`, `package.json`,
+  `pyproject.toml`, `library.properties`) or a KiCad project's title-block
+  revision, and its source is recorded in the provenance file. The LLM can no
+  longer set it, and the `1.0.0` defaults are gone: with no declared version the
+  field is left blank, with a quality note naming any version-like strings seen.
+- Generate explains, in plain words, that generating with the language model needs an account on this node, with links to register and sign in and a button to generate the same address without the language model. It used to show the API's "Pass Authorization: Bearer <token>" message (#561).
+- Updating a design or facility no longer drops its owner (#623). The first edit
+  erased the record's creator, so a private record became unreadable and
+  uneditable even by the person who made it. Records damaged before this fix
+  are not restored automatically.
+
+### Security
+
+- Changing a record's visibility (`PUT /api/okh/{id}/visibility`,
+  `PUT /api/okw/{id}/visibility`) or a facility's disclosure
+  (`PUT /api/okw/{id}/disclosure`) now requires owning the record (#590). Any
+  credentialed caller — every self-registered account — could previously make
+  another user's private record public. `GET …/visibility` now 404s for an
+  anonymous caller on a private record, matching `GET /{id}`, instead of
+  confirming the id exists. Ownership checks now also find manifests the
+  catalogue skips (non-minimal ones), which previously refused their own creator
+  on update, delete and visibility changes.
+- Dependency security bump (#594), clearing 99 advisories that pip-audit reports
+  against the lockfile: aiohttp 3.14.5, certifi 2026.10.23, dnspython 2.9.1,
+  geopy 2.5.0, gitpython 3.2.1, multidict 6.9.1, pillow 13.0.0, pyasn1 0.6.5,
+  pypdf 6.21.4, setuptools 84.2.1, tornado 6.6, urllib3 2.8.0, and black 26.10.1
+  (dev).
+- `POST /api/match` without a `network_filter` no longer matches against other
+  users' private facilities (#595). The #503 fix scoped only the `network_filter`
+  path; the default path drew its candidate pool unscoped and returned a private
+  facility as a solution to any caller. `resolve_match_facilities` now takes a
+  required `viewer`, so a caller has to state its scope.
+- Frontend dependencies updated within their current major versions to clear every
+  critical and high npm advisory (#601), including `next` 16.4.3, `zod` 4.6.7 and
+  `shadcn` 4.23.0; the newer `shadcn` no longer pulls in the Express-based MCP SDK
+  chain (`proxy-addr`, `body-parser`).
+- The backend Docker image is scanned with Trivy again on every push to `main`
+  (#604), reporting fixable high and critical vulnerabilities to code scanning
+  under the category of the scan dropped in April, so its alerts, frozen since
+  December 2025, are superseded rather than left open.
+- Reads by id now follow the same rule as lists (#606). A signed-in account could
+  fetch another account's private manifest or facility by id; the detail and
+  visibility routes, `okh/from-storage`, `okh/harvest-parts`, `package/build`,
+  match validation and reverse match now answer 404 to anyone the record would
+  not be listed for. The main match by `okh_id`, which had no visibility check at
+  all, gets the same rule.
+- The facilities list and map (`GET /api/okw/spaces`) no longer show private
+  facilities to other callers (#611). The browse surface built its local half
+  without a viewer, so every visitor saw each private facility's name, location
+  and website; it now follows the same visibility rule as the facility list.
+
 ## [0.14.1] - 2026-09-22
 
 ### Minor fixes to install.sh, such that it now checks host machine for docker installation, and if not present will install as per official docker installation instructions.
