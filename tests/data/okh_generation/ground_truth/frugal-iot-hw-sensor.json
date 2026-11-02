@@ -14,7 +14,6 @@
     "fabrication/gerbers.zip": "manufacturing_files"
   },
   "expected_fail": {
-    "manufacturing_processes": "#564: the bare token 'sheet' is a sheet-metal alias",
-    "bom_external_file": "#564: BOM files are found but not linked"
+    "manufacturing_processes": "#564: the bare token 'sheet' is a sheet-metal alias"
   }
 }

@@ -105,12 +105,12 @@ def test_open_ground_truth_checks_are_expected_failures(tmp_path: Path) -> None:
     assert _checks(report) == {
         "version": "fail",
         "manufacturing_processes": "expected_fail",
-        "bom_external_file": "expected_fail",
+        "bom_external_file": "fail",
         "file_roles": "pass",
     }
     assert report["summary"]["check_outcomes"] == {
-        "fail": 1,
-        "expected_fail": 2,
+        "fail": 2,
+        "expected_fail": 1,
         "pass": 1,
     }
 
@@ -128,5 +128,5 @@ def test_an_open_check_that_passes_is_flagged_for_its_marker(tmp_path: Path) -> 
     checks = _checks(report)
     assert checks["version"] == "pass"
     assert checks["manufacturing_processes"] == "unexpected_pass"
-    assert checks["bom_external_file"] == "unexpected_pass"
+    assert checks["bom_external_file"] == "pass"
     assert checks["file_roles"] == "fail"

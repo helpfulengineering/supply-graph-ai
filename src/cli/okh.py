@@ -1656,9 +1656,8 @@ async def generate_from_url(
         # Store the raw result for BOM export
         raw_result = await fallback_generate()
 
-        # Set unified BOM mode if requested
-        if unified_bom and hasattr(raw_result, "unified_bom_mode"):
-            raw_result.unified_bom_mode = True
+        if hasattr(raw_result, "unified_bom_mode"):
+            raw_result.unified_bom_mode = unified_bom
 
         emit_status_line(
             output_format=output_format,

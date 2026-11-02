@@ -382,7 +382,9 @@ class ManifestGeneration:
     quality_report: QualityReport
     missing_fields: List[str]
     full_bom: Optional[Any] = None  # Store full BillOfMaterials object for export
-    unified_bom_mode: bool = False  # Whether to include full BOM in manifest
+    # Full BOM in the manifest. The CLI turns this off when it writes the BOM
+    # to a separate file; a web download has no other file to carry it.
+    unified_bom_mode: bool = True
     include_file_metadata: bool = False  # Whether to include metadata in file entries
     # Item-level review queues (e.g. materials) — not part of MaterialSpec
     review_items: Dict[str, List[Any]] = field(default_factory=dict)
