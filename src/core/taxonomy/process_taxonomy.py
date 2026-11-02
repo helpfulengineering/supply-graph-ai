@@ -399,7 +399,6 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "sheet",
                 "sheet metal",
                 "sheet metal forming",
                 "sheet_metal",
@@ -1120,8 +1119,6 @@ class ProcessTaxonomy:
             if defn.tsdc_code:
                 tsdc_upper = defn.tsdc_code.upper()
                 self._tsdc_map[tsdc_upper] = cid
-                # Also register TSDC code as alias (case-insensitive)
-                self._register_alias(defn.tsdc_code, cid)
 
             # Register Wikidata QID
             if defn.wikidata_qid:

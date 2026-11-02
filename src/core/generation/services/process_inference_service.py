@@ -52,6 +52,7 @@ TEXT_PHRASES: tuple[str, ...] = (
     "cnc turning",
     "pcb fabrication",
     "pcb assembly",
+    "sheet metal",
     "injection mold",
     "injection mould",
 )
@@ -189,7 +190,7 @@ class ProcessInferenceService:
             elif key in _TEXT_TOKEN_BLOCKLIST or len(key) < 4:
                 continue
             else:
-                process_id = self._exact_taxonomy_alias(key)
+                process_id = self._exact_taxonomy_alias(token)
             if process_id is None:
                 continue
             evidence = f"token:{token}"
@@ -309,7 +310,7 @@ class ProcessInferenceService:
             return key
         if key in taxonomy._alias_map:
             return taxonomy._alias_map[key]
-        return taxonomy._tsdc_map.get(token.strip().upper())
+        return taxonomy._tsdc_map.get(token)
 
     @staticmethod
     def _tsdc_from_manifest(manifest: object) -> List[str]:
