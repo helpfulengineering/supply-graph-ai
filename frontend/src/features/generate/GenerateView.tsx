@@ -39,6 +39,7 @@ import {
 } from "../../api/ohm/okh";
 import { toQualityBanner } from "./qualityBanner";
 import { downloadManifest } from "./serialize";
+import { useProcessDerivation } from "./useProcessDerivation";
 import { missingRequired } from "./manifestTiers";
 import { TieredEditor } from "./TieredEditor";
 import { ProvenanceRecord } from "./ProvenanceRecord";
@@ -154,6 +155,7 @@ export function GenerateView() {
   const [jobs, setJobs] = useState<GenerateJobRef[]>([]);
   const [active, setActive] = useState(false);
   const [manifest, setManifest] = useState<Manifest | null>(null);
+  const derivation = useProcessDerivation(manifest, setManifest);
   const [provenance, setProvenance] = useState<GenerationProvenance | null>(
     null,
   );
@@ -239,7 +241,7 @@ export function GenerateView() {
     }
     const pick = successes[0];
     setSelectedJobId(pick.job_id);
-    setManifest(pick.manifest as Manifest);
+    derivation.load(pick.manifest as Manifest);
     // Parsed rather than cast: the server types this Dict[str, Any], so codegen
     // vouches for nothing. A malformed record costs this panel, not the run.
     setProvenance(readGenerationProvenance(pick.provenance));
@@ -261,7 +263,7 @@ export function GenerateView() {
     setUrlError(null);
     setError(null);
     setNeedsAccount(false);
-    setManifest(null);
+    derivation.load(null);
     setReport(null);
     setSelectedJobId(null);
     setJobs([]);
@@ -292,6 +294,8 @@ export function GenerateView() {
 
   const banner = manifest ? toQualityBanner(report) : null;
   const missing = manifest ? missingRequired(manifest) : [];
+  // Nothing leaves the editor while its process copies may name a removed process.
+  const blocked = missing.length > 0 || derivation.state !== "current";
   const aggregate = aggregatePercent(statuses);
   const showProgress = active || (jobs.length > 0 && !manifest && !allTerminal);
 
@@ -491,7 +495,7 @@ export function GenerateView() {
                   type="button"
                   onClick={() => {
                     setSelectedJobId(s.job_id);
-                    setManifest(s.manifest as Manifest);
+                    derivation.load(s.manifest as Manifest);
                     // Also swapped, or the record would describe the run the
                     // reader just navigated away from.
                     setProvenance(readGenerationProvenance(s.provenance));
@@ -527,7 +531,7 @@ export function GenerateView() {
           </div>
 
           <div className={PANEL}>
-            <TieredEditor manifest={manifest} onChange={setManifest} />
+            <TieredEditor manifest={manifest} onChange={derivation.edit} />
           </div>
 
           {provenance && <ProvenanceRecord record={provenance} />}
@@ -535,7 +539,7 @@ export function GenerateView() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              disabled={missing.length > 0}
+              disabled={blocked}
               onClick={() => downloadManifest(manifest, "yaml")}
               className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-on-accent hover:bg-primary disabled:opacity-60"
             >
@@ -543,7 +547,7 @@ export function GenerateView() {
             </button>
             <button
               type="button"
-              disabled={missing.length > 0}
+              disabled={blocked}
               onClick={() => downloadManifest(manifest, "json")}
               className={`${FIELD} px-5 font-semibold disabled:opacity-60`}
             >
@@ -551,7 +555,7 @@ export function GenerateView() {
             </button>
             <button
               type="button"
-              disabled={missing.length > 0}
+              disabled={blocked}
               onClick={() =>
                 router.push(
                   withNavState("/match", {
@@ -567,6 +571,24 @@ export function GenerateView() {
             >
               Find who can build this
             </button>
+            {derivation.state === "updating" && (
+              <p role="status" className="text-sm text-muted-foreground">
+                Updating the process requirements…
+              </p>
+            )}
+            {derivation.state === "failed" && (
+              <p role="alert" className="text-sm text-warning">
+                Couldn&apos;t bring the process requirements in line with the
+                process list, so the file would be inconsistent.{" "}
+                <button
+                  type="button"
+                  onClick={derivation.retry}
+                  className="font-medium underline"
+                >
+                  Try again
+                </button>
+              </p>
+            )}
             {missing.length > 0 && (
               <p className="text-sm text-warning">
                 Fill in {missing.length} required field

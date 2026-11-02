@@ -70,6 +70,10 @@ export const handlers = [
   http.post("*/v1/api/okh/extract", () =>
     HttpResponse.json(okhRequirementsFixture),
   ),
+  // Echoes the draft: a test that cares what the node derives says so itself.
+  http.post("*/v1/api/okh/normalize", async ({ request }) =>
+    HttpResponse.json(await request.json()),
+  ),
   // Literal paths, so they must precede the ":id" rules below — a param route
   // registered first swallows them, exactly as it does in the API router.
   http.get("*/v1/api/okh/inventory", () => HttpResponse.json(inventoryFixture)),

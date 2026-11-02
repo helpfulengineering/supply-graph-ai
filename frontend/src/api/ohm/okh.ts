@@ -489,6 +489,26 @@ export async function extractOkhRequirements(
 }
 
 /**
+ * The draft with its process requirements and TSDC codes derived from its
+ * process list, as a save would store them (#562). Nothing is stored. Asked
+ * of the node rather than done here: each node can load its own taxonomy.
+ */
+export async function normalizeOkh(
+  content: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const { data, error, response } = await apiClient.POST("/api/okh/normalize", {
+    body: { content },
+  });
+  if (error || !response.ok || !data?.content) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Could not derive process fields (HTTP ${response.status})`),
+    );
+  }
+  return data.content;
+}
+
+/**
  * A blank manifest from the server.
  *
  * The create form carries its own literal, which is a second copy of the model

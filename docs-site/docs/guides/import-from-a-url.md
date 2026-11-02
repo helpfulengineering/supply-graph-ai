@@ -83,7 +83,9 @@ components more often than we'd like.
 as a requirement entry and, for processes that have one, a TSDC code. Those
 follow the list whenever a design is saved, by any client: remove a process
 and its requirement and code go with it, while detail you added to a process
-you kept stays. To apply the same rule to a file without saving it, use
+you kept stays. The review form does the same as you edit — the TSDC codes are
+shown under the processes rather than edited on their own, and download waits
+until they are up to date. To apply the same rule to a file without saving it, use
 `ohm okh normalize my-design.okh.yaml` or `POST /api/okh/normalize`.
 
 **Being found** — description, repository, keywords.

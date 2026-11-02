@@ -45,6 +45,11 @@ export const test = base.extend({
           });
           return;
         }
+        if (method === "POST" && pathname.endsWith("/api/okh/normalize")) {
+          // Echoes the draft; a spec that cares what the node derives routes it.
+          await route.fulfill({ json: route.request().postDataJSON() });
+          return;
+        }
         if (method === "POST" && pathname.endsWith("/api/identity/register")) {
           await route.fulfill({ json: registrationFixture, status: 201 });
           return;
