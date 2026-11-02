@@ -15,6 +15,7 @@ import {
   okwDetailFixture,
   packageMetadataFixture,
   packageSignatureFixture,
+  generationProvenanceFixture,
   provenanceFixture,
   recoveredFixture,
   registrationFixture,
@@ -106,6 +107,11 @@ const PARAMETERISED: Array<{
         ...okhDetailFixture,
         id,
       },
+  },
+  {
+    method: "GET",
+    pattern: /^\/v1\/api\/okh\/([^/]+)\/generation-provenance$/,
+    resolve: () => generationProvenanceFixture,
   },
   {
     method: "GET",
@@ -316,9 +322,15 @@ export function resolveDemoRoute(method: string, pathname: string): DemoRoute {
   // renewing changes nothing. Answered rather than refused so the tour can walk
   // the whole flow without hitting an error page.
   if (verb === "POST" && pathname === "/v1/api/identity/keys/revoke-others") {
-    return json({ success: true, message: "Revoked 0 other key(s) on your account" });
+    return json({
+      success: true,
+      message: "Revoked 0 other key(s) on your account",
+    });
   }
-  if (verb === "POST" && /^\/v1\/api\/identity\/keys\/[^/]+\/renew$/.test(pathname)) {
+  if (
+    verb === "POST" &&
+    /^\/v1\/api\/identity\/keys\/[^/]+\/renew$/.test(pathname)
+  ) {
     return json({
       ...apiKeysFixture[0],
       expires_at: new Date(Date.now() + 180 * 86_400_000).toISOString(),

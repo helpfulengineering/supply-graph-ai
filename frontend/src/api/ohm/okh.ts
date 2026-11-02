@@ -215,6 +215,50 @@ export async function createOkh(
   return { id: String(id) };
 }
 
+export type GenerationProvenanceRecord =
+  components["schemas"]["GenerationProvenanceRecord"];
+
+/** How a saved design was generated, or null when this design has no sidecar. */
+export async function getGenerationProvenance(
+  id: string,
+): Promise<GenerationProvenanceRecord | null> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okh/{id}/generation-provenance",
+    { params: { path: { id } } },
+  );
+  if (response.status === 404) return null;
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Failed to load the generation record (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return data;
+}
+
+/** Store a generation sidecar beside a design. It is not part of the design. */
+export async function putGenerationProvenance(
+  id: string,
+  record: GenerationProvenanceRecord,
+): Promise<void> {
+  const { error, response } = await apiClient.PUT(
+    "/api/okh/{id}/generation-provenance",
+    { params: { path: { id } }, body: record },
+  );
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Failed to save the generation record (HTTP ${response.status})`,
+      ),
+    );
+  }
+}
+
 export async function getOkhProvenance(
   id: string,
 ): Promise<RecordProvenance | null> {
@@ -394,8 +438,7 @@ export async function submitGenerateJobs(
   return data;
 }
 
-export type GenerateJobEvents =
-  components["schemas"]["OKHGenerateJobEvents"];
+export type GenerateJobEvents = components["schemas"]["OKHGenerateJobEvents"];
 
 /**
  * The run's stage log, in order.
@@ -419,7 +462,10 @@ export async function getGenerateJobEvents(
   if (error || !response.ok) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Could not read the run log (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Could not read the run log (HTTP ${response.status})`,
+      ),
     );
   }
   return data as GenerateJobEvents;
@@ -502,7 +548,10 @@ export async function normalizeOkh(
   if (error || !response.ok || !data?.content) {
     throw new ApiError(
       response.status,
-      errorMessage(error, `Could not derive process fields (HTTP ${response.status})`),
+      errorMessage(
+        error,
+        `Could not derive process fields (HTTP ${response.status})`,
+      ),
     );
   }
   return data.content;
@@ -544,7 +593,9 @@ export interface InventoryResult {
  * same as anyone else's, so this is what lets an operator run the node —
  * migration, cleanup, support, takedown — without reading private records.
  */
-async function fetchInventory(path: "/api/okh/inventory" | "/api/okw/inventory") {
+async function fetchInventory(
+  path: "/api/okh/inventory" | "/api/okw/inventory",
+) {
   const { data, error, response } = await apiClient.GET(path);
   if (error || !response.ok || !data?.data) {
     throw new ApiError(
@@ -566,7 +617,6 @@ export function fetchOkhInventory(): Promise<InventoryResult> {
 export function fetchOkwInventory(): Promise<InventoryResult> {
   return fetchInventory("/api/okw/inventory");
 }
-
 
 /**
  * Read one private record, on the record, with a reason.

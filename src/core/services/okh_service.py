@@ -31,6 +31,8 @@ from ..models.visibility import (
     VisibilityLevel,
     visible_to,
 )
+from ..models.generation_provenance import GenerationProvenanceRecord
+from ..storage.generation_provenance_store import GenerationProvenanceStore
 from ..storage.provenance_store import ProvenanceStore
 from ..storage.visibility_store import VisibilityStore
 from ..storage.smart_discovery import (
@@ -255,12 +257,46 @@ class OKHService(BaseService["OKHService"]):
         """Lazily build the visibility store over the configured storage."""
         return VisibilityStore(self.storage)
 
+    def _generation_provenance_store(self) -> GenerationProvenanceStore:
+        """Lazily build the generation-provenance store over configured storage."""
+        return GenerationProvenanceStore(self.storage)
+
     async def get_provenance(self, manifest_id: UUID) -> Optional[RecordProvenance]:
         """Return the stored provenance for a manifest, or None."""
         await self.ensure_initialized()
         if not self.storage or not self.storage.manager:
             return None
         return await self._provenance_store().load(str(manifest_id))
+
+    async def get_generation_provenance(
+        self, manifest_id: UUID
+    ) -> Optional[GenerationProvenanceRecord]:
+        """Return how this manifest was generated, or None if it was not."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return None
+        raw = await self._generation_provenance_store().load(str(manifest_id))
+        if raw is None:
+            return None
+        return GenerationProvenanceRecord.model_validate(raw)
+
+    async def save_generation_provenance(
+        self, manifest_id: UUID, record: GenerationProvenanceRecord
+    ) -> GenerationProvenanceRecord:
+        """Store a generation sidecar beside an existing manifest.
+
+        The manifest bytes are not rewritten. The content hash is taken over
+        ``to_dict()``, and this object is not in that dict.
+        """
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            raise RuntimeError("Storage service not available")
+        if await self.get(manifest_id) is None:
+            raise LookupError(f"OKH manifest {manifest_id} not found")
+        await self._generation_provenance_store().save(
+            str(manifest_id), record.model_dump(mode="json", by_alias=True)
+        )
+        return record
 
     async def get_visibility(self, manifest_id: Union[UUID, str]) -> VisibilityLevel:
         """Return visibility for a manifest.

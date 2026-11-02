@@ -125,12 +125,14 @@ YAML is the better choice if a person will read or edit the file afterwards —
 much of the OKH ecosystem uses it, and it's far easier to scan than JSON. JSON
 is the better choice if software is going to consume it directly.
 
-!!! note "Generated designs aren't saved to the catalogue"
+!!! note "Saving writes the design to this node"
 
-    They're yours to download, not ours to keep. Without user accounts there's
-    no owner and no provenance for a generated record, and adding unattributed
-    records to a shared catalogue would degrade it for everyone. Saving arrives
-    with accounts.
+    **Save to this node** stores the reviewed design as private, under your
+    account. The record page has the visibility control, so sharing is a
+    separate choice. The generation record is stored beside the design, not
+    inside it, and the record page can open that view again. Download still
+    keeps a copy on this computer. Someone who is not signed in sees **Sign
+    in to save** instead.
 
 ## What the generator did, and why
 
@@ -170,7 +172,9 @@ a line.
     what pins a package and dedups the federation catalogue. Recording *how* a
     design was made inside the design itself would give the same design two
     different addresses. So the manifest stays exactly what it would have been,
-    and the record travels beside it.
+    and the record travels beside it — in the downloaded file, and, once you
+    save, in its own object on the node keyed by the design's id.
+    `ohm okh generation-provenance <id>` reads that object back.
 
 It is always produced — there is no flag to remember, because the run worth
 explaining is invariably the one you did not think to ask about.

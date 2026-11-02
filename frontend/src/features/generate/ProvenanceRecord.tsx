@@ -27,9 +27,8 @@ import {
  *
  * Nothing is duplicated between them; they differ in what they put first.
  *
- * Rendered from a record handed in, never fetched here: generation is not
- * persisted server-side, so the same view serves a run that just finished and
- * a sidecar someone kept on disk (#393 supplies the second).
+ * Rendered from a record handed in. A run that just finished passes its own
+ * record; a saved design passes the sidecar stored beside that record.
  */
 type View = "review" | "fields" | "stages";
 
@@ -83,7 +82,9 @@ function FieldRow({ field }: { field: NamedField }) {
 
 /** Said by whichever view has nothing, rather than leaving a blank tab. */
 function NothingRecorded({ what }: { what: string }) {
-  return <p className={cn(PANEL_MUTED, BODY_MUTED)}>This run recorded no {what}.</p>;
+  return (
+    <p className={cn(PANEL_MUTED, BODY_MUTED)}>This run recorded no {what}.</p>
+  );
 }
 
 function ReviewList({ groups }: { groups: ReviewGroup[] }) {
