@@ -183,9 +183,9 @@ which needs accounts.
 
 **"Generating with the language model needs an account on this node."** The
 node has a language model, and spends it only for people with an account here.
-Register or sign in from the message, then generate again. Or choose
-**Generate without the language model** to run the same address on rules
-alone, straight away.
+Register opens on this page, so the address you typed stays put, and you can
+generate again with the model. Or choose **Generate without the language
+model** to run the same address on rules alone, straight away.
 
 **"The shared rate limit has been reached."** Everyone using the hosted instance
 shares one quota for reading repositories, so heavy use by one person affects

@@ -29,3 +29,7 @@ class SecurityPolicyResponse(BaseModel):
     open_registration: bool
     key_ttl_days: int
     admin_break_glass: bool
+    # Not mode knobs. The route attaches them from settings so the signup form
+    # can name the node and the person who runs it.
+    node_name: str
+    operator_name: str

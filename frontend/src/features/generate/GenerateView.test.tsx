@@ -5,6 +5,7 @@ import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { server } from "../../test/msw/server";
 import { ApiError } from "../../api/ohm/client";
+import { AuthProvider } from "../../context/AuthContext";
 import { GenerateView, generationErrorMessage } from "./GenerateView";
 
 function renderView() {
@@ -13,7 +14,9 @@ function renderView() {
   });
   return render(
     <QueryClientProvider client={client}>
-      <GenerateView />
+      <AuthProvider>
+        <GenerateView />
+      </AuthProvider>
     </QueryClientProvider>,
   );
 }
@@ -32,12 +35,16 @@ describe("generationErrorMessage", () => {
   });
 
   it("passes through the server's explanation on 422", () => {
-    const msg = generationErrorMessage(new ApiError(422, "no manifest-like files found"));
+    const msg = generationErrorMessage(
+      new ApiError(422, "no manifest-like files found"),
+    );
     expect(msg).toContain("no manifest-like files found");
   });
 
   it("keeps 5xx generic rather than leaking internals", () => {
-    const msg = generationErrorMessage(new ApiError(500, "Traceback: KeyError foo"));
+    const msg = generationErrorMessage(
+      new ApiError(500, "Traceback: KeyError foo"),
+    );
     expect(msg).not.toContain("Traceback");
     expect(msg).toContain("Please try again");
   });
@@ -49,7 +56,9 @@ describe("generationErrorMessage", () => {
   });
 
   it("falls back to the message for other 4xx", () => {
-    expect(generationErrorMessage(new ApiError(400, "bad url"))).toBe("bad url");
+    expect(generationErrorMessage(new ApiError(400, "bad url"))).toBe(
+      "bad url",
+    );
   });
 
   it("handles a non-Error throw", () => {
@@ -93,12 +102,11 @@ describe("GenerateView — LLM generation without an account (#561)", () => {
     expect(alert).toHaveTextContent(/needs an account on this node/i);
     expect(alert).not.toHaveTextContent("Authorization");
     expect(
-      await within(alert).findByRole("link", { name: "Register" }),
-    ).toHaveAttribute("href", "/register");
-    expect(within(alert).getByRole("link", { name: "Sign in" })).toHaveAttribute(
-      "href",
-      "/settings/session",
-    );
+      await within(alert).findByRole("button", { name: "Register" }),
+    ).toBeInTheDocument();
+    expect(
+      within(alert).getByRole("link", { name: "Sign in" }),
+    ).toHaveAttribute("href", "/settings/session");
   });
 
   it("reruns the same URL without the language model from the message", async () => {
@@ -117,6 +125,45 @@ describe("GenerateView — LLM generation without an account (#561)", () => {
       urls: ["https://github.com/mitra42/frugal-iot-hw-sensor"],
       no_llm: true,
     });
+  });
+
+  it("signing up from the message keeps the address for another try with the model", async () => {
+    const bodies: Record<string, unknown>[] = [];
+    refuseLlm(bodies);
+    renderView();
+    await generate();
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Register" }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("OHM Node");
+    expect(dialog).toHaveTextContent("the operator of this node");
+    await userEvent.type(within(dialog).getByLabelText("Username"), "mitra");
+    await userEvent.type(
+      within(dialog).getByLabelText("Password"),
+      "correct horse",
+    );
+    await userEvent.type(
+      within(dialog).getByLabelText("Display name"),
+      "Mitra",
+    );
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Create account" }),
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Continue" }),
+    );
+
+    expect(screen.getByLabelText(/Repository URL/i)).toHaveValue(
+      "https://github.com/mitra42/frugal-iot-hw-sensor",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+    await waitFor(() => expect(bodies).toHaveLength(2));
+    expect(bodies[1]).toMatchObject({
+      urls: ["https://github.com/mitra42/frugal-iot-hw-sensor"],
+    });
+    expect(bodies[1].no_llm).not.toBe(true);
   });
 });
 

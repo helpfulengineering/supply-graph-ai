@@ -399,6 +399,8 @@ export const securityPolicyFixture = {
   open_registration: true,
   admin_break_glass: false,
   key_ttl_days: 180,
+  node_name: "OHM Node",
+  operator_name: "the operator of this node",
 };
 
 export const registrationFixture = {

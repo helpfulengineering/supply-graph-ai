@@ -104,6 +104,8 @@ async def security_policy_cmd(
         "metadata_logging",
         "registry_attestations",
         "anonymous_submission_allowed",
+        "node_name",
+        "operator_name",
     ):
         click.echo(f"  {key}: {result.get(key)}")
 

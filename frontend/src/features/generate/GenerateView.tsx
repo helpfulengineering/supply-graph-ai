@@ -6,10 +6,10 @@
  * Submit-then-poll against async Celery jobs so generation can run longer than
  * the SPA nginx proxy timeout. Each URL is its own job with a real progress bar.
  *
- * The result is not saved to the catalogue. Without user auth there is no owner
- * and no provenance, so a save would put unattributed records into a shared
- * catalogue. Download, or hand the reviewed manifest straight to matching —
- * the API accepts an inline `okh_manifest`.
+ * An anonymous visitor can sign up here without leaving the page, so an
+ * edited result and the repository address survive. Download, or hand the
+ * reviewed manifest straight to matching — the API accepts an inline
+ * `okh_manifest`.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -45,6 +45,8 @@ import { TieredEditor } from "./TieredEditor";
 import { ProvenanceRecord } from "./ProvenanceRecord";
 import { ReopenRecord } from "./ReopenRecord";
 import { LlmAccountNotice } from "./LlmAccountNotice";
+import { InlineSignup } from "../auth/InlineSignup";
+import { useAuth } from "../../context/AuthContext";
 import {
   liveRecordFrom,
   readGenerationProvenance,
@@ -149,6 +151,8 @@ function Elapsed({ since }: { since: number }) {
 
 export function GenerateView() {
   const router = useRouter();
+  const { signedIn } = useAuth();
+  const [signupOpen, setSignupOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -161,6 +165,11 @@ export function GenerateView() {
   );
   const [noLlm, setNoLlm] = useState(false);
   const [needsAccount, setNeedsAccount] = useState(false);
+  // Signing up from the account message must leave the typed address in place
+  // and let the next Generate use the language model.
+  useEffect(() => {
+    if (signedIn) setNeedsAccount(false);
+  }, [signedIn]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [report, setReport] = useState<OkhQualityReport | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -389,28 +398,28 @@ export function GenerateView() {
 
       {!showProgress && !manifest && !provenance && (
         <>
-        <div className={cn(PANEL, PANEL_BODY)}>
-          <h2 className={CARD_TITLE}>What will happen</h2>
-          <p className={cn(BODY_MUTED, "mt-1")}>
-            {plannedStages(!noLlm).length} stages, typically under a minute.
-            Each records what it produced, so every field in the result can be
-            traced back to the layer that made it.
-          </p>
-          <ol className="mt-3 flex flex-wrap gap-x-2 gap-y-1.5">
-            {plannedStages(!noLlm).map((stage, i) => (
-              <li
-                key={stage}
-                className={cn(
-                  "text-sm text-muted-foreground",
-                  i > 0 && "border-l border-border pl-2",
-                )}
-              >
-                {labelFor(stage)}
-              </li>
-            ))}
-          </ol>
-        </div>
-        <ReopenRecord onOpen={setProvenance} />
+          <div className={cn(PANEL, PANEL_BODY)}>
+            <h2 className={CARD_TITLE}>What will happen</h2>
+            <p className={cn(BODY_MUTED, "mt-1")}>
+              {plannedStages(!noLlm).length} stages, typically under a minute.
+              Each records what it produced, so every field in the result can be
+              traced back to the layer that made it.
+            </p>
+            <ol className="mt-3 flex flex-wrap gap-x-2 gap-y-1.5">
+              {plannedStages(!noLlm).map((stage, i) => (
+                <li
+                  key={stage}
+                  className={cn(
+                    "text-sm text-muted-foreground",
+                    i > 0 && "border-l border-border pl-2",
+                  )}
+                >
+                  {labelFor(stage)}
+                </li>
+              ))}
+            </ol>
+          </div>
+          <ReopenRecord onOpen={setProvenance} />
         </>
       )}
 
@@ -464,6 +473,7 @@ export function GenerateView() {
 
       {needsAccount && (
         <LlmAccountNotice
+          onRegister={() => setSignupOpen(true)}
           onContinueWithoutLlm={() => {
             setNoLlm(true);
             void run(true);
@@ -553,6 +563,21 @@ export function GenerateView() {
             >
               Download JSON
             </button>
+            {/* The write is a later step. The control is here so signing up
+                does not throw away the result just edited. */}
+            {signedIn ? (
+              <button type="button" className={`${FIELD} px-5 font-semibold`}>
+                Save to this node
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSignupOpen(true)}
+                className={`${FIELD} px-5 font-semibold`}
+              >
+                Sign in to save
+              </button>
+            )}
             <button
               type="button"
               disabled={blocked}
@@ -598,11 +623,11 @@ export function GenerateView() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Generated designs aren't saved to the catalogue — download the file
-            and keep it, or add it yourself once you're happy with it.
+            Download keeps a copy on this computer.
           </p>
         </>
       )}
+      <InlineSignup open={signupOpen} onClose={() => setSignupOpen(false)} />
     </div>
   );
 }

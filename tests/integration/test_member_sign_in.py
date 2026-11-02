@@ -132,6 +132,18 @@ def test_a_display_name_alone_still_returns_a_token(member):
     assert registered.json()["key"]["token"]
 
 
+def test_the_public_policy_names_the_node_and_its_operator(client, monkeypatch):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_NODE_NAME", "Harbor Node")
+    monkeypatch.setattr(settings, "OHM_NODE_OPERATOR", "Ada Lovelace")
+    resp = client.get("/api/identity/security-policy")
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["node_name"] == "Harbor Node"
+    assert body["operator_name"] == "Ada Lovelace"
+
+
 def test_a_cross_site_login_is_refused(member):
     refused = member.post(
         "/api/identity/login",
