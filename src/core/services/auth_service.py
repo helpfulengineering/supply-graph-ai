@@ -15,15 +15,36 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import UUID, uuid4
 
 import bcrypt
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 
 from src.config import settings
 from src.config.auth_constants import AUTH_MODE_ENV, AUTH_MODE_HYBRID, AUTH_MODE_STORAGE
 from src.config.security_policy import (
+    SecurityMode,
     allows_full_metadata_logging,
     get_security_policy,
 )
 
+from ..auth.origin import assert_password_channel
+from ..auth.login_limit import (
+    clear_login_attempts,
+    login_blocked,
+    note_login_failure,
+)
+from ..auth.passwords import (
+    DUMMY_PASSWORD_HASH,
+    hash_password,
+    password_needs_rehash,
+    password_problem,
+    verify_password,
+)
+from ..auth.sessions import (
+    ABSOLUTE_DAYS,
+    UNSAFE_METHODS,
+    session_idle_expired,
+    session_should_touch,
+)
+from ..auth.usernames import normalize_username, validate_username
 from ..federation.identity import (
     NodeIdentity,
     generate_identity,
@@ -63,7 +84,7 @@ from ..models.binding import (
 from ..models.space import SpaceClaim
 from ..services.domain_bind import WellKnownFetcher, fetch_and_validate_domain
 from ..services.storage_service import StorageService
-from ..storage.account_storage import AccountStorage
+from ..storage.account_storage import AccountStorage, UsernameTaken
 from ..storage.attestation_store import AttestationStore
 from ..storage.auth_storage import AuthStorage
 from ..storage.binding_store import BindingStore, DirectoryStore
@@ -82,6 +103,10 @@ logger = logging.getLogger(__name__)
 #: route to it. Stated once because two copies of a permission floor is one too
 #: many.
 SELF_SERVICE_PERMISSIONS = ["read", "write"]
+
+#: One message for a wrong password, an unknown username, and a username that
+#: is not a username. Anything more specific is an oracle.
+LOGIN_FAILURE = "Username or password is incorrect."
 
 
 class AuthenticationService:
@@ -275,6 +300,19 @@ class AuthenticationService:
 
                     for key in keys:
                         if self._verify_token(token, key):
+                            # A session cookie pasted into Authorization is not
+                            # an API key. Refusing it here is what keeps a
+                            # stolen cookie from being replayed by a client
+                            # that never sends the CSRF header (#570).
+                            if key.kind == "session":
+                                logger.warning(
+                                    "A browser session was presented as a bearer token"
+                                )
+                                raise HTTPException(
+                                    status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="Invalid authentication token",
+                                )
+
                             # Check if key is revoked
                             if key.revoked:
                                 logger.warning(
@@ -319,6 +357,82 @@ class AuthenticationService:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token",
+        )
+
+    async def authenticate_session(
+        self, token: str, request: Request
+    ) -> AuthenticatedUser:
+        """Resolve a session cookie. Unsafe methods must pass the CSRF check.
+
+        The digest is compared to the one stored on the session, not to the
+        cookie. A request that overwrites the cookie still cannot mint a header
+        the server will accept.
+        """
+        if not self._auth_storage:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token",
+            )
+        key = await self._auth_storage.find_by_digest(self._token_digest(token))
+        if key is None or key.kind != "session" or not self._verify_token(token, key):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token",
+            )
+        if key.revoked:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="API key has been revoked",
+            )
+        now = datetime.utcnow()
+        if (key.expires_at and key.expires_at < now) or session_idle_expired(
+            key.last_used_at, now
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="API key has expired",
+            )
+        if request.method in UNSAFE_METHODS:
+            presented = request.headers.get("x-ohm-csrf") or ""
+            digest = self._token_digest(presented) if presented else ""
+            expected = key.csrf_digest or ""
+            if (
+                not presented
+                or not expected
+                or not secrets.compare_digest(digest, expected)
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="This request failed the CSRF check.",
+                )
+        if session_should_touch(key.last_used_at, now):
+            key.last_used_at = now
+            await self._auth_storage.save_key(key)
+        return self._user_for_key(key)
+
+    async def revoke_session_token(self, token: str) -> None:
+        """Revoke the session this cookie holds. An API key is left alone."""
+        if not token or not self._auth_storage:
+            return
+        key = await self._auth_storage.find_by_digest(self._token_digest(token))
+        if (
+            key is None
+            or key.kind != "session"
+            or key.revoked
+            or not self._verify_token(token, key)
+        ):
+            return
+        key.revoked = True
+        await self._auth_storage.save_key(key)
+
+    def _user_for_key(self, key: APIKey) -> AuthenticatedUser:
+        account_id = self._account_id_from_key(key)
+        return AuthenticatedUser(
+            key_id=key.key_id,
+            name=key.name,
+            permissions=key.permissions,
+            account_id=account_id,
+            subject_did=self._subject_did_for(account_id),
         )
 
     @staticmethod
@@ -624,6 +738,7 @@ class AuthenticationService:
                 token=None,  # Never return tokens in list
             )
             for key in keys
+            if key.kind != "session"
         ]
 
     def _check_env_keys(self, token: str) -> Optional[AuthenticatedUser]:
@@ -707,6 +822,138 @@ class AuthenticationService:
             key=key,
             recovery_code=recovery_code,
         )
+
+    async def register_member(
+        self, username: str, password: str, display_name: str, *, https: bool
+    ) -> tuple[RegistrationResponse, str, str]:
+        """Account, person DID, recovery code and a browser session.
+
+        No API token. The returned strings are the session and CSRF values
+        that go into cookies and nowhere in the JSON body.
+        """
+        assert_password_channel(https)
+        policy = get_security_policy()
+        if not policy.open_registration:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Self-service registration is disabled in "
+                    f"{policy.mode.value} mode; ask an operator to mint an account"
+                ),
+            )
+        try:
+            username = validate_username(username)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(exc),
+            ) from exc
+        problem = password_problem(password, username, display_name)
+        if problem:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=problem,
+            )
+        if not self._account_storage:
+            raise RuntimeError("Storage not available for account creation")
+        account = await self.create_account(AccountCreate(display_name=display_name))
+        account.password_hash = hash_password(password)
+        try:
+            await self._account_storage.claim_username(account, username)
+        except UsernameTaken:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="That username is already taken.",
+            ) from None
+        identity = await self.create_identity(
+            account.id, IdentityKind.PERSON, display_name
+        )
+        recovery_code = await self._issue_recovery_code(account)
+        token, csrf, _session = await self._issue_session(account)
+        logger.info(f"Registered member {account.id} as {username}")
+        body = RegistrationResponse(
+            account_id=account.id,
+            display_name=account.display_name,
+            did=identity.did,
+            key=None,
+            recovery_code=recovery_code,
+        )
+        return body, token, csrf
+
+    async def login(
+        self, username: str, password: str, *, https: bool
+    ) -> tuple[AuthenticatedUser, str, str]:
+        """Check a password and issue a session. One failure message.
+
+        An unknown username still runs Argon2 against a fixed dummy hash.
+        """
+        assert_password_channel(https)
+        name = normalize_username(username)
+        if login_blocked(name):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many attempts. Wait a minute and try again.",
+            )
+        account: Optional[Account] = None
+        try:
+            stored = validate_username(username)
+        except ValueError:
+            stored = None
+        if stored and self._account_storage:
+            account = await self._account_storage.find_by_username(stored)
+        if account is not None and account.password_hash:
+            ok = verify_password(password, account.password_hash)
+            if ok and password_needs_rehash(account.password_hash):
+                account.password_hash = hash_password(password)
+                await self._account_storage.save_account(account)
+        else:
+            verify_password(password, DUMMY_PASSWORD_HASH)
+            ok = False
+        if account is not None and account.disabled and ok:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="That account is disabled",
+            )
+        if not ok or account is None:
+            note_login_failure(name)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=LOGIN_FAILURE,
+            )
+        clear_login_attempts(name)
+        token, csrf, session = await self._issue_session(account)
+        return self._user_for_key(session), token, csrf
+
+    async def _issue_session(self, account: Account) -> tuple[str, str, APIKey]:
+        """Mint a session. Returns the raw token, the raw CSRF token, the key."""
+        if not self._auth_storage:
+            raise RuntimeError("Storage not available for session creation")
+        token = self._generate_token()
+        csrf = self._generate_token()
+        policy = get_security_policy()
+        days = (
+            policy.key_ttl_days
+            if policy.mode == SecurityMode.SHIELDED
+            else ABSOLUTE_DAYS
+        )
+        now = datetime.utcnow()
+        session = APIKey(
+            key_id=uuid4(),
+            key_hash=self._hash_token(token),
+            token_digest=self._token_digest(token),
+            name=account.display_name,
+            description="Browser session",
+            permissions=list(SELF_SERVICE_PERMISSIONS),
+            created_at=now,
+            last_used_at=now,
+            expires_at=now + timedelta(days=days),
+            revoked=False,
+            created_by=str(account.id),
+            kind="session",
+            csrf_digest=self._token_digest(csrf),
+        )
+        await self._auth_storage.save_key(session)
+        return token, csrf, session
 
     async def _issue_recovery_code(self, account: Account) -> str:
         """Mint a fresh recovery code for ``account`` and return it once.

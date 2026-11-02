@@ -24,13 +24,15 @@ import {
  *
  * A node operator should not be the only way to become someone on a node —
  * that is what would make one node structurally special rather than merely
- * well-known. A visitor registers here and is signed in by the time the form
- * submits: the token goes straight into the session, so there is no second
- * paste step, and the copy shown afterwards is for keeping, not for using now.
+ * well-known. A visitor chooses a username and a password and is signed in
+ * by the cookie the response sets. The recovery code shown afterwards is the
+ * one thing to keep.
  */
 export function RegisterView() {
-  const { setToken, user } = useAuth();
+  const { noteSession, user } = useAuth();
   const { showSuccess, showError } = useToast();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [registered, setRegistered] = useState<RegistrationResponse | null>(
@@ -47,14 +49,16 @@ export function RegisterView() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const name = displayName.trim();
-    if (!name) return;
+    if (!name || !username.trim() || !password) return;
     setSubmitting(true);
     try {
-      const result = await registerPerson(name);
+      const result = await registerPerson({
+        username: username.trim(),
+        password,
+        display_name: name,
+      });
       setRegistered(result);
-      // Adopt the session immediately. The visitor asked to join, not to be
-      // handed a credential and told to come back with it.
-      if (result.key.token) await setToken(result.key.token, "minted");
+      await noteSession();
       showSuccess("Registered", { description: `Signed in as ${name}.` });
     } catch (err) {
       showError(err);
@@ -82,9 +86,14 @@ export function RegisterView() {
           heading="This node does not accept registrations"
           body={`Its security posture is "${policy.data.mode}". Ask an operator to create an account, then connect the key they give you.`}
           action={
-            <Link href="/settings/session" className="text-sm underline">
-              Connect a key
-            </Link>
+            <div className="flex gap-3">
+              <Link href="/login" className="text-sm underline">
+                Sign in
+              </Link>
+              <Link href="/settings/session" className="text-sm underline">
+                Connect a key
+              </Link>
+            </div>
           }
         />
       </>
@@ -97,19 +106,11 @@ export function RegisterView() {
 
       {registered ? (
         <div className="space-y-4">
-          <TokenOnce
-            token={registered.key.token ?? ""}
-            description="You are already signed in on this tab. Keep the token to sign in again on another device."
-          />
-
           {registered.recovery_code && (
             <TokenOnce
               token={registered.recovery_code}
               heading="Save your recovery code"
-              // Different advice from the token on purpose. The token is a
-              // convenience you can replace; this is the only way back if you
-              // lose it, and it belongs somewhere that outlives this browser.
-              description="This is the only way back into your account if you lose the token. Put it in a password manager — not in this browser."
+              description="This is the way back in if you forget your password. Put it in a password manager — not in this browser."
             />
           )}
 
@@ -140,8 +141,8 @@ export function RegisterView() {
         <section className={PANEL}>
           <h2 className={SECTION_TITLE}>Create an identity on this node</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            You get a key pair and an API token. Nothing else is asked for, and
-            no email is involved.
+            Choose a username and a password. Nothing else is asked for, and no
+            email is involved.
           </p>
           {user && (
             <p className="mt-2 text-sm text-muted-foreground">
@@ -150,6 +151,27 @@ export function RegisterView() {
             </p>
           )}
           <form onSubmit={onSubmit} className="mt-4 space-y-3">
+            <label className={LABEL}>
+              Username
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                required
+                className={`${FIELD} mt-1 w-full`}
+              />
+            </label>
+            <label className={LABEL}>
+              Password
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+                className={`${FIELD} mt-1 w-full`}
+              />
+            </label>
             <label className={LABEL}>
               Display name
               <input
@@ -163,12 +185,23 @@ export function RegisterView() {
             </label>
             <button
               type="submit"
-              disabled={submitting || !displayName.trim()}
+              disabled={
+                submitting ||
+                !displayName.trim() ||
+                !username.trim() ||
+                !password
+              }
               className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent hover:bg-primary disabled:opacity-50"
             >
               {submitting ? "Registering…" : "Register"}
             </button>
           </form>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Already registered?{" "}
+            <Link href="/login" className="underline">
+              Sign in
+            </Link>
+          </p>
         </section>
       )}
     </>

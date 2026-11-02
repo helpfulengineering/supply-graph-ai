@@ -20,9 +20,8 @@ import { isActivePath } from "./nav";
  * accessible name is the same string at every width.
  */
 export function SessionControl() {
-  const { token, user } = useAuth();
+  const { user, signedIn } = useAuth();
   const pathname = usePathname() ?? "";
-  const signedIn = Boolean(token);
   const href = signedIn ? "/account" : "/register";
 
   // Falls back to "Account" while whoami is still settling, so the control

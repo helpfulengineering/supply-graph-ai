@@ -10,6 +10,8 @@
  * configurable exactly as envsubst kept nginx.
  */
 
+import { copyUpstreamHeaders } from "@/lib/proxyHeaders";
+
 const HOP_BY_HOP = new Set([
   "connection",
   "keep-alive",
@@ -62,7 +64,10 @@ async function proxy(request: Request): Promise<Response> {
       return new Response(
         `API upstream is not a valid URL: ${base}\nSet API_UPSTREAM_URL to the ` +
           "OHM API origin (scheme + host, no /v1 path).\n",
-        { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } },
+        {
+          status: 502,
+          headers: { "content-type": "text/plain; charset=utf-8" },
+        },
       );
     }
     if (upstreamHost === forwardedHost) {
@@ -70,7 +75,10 @@ async function proxy(request: Request): Promise<Response> {
         `API upstream points at this deployment (${forwardedHost}), so /v1 ` +
           "would proxy to itself.\nSet API_UPSTREAM_URL to the OHM API origin, " +
           "not the frontend's own URL.\n",
-        { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } },
+        {
+          status: 502,
+          headers: { "content-type": "text/plain; charset=utf-8" },
+        },
       );
     }
   }
@@ -108,15 +116,10 @@ async function proxy(request: Request): Promise<Response> {
     });
   }
 
-  const responseHeaders = new Headers();
-  upstream.headers.forEach((value, key) => {
-    if (!HOP_BY_HOP.has(key.toLowerCase())) responseHeaders.set(key, value);
-  });
-
   return new Response(upstream.body, {
     status: upstream.status,
     statusText: upstream.statusText,
-    headers: responseHeaders,
+    headers: copyUpstreamHeaders(upstream.headers),
   });
 }
 

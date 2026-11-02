@@ -20,6 +20,7 @@ import {
   errorMessage,
   requestIdFromError,
 } from "./client";
+import { hasSessionHint, readCsrfToken } from "../../features/auth/sessionHint";
 import { authHeader } from "../../features/auth/tokenStorage";
 import type { components } from "../generated/schema";
 
@@ -49,12 +50,18 @@ export type SecurityPolicyPublic =
 export type SpaceClaim = components["schemas"]["SpaceClaim"];
 
 async function identityFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const csrf = readCsrfToken();
   const res = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
+    credentials: "include",
     headers: {
       Accept: "application/json",
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...authHeader(),
+      ...(hasSessionHint() ? {} : authHeader()),
+      ...(csrf && method !== "GET" && method !== "HEAD" && method !== "OPTIONS"
+        ? { "X-OHM-CSRF": csrf }
+        : {}),
       ...(init?.headers ?? {}),
     },
   });
@@ -108,14 +115,17 @@ export type RegistrationResponse =
  * Register a person on this node. Deliberately unauthenticated: a node operator
  * should not be the only way to become someone on a node.
  *
- * The token in the response is the only copy that will ever exist.
+ * A username and password. The response carries a recovery code. The session
+ * is a cookie, not a token.
  */
-export async function registerPerson(
-  displayName: string,
-): Promise<RegistrationResponse> {
+export async function registerPerson(input: {
+  username: string;
+  password: string;
+  display_name: string;
+}): Promise<RegistrationResponse> {
   const { data, error, response } = await apiClient.POST(
     "/api/identity/register",
-    { body: { display_name: displayName } },
+    { body: input },
   );
   if (error || !response.ok || !data) {
     throw new ApiError(
@@ -125,6 +135,40 @@ export async function registerPerson(
     );
   }
   return data;
+}
+
+/** Sign in. The session is the Set-Cookie on the response, not the body. */
+export async function loginPerson(
+  username: string,
+  password: string,
+): Promise<AuthenticatedUser> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/login",
+    {
+      body: { username, password },
+    },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Sign-in failed"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+/**
+ * End the browser session. Reads the CSRF cookie itself so a caller can clear
+ * the session hint immediately afterwards without the header disappearing.
+ */
+export function logoutSession(): Promise<void> {
+  const csrf = readCsrfToken();
+  return fetch(`${apiBaseUrl}/api/identity/logout`, {
+    method: "POST",
+    credentials: "include",
+    headers: csrf ? { "X-OHM-CSRF": csrf } : {},
+  }).then(() => undefined);
 }
 
 /**

@@ -62,6 +62,7 @@ dependencies = [
     "psutil>=5.9.0",
     # Auth
     "bcrypt>=4.0.0",
+    "argon2-cffi>=25.1.0",
     # Cache (Redis protocol — optional backend via CACHE_BACKEND=redis)
     "redis>=5.0.0",
     # Async jobs (generate-from-url worker; broker/result typically Redis)

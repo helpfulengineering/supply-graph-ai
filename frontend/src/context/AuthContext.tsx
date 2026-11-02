@@ -16,8 +16,17 @@ import {
   setToken as persistToken,
   type SessionOrigin,
 } from "../features/auth/tokenStorage";
-import { fetchWhoami, type AuthenticatedUser } from "../api/ohm/identity";
+import {
+  fetchWhoami,
+  logoutSession,
+  type AuthenticatedUser,
+} from "../api/ohm/identity";
 import { ApiError } from "../api/ohm/client";
+import {
+  clearSessionHint,
+  hasSessionHint,
+  markSessionHint,
+} from "../features/auth/sessionHint";
 
 export type AuthContextValue = {
   token: string | null;
@@ -30,6 +39,10 @@ export type AuthContextValue = {
   setToken: (token: string, origin?: SessionOrigin) => Promise<void>;
   /** How the active session began, so the UI can say why it persists. */
   sessionOrigin: SessionOrigin | null;
+  /** A pasted key or a session cookie. */
+  signedIn: boolean;
+  /** The browser just received a session cookie. */
+  noteSession: () => Promise<void>;
   clear: () => void;
   /** Last 401/403 from a mutation or whoami — drives AuthBanner. */
   reportAuthFailure: (err: unknown) => void;
@@ -49,31 +62,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionOrigin, setSessionOrigin] = useState<SessionOrigin | null>(() =>
     getSessionOrigin(),
   );
+  const [sessionHint, setSessionHint] = useState<boolean>(() =>
+    hasSessionHint(),
+  );
 
   const whoami = useQuery({
-    queryKey: ["identity", "whoami", token],
+    queryKey: ["identity", "whoami", sessionHint ? "session" : token],
     queryFn: fetchWhoami,
-    enabled: Boolean(token),
+    enabled: sessionHint || Boolean(token),
     retry: false,
     staleTime: 60_000,
   });
 
   useEffect(() => {
-    if (whoami.error instanceof ApiError && whoami.error.status === 401) {
-      // A persisted session that has simply aged out is the common case now
-      // that self-service keys expire, and "rejected" reads as "something is
-      // wrong with you" for what is really "this ran out, as designed".
-      const expired = /expired/i.test(whoami.error.message);
-      clearToken();
-      setTokenState(null);
-      setSessionOrigin(null);
-      setAuthFailure(
-        expired
-          ? "Your key expired, so you have been signed out. Sign in again, or recover your account if you no longer have it."
-          : "API key rejected. Paste a valid key in Settings.",
-      );
+    if (!(whoami.error instanceof ApiError) || whoami.error.status !== 401) {
+      return;
     }
-  }, [whoami.error]);
+    if (sessionHint) {
+      clearSessionHint();
+      setSessionHint(false);
+      return;
+    }
+    // A persisted session that has simply aged out is the common case now
+    // that self-service keys expire, and "rejected" reads as "something is
+    // wrong with you" for what is really "this ran out, as designed".
+    const expired = /expired/i.test(whoami.error.message);
+    clearToken();
+    setTokenState(null);
+    setSessionOrigin(null);
+    setAuthFailure(
+      expired
+        ? "Your key expired, so you have been signed out. Sign in again, or recover your account if you no longer have it."
+        : "API key rejected. Paste a valid key in Settings.",
+    );
+  }, [whoami.error, sessionHint]);
 
   const setToken = useCallback(
     async (next: string, origin: SessionOrigin = "pasted") => {
@@ -86,7 +108,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
+  const noteSession = useCallback(async () => {
+    markSessionHint();
+    setSessionHint(true);
+    setAuthFailure(null);
+    await queryClient.invalidateQueries({ queryKey: ["identity", "whoami"] });
+  }, [queryClient]);
+
   const clear = useCallback(() => {
+    if (hasSessionHint()) void logoutSession();
+    clearSessionHint();
+    setSessionHint(false);
     clearToken();
     setTokenState(null);
     setSessionOrigin(null);
@@ -108,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const permissions = user?.permissions ?? [];
   const isAdmin = permissions.includes("admin");
   const hasWrite = isAdmin || permissions.includes("write");
+  const signedIn = Boolean(token) || sessionHint;
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -115,9 +148,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       isAdmin,
       hasWrite,
-      isLoading: Boolean(token) && (whoami.isPending || whoami.isFetching),
+      isLoading:
+        (Boolean(token) || sessionHint) &&
+        (whoami.isPending || whoami.isFetching),
       authError: whoami.error instanceof Error ? whoami.error : null,
       setToken,
+      signedIn,
+      noteSession,
       clear,
       reportAuthFailure,
       clearAuthFailure: () => setAuthFailure(null),
@@ -133,10 +170,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       whoami.isFetching,
       whoami.error,
       setToken,
+      signedIn,
+      noteSession,
       clear,
       reportAuthFailure,
       authFailure,
       sessionOrigin,
+      sessionHint,
     ],
   );
 

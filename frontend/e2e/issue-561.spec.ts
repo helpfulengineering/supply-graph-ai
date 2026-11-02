@@ -239,7 +239,6 @@ test("signing up leaves one thing to keep: a recovery code", async ({
 });
 
 test("a member signs in with a username and password", async ({ page }) => {
-  test.fail(true, "#570: signing in means pasting a bearer token");
   await page.goto("/register");
   await (await present(page.getByRole("link", { name: /^sign in$/i }))).click();
   await expect(page.getByLabel("Username")).toBeVisible();

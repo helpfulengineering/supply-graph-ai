@@ -14,19 +14,21 @@ On most nodes you can make one yourself.
 
 ## Register
 
-Go to `/register`, enter a display name, and submit. The node creates an
-account, mints you an identity, and issues your first API key — and signs you
-in with it, so there is no key to copy back in.
+Go to `/register`. Choose a username, a password and a display name. The node
+creates an account and signs you in. The browser holds that session in a
+cookie. There is no token to copy.
 
-Two things appear once and only once:
+One thing appears once: a **recovery code**. Save it somewhere other than this
+browser. It is the way back in if you forget the password.
 
-- **Your API key.** Save it. The node stores only a digest, so nobody can read
-  it back to you — not an operator, not a support request.
-- **A recovery code.** Save that too, somewhere different. It is the only way
-  back if you lose the key.
-
-Neither asks for an email address, because the node does not want one. There is
+Nothing asks for an email address, because the node does not want one. There is
 nothing to verify and nothing to leak.
+
+Signing in later is `/login`, with the same username and password.
+
+A script still uses an API key. `ohm identity register` prints one, and a key
+you already have can be pasted under Settings. That pasted key stays on this
+tab only. The website session does not.
 
 ### If the node will not let you
 
@@ -67,13 +69,11 @@ secrets. Nodes in `shielded` posture do not offer recovery at all.
 
 ## Staying signed in
 
-A session you got by registering **persists** — close the tab, come back
-tomorrow, still signed in. A key you *pasted* into Settings does not: it lasts
-for that tab only.
+A session from the website lasts until you sign out, you are idle for 30 days,
+or 90 days pass. Closing the tab does not sign you out.
 
-The difference is how the session began, not what it can do. Pasting an admin
-key into a shared machine should not outlive the window; registering on your
-own laptop should not make you re-enter a 43-character secret every morning.
+A key you *pasted* into Settings lasts for that tab only. Pasting an admin key
+into a shared machine should not outlive the window.
 
 ## What an account does not do
 

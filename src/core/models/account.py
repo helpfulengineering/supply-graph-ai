@@ -38,6 +38,12 @@ class Account(BaseModel):
     # never stored, and this is verified against directly rather than trusting
     # the index that found the account — the same rule as API key digests.
     recovery_digest: Optional[str] = None
+    # Set when the person signed up with a password (#570). Absent on accounts
+    # minted by the command-line registration, which still issues a token.
+    username: Optional[str] = None
+    # Argon2id. Excluded from API serialisation; account storage writes it
+    # back explicitly so a response model cannot leak it by forgetting.
+    password_hash: Optional[str] = Field(default=None, exclude=True)
 
 
 class AccountCreate(BaseModel):

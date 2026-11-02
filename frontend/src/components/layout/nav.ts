@@ -211,8 +211,8 @@ export const NAV_GROUPS: NavGroup[] = [
 /**
  * The account entry, in the sitemap rather than inline in the drawer.
  *
- * Its label is the one thing the drawer still decides for itself — Connect /
- * Session / Settings depending on whether you hold an API key — but the
+ * Its label is the one thing the drawer still decides for itself — Sign in /
+ * Account / Session / Settings depending on the credential — but the
  * route, the icon, and the accent belong here with every other destination,
  * so Help and the page hero read the same row the drawer does.
  */

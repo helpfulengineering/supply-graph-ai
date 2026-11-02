@@ -10,6 +10,8 @@ AUTH_API_KEYS_PREFIX = "auth/api-keys"
 AUTH_API_KEY_INDEX_PREFIX = "auth/api-key-index"
 # digest -> account_id pointers, so a recovery code resolves in one lookup (#414)
 AUTH_RECOVERY_INDEX_PREFIX = "auth/recovery-index"
+# username -> account_id, so sign-in resolves in one lookup (#570)
+AUTH_USERNAME_INDEX_PREFIX = "auth/usernames"
 AUTH_ACCOUNTS_PREFIX = "auth/accounts"
 IDENTITY_GRANTS_PREFIX = "identity/grants"
 PROVENANCE_PREFIX = "provenance"

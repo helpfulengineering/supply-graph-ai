@@ -3379,12 +3379,57 @@ export interface paths {
          * Register a person on this node
          * @description Self-service onboarding — deliberately unauthenticated.
          *
-         *     A node operator should not be the only way to become someone on a node: that
-         *     is what would make one node structurally special rather than merely
-         *     well-known (ADR §9). Refused when the active mode closes registration; the
-         *     issued key never carries ``admin``. The token is returned once.
+         *     A username and password sign the person in with a session cookie and
+         *     return no API token (#570). Omitting both keeps the command-line
+         *     registration, which still returns a token, for one release.
+         *
+         *     Refused when the active mode closes registration; the issued credential
+         *     never carries ``admin``.
          */
         post: operations["register_api_identity_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in
+         * @description Sign in with a username and password. Sets the session cookies.
+         *
+         *     Deliberately unauthenticated. The failure message does not say which of
+         *     the two was wrong.
+         */
+        post: operations["login_api_identity_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign out
+         * @description End the browser session and clear its cookies.
+         */
+        post: operations["logout_api_identity_logout_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3406,8 +3451,8 @@ export interface paths {
          *
          *     The credential this returns is the one the caller lost, so requiring a
          *     credential to reach it would defeat the purpose. Redeeming revokes the
-         *     account's existing keys and issues a replacement code, which is what both
-         *     cases want: a lost token and a leaked one.
+         *     account's existing keys and sessions and issues a replacement code, which
+         *     is what both cases want: a lost token and a leaked one.
          */
         post: operations["recover_api_identity_recover_post"];
         delete?: never;
@@ -3877,6 +3922,8 @@ export interface components {
             disabled: boolean;
             /** Recovery Digest */
             recovery_digest?: string | null;
+            /** Username */
+            username?: string | null;
         };
         /**
          * AccountCreate
@@ -6237,6 +6284,16 @@ export interface components {
              * @description List of available provider names
              */
             available_providers: string[];
+        };
+        /**
+         * LoginRequest
+         * @description Username and password for a browser session.
+         */
+        LoginRequest: {
+            /** Username */
+            username: string;
+            /** Password */
+            password: string;
         };
         /**
          * MatchRequest
@@ -9244,10 +9301,18 @@ export interface components {
         /**
          * RegistrationCreate
          * @description Request payload for self-service registration.
+         *
+         *     A username and password sign the person in with a session cookie (#570).
+         *     Leaving both out keeps the command-line registration, which still returns
+         *     a token, for one release.
          */
         RegistrationCreate: {
             /** Display Name */
             display_name: string;
+            /** Username */
+            username?: string | null;
+            /** Password */
+            password?: string | null;
         };
         /**
          * RegistrationResponse
@@ -9266,7 +9331,7 @@ export interface components {
             display_name: string;
             /** Did */
             did: string;
-            key: components["schemas"]["APIKeyResponse"];
+            key?: components["schemas"]["APIKeyResponse"] | null;
             /** Recovery Code */
             recovery_code?: string | null;
         };
@@ -18533,6 +18598,57 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    login_api_identity_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticatedUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_api_identity_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

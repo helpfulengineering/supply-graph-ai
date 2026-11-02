@@ -299,6 +299,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 SENSITIVE_PATH_LIMITS = {
     "/v1/api/identity/recover": 5,
     "/v1/api/identity/register": 10,
+    # Password guessing is a real surface. Five a minute per address, plus a
+    # per-username slowdown in the sign-in service.
+    "/v1/api/identity/login": 5,
 }
 
 

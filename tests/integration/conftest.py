@@ -25,6 +25,12 @@ import pytest
 _STORAGE_DIR = tempfile.mkdtemp(prefix="ohm-integ-")
 os.environ["STORAGE_PROVIDER"] = "local"
 os.environ["LOCAL_STORAGE_PATH"] = _STORAGE_DIR
+# A file the operator saved (or the default ~/.ohm/storage-config.json) is
+# read at boot and wins over the environment. Point it at a path that does
+# not exist so this in-process app cannot attach to that store.
+os.environ["OHM_STORAGE_CONFIG_PATH"] = os.path.join(
+    _STORAGE_DIR, "no-storage-config.json"
+)
 # Ensure federation doesn't try to create Docker-only paths.
 os.environ.setdefault("OHM_FEDERATION_ENABLED", "false")
 
@@ -42,10 +48,22 @@ def client():
 
     # Defensively re-assert local storage in case an earlier test mutated the
     # environment, then drop any singleton services initialised by earlier tests
-    # so they rebuild against the local-storage config (get_settings() is
-    # uncached and reads os.environ live).
+    # so they rebuild against the local-storage config. settings.STORAGE_CONFIG
+    # is captured at import, which in a full run happens before this directory's
+    # conftest, so reassign it. StorageService is its own singleton, not a
+    # BaseService, and a configured one keeps the store it opened first.
     os.environ["STORAGE_PROVIDER"] = "local"
     os.environ["LOCAL_STORAGE_PATH"] = _STORAGE_DIR
+    os.environ["OHM_STORAGE_CONFIG_PATH"] = os.path.join(
+        _STORAGE_DIR, "no-storage-config.json"
+    )
+    from src.config import settings
+    from src.config.storage_config import get_default_storage_config
+    from src.core.services.storage_service import StorageService
+
+    previous_storage_config = settings.STORAGE_CONFIG
+    settings.STORAGE_CONFIG = get_default_storage_config()
+    StorageService._instance = None
     BaseService._instances.clear()
 
     from src.core.main import app
@@ -58,6 +76,8 @@ def client():
     import shutil
 
     shutil.rmtree(_STORAGE_DIR, ignore_errors=True)
+    settings.STORAGE_CONFIG = previous_storage_config
+    StorageService._instance = None
     BaseService._instances.clear()
 
 

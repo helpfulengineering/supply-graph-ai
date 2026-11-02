@@ -25,6 +25,7 @@ import {
   triageReportFixture,
   validationResultFixture,
   visibilityFixture,
+  whoamiAdminFixture,
 } from "../../test/fixtures";
 import {
   demoNetworkSpaces,
@@ -346,6 +347,12 @@ export function resolveDemoRoute(method: string, pathname: string): DemoRoute {
   // can walk the whole join-a-node journey without hitting an error page.
   if (verb === "POST" && pathname === "/v1/api/identity/register") {
     return json(registrationFixture);
+  }
+  if (verb === "POST" && pathname === "/v1/api/identity/login") {
+    return json(whoamiAdminFixture);
+  }
+  if (verb === "POST" && pathname === "/v1/api/identity/logout") {
+    return json({ signed_out: true });
   }
   if (verb === "POST" && pathname === "/v1/api/identity/recover") {
     return json(recoveredFixture);

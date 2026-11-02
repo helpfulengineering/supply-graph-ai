@@ -175,7 +175,7 @@ function NavGroupBlock({
 export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const pathname = usePathname() ?? "";
   const { domain } = useDomain();
-  const { isAdmin, token } = useAuth();
+  const { isAdmin, token, signedIn } = useAuth();
   const site = useSiteLayer();
   const { isDark, toggle, theme, setTheme, themes, shareUrl } = useTheme();
   // Only while the picker is on screen — see the hook: resolving costs ten
@@ -221,22 +221,36 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
 
   if (!open && !leaving) return null;
 
-  // The one label the sitemap cannot state, because it depends on what you
-  // hold: the same route is Connect, Session, or Settings depending on whether
-  // there is an API key and on what it is allowed to do. Route, icon, and
-  // accent still come from the sitemap, so Help and the page hero show the
-  // same row this does.
+  // The sitemap row is Settings. What the drawer shows depends on the
+  // credential: an operator keeps Settings, a pasted key keeps the session
+  // page, a website session goes to the account, and everyone else signs in.
   const accountGroup: NavGroup = {
     ...ACCOUNT_GROUP,
     entries: [
       {
         ...ACCOUNT_GROUP.entries[0],
-        name: isAdmin ? "Settings" : token ? "Session" : "Connect",
+        name: isAdmin
+          ? "Settings"
+          : token
+            ? "Session"
+            : signedIn
+              ? "Account"
+              : "Sign in",
+        href:
+          isAdmin || token
+            ? ACCOUNT_GROUP.entries[0].href
+            : signedIn
+              ? "/account"
+              : "/login",
+        match:
+          isAdmin || token ? "/settings" : signedIn ? "/account" : "/login",
         desc: isAdmin
           ? "instance administration panels"
           : token
             ? "your API session"
-            : "paste an API key to enable writes",
+            : signedIn
+              ? "your records on this node"
+              : "sign in, or register",
       },
     ],
   };

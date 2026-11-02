@@ -12,6 +12,8 @@ from fastapi.security import HTTPBearer
 
 from src.config import get_security_policy
 
+from ..auth.origin import assert_allowed_origin
+from ..auth.sessions import UNSAFE_METHODS, read_session_cookie
 from ..models.auth import AuthenticatedUser
 from ..models.visibility import (
     DEV_LOCAL_ACCOUNT,
@@ -50,29 +52,11 @@ API_KEY_HEADER = _BearerHeader(
 )
 
 
-async def get_current_user(
-    auth_header: Optional[str] = Depends(API_KEY_HEADER),
-) -> AuthenticatedUser:
-    """
-    FastAPI dependency for authentication.
+def _presented(request: Request, auth_header: Optional[str]) -> bool:
+    return bool(auth_header) or read_session_cookie(request.cookies) is not None
 
-    Validates Authorization: Bearer <token> header and returns authenticated user.
 
-    Args:
-        auth_header: Authorization header value (from API_KEY_HEADER dependency)
-
-    Returns:
-        AuthenticatedUser if valid
-
-    Raises:
-        HTTPException 401 if invalid or missing
-    """
-    if not auth_header:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authentication token. Expected 'Authorization: Bearer <token>' header",
-        )
-
+async def _user_from_bearer(auth_header: str) -> AuthenticatedUser:
     if not auth_header.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -91,32 +75,57 @@ async def get_current_user(
     return await auth_service.validate_api_key(token)
 
 
+async def get_current_user(
+    request: Request,
+    auth_header: Optional[str] = Depends(API_KEY_HEADER),
+) -> AuthenticatedUser:
+    """Resolve the caller from a Bearer token, or else from the session cookie.
+
+    A Bearer header wins and the cookie is ignored, so a session pasted into
+    ``Authorization`` is refused by key validation rather than accepted as a
+    cookie. Cookie-authenticated unsafe methods run the CSRF check here, so a
+    route cannot forget it.
+    """
+    if auth_header:
+        return await _user_from_bearer(auth_header)
+
+    token = read_session_cookie(request.cookies)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=(
+                "Missing authentication token. Expected "
+                "'Authorization: Bearer <token>' header"
+            ),
+        )
+
+    # Before the session lookup. Login, register and recover call the same
+    # check with no session. The CSRF header is checked with the session.
+    if request.method in UNSAFE_METHODS:
+        assert_allowed_origin(request)
+
+    auth_service = await AuthenticationService.get_instance()
+    return await auth_service.authenticate_session(token, request)
+
+
 async def get_optional_user(
+    request: Request,
     auth_header: Optional[str] = Depends(API_KEY_HEADER),
 ) -> Optional[AuthenticatedUser]:
     """
     Optional authentication dependency for public endpoints.
 
-    Returns None if no auth header, otherwise validates and returns user.
-    If a header is provided but invalid, still raises HTTPException.
-
-    Args:
-        auth_header: Authorization header value (from API_KEY_HEADER dependency)
-
-    Returns:
-        AuthenticatedUser if valid header provided, None if no header
-
-    Raises:
-        HTTPException 401 if header is provided but invalid
+    Returns None if no credential is presented. A presented credential that
+    does not validate still raises, whether it arrived as a header or a cookie.
     """
-    if not auth_header:
+    if not _presented(request, auth_header):
         return None
 
-    # If header is provided, validate it (will raise if invalid)
-    return await get_current_user(auth_header)
+    return await get_current_user(request, auth_header)
 
 
 async def get_viewer(
+    request: Request,
     auth_header: Optional[str] = Depends(API_KEY_HEADER),
 ) -> Optional[AuthenticatedUser]:
     """Resolve the caller on a READ endpoint, without ever rejecting them.
@@ -131,10 +140,10 @@ async def get_viewer(
     public data at all, turning a stale token into a site-wide outage for that
     visitor.
     """
-    if not auth_header:
+    if not _presented(request, auth_header):
         return None
     try:
-        return await get_current_user(auth_header)
+        return await get_current_user(request, auth_header)
     except HTTPException:
         return None
 
@@ -153,17 +162,22 @@ def require_permission(permission: str):
     """
 
     async def dependency(
+        request: Request,
         auth_header: Optional[str] = Depends(API_KEY_HEADER),
     ) -> Optional[AuthenticatedUser]:
         if not get_security_policy().require_auth_for_writes:
-            if not auth_header:
+            if not _presented(request, auth_header):
                 return None
             try:
-                return await get_current_user(auth_header)
-            except HTTPException:
-                return None  # lenient when unenforced: never break existing dev flows
+                return await get_current_user(request, auth_header)
+            except HTTPException as exc:
+                # A failed CSRF check is a refusal, even when writes are open.
+                # A stale credential stays lenient, so dev flows keep working.
+                if exc.status_code == status.HTTP_403_FORBIDDEN:
+                    raise
+                return None
 
-        user = await get_current_user(auth_header)
+        user = await get_current_user(request, auth_header)
         auth_service = await AuthenticationService.get_instance()
         # Consult capability grants on the local node scope so a DID-backed user
         # can be authorized by a signed grant, not only by flat key permissions.
@@ -201,16 +215,18 @@ def require_write_unless_public(is_public: Callable[[], bool]):
     """
 
     async def dependency(
+        request: Request,
         auth_header: Optional[str] = Depends(API_KEY_HEADER),
     ) -> Optional[AuthenticatedUser]:
         if is_public():
-            return await get_optional_user(auth_header)
-        return await require_write(auth_header)
+            return await get_optional_user(request, auth_header)
+        return await require_write(request, auth_header)
 
     return dependency
 
 
 async def require_admin_strict(
+    request: Request,
     auth_header: Optional[str] = Depends(API_KEY_HEADER),
 ) -> AuthenticatedUser:
     """Always require a valid admin key — ignores SecurityPolicy write-auth relaxation.
@@ -218,7 +234,7 @@ async def require_admin_strict(
     Use for operations that must never be anonymous even when
     ``ENVIRONMENT != production`` (e.g. LLM provider credential management).
     """
-    user = await get_current_user(auth_header)
+    user = await get_current_user(request, auth_header)
     auth_service = await AuthenticationService.get_instance()
     scope = auth_service.local_node_scope()
     if not await auth_service.check_permission(user, ["admin"], scope=scope):

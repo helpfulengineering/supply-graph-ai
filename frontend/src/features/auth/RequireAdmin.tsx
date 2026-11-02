@@ -8,12 +8,12 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 
 /** Redirect non-admins away from Settings. Waits for whoami when a token is set. */
 export function RequireAdmin({ children }: { children: ReactNode }) {
-  const { token, isAdmin, user, authError } = useAuth();
+  const { signedIn, isAdmin, user, authError } = useAuth();
   const router = useRouter();
 
   // TanStack Query's isLoading is false while pending+idle (before fetch starts),
-  // so wait on "token set but whoami not settled" instead.
-  const settling = Boolean(token) && !user && !authError;
+  // so wait on "a credential is set but whoami has not settled" instead.
+  const settling = signedIn && !user && !authError;
 
   useEffect(() => {
     if (!settling && !isAdmin) router.replace("/");

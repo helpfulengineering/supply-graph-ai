@@ -19,8 +19,8 @@ else on this page.
 
 **Someone else's node** — register yourself, if the node lets you. Most do:
 open registration is on in both `peacetime` and `crisis` postures, and off only
-in `shielded`. Go to `/register`, pick a display name, and the node mints you an
-account and a key on the spot. See [Join a node](join-a-node.md).
+in `shielded`. On the website that is a username and password. See
+[Join a node](join-a-node.md). This page is the API key a script uses.
 
 If registration is closed, the node's operator issues credentials instead. Ask
 them.
