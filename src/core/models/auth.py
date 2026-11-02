@@ -33,6 +33,13 @@ class APIKey(BaseModel):
     expires_at: Optional[datetime] = None
     revoked: bool = False
     created_by: str = "system"
+    # ``session`` is a browser sign-in. It lives in this store so revoking
+    # every key (recovery) ends sessions too, and it is refused when presented
+    # as a Bearer token (#570).
+    kind: str = "api_key"
+    # SHA-256 of the CSRF token issued with a session. Compared against the
+    # ``X-OHM-CSRF`` header, never against the cookie that delivered it.
+    csrf_digest: Optional[str] = None
 
 
 class APIKeyCreate(BaseModel):
@@ -74,9 +81,23 @@ class AuthenticatedUser(BaseModel):
 
 
 class RegistrationCreate(BaseModel):
-    """Request payload for self-service registration."""
+    """Request payload for self-service registration.
+
+    A username and password sign the person in with a session cookie (#570).
+    Leaving both out keeps the command-line registration, which still returns
+    a token, for one release.
+    """
 
     display_name: str = Field(..., min_length=1, max_length=200)
+    username: Optional[str] = Field(default=None, max_length=64)
+    password: Optional[str] = Field(default=None, max_length=256)
+
+
+class LoginRequest(BaseModel):
+    """Username and password for a browser session."""
+
+    username: str = Field(..., min_length=1, max_length=64)
+    password: str = Field(..., min_length=1, max_length=256)
 
 
 class RegistrationResponse(BaseModel):
@@ -89,7 +110,9 @@ class RegistrationResponse(BaseModel):
     account_id: UUID
     display_name: str
     did: str
-    key: APIKeyResponse
+    # Present for command-line registration. Website registration leaves this
+    # empty and sets a session cookie instead (#570).
+    key: Optional[APIKeyResponse] = None
     #: The way back in if the token is lost. Shown once, like the token, and
     #: stored only as a hash. Registration is the only place it is issued, and
     #: redeeming it issues a replacement.

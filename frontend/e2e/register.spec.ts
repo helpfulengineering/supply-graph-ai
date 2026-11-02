@@ -23,22 +23,27 @@ test("a visitor registers and lands signed in", async ({ page }, testInfo) => {
   await expect(
     page.getByRole("heading", { name: "Create an identity on this node" }),
   ).toBeVisible();
+  await page.getByLabel("Username").fill("ada");
+  await page.getByLabel("Password").fill("correct horse");
   await page.getByLabel("Display name").fill("Ada Lovelace");
   await page.getByRole("button", { name: "Register" }).click();
 
-  // Shown once for keeping — and already the session, so there is no second
-  // paste step.
-  await expect(page.getByText("ohm_registered_once")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "You are signed in" })).toBeVisible();
-  // A session the app minted persists (#415), so it is in localStorage and not
-  // in sessionStorage — never both, or signing out of one would leave the
-  // other holding a live credential.
+  // The recovery code is shown once. The session is a cookie, so no API token
+  // is stored in the browser.
+  await expect(page.getByText("ohm_recovery_once")).toBeVisible();
+  await expect(page.getByText("ohm_registered_once")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "You are signed in" }),
+  ).toBeVisible();
   expect(
     await page.evaluate(() => localStorage.getItem("ohm_api_key")),
-  ).toBe("ohm_registered_once");
+  ).toBeNull();
   expect(
     await page.evaluate(() => sessionStorage.getItem("ohm_api_key")),
   ).toBeNull();
+  expect(
+    await page.evaluate(() => localStorage.getItem("ohm_session_hint")),
+  ).toBe("1");
 
   await expectNoA11yViolations(page);
 });
@@ -51,12 +56,14 @@ test("a registered visitor is still signed in after reopening the tab", async ({
     route.fulfill({ json: NON_ADMIN_WHOAMI }),
   );
   await page.goto("/register");
+  await page.getByLabel("Username").fill("ada");
+  await page.getByLabel("Password").fill("correct horse");
   await page.getByLabel("Display name").fill("Ada Lovelace");
   await page.getByRole("button", { name: "Register" }).click();
-  await expect(page.getByText("ohm_registered_once")).toBeVisible();
+  await expect(page.getByText("ohm_recovery_once")).toBeVisible();
 
-  // A new page in the same context is a new tab: sessionStorage does not carry
-  // over, localStorage does. This is the whole point of the change.
+  // A new page in the same context is a new tab. The session cookie and the
+  // hint both outlive it.
   const reopened = await page.context().newPage();
   await reopened.route("**/v1/api/identity/whoami", (route) =>
     route.fulfill({ json: NON_ADMIN_WHOAMI }),
@@ -67,7 +74,7 @@ test("a registered visitor is still signed in after reopening the tab", async ({
     reopened.getByRole("link", { name: "Ada Lovelace" }),
   ).toBeVisible();
   await expect(
-    reopened.getByText(/stay signed in on this device/),
+    reopened.getByText(/stay signed in on this browser/),
   ).toBeVisible();
   await reopened.close();
 });
@@ -117,15 +124,15 @@ test("a registered non-admin gets an account page but no Settings", async ({
   await page.goto("/account");
 
   // The session is visible in the chrome, which is what a non-admin lacked.
-  await expect(
-    page.getByRole("link", { name: "Ada Lovelace" }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ada Lovelace" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Identity" })).toBeVisible();
 
   // Settings stays admin-only. The guard is unchanged; this asserts that
   // registering did not quietly widen it.
   await page.getByRole("button", { name: "Site menu" }).click();
-  await expect(page.getByRole("link", { name: "Keys & accounts" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Keys & accounts" })).toHaveCount(
+    0,
+  );
   await page.getByRole("button", { name: "Close menu" }).click();
 
   await expectNoA11yViolations(page);

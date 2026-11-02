@@ -10,7 +10,10 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/button";
 import { PANEL } from "../../components/ui/surface";
-import { SECTION_LABEL_SM, SECTION_TITLE } from "../../components/ui/typography";
+import {
+  SECTION_LABEL_SM,
+  SECTION_TITLE,
+} from "../../components/ui/typography";
 import {
   CHECKBOX,
   CHECKBOX_HIT,
@@ -45,20 +48,20 @@ const FACILITIES_KEY = ["okw-search", "account", "mine"] as const;
  * else's and a section claiming to be all of yours would quietly miss half.
  */
 export function AccountView() {
-  const { token, user, isLoading, clear, sessionOrigin } = useAuth();
+  const { token, user, isLoading, clear, sessionOrigin, signedIn } = useAuth();
 
   const designs = useQuery({
     queryKey: DESIGNS_KEY,
     queryFn: () => fetchOkhList({ page_size: 100, mine: true }),
-    enabled: Boolean(token),
+    enabled: signedIn,
   });
   const facilities = useQuery({
     queryKey: FACILITIES_KEY,
     queryFn: () => searchOkw({ page_size: 100, mine: true }),
-    enabled: Boolean(token),
+    enabled: signedIn,
   });
 
-  if (!token) {
+  if (!signedIn) {
     return (
       <>
         <PageHero title="Your account" />
@@ -70,6 +73,9 @@ export function AccountView() {
             <div className="flex gap-3">
               <Link href="/register" className="text-sm underline">
                 Register
+              </Link>
+              <Link href="/login" className="text-sm underline">
+                Sign in
               </Link>
               <Link href="/settings/session" className="text-sm underline">
                 Connect a key
@@ -132,9 +138,11 @@ export function AccountView() {
               answer, or persistence reads as a bug in whichever direction
               surprises you. */}
           <p className="mt-4 text-sm text-muted-foreground">
-            {sessionOrigin === "minted"
-              ? "You stay signed in on this device until you sign out or the key expires."
-              : "You are signed in for this tab only, because this key was pasted in. Close the tab and it is gone."}
+            {!token
+              ? "You stay signed in on this browser until you sign out, you are idle for 30 days, or 90 days pass."
+              : sessionOrigin === "minted"
+                ? "You stay signed in on this device until you sign out or the key expires."
+                : "You are signed in for this tab only, because this key was pasted in. Close the tab and it is gone."}
           </p>
           <button
             type="button"

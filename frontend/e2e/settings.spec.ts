@@ -9,10 +9,10 @@ test("settings session is reachable without an admin key (paste bootstrap)", asy
   await page.goto("/settings/session");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "API key" })).toBeVisible();
-  // The account entry lives in the hamburger sitemap and reads "Connect"
-  // when no API key is present — the paste-bootstrap affordance.
+  // The account entry lives in the hamburger sitemap. With no session it is
+  // the way to sign in. The paste field on this page is still here for a key.
   await page.getByRole("button", { name: "Site menu" }).click();
-  await expect(page.getByRole("link", { name: /Connect/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
   await page.getByRole("button", { name: "Close menu" }).click();
   await expect(page.getByRole("link", { name: "Keys & accounts" })).toHaveCount(
     0,

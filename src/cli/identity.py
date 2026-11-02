@@ -158,6 +158,9 @@ async def register(
 
     Needs no credential — that is the point. Use it against a node you do not
     operate. The token is shown once and never again; save it before moving on.
+
+    The website signs a person in with a username and password instead. This
+    command still prints a token, for scripts, for one release.
     """
     cli_ctx: CLIContext = ctx.obj
     cli_ctx.verbose = verbose

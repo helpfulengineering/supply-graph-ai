@@ -4,10 +4,11 @@ Persists :class:`Account` objects as one JSON object per account under a shared
 prefix, mirroring :class:`AuthStorage`.
 """
 
+import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from ..models.account import Account
@@ -15,10 +16,30 @@ from ..services.storage_service import StorageService
 from .constants import (
     AUTH_ACCOUNTS_PREFIX,
     AUTH_RECOVERY_INDEX_PREFIX,
+    AUTH_USERNAME_INDEX_PREFIX,
     STORAGE_OBJECT_TYPE_ACCOUNT,
 )
 
 logger = logging.getLogger(__name__)
+
+# One lock per username, in this process. The object store has no
+# create-if-absent, so two requests here cannot both claim the same name.
+# Two replicas still can (#414).
+_username_locks: Dict[str, asyncio.Lock] = {}
+_username_locks_guard = asyncio.Lock()
+
+
+class UsernameTaken(Exception):
+    """The username already points at a different account."""
+
+
+async def _username_lock(username: str) -> asyncio.Lock:
+    async with _username_locks_guard:
+        lock = _username_locks.get(username)
+        if lock is None:
+            lock = asyncio.Lock()
+            _username_locks[username] = lock
+        return lock
 
 
 class AccountStorage:
@@ -73,9 +94,52 @@ class AccountStorage:
             return None
         return await self.load_account(UUID(account_id))
 
+    @staticmethod
+    def _username_index_key(username: str) -> str:
+        return f"{AUTH_USERNAME_INDEX_PREFIX}/{username}.json"
+
+    async def find_by_username(self, username: str) -> Optional[Account]:
+        """Resolve a username to its account, or None."""
+        try:
+            data = await self.storage_service.manager.get_object(
+                self._username_index_key(username)
+            )
+            account_id = json.loads(data.decode("utf-8"))["account_id"]
+        except Exception:
+            return None
+        return await self.load_account(UUID(account_id))
+
+    async def claim_username(self, account: Account, username: str) -> None:
+        """Point ``username`` at ``account``.
+
+        Read, write, read back. A lost race leaves the other account's pointer
+        in place and raises :class:`UsernameTaken`.
+        """
+        async with await _username_lock(username):
+            existing = await self.find_by_username(username)
+            if existing is not None and existing.id != account.id:
+                raise UsernameTaken(username)
+            account.username = username
+            await self.save_account(account)
+            await self.storage_service.manager.put_object(
+                key=self._username_index_key(username),
+                data=json.dumps({"account_id": str(account.id)}).encode("utf-8"),
+                content_type="application/json",
+                metadata={
+                    "type": STORAGE_OBJECT_TYPE_ACCOUNT,
+                    "id": str(account.id),
+                },
+            )
+            again = await self.find_by_username(username)
+            if again is None or again.id != account.id:
+                raise UsernameTaken(username)
+
     async def save_account(self, account: Account) -> None:
         """Persist an account (create or update)."""
         account_data = account.model_dump(mode="json")
+        # ``password_hash`` is excluded from serialisation so an API response
+        # cannot include it. Storage is the one place it has to be written.
+        account_data["password_hash"] = account.password_hash
         account_data["id"] = str(account.id)
         account_data["created_at"] = account.created_at.isoformat()
 

@@ -10,16 +10,32 @@ in dev/test they are open, preserving existing flows. See
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    Request,
+    Response,
+    status,
+)
 
-from src.config.security_policy import get_security_policy
+from src.config.security_policy import SecurityMode, get_security_policy
 
 from ...models.account import Account, AccountCreate
 from ...models.attestation import Attestation, AttestationIssue, CertifyRequest
+from ...auth.origin import assert_allowed_origin, request_is_https
+from ...auth.sessions import (
+    apply_session_cookies,
+    clear_session_cookies,
+    read_session_cookie,
+)
 from ...models.auth import (
     APIKeyCreate,
     APIKeyResponse,
     AuthenticatedUser,
+    LoginRequest,
     RecoveryRedeem,
     RegistrationCreate,
     RegistrationResponse,
@@ -208,16 +224,83 @@ async def disable_account(
 )
 async def register(
     payload: RegistrationCreate,
+    request: Request,
+    response: Response,
     svc: AuthenticationService = Depends(get_auth_service),
 ) -> RegistrationResponse:
     """Self-service onboarding — deliberately unauthenticated.
 
-    A node operator should not be the only way to become someone on a node: that
-    is what would make one node structurally special rather than merely
-    well-known (ADR §9). Refused when the active mode closes registration; the
-    issued key never carries ``admin``. The token is returned once.
+    A username and password sign the person in with a session cookie and
+    return no API token (#570). Omitting both keeps the command-line
+    registration, which still returns a token, for one release.
+
+    Refused when the active mode closes registration; the issued credential
+    never carries ``admin``.
     """
+    assert_allowed_origin(request)
+    if payload.username is not None or payload.password is not None:
+        if not payload.username or not payload.password:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Username and password are both required.",
+            )
+        body, token, csrf = await svc.register_member(
+            payload.username,
+            payload.password,
+            payload.display_name,
+            https=request_is_https(request),
+        )
+        _set_session(request, response, token, csrf)
+        return body
     return await svc.register(payload.display_name)
+
+
+@router.post("/login", response_model=AuthenticatedUser, summary="Sign in")
+async def login(
+    payload: LoginRequest,
+    request: Request,
+    response: Response,
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> AuthenticatedUser:
+    """Sign in with a username and password. Sets the session cookies.
+
+    Deliberately unauthenticated. The failure message does not say which of
+    the two was wrong.
+    """
+    assert_allowed_origin(request)
+    user, token, csrf = await svc.login(
+        payload.username,
+        payload.password,
+        https=request_is_https(request),
+    )
+    _set_session(request, response, token, csrf)
+    return user
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT, summary="Sign out")
+async def logout(
+    request: Request,
+    svc: AuthenticationService = Depends(get_auth_service),
+    _user: AuthenticatedUser = Depends(get_current_user),
+) -> Response:
+    """End the browser session and clear its cookies."""
+    token = read_session_cookie(request.cookies)
+    if token:
+        await svc.revoke_session_token(token)
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    clear_session_cookies(response)
+    return response
+
+
+def _set_session(request: Request, response: Response, token: str, csrf: str) -> None:
+    https = request_is_https(request)
+    apply_session_cookies(
+        response,
+        token=token,
+        csrf=csrf,
+        https=https,
+        shielded=get_security_policy().mode == SecurityMode.SHIELDED,
+    )
 
 
 @router.post(
@@ -227,15 +310,17 @@ async def register(
 )
 async def recover(
     payload: RecoveryRedeem,
+    request: Request,
     svc: AuthenticationService = Depends(get_auth_service),
 ) -> RegistrationResponse:
     """Trade a recovery code for a working key — deliberately unauthenticated.
 
     The credential this returns is the one the caller lost, so requiring a
     credential to reach it would defeat the purpose. Redeeming revokes the
-    account's existing keys and issues a replacement code, which is what both
-    cases want: a lost token and a leaked one.
+    account's existing keys and sessions and issues a replacement code, which
+    is what both cases want: a lost token and a leaked one.
     """
+    assert_allowed_origin(request)
     return await svc.redeem_recovery_code(payload.code)
 
 

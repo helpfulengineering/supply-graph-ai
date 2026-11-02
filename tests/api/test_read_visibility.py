@@ -188,10 +188,16 @@ async def test_stale_token_reads_as_anonymous_rather_than_401() -> None:
     get_viewer degrades an unusable credential to anonymous; get_optional_user
     would reject it, turning one expired key into a site-wide read outage.
     """
+    from starlette.requests import Request
+
     from src.core.api.dependencies import get_viewer
 
-    assert await get_viewer(auth_header=None) is None
-    assert await get_viewer(auth_header="Bearer definitely-not-a-real-key") is None
+    request = Request({"type": "http", "method": "GET", "headers": [], "path": "/"})
+    assert await get_viewer(request, auth_header=None) is None
+    assert (
+        await get_viewer(request, auth_header="Bearer definitely-not-a-real-key")
+        is None
+    )
 
 
 @pytest.mark.asyncio

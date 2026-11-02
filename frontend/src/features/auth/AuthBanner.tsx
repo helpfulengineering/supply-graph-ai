@@ -15,18 +15,18 @@ import { fetchSecurityPolicy } from "../../api/ohm/identity";
  * again, so they keep the original pointer only.
  */
 export function AuthBanner() {
-  const { authFailure, clearAuthFailure, token } = useAuth();
+  const { authFailure, clearAuthFailure, signedIn } = useAuth();
 
   const policy = useQuery({
     queryKey: ["identity", "security-policy"],
     queryFn: fetchSecurityPolicy,
     staleTime: 5 * 60_000,
     retry: false,
-    enabled: Boolean(authFailure) && !token,
+    enabled: Boolean(authFailure) && !signedIn,
   });
 
   if (!authFailure) return null;
-  const canRegister = !token && policy.data?.open_registration === true;
+  const canRegister = !signedIn && policy.data?.open_registration === true;
 
   return (
     <div

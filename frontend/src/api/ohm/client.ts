@@ -12,6 +12,7 @@
  */
 import createClient from "openapi-fetch";
 import type { paths } from "../generated/schema";
+import { hasSessionHint, readCsrfToken } from "../../features/auth/sessionHint";
 import { authHeader } from "../../features/auth/tokenStorage";
 
 // Absolute base so requests work identically in the browser (real origin +
@@ -29,6 +30,7 @@ export const apiBaseUrl = `${origin}/v1`;
 
 export const apiClient = createClient<paths>({
   baseUrl: apiBaseUrl,
+  credentials: "include",
   // Defer to the *current* global fetch on each call rather than the reference
   // captured at module load, so test-time interceptors (MSW) that replace
   // globalThis.fetch after import are honored. No-op difference in the browser.
@@ -37,9 +39,22 @@ export const apiClient = createClient<paths>({
 
 apiClient.use({
   async onRequest({ request }) {
-    const auth = authHeader();
-    if (auth.Authorization && !request.headers.has("Authorization")) {
-      request.headers.set("Authorization", auth.Authorization);
+    // A session cookie wins over a pasted key. The key stays in storage; it
+    // is simply not sent while the session hint is set (#570).
+    if (hasSessionHint()) {
+      request.headers.delete("Authorization");
+    } else {
+      const auth = authHeader();
+      if (auth.Authorization && !request.headers.has("Authorization")) {
+        request.headers.set("Authorization", auth.Authorization);
+      }
+    }
+    const method = request.method.toUpperCase();
+    if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
+      const csrf = readCsrfToken();
+      if (csrf && !request.headers.has("X-OHM-CSRF")) {
+        request.headers.set("X-OHM-CSRF", csrf);
+      }
     }
     return request;
   },

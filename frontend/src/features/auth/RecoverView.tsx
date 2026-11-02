@@ -52,7 +52,7 @@ export function RecoverView() {
       const result = await redeemRecoveryCode(value);
       setRecovered(result);
       setCode("");
-      if (result.key.token) await setToken(result.key.token, "minted");
+      if (result.key?.token) await setToken(result.key.token, "minted");
       showSuccess("Account recovered", {
         description: `Signed in as ${result.display_name}.`,
       });
@@ -91,7 +91,7 @@ export function RecoverView() {
       {recovered ? (
         <div className="space-y-4">
           <TokenOnce
-            token={recovered.key.token ?? ""}
+            token={recovered.key?.token ?? ""}
             description="Your previous keys have been revoked. This is their replacement."
           />
           {recovered.recovery_code && (

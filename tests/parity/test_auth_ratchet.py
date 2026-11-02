@@ -78,6 +78,9 @@ ANONYMOUS_BY_DESIGN: dict[tuple[str, str], str] = {
     # should not be the only way to become someone on a node" — routes/identity.py.
     # Gated by SecurityPolicy.open_registration, not by a credential.
     ("POST", "/v1/api/identity/register"): "self-service onboarding",
+    # "Sign in with a username and password" — routes/identity.py. The
+    # credential this accepts is the one the caller is trying to establish.
+    ("POST", "/v1/api/identity/login"): "member sign-in",
     # "Trade a recovery code for a working key — deliberately unauthenticated.
     # The credential this returns is the one the caller lost" — routes/identity.py.
     ("POST", "/v1/api/identity/recover"): "credential recovery",
