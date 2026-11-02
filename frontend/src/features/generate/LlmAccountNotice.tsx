@@ -11,13 +11,16 @@ import { cn } from "@/lib/utils";
  *
  * The API's 401 tells a developer to pass a Bearer token; a first-time visitor
  * needs to hear that an account is the answer, where to get one, and that they
- * can still generate without the model meanwhile (#561). Register is offered
- * only when this node accepts registrations, as `AuthBanner` does.
+ * can still generate without the model meanwhile (#561). Register opens on
+ * this page, so the repository address they typed is still there afterwards.
+ * It is offered only when this node accepts registrations, as `AuthBanner` does.
  */
 export function LlmAccountNotice({
   onContinueWithoutLlm,
+  onRegister,
 }: {
   onContinueWithoutLlm: () => void;
+  onRegister: () => void;
 }) {
   const policy = useQuery({
     queryKey: ["identity", "security-policy"],
@@ -33,9 +36,13 @@ export function LlmAccountNotice({
         Generating with the language model needs an account on this node.{" "}
         {canRegister && (
           <>
-            <Link href="/register" className="font-medium underline">
+            <button
+              type="button"
+              onClick={onRegister}
+              className="font-medium underline"
+            >
               Register
-            </Link>
+            </button>
             {" or "}
           </>
         )}

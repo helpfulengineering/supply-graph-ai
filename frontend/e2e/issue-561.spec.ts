@@ -120,7 +120,7 @@ test("LLM generation without an account says to register, in plain words", async
   const alert = page.getByRole("alert");
   await expect(alert).toContainText(/account/i);
   await expect(alert).not.toContainText("Authorization");
-  await expect(alert.getByRole("link", { name: /register/i })).toBeVisible();
+  await expect(alert.getByRole("button", { name: /register/i })).toBeVisible();
   await expect(alert.getByRole("link", { name: /sign in/i })).toBeVisible();
   await expect(
     alert.getByRole("button", { name: /without the language model/i }),
@@ -202,7 +202,6 @@ test("a signed-in designer saves the generated design to this node", async ({
 test("an anonymous designer is offered sign-in to save, and keeps their edits", async ({
   page,
 }) => {
-  test.fail(true, "#572: registering means leaving Generate and starting over");
   await mockGeneration(page);
   await generate(page);
   await page.getByLabel("Title").fill("Frugal IoT sensor v0.2");

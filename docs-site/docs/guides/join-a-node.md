@@ -14,9 +14,15 @@ On most nodes you can make one yourself.
 
 ## Register
 
-Go to `/register`. Choose a username, a password and a display name. The node
-creates an account and signs you in. The browser holds that session in a
+Go to `/register`, or open the same form where you are — on Generate, when
+saving or when the language model asks for an account. The form names this
+node and who runs it. Choose a username, a password and a display name. The
+node creates an account and signs you in. The browser holds that session in a
 cookie. There is no token to copy.
+
+The two names are the node's own: `OHM_FEDERATION_NODE_NAME` (default `OHM
+Node`) and `OHM_NODE_OPERATOR` (default `the operator of this node`). They are
+shown whether or not federation is turned on.
 
 One thing appears once: a **recovery code**. Copy it or download it, and
 confirm you have saved it somewhere other than this browser, before

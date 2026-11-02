@@ -3225,6 +3225,10 @@ export interface paths {
         /**
          * Active security mode policy
          * @description Return the active ``SecurityPolicy`` knobs (deployment posture, not secret).
+         *
+         *     ``node_name`` and ``operator_name`` are not mode knobs. They travel with
+         *     this public document because the signup form already reads it, and that
+         *     form has to say which node, and who runs it, the account is on.
          */
         get: operations["show_security_policy_api_identity_security_policy_get"];
         put?: never;
@@ -10189,6 +10193,10 @@ export interface components {
             key_ttl_days: number;
             /** Admin Break Glass */
             admin_break_glass: boolean;
+            /** Node Name */
+            node_name: string;
+            /** Operator Name */
+            operator_name: string;
         };
         /**
          * SignatureRecord

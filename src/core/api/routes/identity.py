@@ -21,6 +21,7 @@ from fastapi import (
     status,
 )
 
+from src.config import settings
 from src.config.security_policy import SecurityMode, get_security_policy
 
 from ...models.account import Account, AccountCreate
@@ -81,8 +82,16 @@ async def whoami(
     summary="Active security mode policy",
 )
 async def show_security_policy() -> Dict[str, Any]:
-    """Return the active ``SecurityPolicy`` knobs (deployment posture, not secret)."""
-    return get_security_policy().to_public_dict()
+    """Return the active ``SecurityPolicy`` knobs (deployment posture, not secret).
+
+    ``node_name`` and ``operator_name`` are not mode knobs. They travel with
+    this public document because the signup form already reads it, and that
+    form has to say which node, and who runs it, the account is on.
+    """
+    data = get_security_policy().to_public_dict()
+    data["node_name"] = settings.OHM_FEDERATION_NODE_NAME
+    data["operator_name"] = settings.OHM_NODE_OPERATOR
+    return data
 
 
 @router.post(

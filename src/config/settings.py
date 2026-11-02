@@ -295,6 +295,9 @@ OHM_FEDERATION_ENABLED = _get_secret_or_env(
     "t",
 )
 OHM_FEDERATION_NODE_NAME = _get_secret_or_env("OHM_FEDERATION_NODE_NAME", "OHM Node")
+# Who runs this node, named on the signup form so a person knows who they are
+# creating an account with. Federation may be off; the name is still shown.
+OHM_NODE_OPERATOR = _get_secret_or_env("OHM_NODE_OPERATOR", "the operator of this node")
 OHM_FEDERATION_NODE_ROLE = _get_secret_or_env("OHM_FEDERATION_NODE_ROLE", "peer")
 OHM_FEDERATION_SYNC_INTERVAL_SEC = int(
     _get_secret_or_env("OHM_FEDERATION_SYNC_INTERVAL_SEC", "60")
