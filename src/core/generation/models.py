@@ -411,7 +411,7 @@ class ManifestGeneration:
 
         return {
             "title": fields_dict.get("title", "Unknown"),
-            "version": fields_dict.get("version", "1.0.0"),
+            "version": fields_dict.get("version", ""),
             "repo": fields_dict.get("repo", ""),
             "license": fields_dict.get("license", ""),
             "description": fields_dict.get("description", ""),
@@ -479,7 +479,7 @@ class ManifestGeneration:
             "id": manifest_id,
             "title": fields_dict.get("title", "Unknown"),
             "repo": fields_dict.get("repo", ""),
-            "version": fields_dict.get("version", "1.0.0"),
+            "version": fields_dict.get("version", ""),
             "license": self._normalize_license(
                 fields_dict.get("license"), self.project_data
             ),

@@ -15,6 +15,7 @@ from ..models import (
     PlatformType,
     ProjectData,
 )
+from ..version_sources import declared_version
 from .base import BaseGenerationLayer, LayerResult
 
 
@@ -118,28 +119,17 @@ class DirectMatcher(BaseGenerationLayer):
                 raw_source="metadata.license",
             )
 
-        # Version from metadata
-        version_value = self._extract_version_from_metadata(metadata)
-        if version_value:
-            confidence = self.calculate_confidence(
-                "version", version_value, "metadata_extraction"
-            )
+        declared = declared_version(project_data)
+        if declared:
+            version_value, source = declared
             fields["version"] = FieldGeneration(
                 value=version_value,
-                confidence=confidence,
+                confidence=self.calculate_confidence(
+                    "version", version_value, "metadata_extraction"
+                ),
                 source_layer=GenerationLayer.DIRECT,
                 generation_method="direct_mapping",
-                raw_source="metadata.version",
-            )
-        else:
-            # Fallback version
-            confidence = self.calculate_confidence("version", "1.0.0", "fallback")
-            fields["version"] = FieldGeneration(
-                value="1.0.0",
-                confidence=confidence,
-                source_layer=GenerationLayer.DIRECT,
-                generation_method="fallback",
-                raw_source="no_version_found",
+                raw_source=source,
             )
 
         # Keywords from repository topics (GitHub/GitLab API field)
@@ -238,54 +228,6 @@ class DirectMatcher(BaseGenerationLayer):
             return license_info
 
         return None
-
-    def _extract_version_from_metadata(self, metadata: Dict[str, Any]) -> Optional[str]:
-        """Extract version information from metadata"""
-        # Try different version fields
-        version_fields = ["tag_name", "latest_release", "version", "release_tag"]
-
-        for field in version_fields:
-            version_value = metadata.get(field)
-            if version_value:
-                # Clean up version string
-                cleaned_version = self._clean_version_string(version_value)
-                if cleaned_version:
-                    return cleaned_version
-
-        # Try to extract from releases array
-        releases = metadata.get("releases", [])
-        if releases and isinstance(releases, list):
-            # Find the latest stable release (prefer non-prerelease)
-            stable_releases = []
-            prerelease_releases = []
-
-            for release in releases:
-                if isinstance(release, dict):
-                    tag_name = release.get("tag_name")
-                    if tag_name:
-                        cleaned_version = self._clean_version_string(tag_name)
-                        if cleaned_version:
-                            if release.get("prerelease", False):
-                                prerelease_releases.append(cleaned_version)
-                            else:
-                                stable_releases.append(cleaned_version)
-
-            # Return the latest stable release, or fall back to latest prerelease
-            if stable_releases:
-                return stable_releases[0]  # First is latest
-            elif prerelease_releases:
-                return prerelease_releases[0]  # Fall back to prerelease
-
-        return None
-
-    def _clean_version_string(self, version: str) -> Optional[str]:
-        """Clean and normalize version string using shared utilities"""
-        if not version:
-            return None
-
-        # Use shared utility to extract version from text
-        extracted_version = self.extract_version_from_text(version)
-        return extracted_version
 
     def _find_readme_content(self, files) -> Optional[str]:
         """Find README content from project files using shared utilities"""
