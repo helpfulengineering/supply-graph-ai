@@ -88,6 +88,7 @@ class FileCategorizationRules:
             ".kicad_pcb",  # KiCad PCB layout
             ".kicad_mod",  # KiCad footprint
             ".sch",  # EDA schematic
+            ".kicad_sch",  # KiCad schematic
             ".brd",  # Eagle PCB design
         }
 
@@ -256,6 +257,13 @@ class FileCategorizationRules:
             r"(?i)(design|cad|model|openscad|freecad)",
         ]
 
+        # Electronics design drawings, recognised by name wherever they live: a
+        # schematic exported to PDF or PNG is the design, as a .sch file is.
+        self.electronics_design_patterns = [
+            (r"(?i)schematic", "Filename names a schematic"),
+            (r"(?i)pcb[\s_-]*layout", "Filename names a PCB layout drawing"),
+        ]
+
         # Documentation home (README in root)
         self.documentation_home_patterns = [
             r"(?i)^readme",
@@ -324,6 +332,15 @@ class FileCategorizationRules:
         ext_result = self._categorize_by_extension(file_ext, path_lower)
         if ext_result and ext_result.confidence >= 0.8:
             return ext_result
+
+        for pattern, reason in self.electronics_design_patterns:
+            if re.search(pattern, filename_lower):
+                return FileCategorizationResult(
+                    documentation_type=DocumentationType.DESIGN_FILES,
+                    confidence=0.85,
+                    excluded=False,
+                    reason=reason,
+                )
 
         # Directory-based categorization (medium confidence)
         dir_result = self._categorize_by_directory(path_lower)

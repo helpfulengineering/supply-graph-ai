@@ -51,7 +51,6 @@ def _files(manifest):
 
 
 @pytest.mark.asyncio
-@_open("#563", "SCHEMATIC.pdf falls through to the default category")
 async def test_the_schematic_is_recognised_as_the_schematic(generated):
     """'This is pretty obviously the schematic.'"""
     manifest, _ = generated
