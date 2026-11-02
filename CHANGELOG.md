@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-11-02
+
+### Fixed
+
+- Maps of Making facilities show on the network again (#636). The directory
+  republished its vocabulary, and the query still asked for the old type, which
+  matches nothing and was cached as an empty result.
+
 ## [0.15.0] - 2026-11-02
 
 ### Added
