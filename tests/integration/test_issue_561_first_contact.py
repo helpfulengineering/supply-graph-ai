@@ -83,7 +83,6 @@ async def test_the_version_is_the_one_the_design_declares(generated):
 
 
 @pytest.mark.asyncio
-@_open("#564", "BOM files are found but not linked")
 async def test_the_bom_links_the_repositorys_bom_file(generated):
     """'It doesn't actually have the filename or link.'"""
     manifest, _ = generated
@@ -94,13 +93,11 @@ async def test_the_bom_links_the_repositorys_bom_file(generated):
 
 
 @pytest.mark.asyncio
-@_open("#564", "BOM rows are not read into components")
 async def test_the_bom_lists_the_components(generated):
     """'... or the components.'"""
     manifest, _ = generated
-    names = str(manifest["bom"])
-    assert manifest["bom"]["summary"]["total_components"] >= len(stand_in.BOM_ROWS)
-    assert all(row in names for row in stand_in.BOM_ROWS)
+    names = {c["name"] for c in manifest["bom"]["components"]}
+    assert set(stand_in.BOM_ROWS) <= names
 
 
 def _register(client):

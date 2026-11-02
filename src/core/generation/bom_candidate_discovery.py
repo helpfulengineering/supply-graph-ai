@@ -28,6 +28,7 @@ class BomCandidateKind(str, Enum):
     DEDICATED_BASENAME = "dedicated_basename"
     STEM_UNDERSCORE_BOM = "stem_underscore_bom"
     STEM_HYPHEN_BOM = "stem_hyphen_bom"
+    PREFIX_BOM = "prefix_bom"
     PARTS_LIST_FILE = "parts_list_file"
     MATERIALS_LIST_FILE = "materials_list_file"
 
@@ -54,6 +55,12 @@ _BOM_PATH_RULES: Tuple[Tuple[str, float, BomCandidateKind], ...] = (
         r"(?i)(^|/)[^/]+-bom\.(csv|tsv|txt|json)$",
         0.91,
         BomCandidateKind.STEM_HYPHEN_BOM,
+    ),
+    (
+        # Assembly-service exports: BOM_JLCPCB.csv, BOM_PCBWay.csv
+        r"(?i)(^|/)bom_[^/]+\.(csv|tsv|txt)$",
+        0.85,
+        BomCandidateKind.PREFIX_BOM,
     ),
     (
         r"(?i)(^|/)parts(\.(csv|txt|md|json|yaml|yml))?$",
@@ -228,6 +235,15 @@ def sanitize_bom_field_for_manifest(bom_value: Any, project_data: ProjectData) -
         return out
 
     return bom_value
+
+
+def linked_bom_file(project_data: ProjectData) -> Optional[str]:
+    """The highest-ranked BOM candidate that may be cited as ``bom.external_file``."""
+    allowed = _effective_bom_path_allowset(project_data)
+    for candidate in list_bom_candidates(project_data):
+        if repo_relative_bom_path_allowed(candidate.path, allowed):
+            return candidate.path
+    return None
 
 
 def build_bom_discovery_metadata(project_data: ProjectData) -> Dict[str, Any]:

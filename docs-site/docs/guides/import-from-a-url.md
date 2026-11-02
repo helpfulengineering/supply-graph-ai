@@ -96,6 +96,14 @@ shown under the processes rather than edited on their own, and download waits
 until they are up to date. To apply the same rule to a file without saving it, use
 `ohm okh normalize my-design.okh.yaml` or `POST /api/okh/normalize`.
 
+**The bill of materials is read from your BOM file.** A file named like a BOM —
+`BOM.csv`, `bill_of_materials.csv`, `board_bom.csv`, or an assembly-service
+export such as `BOM_JLCPCB.csv` — is linked as the BOM's `external_file`, and
+its rows become the components, with quantities. KiCad and JLCPCB exports are
+read as they come: parts are named by their value (`10uF`), and a row with no
+quantity column counts its designators. If there are several, the plainest name
+is the one linked.
+
 **Being found** — description, repository, keywords.
 
 **Everything else** — collapsed, but present. Nothing extracted is hidden from

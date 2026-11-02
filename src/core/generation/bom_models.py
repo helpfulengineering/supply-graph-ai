@@ -2,6 +2,8 @@
 BOM normalization data models and utilities
 """
 
+import csv
+import io
 import json
 import logging
 import re
@@ -16,6 +18,11 @@ from ..models.bom import BillOfMaterials, Component
 from .bom_candidate_discovery import path_matches_dedicated_bom_file
 
 logger = logging.getLogger(__name__)
+
+
+_DESIGNATOR_COLUMNS = frozenset(
+    {"ref", "refs", "reference", "references", "designator", "designators"}
+)
 
 
 class BOMSourceType(Enum):
@@ -827,18 +834,27 @@ class BOMProcessor:
     ) -> List["Component"]:
         """Extract components from CSV format"""
         components = []
-        lines = content.strip().split("\n")
+        rows = list(csv.reader(io.StringIO(content.strip())))
 
-        if len(lines) < 2:
+        if len(rows) < 2:
             return components
 
         # Parse header
-        header = [col.strip().lower() for col in lines[0].split(",")]
+        header = [col.strip().lower() for col in rows[0]]
 
-        # Find column indices
-        name_col = self._find_column_index(
-            header, ["item", "name", "component", "part"]
+        # An EDA export (KiCad, JLCPCB) lists designators and names each part by
+        # its value; its other columns ("LCSC Part #", "MPN") are order codes.
+        ref_col = next(
+            (i for i, h in enumerate(header) if h in _DESIGNATOR_COLUMNS), None
         )
+        if ref_col is not None:
+            name_col = next(
+                (i for i, h in enumerate(header) if h in ("value", "comment")), None
+            )
+        else:
+            name_col = self._find_column_index(
+                header, ["item", "name", "component", "part"]
+            )
         qty_col = self._find_column_index(
             header, ["quantity", "qty", "amount", "count"]
         )
@@ -848,12 +864,9 @@ class BOMProcessor:
             return components
 
         # Parse data rows
-        for line in lines[1:]:
-            if not line.strip():
-                continue
-
-            columns = [col.strip() for col in line.split(",")]
-            if len(columns) <= name_col:
+        for row in rows[1:]:
+            columns = [col.strip() for col in row]
+            if not any(columns) or len(columns) <= name_col:
                 continue
 
             name = columns[name_col]
@@ -880,6 +893,8 @@ class BOMProcessor:
                         continue
                 except (ValueError, TypeError):
                     quantity = 1.0
+            elif qty_col is None and ref_col is not None and ref_col < len(columns):
+                quantity = float(len(re.findall(r"[^,\s]+", columns[ref_col])) or 1)
 
             # Extract unit
             unit = "pcs"

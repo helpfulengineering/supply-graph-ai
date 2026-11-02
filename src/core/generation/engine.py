@@ -593,8 +593,13 @@ class GenerationEngine:
                     bom = await self._generate_normalized_bom(project_data)
                     full_bom_object = bom  # Store full BOM object for export
                     # Add BOM to generated fields
+                    from .bom_candidate_discovery import linked_bom_file
+
                     generated_fields["bom"] = FieldGeneration(
-                        value=bom.to_dict(),
+                        value={
+                            **bom.to_dict(),
+                            "external_file": linked_bom_file(project_data),
+                        },
                         confidence=bom.metadata.get("overall_confidence", 0.8),
                         source_layer=GenerationLayer.BOM_NORMALIZATION,
                         generation_method="bom_normalization",
