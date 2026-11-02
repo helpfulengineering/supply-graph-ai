@@ -665,6 +665,20 @@ export const federationSyncFixture = {
   total_pulled: 1,
 };
 
+export const generationProvenanceFixture = {
+  schema: "ohm-generation-provenance/v1",
+  source_url: "https://github.com/example/widget",
+  stages: [{ seq: 1, stage: "extract", fraction: 1, message: "done" }],
+  fields: {
+    title: {
+      layer: "direct",
+      method: "metadata_name",
+      confidence: 0.91,
+      source: "metadata.name",
+    },
+  },
+};
+
 export const provenanceFixture = {
   authored_by: [{ external_id: "name:Test Author", role: null }],
   published_by: null,

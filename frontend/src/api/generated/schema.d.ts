@@ -443,6 +443,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/{id}/generation-provenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get how an OKH manifest was generated
+         * @description Return the generation sidecar for a manifest, if one was saved.
+         */
+        get: operations["get_okh_generation_provenance_api_okh__id__generation_provenance_get"];
+        /**
+         * Save how an OKH manifest was generated
+         * @description Store the generation sidecar beside a manifest. It is not part of the manifest, and it does not change the content hash.
+         */
+        put: operations["put_okh_generation_provenance_api_okh__id__generation_provenance_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/{id}/visibility": {
         parameters: {
             query?: never;
@@ -5787,6 +5811,34 @@ export interface components {
             did: string;
             /** Followed */
             followed: boolean;
+        };
+        /**
+         * GenerationProvenanceRecord
+         * @description One run's account of how a manifest was produced.
+         *
+         *     ``extra`` is allowed because a record is a sidecar the generator already
+         *     built. Dropping a key the model does not name would make the saved copy
+         *     smaller than the file the same run offers for download.
+         */
+        GenerationProvenanceRecord: {
+            /** Schema */
+            schema: string;
+            /** Generated At */
+            generated_at?: string | null;
+            /** Source Url */
+            source_url?: string | null;
+            /** Stages */
+            stages?: {
+                [key: string]: unknown;
+            }[];
+            /** Fields */
+            fields?: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+        } & {
+            [key: string]: unknown;
         };
         /**
          * GrantIssue
@@ -12036,6 +12088,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecordProvenance"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_okh_generation_provenance_api_okh__id__generation_provenance_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationProvenanceRecord"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    put_okh_generation_provenance_api_okh__id__generation_provenance_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerationProvenanceRecord"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationProvenanceRecord"];
                 };
             };
             /** @description Bad Request */

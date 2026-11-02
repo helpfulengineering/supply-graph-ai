@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
   fetchOkhDetail,
+  getGenerationProvenance,
   validateOkh,
   type ValidationResult,
 } from "../../api/ohm/okh";
@@ -20,6 +21,8 @@ import { BuildPackageButton } from "../package/BuildPackageButton";
 import { ReleasesStrip } from "../package/ReleasesStrip";
 import { AuthorshipPanel } from "./AuthorshipPanel";
 import { VisibilityControl } from "./VisibilityControl";
+import { ProvenanceRecord } from "../generate/ProvenanceRecord";
+import { readGenerationProvenance } from "../generate/generationProvenance";
 import { AttestationsPanel } from "../identity/AttestationsPanel";
 import type { OkhManifest } from "../../types/okh";
 import { PANEL } from "../../components/ui/surface";
@@ -142,6 +145,12 @@ export function OkhDetailView({ id }: Props) {
     queryKey: ["okh-detail", id],
     queryFn: () => fetchOkhDetail(id),
   });
+  const generation = useQuery({
+    queryKey: ["okh", id, "generation-provenance"],
+    queryFn: () => getGenerationProvenance(id),
+    retry: false,
+  });
+  const generationRecord = readGenerationProvenance(generation.data);
 
   /**
    * Download the design as an MSF datasheet.
@@ -410,6 +419,11 @@ export function OkhDetailView({ id }: Props) {
           )}
         </div>
       </div>
+      {generationRecord && (
+        <div className="mt-8">
+          <ProvenanceRecord record={generationRecord} />
+        </div>
+      )}
     </div>
   );
 }

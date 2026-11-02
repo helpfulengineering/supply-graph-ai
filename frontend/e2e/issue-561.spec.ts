@@ -179,7 +179,6 @@ test("the editor says what the BOM is and which file it came from", async ({
 test("a signed-in designer saves the generated design to this node", async ({
   page,
 }) => {
-  test.fail(true, "#566: Generate can only download");
   await signIn(page);
   await mockGeneration(page);
   let saved: Record<string, unknown> | null = null;

@@ -562,6 +562,63 @@ async def provenance(
         raise
 
 
+@okh_group.command("generation-provenance")
+@click.argument("manifest_id", type=str)
+@click.option(
+    "--file",
+    "record_file",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help="JSON sidecar to store beside the manifest",
+)
+@standard_cli_command(
+    help_text="Show or store how a manifest was generated.",
+    epilog="""
+    Examples:
+      ohm okh generation-provenance 123e4567-e89b-12d3-a456-426614174000
+      ohm okh generation-provenance 123e4567-e89b-12d3-a456-426614174000 --file run.provenance.json
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def generation_provenance(
+    ctx,
+    manifest_id: str,
+    record_file: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Show or store the generation sidecar for an OKH manifest."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-generation-provenance")
+    try:
+        if record_file:
+            payload = json.loads(Path(record_file).read_text(encoding="utf-8"))
+            response = await cli_ctx.api_client.request(
+                "PUT",
+                f"/api/okh/{manifest_id}/generation-provenance",
+                json_data=payload,
+            )
+        else:
+            response = await cli_ctx.api_client.request(
+                "GET", f"/api/okh/{manifest_id}/generation-provenance"
+            )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Generation record failed: {str(e)}", "error")
+        raise
+
+
 @okh_group.command("create")
 @click.argument("manifest_file", type=click.Path(exists=True))
 @click.option(

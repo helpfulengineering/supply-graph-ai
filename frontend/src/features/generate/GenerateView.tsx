@@ -29,8 +29,10 @@ import { useRouter } from "next/navigation";
 import { withNavState } from "../../lib/navState";
 import { ApiError } from "../../api/ohm/client";
 import {
+  createOkh,
   getGenerateJobEvents,
   getGenerateJobStatus,
+  putGenerationProvenance,
   revokeGenerateJob,
   submitGenerateJobs,
   type GenerateJobRef,
@@ -153,6 +155,8 @@ export function GenerateView() {
   const router = useRouter();
   const { signedIn } = useAuth();
   const [signupOpen, setSignupOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -291,6 +295,22 @@ export function GenerateView() {
       } else {
         setError(generationErrorMessage(err));
       }
+    }
+  };
+
+  const save = async () => {
+    if (!manifest) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const { id } = await createOkh(manifest);
+      if (provenance) await putGenerationProvenance(id, provenance);
+      router.push(`/okh/${id}`);
+    } catch (err) {
+      setSaveError(
+        err instanceof ApiError ? err.message : "Couldn't save this design.",
+      );
+      setSaving(false);
     }
   };
 
@@ -563,11 +583,14 @@ export function GenerateView() {
             >
               Download JSON
             </button>
-            {/* The write is a later step. The control is here so signing up
-                does not throw away the result just edited. */}
             {signedIn ? (
-              <button type="button" className={`${FIELD} px-5 font-semibold`}>
-                Save to this node
+              <button
+                type="button"
+                disabled={saving || blocked}
+                onClick={() => void save()}
+                className={`${FIELD} px-5 font-semibold disabled:opacity-60`}
+              >
+                {saving ? "Saving…" : "Save to this node"}
               </button>
             ) : (
               <button
@@ -618,6 +641,11 @@ export function GenerateView() {
               <p className="text-sm text-warning">
                 Fill in {missing.length} required field
                 {missing.length === 1 ? "" : "s"} first.
+              </p>
+            )}
+            {saveError && (
+              <p role="alert" className="text-sm text-destructive">
+                {saveError}
               </p>
             )}
           </div>

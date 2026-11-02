@@ -74,6 +74,7 @@ from ..models.okh.collection import (
     OKHTemplateResponse,
 )
 from ...models.okh_process_fields import derive_process_fields
+from ...models.generation_provenance import GenerationProvenanceRecord
 from ...models.provenance import RecordProvenance
 from ...models.visibility import (
     BulkVisibilityBody,
@@ -447,6 +448,59 @@ async def get_okh_provenance(
             detail="No provenance recorded for this manifest",
         )
     return provenance
+
+
+@router.get(
+    "/{id}/generation-provenance",
+    response_model=GenerationProvenanceRecord,
+    summary="Get how an OKH manifest was generated",
+    description="Return the generation sidecar for a manifest, if one was saved.",
+)
+async def get_okh_generation_provenance(
+    id: UUID = Path(..., title="The ID of the OKH manifest"),
+    okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(get_viewer),
+) -> Any:
+    """How this design was generated. Absent for a design that was not."""
+    if await okh_service.get(id) is None or not await can_read(okh_service, id, user):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKH manifest with ID {id} not found",
+        )
+    record = await okh_service.get_generation_provenance(id)
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No generation record for this manifest",
+        )
+    return record
+
+
+@router.put(
+    "/{id}/generation-provenance",
+    response_model=GenerationProvenanceRecord,
+    summary="Save how an OKH manifest was generated",
+    description="Store the generation sidecar beside a manifest. It is not part of the manifest, and it does not change the content hash.",
+)
+async def put_okh_generation_provenance(
+    body: GenerationProvenanceRecord,
+    id: UUID = Path(..., title="The ID of the OKH manifest"),
+    okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> Any:
+    """Store a generation sidecar the owner can reopen from the record page."""
+    if await okh_service.get(id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKH manifest with ID {id} not found",
+        )
+    await require_ownership(
+        await okh_service.owner_attribution(str(id)), user, "manifest"
+    )
+    try:
+        return await okh_service.save_generation_provenance(id, body)
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
 
 @router.get(
