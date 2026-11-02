@@ -419,6 +419,32 @@ def test_product_names_do_not_imply_sewing(service: ProcessInferenceService) -> 
         assert service.infer_from_manifest(_manifest(title=title)).processes == []
 
 
+# "Sheet" is a word before it is a process: an electronics README that says
+# "see the data sheet" was labelled Sheet Metal Forming (#561, #564).
+
+
+def test_a_data_sheet_is_not_sheet_metal(service: ProcessInferenceService) -> None:
+    result = service.infer_from_text("See each sensor's data sheet for wiring limits.")
+    assert result.processes == []
+
+
+def test_sheet_metal_named_in_prose_is_still_found(
+    service: ProcessInferenceService,
+) -> None:
+    result = service.infer_from_text("A folded sheet metal enclosure.")
+    assert result.processes == ["Sheet Metal Forming"]
+
+
+def test_a_tsdc_code_in_prose_counts_only_as_written(
+    service: ProcessInferenceService,
+) -> None:
+    """Codes are upper case; the same letters as an ordinary word are a word."""
+    assert service.infer_from_text("Process: SHEET").processes == [
+        "Sheet Metal Forming"
+    ]
+    assert service.infer_from_text("one sheet of paper").processes == []
+
+
 def test_sewing_is_not_reachable_from_assembly() -> None:
     """Hierarchy drives matching: an assembly shop cannot sew a surgical gown."""
     from src.core.taxonomy import taxonomy

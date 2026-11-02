@@ -299,7 +299,6 @@ processes:
     display_name: "Sheet Metal Forming"
     tsdc_code: "SHEET"
     aliases:
-      - "sheet"
       - "sheet metal"
       - "sheet metal forming"
       - "sheet_metal_forming"

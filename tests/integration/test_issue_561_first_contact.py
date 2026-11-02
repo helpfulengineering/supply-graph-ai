@@ -61,7 +61,6 @@ async def test_the_schematic_is_recognised_as_the_schematic(generated):
 
 
 @pytest.mark.asyncio
-@_open("#564", "the bare token 'sheet' is a sheet-metal alias")
 async def test_a_pcb_repository_has_no_sheet_metal_process(generated):
     """'It decided we need "Sheet metal forming". No idea why.'"""
     manifest, _ = generated
