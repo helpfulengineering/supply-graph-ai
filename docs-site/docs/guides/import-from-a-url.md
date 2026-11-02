@@ -87,7 +87,9 @@ your time than anything else on the page. **Check the materials especially** —
 they're the most error-prone part of extraction, and prose gets misread as
 components more often than we'd like.
 
-**The process list is the one to edit.** A manifest also records each process
+**The process list is the one to edit.** The generator keeps a process only when
+it is in the manufacturing taxonomy, under that taxonomy's name, and drops
+anything else it proposed. A manifest also records each process
 as a requirement entry and, for processes that have one, a TSDC code. Those
 follow the list whenever a design is saved, by any client: remove a process
 and its requirement and code go with it, while detail you added to a process

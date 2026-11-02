@@ -1391,8 +1391,8 @@ class GenerationEngine:
         """
         Normalize manufacturing processes list.
 
-        Delegates to the canonical ProcessTaxonomy for known processes.
-        Filters out non-manufacturing terms and deduplicates.
+        Delegates to the canonical ProcessTaxonomy. A process it does not know
+        is dropped, and what remains is deduplicated.
 
         Args:
             processes: List of process names (may include duplicates, various cases)
@@ -1424,33 +1424,13 @@ class GenerationEngine:
             # Try taxonomy normalization
             canonical_id = taxonomy.normalize(process_stripped)
 
-            if canonical_id is not None:
-                if canonical_id not in seen:
-                    seen.add(canonical_id)
-                    normalized.append(taxonomy.get_display_name(canonical_id))
-            else:
-                # Unknown process -- keep if it looks manufacturing-related
-                lower = process_stripped.lower()
-                manufacturing_hints = [
-                    "print",
-                    "cut",
-                    "weld",
-                    "machin",
-                    "assemble",
-                    "solder",
-                    "drill",
-                    "bend",
-                    "grind",
-                    "paint",
-                    "cast",
-                    "forge",
-                    "mold",
-                    "treat",
-                ]
-                if any(hint in lower for hint in manufacturing_hints):
-                    if lower not in seen:
-                        seen.add(lower)
-                        normalized.append(process_stripped.title())
+            # Anything the taxonomy does not know is dropped. Keeping a phrase
+            # because it contained "bend" or "cast" is how invented processes
+            # reached the manifest.
+            if canonical_id is None or canonical_id in seen:
+                continue
+            seen.add(canonical_id)
+            normalized.append(taxonomy.get_display_name(canonical_id))
 
         return normalized
 
