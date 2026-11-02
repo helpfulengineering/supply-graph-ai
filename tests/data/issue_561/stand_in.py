@@ -5,7 +5,9 @@ tree reproduces its *shape*: the file names and directory layout the reporter
 described and the generator tripped on, with placeholder contents written for
 this test. The facts the assertions rely on match the reporter's account:
 
-- no release, tag or version file; "v02" appears only in file names
+- no release, tag or version file; the version is declared in the KiCad
+  schematic's title block, ``(rev "0.2")``, and the README pairs "V0.2" with
+  "revision 4", which is where an invented 0.2.4 can come from
 - the BOM is at ``BOM.csv`` and, for JLCPCB, under ``fabrication/``
 - ``SCHEMATIC.pdf`` is the schematic
 - nothing in it is sheet metal
@@ -14,7 +16,9 @@ this test. The facts the assertions rely on match the reporter's account:
 from pathlib import Path
 
 README = """\
-# Frugal IoT sensor board
+# Frugal IoT sensor board V0.2
+
+**Status:** revision 4, routed and ready for a first order.
 
 A small ESP32 sensor board for the Frugal IoT stack. Most builds use off the
 shelf modules; this board brings them together on one PCB.
@@ -44,6 +48,17 @@ ESP32-C3-MINI-1,U1,ESP32-C3-MINI-1,C2838502
 10k,"R1,R2,R3,R4",0603,C25804
 """
 
+KICAD_SCH = """\
+(kicad_sch
+  (version 20250114)
+  (generator "eeschema")
+  (title_block
+    (title "Frugal IoT sensor board V0.2")
+    (rev "0.2")
+  )
+)
+"""
+
 # A PDF header is enough: categorisation reads names and paths, not content.
 PDF = b"%PDF-1.4\n%placeholder for a test fixture\n"
 GERBER = "G04 placeholder for a test fixture*\nM02*\n"
@@ -58,6 +73,7 @@ def build(root: Path) -> Path:
         "BOM.csv": BOM_CSV,
         "SCHEMATIC.pdf": PDF,
         "PCB-LAYOUT.pdf": PDF,
+        "frugal_iot_v02/frugal_iot_v02.kicad_sch": KICAD_SCH,
         "fabrication/BOM_JLCPCB.csv": JLCPCB_BOM,
         "fabrication/frugal_iot_v02-F_Cu.gbr": GERBER,
         "fabrication/frugal_iot_v02-B_Cu.gbr": GERBER,

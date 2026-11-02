@@ -9,11 +9,11 @@ batch runs. Process notes for the Materials quality workstream live under
 
 | Path | Role |
 |------|------|
-| `repositories.json` | Canary corpus (26 repos) |
+| `repositories.json` | Canary corpus (27 repos) |
 | `metrics.py` | `heuristic_manifest_quality` (+ Materials heuristics) |
 | `baseline_report.py` | Offline GT comparison |
 | `manifest_discovery.py` | URL / slug / path helpers |
-| `ground_truth/` | Blocking-field GT (repo-001, repo-002) |
+| `ground_truth/` | Blocking-field GT (repo-001, repo-002); field checks (frugal-iot-hw-sensor) |
 | `fixtures/` | Tiny manifests for unit tests |
 | `clones/` | Generated manifests (**gitignored**) |
 
@@ -47,6 +47,19 @@ the platform API. Override shallow-clone wait with `OHM_GIT_CLONE_TIMEOUT` (defa
 
 Default manifest directory for batch / baseline / layer-compare is
 `tests/data/okh_generation/clones/`.
+
+## Ground-truth checks
+
+Besides the blocking fields, a ground-truth file may assert `version`,
+`manufacturing_processes` (`includes` / `excludes`), `bom_external_file`
+(`one_of`) and `file_roles` (path → manifest list). Each scores `pass` or
+`fail` per repo in the baseline report, totalled in `summary.check_outcomes`.
+
+A field listed in `expected_fail`, with the issue that fixes it, is a known
+defect: it scores `expected_fail` while broken and `unexpected_pass` once
+fixed, the cue for the fix PR to delete the entry. The electronics repo from
+#561 (`frugal-iot-hw-sensor`) is the first to use them; its version, `0.2`,
+comes from the KiCad schematic's title block `(rev "0.2")`.
 
 ## Materials baseline
 

@@ -73,16 +73,15 @@ async def test_a_pcb_repository_has_no_sheet_metal_process(generated):
 
 
 @pytest.mark.asyncio
-@_open("#564", "a version is invented when the repository has none")
-async def test_a_version_is_never_invented(generated):
-    """'It invented a version number of 0.2.4 ... doesn't appear anywhere.'
+@_open("#564", "the version is invented, not read from the design")
+async def test_the_version_is_the_one_the_design_declares(generated):
+    """'It invented a version number of 0.2.4 ... its at 0.2.'
 
-    The repository has no release, tag or version file, so the version stays
-    blank, and the warning says where a version-like string was seen.
+    The repository has no release, tag or version file; the KiCad schematic's
+    title block declares the revision.
     """
-    manifest, report = generated
-    assert not manifest.get("version")
-    assert any("v02" in r for r in report.recommendations)
+    manifest, _ = generated
+    assert manifest.get("version") == "0.2"
 
 
 @pytest.mark.asyncio

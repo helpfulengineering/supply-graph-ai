@@ -286,6 +286,17 @@
       "project_structure": "standard",
       "ground_truth_path": null,
       "core_for_regression": true
+    },
+    {
+      "id": "frugal-iot-hw-sensor",
+      "url": "https://github.com/mitra42/frugal-iot-hw-sensor",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "good",
+      "domain": "electronics",
+      "project_structure": "standard",
+      "ground_truth_path": "tests/data/okh_generation/ground_truth/frugal-iot-hw-sensor.json",
+      "core_for_regression": true
     }
   ]
 }

@@ -36,6 +36,7 @@ def build_baseline_report(
 
     rows: List[Dict[str, Any]] = []
     counts: Dict[str, int] = defaultdict(int)
+    check_outcomes: Dict[str, int] = defaultdict(int)
     compared_accuracy: List[float] = []
     compared_presence: List[float] = []
     by_dq: Dict[str, List[float]] = defaultdict(list)
@@ -91,6 +92,7 @@ def build_baseline_report(
         manifest = json.loads(generated.read_text(encoding="utf-8"))
         accuracy, presence = _blocking_scores(gt, manifest)
         heur = heuristic_manifest_quality(manifest)
+        checks = _ground_truth_checks(gt, manifest)
 
         row.update(
             {
@@ -99,9 +101,12 @@ def build_baseline_report(
                 "blocking_accuracy": accuracy,
                 "blocking_presence_completeness": presence,
                 "heuristic_quality": heur,
+                "checks": checks,
             }
         )
         counts["compared"] += 1
+        for outcome in checks.values():
+            check_outcomes[outcome] += 1
         compared_accuracy.append(accuracy)
         compared_presence.append(presence)
         dq = str(repo.get("documentation_quality") or "unknown")
@@ -127,6 +132,7 @@ def build_baseline_report(
             "compared_count": counts.get("compared", 0),
             "avg_blocking_accuracy_compared": _avg(compared_accuracy),
             "avg_blocking_presence_completeness_compared": _avg(compared_presence),
+            "check_outcomes": dict(check_outcomes),
             "materials_heuristics": {
                 "manifests_scored": materials_scored,
                 "total_near_dup_pairs": materials_near,
@@ -164,6 +170,58 @@ def _blocking_scores(
 
     n = len(fields) or 1
     return matches / n, present / n
+
+
+def _ground_truth_checks(
+    ground_truth: Dict[str, Any], manifest: Dict[str, Any]
+) -> Dict[str, str]:
+    """Score each checkable ground-truth field.
+
+    A field named in ``expected_fail`` is a known defect with an open issue: it
+    scores ``expected_fail`` while it fails and ``unexpected_pass`` once the fix
+    lands, which is the cue to delete its entry.
+    """
+    open_fields = ground_truth.get("expected_fail") or {}
+    checks = {}
+    for field, check in _CHECKS.items():
+        if field not in ground_truth:
+            continue
+        passed = check(ground_truth[field], manifest)
+        if field in open_fields:
+            checks[field] = "unexpected_pass" if passed else "expected_fail"
+        else:
+            checks[field] = "pass" if passed else "fail"
+    return checks
+
+
+def _check_processes(expected: Dict[str, List[str]], manifest: Dict[str, Any]) -> bool:
+    got = {str(p).casefold() for p in manifest.get("manufacturing_processes") or []}
+    return all(p.casefold() in got for p in expected.get("includes", [])) and not any(
+        p.casefold() in got for p in expected.get("excludes", [])
+    )
+
+
+def _check_bom_file(expected: Dict[str, List[str]], manifest: Dict[str, Any]) -> bool:
+    bom = manifest.get("bom")
+    return isinstance(bom, dict) and bom.get("external_file") in expected["one_of"]
+
+
+def _check_file_roles(expected: Dict[str, str], manifest: Dict[str, Any]) -> bool:
+    def paths(role: str) -> set:
+        entries = manifest.get(role) or []
+        return {e.get("path") if isinstance(e, dict) else e for e in entries}
+
+    return all(path in paths(role) for path, role in expected.items())
+
+
+_CHECKS = {
+    "version": lambda expected, manifest: _blocking_equal(
+        expected, manifest.get("version")
+    ),
+    "manufacturing_processes": _check_processes,
+    "bom_external_file": _check_bom_file,
+    "file_roles": _check_file_roles,
+}
 
 
 def _blocking_present(value: Any) -> bool:
