@@ -195,6 +195,24 @@ function DerivedField({ field, manifest }: EditorProps & { field: FieldSpec }) {
   );
 }
 
+/** Where a generated BOM says it was read from, if it says. */
+function bomFile(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const file = (value as { external_file?: unknown }).external_file;
+    if (typeof file === "string" && file.trim()) return file.trim();
+  }
+  return null;
+}
+
+function bomExplanation(value: unknown): string {
+  const file = bomFile(value);
+  const what = "The parts needed to build this design.";
+  return file
+    ? `${what} Read from ${file}.`
+    : `${what} No bill of materials file was found in the repository.`;
+}
+
 /** Nested values: read-only view plus a raw-JSON editor that validates on change. */
 function NestedField({
   field,
@@ -208,8 +226,13 @@ function NestedField({
   );
   const [error, setError] = useState<string | null>(null);
 
+  const explainsBom = field.path === "bom";
+
   return (
-    <div>
+    <div
+      role={explainsBom ? "group" : undefined}
+      aria-label={explainsBom ? field.label : undefined}
+    >
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">
           {field.label}
@@ -226,6 +249,11 @@ function NestedField({
         <span className="mt-0.5 block text-xs text-muted-foreground">
           {field.hint}
         </span>
+      )}
+      {explainsBom && (
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {bomExplanation(value)}
+        </p>
       )}
       {open ? (
         <>

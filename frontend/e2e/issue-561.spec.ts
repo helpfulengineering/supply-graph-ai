@@ -164,7 +164,6 @@ test("a process removed in the editor is gone from the downloaded YAML", async (
 test("the editor says what the BOM is and which file it came from", async ({
   page,
 }) => {
-  test.fail(true, "#564: the BOM is shown as unexplained JSON");
   await mockGeneration(page);
   await generate(page);
 
