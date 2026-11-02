@@ -1014,24 +1014,7 @@ class HeuristicMatcher(BaseGenerationLayer):
     async def _extract_metadata_fields(
         self, project_data: ProjectData, result: LayerResult
     ):
-        """Extract version and documentation language metadata"""
-
-        # Extract version from repository metadata or default to 1.0.0
-        if not result.has_field("version"):
-            # Try to extract from repository metadata
-            version = "1.0.0"  # Default version
-            if project_data.metadata and "version" in project_data.metadata:
-                version = project_data.metadata["version"]
-            elif project_data.metadata and "tag_name" in project_data.metadata:
-                version = project_data.metadata["tag_name"]
-
-            result.add_field(
-                "version",
-                version,
-                0.8,
-                "metadata_version_extraction",
-                "Extracted from repository metadata or default",
-            )
+        """Extract documentation language metadata"""
 
         # Extract documentation language - default to English for GitHub repositories
         if not result.has_field("documentation_language"):

@@ -1266,10 +1266,10 @@ Use {context_file} as your scratchpad for analysis.
         self, manifest_data: Dict[str, Any], result: LayerResult
     ):
         """Extract fields from parsed manifest JSON"""
-        # Required fields
+        # Required fields. Not version: it is read from where the author
+        # declared it, never generated (see version_sources).
         required_fields = [
             "title",
-            "version",
             "license",
             "licensor",
             "documentation_language",

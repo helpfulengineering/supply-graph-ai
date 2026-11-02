@@ -14,7 +14,6 @@
     "fabrication/gerbers.zip": "manufacturing_files"
   },
   "expected_fail": {
-    "version": "#564: the version is invented; the KiCad title block declares (rev \"0.2\")",
     "manufacturing_processes": "#564: the bare token 'sheet' is a sheet-metal alias",
     "bom_external_file": "#564: BOM files are found but not linked"
   }

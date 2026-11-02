@@ -37,6 +37,7 @@ from .models import (
 )
 from .progress import ProgressCallback, ProgressEmitter
 from .quality import QualityAssessor
+from .version_sources import missing_version_warning
 from .utils.intended_use_validation import is_obvious_noise_intended_use
 
 # Configure logging
@@ -378,6 +379,10 @@ class GenerationEngine:
                 missing_fields,
                 self._required_fields,
             )
+            if "version" in missing_fields:
+                quality_report.recommendations.append(
+                    missing_version_warning(project_data)
+                )
 
             # Create result
             result = ManifestGeneration(
@@ -663,6 +668,10 @@ class GenerationEngine:
                 missing_fields,
                 self._required_fields,
             )
+            if "version" in missing_fields:
+                quality_report.recommendations.append(
+                    missing_version_warning(project_data)
+                )
 
             # Create result
             result = ManifestGeneration(

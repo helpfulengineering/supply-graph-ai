@@ -86,7 +86,7 @@ def _checks(report: dict) -> dict:
 
 
 def test_open_ground_truth_checks_are_expected_failures(tmp_path: Path) -> None:
-    """What #561's reporter got: each defect #564 has not fixed yet is expected."""
+    """What #561's reporter got: a fixed defect fails, an open one is expected."""
     report = _electronics_report(
         tmp_path,
         {
@@ -103,12 +103,16 @@ def test_open_ground_truth_checks_are_expected_failures(tmp_path: Path) -> None:
         },
     )
     assert _checks(report) == {
-        "version": "expected_fail",
+        "version": "fail",
         "manufacturing_processes": "expected_fail",
         "bom_external_file": "expected_fail",
         "file_roles": "pass",
     }
-    assert report["summary"]["check_outcomes"] == {"expected_fail": 3, "pass": 1}
+    assert report["summary"]["check_outcomes"] == {
+        "fail": 1,
+        "expected_fail": 2,
+        "pass": 1,
+    }
 
 
 def test_an_open_check_that_passes_is_flagged_for_its_marker(tmp_path: Path) -> None:
@@ -122,7 +126,7 @@ def test_an_open_check_that_passes_is_flagged_for_its_marker(tmp_path: Path) -> 
         },
     )
     checks = _checks(report)
-    assert checks["version"] == "unexpected_pass"
+    assert checks["version"] == "pass"
     assert checks["manufacturing_processes"] == "unexpected_pass"
     assert checks["bom_external_file"] == "unexpected_pass"
     assert checks["file_roles"] == "fail"

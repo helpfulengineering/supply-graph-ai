@@ -72,7 +72,6 @@ async def test_a_pcb_repository_has_no_sheet_metal_process(generated):
 
 
 @pytest.mark.asyncio
-@_open("#564", "the version is invented, not read from the design")
 async def test_the_version_is_the_one_the_design_declares(generated):
     """'It invented a version number of 0.2.4 ... its at 0.2.'
 

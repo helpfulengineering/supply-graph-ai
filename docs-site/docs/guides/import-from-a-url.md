@@ -73,6 +73,14 @@ The form is ordered by what actually needs your attention:
 hardware licence. A design can't be downloaded until these are filled in. Any
 that couldn't be extracted are marked.
 
+**The version is read, never guessed.** It comes from a release or tag, a
+version file at the top of the repository (`VERSION`, `package.json`,
+`pyproject.toml`, `library.properties`), or the revision in a KiCad project's
+schematic title block, in that order. If none exists the field is left blank
+for you to fill, and the quality notes list anything version-like that was seen
+elsewhere, such as `v02` in file names. Declaring a version in one of those
+places means the next generation picks it up.
+
 **What drives matching** — manufacturing processes, materials, bill of
 materials. These decide which workshops can build this, so they're worth more of
 your time than anything else on the page. **Check the materials especially** —
@@ -140,7 +148,7 @@ That is what makes review possible rather than guesswork. A field read straight
 from repository metadata and a field inferred from prose are not equally
 trustworthy, and the record tells you which you are looking at.
 
-`source` is a short label — `metadata.name`, `README.md`, `no_version_found` —
+`source` is a short label — `metadata.name`, `README.md`, `VERSION` —
 naming where the extractor looked. It is not an excerpt, and does not point at
 a line.
 

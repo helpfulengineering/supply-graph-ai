@@ -73,6 +73,7 @@ def build(root: Path) -> Path:
         "BOM.csv": BOM_CSV,
         "SCHEMATIC.pdf": PDF,
         "PCB-LAYOUT.pdf": PDF,
+        "frugal_iot_v02/frugal_iot_v02.kicad_pro": "{}\n",
         "frugal_iot_v02/frugal_iot_v02.kicad_sch": KICAD_SCH,
         "fabrication/BOM_JLCPCB.csv": JLCPCB_BOM,
         "fabrication/frugal_iot_v02-F_Cu.gbr": GERBER,
