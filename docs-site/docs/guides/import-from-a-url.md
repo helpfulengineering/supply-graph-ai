@@ -113,7 +113,9 @@ you.
 
 Processes and keywords edit as removable tags. Nested structures like materials
 and the bill of materials are shown as-is with a JSON editor, rather than a
-half-built structured form that might quietly drop a field.
+half-built structured form that might quietly drop a field. The bill of
+materials also says what it is — the parts needed to build the design — and
+which file it was read from.
 
 ## Then download it
 

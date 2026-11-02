@@ -18,7 +18,10 @@ const base = {
 describe("TieredEditor", () => {
   it("shows TSDC codes as following the processes, not as their own list (#562)", () => {
     render(
-      <TieredEditor manifest={{ ...base, tsdc: ["3DP", "LAS"] }} onChange={vi.fn()} />,
+      <TieredEditor
+        manifest={{ ...base, tsdc: ["3DP", "LAS"] }}
+        onChange={vi.fn()}
+      />,
     );
     const codes = screen.getByRole("list", {
       name: "Technology-specific documentation criteria values",
@@ -29,11 +32,15 @@ describe("TieredEditor", () => {
     expect(
       screen.queryByPlaceholderText(/add technology-specific/i),
     ).toBeNull();
-    expect(screen.getByText(/follow the manufacturing processes/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/follow the manufacturing processes/i),
+    ).toBeInTheDocument();
   });
 
   it("flags required fields that were not extracted", () => {
-    render(<TieredEditor manifest={{ ...base, title: "" }} onChange={vi.fn()} />);
+    render(
+      <TieredEditor manifest={{ ...base, title: "" }} onChange={vi.fn()} />,
+    );
     expect(screen.getAllByText("not extracted").length).toBeGreaterThan(0);
   });
 
@@ -60,7 +67,34 @@ describe("TieredEditor", () => {
     render(<TieredEditor manifest={base} onChange={onChange} />);
     const input = screen.getByPlaceholderText("Add manufacturing processes…");
     await userEvent.type(input, "Soldering{Enter}");
-    expect(onChange.mock.calls.at(-1)![0].manufacturing_processes).toContain("Soldering");
+    expect(onChange.mock.calls.at(-1)![0].manufacturing_processes).toContain(
+      "Soldering",
+    );
+  });
+
+  it("explains the bill of materials and names the file it was read from (#564)", () => {
+    render(
+      <TieredEditor
+        manifest={{
+          ...base,
+          bom: {
+            external_file: "BOM.csv",
+            components: [{ name: "10uF", quantity: 5 }],
+          },
+        }}
+        onChange={vi.fn()}
+      />,
+    );
+    const bom = screen.getByRole("group", { name: "Bill of materials" });
+    expect(bom).toHaveTextContent(/parts needed to build this/i);
+    expect(bom).toHaveTextContent("BOM.csv");
+  });
+
+  it("says so when the repository has no bill of materials file", () => {
+    render(<TieredEditor manifest={base} onChange={vi.fn()} />);
+    expect(
+      screen.getByRole("group", { name: "Bill of materials" }),
+    ).toHaveTextContent(/no bill of materials file was found/i);
   });
 
   it("shows nested structures read-only until JSON editing is opened", async () => {
