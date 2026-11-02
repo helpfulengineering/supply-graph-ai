@@ -51,6 +51,13 @@ describe("RegisterView", () => {
     expect(screen.queryByText("ohm_registered_once")).not.toBeInTheDocument();
     expect(getToken()).toBeNull();
     expect(await screen.findByText("You are signed in")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Download" }),
+    ).toBeInTheDocument();
+    const proceed = screen.getByRole("button", { name: "Continue" });
+    expect(proceed).toBeDisabled();
+    await user.click(screen.getByRole("checkbox", { name: /saved/i }));
+    expect(proceed).toBeEnabled();
   });
 
   it("does not store an API token in either web store", async () => {

@@ -969,13 +969,8 @@ class AuthenticationService:
         )
         return code
 
-    async def redeem_recovery_code(self, code: str) -> RegistrationResponse:
-        """Trade a recovery code for a working key on the same account and DID.
-
-        Serves two cases that want the same outcome — "I lost my token" and "my
-        token leaked" — so it revokes the account's existing keys rather than
-        adding to them, and replaces the code it consumed.
-        """
+    async def _account_for_recovery_code(self, code: str) -> Account:
+        """The account this code opens. Does not consume the code."""
         policy = get_security_policy()
         if not policy.open_registration:
             raise HTTPException(
@@ -1008,12 +1003,37 @@ class AuthenticationService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="That account is disabled",
             )
+        return account
 
+    async def _revoke_account_keys(self, account: Account) -> None:
+        """Revoke every key and session on the account."""
         for existing in await self._auth_storage.list_keys():
             if str(existing.created_by) == str(account.id) and not existing.revoked:
                 existing.revoked = True
                 await self._auth_storage.save_key(existing)
 
+    def _did_for_recovery(self, account: Account) -> str:
+        did = self._subject_did_for(account.id)
+        if not did:
+            # Recovery that cannot restore the identity binding is not recovery:
+            # the DID is what record ownership keys on, so returning a blank one
+            # would hand back a credential that owns nothing the account made.
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="This node no longer holds the identity for that account",
+            )
+        return did
+
+    async def redeem_recovery_code(self, code: str) -> RegistrationResponse:
+        """Trade a recovery code for a working key on the same account and DID.
+
+        Serves two cases that want the same outcome — "I lost my token" and "my
+        token leaked" — so it revokes the account's existing keys rather than
+        adding to them, and replaces the code it consumed. The website sends a
+        password instead and uses :meth:`recover_password`.
+        """
+        account = await self._account_for_recovery_code(code)
+        await self._revoke_account_keys(account)
         key = await self.create_api_key(
             APIKeyCreate(
                 name=f"{account.display_name} (recovered)",
@@ -1024,23 +1044,48 @@ class AuthenticationService:
             )
         )
         replacement = await self._issue_recovery_code(account)
-        did = self._subject_did_for(account.id)
-        if not did:
-            # Recovery that cannot restore the identity binding is not recovery:
-            # the DID is what record ownership keys on, so returning a blank one
-            # would hand back a key that owns nothing the account made.
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="This node no longer holds the identity for that account",
-            )
         logger.info(f"Recovered account {account.id}")
         return RegistrationResponse(
             account_id=account.id,
             display_name=account.display_name,
-            did=did,
+            did=self._did_for_recovery(account),
             key=key,
             recovery_code=replacement,
         )
+
+    async def recover_password(
+        self, code: str, password: str, *, https: bool
+    ) -> tuple[RegistrationResponse, str, str]:
+        """Set a new password, revoke every key and session, and sign in.
+
+        A password the policy refuses does not spend the code. The returned
+        strings are the session and CSRF values. The body carries the
+        replacement recovery code and no API token.
+        """
+        assert_password_channel(https)
+        account = await self._account_for_recovery_code(code)
+        problem = password_problem(
+            password, account.username or "", account.display_name
+        )
+        if problem:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=problem,
+            )
+        await self._revoke_account_keys(account)
+        account.password_hash = hash_password(password)
+        await self._account_storage.save_account(account)
+        replacement = await self._issue_recovery_code(account)
+        token, csrf, _session = await self._issue_session(account)
+        logger.info(f"Recovered account {account.id} with a new password")
+        body = RegistrationResponse(
+            account_id=account.id,
+            display_name=account.display_name,
+            did=self._did_for_recovery(account),
+            key=None,
+            recovery_code=replacement,
+        )
+        return body, token, csrf
 
     async def list_accounts(self) -> List[Account]:
         """List all accounts (empty when storage is unavailable)."""

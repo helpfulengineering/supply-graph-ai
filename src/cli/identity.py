@@ -211,7 +211,9 @@ async def recover(
     """Trade a recovery code for a new key on the same account and DID.
 
     Every key the account already had is revoked, and a fresh recovery code is
-    issued — save the new one, the old one is spent.
+    issued — save the new one, the old one is spent. The website recovery sets
+    a new password instead of printing a token. This command still prints one,
+    for one release.
     """
     cli_ctx: CLIContext = ctx.obj
     cli_ctx.verbose = verbose

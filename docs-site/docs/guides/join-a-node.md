@@ -18,8 +18,9 @@ Go to `/register`. Choose a username, a password and a display name. The node
 creates an account and signs you in. The browser holds that session in a
 cookie. There is no token to copy.
 
-One thing appears once: a **recovery code**. Save it somewhere other than this
-browser. It is the way back in if you forget the password.
+One thing appears once: a **recovery code**. Copy it or download it, and
+confirm you have saved it somewhere other than this browser, before
+continuing. It is the way back in if you forget the password.
 
 Nothing asks for an email address, because the node does not want one. There is
 nothing to verify and nothing to leak.
@@ -44,6 +45,7 @@ That is the node's choice: open registration is on in the `peacetime` and
 It shows who you are — display name, account id, your DID — and what your key
 can do. From here you can:
 
+- **Create a key** for a script. Signup does not hand one out.
 - **See your keys**, when each was created, and how long each has left.
 - **Renew** one before it expires.
 - **Revoke** one you no longer want, or **revoke every other key** if you think
@@ -56,11 +58,13 @@ on the node's posture — 180 days in `peacetime`, 365 in `crisis`, 30 in
 
 ## If you lose your key
 
-Go to `/recover` and enter your recovery code. The node checks it and issues a
-fresh key.
+Go to `/recover`, enter your recovery code, and choose a new password. The node
+signs you in on this browser, revokes every key and session the account had,
+and shows a replacement recovery code.
 
 A recovery code works **once**. Using it invalidates it and gives you a new one
-— save that too.
+— save that too. The command-line recovery, `ohm identity recover --code`,
+still prints an API token, for one release.
 
 If you have lost both the key and the code, there is nothing to recover with.
 An operator can create you a new account, but your old one is not reachable:

@@ -232,3 +232,49 @@ async def test_shielded_mode_refuses_recovery_and_names_the_mode(service, monkey
         await service.redeem_recovery_code(registered.recovery_code)
     assert exc.value.status_code == 403
     assert "shielded" in str(exc.value.detail)
+
+
+@pytest.mark.asyncio
+async def test_recovering_with_a_password_replaces_it_and_signs_in(service):
+    """#571: the recovery code sets a new password and spends itself."""
+    from src.core.auth.passwords import verify_password
+
+    registered, session, _csrf = await service.register_member(
+        "ada", "correct horse", "Ada Lovelace", https=True
+    )
+    recovered, new_session, _csrf = await service.recover_password(
+        registered.recovery_code, "brand new horse", https=True
+    )
+
+    assert recovered.key is None
+    assert recovered.account_id == registered.account_id
+    assert recovered.did == registered.did
+    assert recovered.recovery_code != registered.recovery_code
+    account = await service._account_storage.find_by_username("ada")
+    assert verify_password("brand new horse", account.password_hash)
+    old = await service._auth_storage.find_by_digest(service._token_digest(session))
+    assert old.revoked
+    new = await service._auth_storage.find_by_digest(service._token_digest(new_session))
+    assert new is not None and not new.revoked and new.kind == "session"
+
+    with pytest.raises(HTTPException) as exc:
+        await service.recover_password(
+            registered.recovery_code, "brand new horse", https=True
+        )
+    assert exc.value.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_a_refused_password_does_not_spend_the_recovery_code(service):
+    registered, _session, _csrf = await service.register_member(
+        "ada", "correct horse", "Ada Lovelace", https=True
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        await service.recover_password(registered.recovery_code, "short", https=True)
+    assert exc.value.status_code == 422
+
+    recovered, _session, _csrf = await service.recover_password(
+        registered.recovery_code, "brand new horse", https=True
+    )
+    assert recovered.recovery_code

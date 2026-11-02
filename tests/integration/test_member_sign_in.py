@@ -139,3 +139,73 @@ def test_a_cross_site_login_is_refused(member):
         headers={"Origin": "https://evil.example"},
     )
     assert refused.status_code == 403
+
+
+def test_recovery_sets_a_new_password_and_signs_this_browser_in(member):
+    body = _member("Ada")
+    registered = member.post("/api/identity/register", json=body)
+    assert registered.status_code == 201, registered.text
+    code = registered.json()["recovery_code"]
+    old_session = member.cookies.get("ohm_session")
+    member.cookies.clear()
+
+    recovered = member.post(
+        "/api/identity/recover",
+        json={"code": code, "password": "brand new horse"},
+    )
+    assert recovered.status_code == 200, recovered.text
+    payload = recovered.json()
+    assert payload["key"] is None
+    assert payload["recovery_code"]
+    assert payload["recovery_code"] != code
+    assert member.cookies.get("ohm_session")
+    assert member.cookies.get("ohm_session") != old_session
+    assert member.get("/api/identity/whoami").status_code == 200
+
+    member.cookies.clear()
+    member.cookies.set("ohm_session", old_session)
+    assert member.get("/api/identity/whoami").status_code == 401
+
+    member.cookies.clear()
+    signed_in = member.post(
+        "/api/identity/login",
+        json={"username": body["username"], "password": "brand new horse"},
+    )
+    assert signed_in.status_code == 200, signed_in.text
+    member.cookies.clear()
+    wrong = member.post(
+        "/api/identity/login",
+        json={"username": body["username"], "password": _PASSWORD},
+    )
+    assert wrong.status_code == 401
+
+    refused = member.post(
+        "/api/identity/recover",
+        json={"code": payload["recovery_code"], "password": "short"},
+    )
+    assert refused.status_code == 422
+    again = member.post(
+        "/api/identity/recover",
+        json={"code": payload["recovery_code"], "password": "another good horse"},
+    )
+    assert again.status_code == 200, again.text
+
+
+def test_recovering_without_a_password_still_returns_a_token(member):
+    registered = member.post(
+        "/api/identity/register", json={"display_name": "Command Line"}
+    )
+    assert registered.status_code == 201, registered.text
+    token = registered.json()["key"]["token"]
+    recovered = member.post(
+        "/api/identity/recover",
+        json={"code": registered.json()["recovery_code"]},
+    )
+    assert recovered.status_code == 200, recovered.text
+    assert recovered.json()["key"]["token"]
+    assert recovered.json()["key"]["token"] != token
+    stale = member.get(
+        "/api/identity/whoami",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert stale.status_code == 401

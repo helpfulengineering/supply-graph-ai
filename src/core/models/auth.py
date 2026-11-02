@@ -120,6 +120,12 @@ class RegistrationResponse(BaseModel):
 
 
 class RecoveryRedeem(BaseModel):
-    """Request payload for redeeming a recovery code."""
+    """Request payload for redeeming a recovery code.
+
+    A password sets a new one, signs the browser in, and returns no API token
+    (#571). Omitting it keeps the command-line recovery, which still returns a
+    token, for one release.
+    """
 
     code: str = Field(..., min_length=1, max_length=512)
+    password: Optional[str] = Field(default=None, max_length=256)

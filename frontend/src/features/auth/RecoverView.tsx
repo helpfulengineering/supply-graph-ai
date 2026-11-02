@@ -8,7 +8,7 @@ import { PageHero } from "../../components/layout/PageHero";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useToast } from "../../components/ui/Toast";
-import { FIELD_MONO, LABEL } from "../../components/ui/field";
+import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
 import { useAuth } from "../../context/AuthContext";
@@ -17,22 +17,19 @@ import {
   redeemRecoveryCode,
   type RegistrationResponse,
 } from "../../api/ohm/identity";
-import { TokenOnce } from "./TokenOnce";
+import { RecoveryKeep } from "./RecoveryKeep";
 
 /**
  * The way back in.
  *
- * Registration collects no email, no password and no second factor, so without
- * this a lost token is a permanently unreachable identity — and every private
- * record it made goes with it, unreachable by everyone including the operator.
- *
- * Redeeming revokes the account's other keys and spends the code, which is what
- * both cases it serves want: a token that was lost, and a token that leaked.
+ * There is no email. The recovery code is the way back in: it sets a new
+ * password, revokes every key and session, and signs this browser in.
  */
 export function RecoverView() {
-  const { setToken } = useAuth();
+  const { noteSession } = useAuth();
   const { showSuccess, showError } = useToast();
   const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [recovered, setRecovered] = useState<RegistrationResponse | null>(null);
 
@@ -46,13 +43,14 @@ export function RecoverView() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const value = code.trim();
-    if (!value) return;
+    if (!value || !password) return;
     setSubmitting(true);
     try {
-      const result = await redeemRecoveryCode(value);
+      const result = await redeemRecoveryCode(value, password);
       setRecovered(result);
       setCode("");
-      if (result.key?.token) await setToken(result.key.token, "minted");
+      setPassword("");
+      await noteSession();
       showSuccess("Account recovered", {
         description: `Signed in as ${result.display_name}.`,
       });
@@ -90,13 +88,9 @@ export function RecoverView() {
 
       {recovered ? (
         <div className="space-y-4">
-          <TokenOnce
-            token={recovered.key?.token ?? ""}
-            description="Your previous keys have been revoked. This is their replacement."
-          />
           {recovered.recovery_code && (
-            <TokenOnce
-              token={recovered.recovery_code}
+            <RecoveryKeep
+              code={recovered.recovery_code}
               heading="Save your new recovery code"
               description="The code you just used is spent. This one replaces it — put it in a password manager, not in this browser."
             />
@@ -115,8 +109,8 @@ export function RecoverView() {
         <section className={PANEL}>
           <h2 className={SECTION_TITLE}>Use your recovery code</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            The code you saved when you registered. It gets you a new key on the
-            same account and identity, and revokes any keys you still hold.
+            The code you saved when you registered. It sets a new password on
+            the same account, signs you in, and revokes any keys you still hold.
           </p>
           <form onSubmit={onSubmit} className="mt-4 space-y-3">
             <label className={LABEL}>
@@ -130,9 +124,20 @@ export function RecoverView() {
                 className={`${FIELD_MONO} mt-1 w-full`}
               />
             </label>
+            <label className={LABEL}>
+              New password
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+                className={`${FIELD} mt-1 w-full`}
+              />
+            </label>
             <button
               type="submit"
-              disabled={submitting || !code.trim()}
+              disabled={submitting || !code.trim() || !password}
               className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent hover:bg-primary disabled:opacity-50"
             >
               {submitting ? "Checking…" : "Recover account"}

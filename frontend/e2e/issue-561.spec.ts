@@ -140,7 +140,9 @@ test("a process removed in the editor is gone from the downloaded YAML", async (
         content: {
           ...content,
           manufacturing_specs: {
-            process_requirements: names.map((process_name) => ({ process_name })),
+            process_requirements: names.map((process_name) => ({
+              process_name,
+            })),
           },
           tsdc: names.includes("PCB Fabrication") ? ["PCB"] : [],
         },
@@ -150,7 +152,9 @@ test("a process removed in the editor is gone from the downloaded YAML", async (
   await mockGeneration(page);
   await generate(page);
 
-  await page.getByRole("button", { name: "Remove Sheet Metal Forming" }).click();
+  await page
+    .getByRole("button", { name: "Remove Sheet Metal Forming" })
+    .click();
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("button", { name: "Download YAML" }).click(),
@@ -221,7 +225,6 @@ test("an anonymous designer is offered sign-in to save, and keeps their edits", 
 test("signing up leaves one thing to keep: a recovery code", async ({
   page,
 }) => {
-  test.fail(true, "#571: signup shows an API token and a recovery code");
   await page.goto("/register");
   await expect(page.getByText(/key pair/i)).toHaveCount(0);
   await (await present(page.getByLabel("Username"))).fill("mitra");
