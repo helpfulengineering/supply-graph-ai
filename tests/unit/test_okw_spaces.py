@@ -71,6 +71,31 @@ def _row(
 
 
 @pytest.mark.asyncio
+async def test_fetch_asks_for_the_live_mom_type(monkeypatch):
+    """The directory's type IRI moved. The old github.io type matches nothing."""
+    import src.core.services.mom_bridge as mom
+
+    seen: dict = {}
+
+    class _RecordingClient(_FakeClient):
+        async def post(self, *args, **kwargs):
+            seen["query"] = kwargs["data"]["query"]
+            return await super().post(*args, **kwargs)
+
+    monkeypatch.setattr(
+        mom.httpx,
+        "AsyncClient",
+        lambda *a, **k: _RecordingClient({"results": {"bindings": []}}),
+    )
+
+    await mom.fetch_all_mom_spaces()
+    query = seen["query"]
+    assert "https://mapsofmaking.org/ns/mom#" in query
+    assert "a mom:Space" in query
+    assert "nicolasdb.github.io/mapsofmaking_ontology" not in query
+
+
+@pytest.mark.asyncio
 async def test_fetch_enriches_and_normalizes_processes(monkeypatch):
     import src.core.services.mom_bridge as mom
 

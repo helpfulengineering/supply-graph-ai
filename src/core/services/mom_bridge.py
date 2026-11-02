@@ -15,6 +15,13 @@ logger = logging.getLogger(__name__)
 
 MOM_SPARQL_ENDPOINT = "https://mapsofmaking.org/sparql/query"
 
+# Maps of Making republished its vocabulary. The old
+# nicolasdb.github.io/mapsofmaking_ontology IRI now matches nothing in the
+# live store (0 spaces), while this one types the directory (about 3,200
+# spaces). A query that still asks for the old type succeeds and returns an
+# empty list, which the cache then treats as a fresh result.
+MOM_NS = "https://mapsofmaking.org/ns/mom#"
+
 # 24h default TTL: MoM's space directory is slow-changing, and the all-spaces
 # query is heavy (thousands of rows), so we avoid re-querying on every map load.
 MOM_CACHE_TTL_SECONDS = 24 * 60 * 60
@@ -50,7 +57,7 @@ MOM_FETCH_TIMEOUT_SECONDS = 15.0
 _SPARQL_TEMPLATE = """
 SELECT DISTINCT ?space ?name ?lat ?lon WHERE {{
   GRAPH ?g {{
-    ?space a <https://nicolasdb.github.io/mapsofmaking_ontology/ns#Space> ;
+    ?space a <{MOM_NS}Space> ;
            <https://schema.org/name> ?name ;
            <https://schema.org/geo> [ <https://schema.org/latitude> ?lat ;
                                        <https://schema.org/longitude> ?lon ] ;
@@ -86,7 +93,7 @@ async def query_mom_spaces_for_process(
     if not wikidata_iri:
         return []
 
-    sparql = _SPARQL_TEMPLATE.format(wikidata_iri=wikidata_iri)
+    sparql = _SPARQL_TEMPLATE.format(wikidata_iri=wikidata_iri, MOM_NS=MOM_NS)
     async with httpx.AsyncClient(timeout=timeout) as client:
         response = await client.post(
             endpoint,
@@ -177,10 +184,10 @@ async def fetch_mom_facilities_for_manifest(
 # All spaces with coordinates — for the network surface. Pulls the fields the
 # unified /api/okw/spaces surface filters/displays on (city, country, status,
 # url, process tags), aggregating the multi-valued knowsAbout tags per space.
-_ALL_SPACES_SPARQL = """
-PREFIX schema: <https://schema.org/>
-PREFIX mom: <https://nicolasdb.github.io/mapsofmaking_ontology/ns#>
-SELECT ?space ?name ?lat ?lon
+_ALL_SPACES_SPARQL = (
+    "PREFIX schema: <https://schema.org/>\n"
+    f"PREFIX mom: <{MOM_NS}>\n"
+    """SELECT ?space ?name ?lat ?lon
        (SAMPLE(?city_) AS ?city) (SAMPLE(?country_) AS ?country)
        (SAMPLE(?state_) AS ?state) (SAMPLE(?url_) AS ?url)
        (GROUP_CONCAT(DISTINCT ?tag; SEPARATOR="|") AS ?tags)
@@ -197,6 +204,7 @@ WHERE {
   }
 } GROUP BY ?space ?name ?lat ?lon
 """
+)
 
 
 def _normalize_process_tags(concat: str) -> list[str]:

@@ -66,7 +66,10 @@ async def test_query_mom_spaces_for_process_parses_bindings():
     assert args[0] == mom_bridge.MOM_SPARQL_ENDPOINT
     # Q593053 is laser cutting. It was Q3062349 here, which is a list of Dutch
     # mayors — see tests/matching/test_wikidata_qids_live.py.
-    assert "Q593053" in kwargs["data"]["query"]
+    query = kwargs["data"]["query"]
+    assert "Q593053" in query
+    assert "https://mapsofmaking.org/ns/mom#Space" in query
+    assert "nicolasdb.github.io/mapsofmaking_ontology" not in query
 
 
 @pytest.mark.asyncio
