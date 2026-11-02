@@ -311,16 +311,25 @@ def _set_session(request: Request, response: Response, token: str, csrf: str) ->
 async def recover(
     payload: RecoveryRedeem,
     request: Request,
+    response: Response,
     svc: AuthenticationService = Depends(get_auth_service),
 ) -> RegistrationResponse:
-    """Trade a recovery code for a working key — deliberately unauthenticated.
+    """Trade a recovery code for a way back in — deliberately unauthenticated.
 
-    The credential this returns is the one the caller lost, so requiring a
-    credential to reach it would defeat the purpose. Redeeming revokes the
-    account's existing keys and sessions and issues a replacement code, which
-    is what both cases want: a lost token and a leaked one.
+    A password sets a new one and signs this browser in (#571). Omitting it
+    keeps the command-line recovery, which still returns a token, for one
+    release. Either way the account's existing keys and sessions are revoked
+    and a replacement code is issued.
     """
     assert_allowed_origin(request)
+    if payload.password is not None:
+        body, token, csrf = await svc.recover_password(
+            payload.code,
+            payload.password,
+            https=request_is_https(request),
+        )
+        _set_session(request, response, token, csrf)
+        return body
     return await svc.redeem_recovery_code(payload.code)
 
 

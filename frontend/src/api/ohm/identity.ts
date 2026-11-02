@@ -172,18 +172,18 @@ export function logoutSession(): Promise<void> {
 }
 
 /**
- * Trade a recovery code for a working key on the same account and DID.
+ * Trade a recovery code for a new password and a session on the same account.
  *
- * Unauthenticated by necessity: the credential this returns is the one the
- * caller lost. Redeeming revokes the account's other keys and issues a
- * replacement code, so the response carries both values, once.
+ * Unauthenticated by necessity. Redeeming revokes the account's keys and
+ * sessions and issues a replacement code. The session arrives as a cookie.
  */
 export async function redeemRecoveryCode(
   code: string,
+  password: string,
 ): Promise<RegistrationResponse> {
   const { data, error, response } = await apiClient.POST(
     "/api/identity/recover",
-    { body: { code } },
+    { body: { code, password } },
   );
   if (error || !response.ok || !data) {
     throw new ApiError(

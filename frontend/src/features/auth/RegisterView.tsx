@@ -12,7 +12,7 @@ import { FIELD, LABEL } from "../../components/ui/field";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
 import { useAuth } from "../../context/AuthContext";
-import { TokenOnce } from "./TokenOnce";
+import { RecoveryKeep } from "./RecoveryKeep";
 import {
   fetchSecurityPolicy,
   registerPerson,
@@ -107,8 +107,8 @@ export function RegisterView() {
       {registered ? (
         <div className="space-y-4">
           {registered.recovery_code && (
-            <TokenOnce
-              token={registered.recovery_code}
+            <RecoveryKeep
+              code={registered.recovery_code}
               heading="Save your recovery code"
               description="This is the way back in if you forget your password. Put it in a password manager — not in this browser."
             />

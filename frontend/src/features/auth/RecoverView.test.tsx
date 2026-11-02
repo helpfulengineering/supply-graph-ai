@@ -35,39 +35,50 @@ describe("RecoverView", () => {
     const user = userEvent.setup();
     renderView();
 
-    await user.type(await screen.findByLabelText(/recovery code/i), "ohm_recovery_once");
+    await user.type(
+      await screen.findByLabelText(/recovery code/i),
+      "ohm_recovery_once",
+    );
+    await user.type(screen.getByLabelText("New password"), "brand new horse");
     await user.click(screen.getByRole("button", { name: "Recover account" }));
 
-    expect(await screen.findByText("ohm_recovered_token")).toBeInTheDocument();
-    // The code just used is spent, so a replacement has to be shown.
-    expect(screen.getByText("ohm_recovery_replacement")).toBeInTheDocument();
-    expect(getToken()).toBe("ohm_recovered_token");
+    // The code just used is spent, so a replacement has to be shown. The
+    // session is a cookie, so the replacement API token is not.
+    expect(
+      await screen.findByText("ohm_recovery_replacement"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("ohm_recovered_token")).not.toBeInTheDocument();
+    expect(getToken()).toBeNull();
+    expect(localStorage.getItem("ohm_session_hint")).toBe("1");
   });
 
-  it("labels the two secrets distinctly", async () => {
+  it("shows the recovery code as the only secret", async () => {
     const user = userEvent.setup();
     renderView();
 
     await user.type(await screen.findByLabelText(/recovery code/i), "x");
+    await user.type(screen.getByLabelText("New password"), "brand new horse");
     await user.click(screen.getByRole("button", { name: "Recover account" }));
 
-    await screen.findByText("ohm_recovered_token");
-    // Two one-time panels on screen at once; each must say which secret it is,
-    // or the reader stores the wrong one.
+    await screen.findByText("ohm_recovery_replacement");
     expect(screen.getByText("Save your new recovery code")).toBeInTheDocument();
-    expect(screen.getByText("Copy this token now")).toBeInTheDocument();
+    expect(screen.queryByText("Copy this token now")).not.toBeInTheDocument();
   });
 
   it("reports a bad code rather than appearing to succeed", async () => {
     server.use(
       http.post("*/v1/api/identity/recover", () =>
-        HttpResponse.json({ detail: "That recovery code is not valid" }, { status: 401 }),
+        HttpResponse.json(
+          { detail: "That recovery code is not valid" },
+          { status: 401 },
+        ),
       ),
     );
     const user = userEvent.setup();
     renderView();
 
     await user.type(await screen.findByLabelText(/recovery code/i), "wrong");
+    await user.type(screen.getByLabelText("New password"), "brand new horse");
     await user.click(screen.getByRole("button", { name: "Recover account" }));
 
     expect(await screen.findByRole("alert")).toBeInTheDocument();
@@ -87,7 +98,9 @@ describe("RecoverView", () => {
     renderView();
 
     expect(
-      await screen.findByText("This node does not accept self-service recovery"),
+      await screen.findByText(
+        "This node does not accept self-service recovery",
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByLabelText(/recovery code/i)).not.toBeInTheDocument();
   });

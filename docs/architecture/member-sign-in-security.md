@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted, 2026-11-01, after review. Implemented (#570). The sections below are that design. "What exists today" describes the node before the change.
+Accepted, 2026-11-01, after review. Implemented (#570, #571). The sections below are that design. "What exists today" describes the node before the change.
 
 ## Date
 

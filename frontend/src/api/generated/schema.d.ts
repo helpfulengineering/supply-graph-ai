@@ -3447,12 +3447,12 @@ export interface paths {
         put?: never;
         /**
          * Redeem a recovery code
-         * @description Trade a recovery code for a working key — deliberately unauthenticated.
+         * @description Trade a recovery code for a way back in — deliberately unauthenticated.
          *
-         *     The credential this returns is the one the caller lost, so requiring a
-         *     credential to reach it would defeat the purpose. Redeeming revokes the
-         *     account's existing keys and sessions and issues a replacement code, which
-         *     is what both cases want: a lost token and a leaked one.
+         *     A password sets a new one and signs this browser in (#571). Omitting it
+         *     keeps the command-line recovery, which still returns a token, for one
+         *     release. Either way the account's existing keys and sessions are revoked
+         *     and a replacement code is issued.
          */
         post: operations["recover_api_identity_recover_post"];
         delete?: never;
@@ -9293,10 +9293,16 @@ export interface components {
         /**
          * RecoveryRedeem
          * @description Request payload for redeeming a recovery code.
+         *
+         *     A password sets a new one, signs the browser in, and returns no API token
+         *     (#571). Omitting it keeps the command-line recovery, which still returns a
+         *     token, for one release.
          */
         RecoveryRedeem: {
             /** Code */
             code: string;
+            /** Password */
+            password?: string | null;
         };
         /**
          * RegistrationCreate
