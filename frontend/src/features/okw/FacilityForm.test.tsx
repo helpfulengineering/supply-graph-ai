@@ -149,4 +149,76 @@ describe("FacilityForm", () => {
     expect(createSpy).not.toHaveBeenCalled();
     expect(mockRouter.push).not.toHaveBeenCalled();
   });
+
+  it("picks an affiliation and can save without it when the grant has lapsed", async () => {
+    const user = userEvent.setup();
+    const organisations: Array<string | null> = [];
+    server.use(
+      http.get("*/v1/api/identity/affiliations", () =>
+        HttpResponse.json([
+          {
+            space_did: "did:key:zFab",
+            display_name: "FabLab",
+            expires_at: "2026-12-01T00:00:00Z",
+          },
+        ]),
+      ),
+      http.post("*/v1/api/okw/validate", () =>
+        HttpResponse.json({
+          is_valid: true,
+          score: 1,
+          errors: [],
+          warnings: [],
+          suggestions: [],
+        }),
+      ),
+      http.post("*/v1/api/okw/create", ({ request }) => {
+        organisations.push(new URL(request.url).searchParams.get("on_behalf_of"));
+        if (organisations.length === 1) {
+          return HttpResponse.json(
+            {
+              detail:
+                "You are not yet affiliated with that organisation. Attribution can be added later.",
+            },
+            { status: 403 },
+          );
+        }
+        return HttpResponse.json(
+          {
+            success: true,
+            message: "created",
+            okw: { id: "okw-created", name: "Test Lab" },
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    renderForm("create");
+    expect(
+      await screen.findByRole("option", { name: "FabLab" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("space DID")).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/^Name/i), "Test Lab");
+    await user.type(screen.getByLabelText(/^City/i), "Austin");
+    await user.type(screen.getByLabelText(/^Country/i), "US");
+    await user.click(screen.getByLabelText(/3D Printing/i));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /on behalf of/i }),
+      "did:key:zFab",
+    );
+    await user.click(screen.getByRole("button", { name: /Create facility/i }));
+
+    await user.click(
+      await screen.findByRole("button", { name: /Save without organisation/i }),
+    );
+
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith(
+        "/facilities/okw-created?created=1",
+      );
+    });
+    expect(organisations).toEqual(["did:key:zFab", null]);
+  });
 });

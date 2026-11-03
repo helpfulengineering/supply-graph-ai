@@ -1270,14 +1270,14 @@ class AuthenticationService:
     def sign_provenance_if_possible(
         self, provenance: RecordProvenance
     ) -> RecordProvenance:
-        """Sign a provenance claim if this node holds the relevant author/space key.
+        """Sign a provenance claim with the publisher's key, then an author's.
 
-        Best-effort content trust: the signer is the publisher, then the space,
-        then the first authoring DID. If no key is held (e.g. a non-DID author or
-        a remote subject), the provenance is returned unsigned — an unverified but
-        still-federated claim.
+        The organisation named in ``on_behalf_of`` does not sign. If no
+        publisher or author key is held, the claim is returned unsigned.
         """
-        signer = provenance.published_by or provenance.on_behalf_of
+        # The publisher signs. The organisation's key is never a fallback:
+        # a caller must not obtain a signature that reads as the space.
+        signer = provenance.published_by
         if not signer:
             signer = next(
                 (c.subject_did for c in provenance.authored_by if c.subject_did), None
@@ -1602,6 +1602,51 @@ class AuthenticationService:
         if not self._space_claim_store:
             return None
         return await self._space_claim_store.load(space_did)
+
+    async def current_affiliation(
+        self, subject_did: str, space_did: str
+    ) -> Optional[Tuple[SpaceClaim, CapabilityGrant]]:
+        """The claim and publish grant affiliating ``subject_did`` to ``space_did``.
+
+        ``None`` when the space is unclaimed, or no current grant from its
+        admin confers ``publish``. An admin key does not count.
+        """
+        claim = await self.get_space_claim(space_did)
+        if claim is None:
+            return None
+        scope = Scope(kind="space", target=space_did)
+        for grant in await self._current_publish_grants(subject_did):
+            if grant.scope.key() == scope.key():
+                return claim, grant
+        return None
+
+    async def list_affiliations(self, subject_did: str) -> list[dict]:
+        """Current publish grants this person holds."""
+        rows = []
+        for grant in await self._current_publish_grants(subject_did):
+            identity = self.get_identity(grant.scope.target)
+            name = identity.display_name if identity and identity.display_name else ""
+            rows.append(
+                {
+                    "space_did": grant.scope.target,
+                    "display_name": name or grant.scope.target,
+                    "expires_at": grant.expires_at,
+                }
+            )
+        return rows
+
+    async def _current_publish_grants(self, subject_did: str) -> list:
+        """Space-scoped publish grants that still verify and whose issuer is trusted."""
+        if not self._grant_store:
+            return []
+        kept = []
+        for grant in await self._grant_store.list_for_subject(subject_did):
+            if grant.scope.kind != "space" or "publish" not in grant.permissions:
+                continue
+            if not self.verify_grant(grant) or not await self._is_issuer_trusted(grant):
+                continue
+            kept.append(grant)
+        return kept
 
     async def list_space_claims(self) -> List[SpaceClaim]:
         """List every space claim held by this node."""

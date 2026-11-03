@@ -66,6 +66,7 @@ from ..dependencies import (
 )
 from ..models.base import SuccessResponse
 from ..models.identity.policy import (
+    AffiliationSummary,
     CoordinateGrant,
     InviteMint,
     InviteSummary,
@@ -217,6 +218,21 @@ async def issue_coordinate(
 ) -> CapabilityGrant:
     """Make ``subject_did`` a coordinator here. The response shows the expiry."""
     return await svc.issue_coordinate_grant(payload.subject_did)
+
+
+@router.get(
+    "/affiliations",
+    response_model=List[AffiliationSummary],
+    summary="Organisations the caller may publish for",
+)
+async def list_affiliations(
+    user: AuthenticatedUser = Depends(get_current_user),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> List[AffiliationSummary]:
+    """Current affiliations. A caller with no personal identity has none."""
+    if not user.subject_did:
+        return []
+    return await svc.list_affiliations(user.subject_did)
 
 
 async def member_facilities() -> list:
