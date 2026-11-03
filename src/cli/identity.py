@@ -104,6 +104,8 @@ async def security_policy_cmd(
         "metadata_logging",
         "registry_attestations",
         "anonymous_submission_allowed",
+        "open_registration",
+        "registration",
         "node_name",
         "operator_name",
     ):
@@ -139,6 +141,51 @@ async def whoami(
     cli_ctx.log(f"Account: {result.get('account_id')}", "info")
     cli_ctx.log(f"Key: {result.get('name')}", "info")
     cli_ctx.log(f"Permissions: {', '.join(result.get('permissions', []))}", "success")
+
+
+@identity_group.command(name="registration")
+@click.option(
+    "--set",
+    "registration",
+    type=click.Choice(["open", "invite", "closed"]),
+    required=True,
+    help="Who may register: open, invite, or closed.",
+)
+@standard_cli_command(
+    help_text="Set who may register on this node. Requires an admin key.",
+    async_cmd=True,
+)
+@click.pass_context
+async def registration_cmd(
+    ctx: click.Context,
+    registration: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Override the security mode's default for self-service registration."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx,
+            "PUT",
+            "/registration",
+            json={"registration": registration},
+        )
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Registration: {result.get('registration')}", "success")
 
 
 @identity_group.command()

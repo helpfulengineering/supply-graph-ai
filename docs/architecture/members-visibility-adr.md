@@ -46,9 +46,9 @@ records without a visibility object still resolve to `followers`.
 
 ## Consequences
 
-- `members` is only as private as the node's registration policy. On a node
-  with open self-registration it means "anyone who signs up". Nodes that rely
-  on it should use invite-only registration.
+- `members` is only as private as an open node's signup page. On a node with
+  open self-registration it means "anyone who signs up". Nodes that rely on it
+  should set registration to invite or closed.
 - A `members` record that appears on a published curated list does not sync;
   list membership never widens visibility.
 

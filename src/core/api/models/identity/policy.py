@@ -10,6 +10,8 @@ the exact failure a response model introduces. The golden in
 which is what makes this a coupling with a gate rather than a comment.
 """
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -27,9 +29,23 @@ class SecurityPolicyResponse(BaseModel):
     registry_attestations: str
     anonymous_submission_allowed: bool
     open_registration: bool
+    # Who may register right now: open, invite, or closed. This follows an
+    # operator's stored choice when there is one, and the mode otherwise.
+    # open_registration stays the mode's own knob.
+    registration: str
     key_ttl_days: int
     admin_break_glass: bool
     # Not mode knobs. The route attaches them from settings so the signup form
     # can name the node and the person who runs it.
     node_name: str
     operator_name: str
+
+
+class RegistrationUpdate(BaseModel):
+    """An operator's choice of who may register on this node."""
+
+    registration: Literal["open", "invite", "closed"]
+
+
+class RegistrationState(BaseModel):
+    registration: Literal["open", "invite", "closed"]

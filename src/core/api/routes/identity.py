@@ -23,6 +23,7 @@ from fastapi import (
 
 from src.config import settings
 from src.config.security_policy import SecurityMode, get_security_policy
+from src.core.auth.registration import effective as effective_registration
 
 from ...models.account import Account, AccountCreate
 from ...models.attestation import Attestation, AttestationIssue, CertifyRequest
@@ -57,9 +58,13 @@ from ...services.auth_service import (
     SELF_SERVICE_PERMISSIONS,
     AuthenticationService,
 )
-from ..dependencies import get_current_user, require_admin
+from ..dependencies import get_current_user, require_admin, require_admin_strict
 from ..models.base import SuccessResponse
-from ..models.identity.policy import SecurityPolicyResponse
+from ..models.identity.policy import (
+    RegistrationState,
+    RegistrationUpdate,
+    SecurityPolicyResponse,
+)
 
 router = APIRouter()
 
@@ -88,10 +93,32 @@ async def show_security_policy() -> Dict[str, Any]:
     this public document because the signup form already reads it, and that
     form has to say which node, and who runs it, the account is on.
     """
-    data = get_security_policy().to_public_dict()
+    policy = get_security_policy()
+    data = policy.to_public_dict()
+    chosen = effective_registration(policy)
+    data["registration"] = chosen.value
     data["node_name"] = settings.OHM_FEDERATION_NODE_NAME
     data["operator_name"] = settings.OHM_NODE_OPERATOR
     return data
+
+
+@router.put(
+    "/registration",
+    response_model=RegistrationState,
+    summary="Set who may register on this node",
+)
+async def set_registration(
+    payload: RegistrationUpdate,
+    _admin: AuthenticatedUser = Depends(require_admin_strict),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> RegistrationState:
+    """Store open, invite, or closed. Overrides the security mode's default.
+
+    Always requires an admin, including in development, because this decides
+    whether a stranger can create an account.
+    """
+    value = await svc.set_registration(payload.registration)
+    return RegistrationState(registration=value)
 
 
 @router.post(

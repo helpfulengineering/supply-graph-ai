@@ -72,6 +72,26 @@ describe("RegisterView", () => {
     expect(localStorage.getItem("ohm_session_hint")).toBe("1");
   });
 
+  it("tells an invite-only node that a link is required", async () => {
+    server.use(
+      http.get("*/v1/api/identity/security-policy", () =>
+        HttpResponse.json({
+          ...securityPolicyFixture,
+          open_registration: true,
+          registration: "invite",
+        }),
+      ),
+    );
+    renderView();
+
+    expect(
+      await screen.findByText(
+        "This node only accepts a registration that carries an invite.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/display name/i)).not.toBeInTheDocument();
+  });
+
   it("shows no form at all when the node has registration closed", async () => {
     server.use(
       http.get("*/v1/api/identity/security-policy", () =>
@@ -79,6 +99,7 @@ describe("RegisterView", () => {
           ...securityPolicyFixture,
           mode: "shielded",
           open_registration: false,
+          registration: "closed",
         }),
       ),
     );

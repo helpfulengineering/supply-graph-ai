@@ -16,6 +16,7 @@ import { RecoveryKeep } from "./RecoveryKeep";
 import {
   fetchSecurityPolicy,
   registerPerson,
+  registrationIsOpen,
   type RegistrationResponse,
 } from "../../api/ohm/identity";
 
@@ -77,14 +78,26 @@ export function RegisterView() {
 
   // A node that does not accept registrations shows no registration form —
   // not a form that fails on submit.
-  if (policy.data && !policy.data.open_registration) {
+  const registration = policy.data?.registration;
+  if (policy.data && !registrationIsOpen(policy.data)) {
+    const invite = registration === "invite";
     return (
       <>
         <PageHero title="Register" />
         <EmptyState
           icon={UserPlus}
-          heading="This node does not accept registrations"
-          body={`Its security posture is "${policy.data.mode}". Ask an operator to create an account, then connect the key they give you.`}
+          heading={
+            invite
+              ? "An invite is required"
+              : "This node does not accept registrations"
+          }
+          body={
+            invite
+              ? "This node only accepts a registration that carries an invite."
+              : registration === "closed"
+                ? "This node is not accepting registrations. Ask an operator to create an account."
+                : `Its security posture is "${policy.data.mode}". Ask an operator to create an account, then connect the key they give you.`
+          }
           action={
             <div className="flex gap-3">
               <Link href="/login" className="text-sm underline">

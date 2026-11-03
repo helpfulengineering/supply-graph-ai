@@ -8,7 +8,11 @@ import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
-import { fetchSecurityPolicy, registerPerson } from "../../api/ohm/identity";
+import {
+  fetchSecurityPolicy,
+  registerPerson,
+  registrationIsOpen,
+} from "../../api/ohm/identity";
 
 /**
  * One-screen signup that stays on the page that opened it (#572).
@@ -45,7 +49,8 @@ export function InlineSignup({
 
   const nodeName = policy.data?.node_name || "this node";
   const operatorName = policy.data?.operator_name || "its operator";
-  const closed = policy.data?.open_registration === false;
+  const closed = Boolean(policy.data) && !registrationIsOpen(policy.data);
+  const invite = policy.data?.registration === "invite";
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -91,8 +96,9 @@ export function InlineSignup({
         </p>
         {closed ? (
           <p className="mt-4 text-sm">
-            This node does not accept registrations. Ask {operatorName} for an
-            account.
+            {invite
+              ? "This node only accepts a registration that carries an invite."
+              : `This node does not accept registrations. Ask ${operatorName} for an account.`}
           </p>
         ) : recoveryCode ? (
           <div className="mt-4 space-y-3">
