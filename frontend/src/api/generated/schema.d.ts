@@ -3263,6 +3263,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/identity/registration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set who may register on this node
+         * @description Store open, invite, or closed. Overrides the security mode's default.
+         *
+         *     Always requires an admin, including in development, because this decides
+         *     whether a stranger can create an account.
+         */
+        put: operations["set_registration_api_identity_registration_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/identity/keys": {
         parameters: {
             query?: never;
@@ -9397,6 +9420,25 @@ export interface components {
             /** Recovery Code */
             recovery_code?: string | null;
         };
+        /** RegistrationState */
+        RegistrationState: {
+            /**
+             * Registration
+             * @enum {string}
+             */
+            registration: "open" | "invite" | "closed";
+        };
+        /**
+         * RegistrationUpdate
+         * @description An operator's choice of who may register on this node.
+         */
+        RegistrationUpdate: {
+            /**
+             * Registration
+             * @enum {string}
+             */
+            registration: "open" | "invite" | "closed";
+        };
         /**
          * RemotePackageEntry
          * @description One package version found in remote storage.
@@ -10241,6 +10283,8 @@ export interface components {
             anonymous_submission_allowed: boolean;
             /** Open Registration */
             open_registration: boolean;
+            /** Registration */
+            registration: string;
             /** Key Ttl Days */
             key_ttl_days: number;
             /** Admin Break Glass */
@@ -18515,6 +18559,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SecurityPolicyResponse"];
+                };
+            };
+        };
+    };
+    set_registration_api_identity_registration_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

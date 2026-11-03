@@ -7,7 +7,33 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from click.testing import CliRunner
 
+from src.cli.base import CLIConfig, CLIContext
 from src.cli.identity import identity_group
+
+
+def test_registration_set_sends_the_operators_choice(monkeypatch):
+    runner = CliRunner()
+    seen = {}
+
+    async def fake(cli_ctx, method, path, json=None):
+        seen["method"] = method
+        seen["path"] = path
+        seen["json"] = json
+        return {"registration": json["registration"]}
+
+    monkeypatch.setattr("src.cli.identity._request", fake)
+    result = runner.invoke(
+        identity_group,
+        ["registration", "--set", "closed"],
+        obj=CLIContext(CLIConfig()),
+    )
+    assert result.exit_code == 0, result.output
+    assert seen == {
+        "method": "PUT",
+        "path": "/registration",
+        "json": {"registration": "closed"},
+    }
+    assert "closed" in result.output
 
 
 def test_identity_group_exposes_subcommands():
@@ -26,6 +52,7 @@ def test_identity_group_exposes_subcommands():
         "bindings",
         "directory",
         "security-policy",
+        "registration",
     ):
         assert cmd in result.output
 

@@ -112,8 +112,14 @@ instead of one is the difference between a limit and a suggestion.
 - **Grant TTL** — `issue_grant` defaults to `grant_ttl_days`.
 - **Write auth** — `require_write` / `require_admin` honor `require_auth_for_writes`.
 - **Custodial mint** — `create_identity` is refused when `custodial_keys_allowed` is false.
-- **Self-service registration** — `POST /api/identity/register` is refused when
-  `open_registration` is false; shielded onboards out of band instead.
+- **Self-service registration** — an operator stores `open`, `invite`, or
+  `closed` (`PUT /api/identity/registration`, or `ohm identity registration
+  --set`). Unset, peacetime and crisis are open and shielded is closed, which
+  is what `open_registration` still reports. A stored value overrides the mode,
+  including opening registration on a shielded node. `closed` and `invite`
+  refuse a signup that carries no invite. `members` visibility is only as
+  private as that choice: on an open node it means anyone who signs up
+  ([members visibility](members-visibility-adr.md)).
 - **mDNS** — advertise and browse require env flag **and** role capability **and**
   `mdns_advertise` (so shielded never LAN-announces).
 - **Directory** — under `ca_pinned`, `list_directory` only returns entries with a verified

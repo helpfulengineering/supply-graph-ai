@@ -46,6 +46,17 @@ export type GrantIssue = components["schemas"]["GrantIssue"];
 export type SecurityPolicyPublic =
   components["schemas"]["SecurityPolicyResponse"];
 
+/** A stranger can register here without an invite. */
+export function registrationIsOpen(
+  policy:
+    | Pick<SecurityPolicyPublic, "registration" | "open_registration">
+    | undefined,
+): boolean {
+  if (!policy) return false;
+  if (policy.registration) return policy.registration === "open";
+  return policy.open_registration === true;
+}
+
 /** A node's claim on its own space DID. */
 export type SpaceClaim = components["schemas"]["SpaceClaim"];
 

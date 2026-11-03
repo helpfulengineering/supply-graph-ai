@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
-import { fetchSecurityPolicy } from "../../api/ohm/identity";
+import {
+  fetchSecurityPolicy,
+  registrationIsOpen,
+} from "../../api/ohm/identity";
 
 /**
  * Banner for 401/403 failures.
@@ -26,7 +29,7 @@ export function AuthBanner() {
   });
 
   if (!authFailure) return null;
-  const canRegister = !signedIn && policy.data?.open_registration === true;
+  const canRegister = !signedIn && registrationIsOpen(policy.data);
 
   return (
     <div

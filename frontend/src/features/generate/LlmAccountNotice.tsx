@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { fetchSecurityPolicy } from "../../api/ohm/identity";
+import {
+  fetchSecurityPolicy,
+  registrationIsOpen,
+} from "../../api/ohm/identity";
 import { PANEL_DANGER } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +31,7 @@ export function LlmAccountNotice({
     staleTime: 5 * 60_000,
     retry: false,
   });
-  const canRegister = policy.data?.open_registration === true;
+  const canRegister = registrationIsOpen(policy.data);
 
   return (
     <div role="alert" className={cn(PANEL_DANGER, "space-y-3 text-sm")}>

@@ -11,6 +11,7 @@
   "open_registration": "*",
   "operator_name": "*",
   "recovery": "*",
+  "registration": "*",
   "registry_attestations": "*",
   "require_auth_for_writes": "*",
   "trust_bootstrap": "*"

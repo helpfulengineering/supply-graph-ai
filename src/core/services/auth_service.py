@@ -26,6 +26,12 @@ from src.config.security_policy import (
 )
 
 from ..auth.origin import assert_password_channel
+from ..auth.registration import (
+    Registration,
+    load as load_registration,
+    refuse_uninvited,
+    save as save_registration,
+)
 from ..auth.login_limit import (
     clear_login_attempts,
     login_blocked,
@@ -781,26 +787,32 @@ class AuthenticationService:
         logger.info(f"Created account {account.id} ({account.kind.value})")
         return account
 
+    async def set_registration(self, value: str) -> str:
+        """Store the operator's choice of who may register. Overrides the mode."""
+        try:
+            chosen = Registration(value)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Registration must be open, invite, or closed.",
+            ) from exc
+        save_registration(chosen)
+        return chosen.value
+
     async def register(self, display_name: str) -> RegistrationResponse:
         """Self-service onboarding: account + person DID + first key, in one call.
 
         The permission floor is ``read``+``write`` and never ``admin`` — a node
         must not hand out operator rights to anyone who can reach the endpoint.
-        Refused when the active mode closes registration (shielded), where
-        onboarding is deliberately an out-of-band, hand-vetted act.
+        Refused unless registration is open.
         """
-        policy = get_security_policy()
-        if not policy.open_registration:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=(
-                    "Self-service registration is disabled in "
-                    f"{policy.mode.value} mode; ask an operator to mint an account"
-                ),
-            )
+        refuse_uninvited(get_security_policy())
         account = await self.create_account(AccountCreate(display_name=display_name))
         identity = await self.create_identity(
-            account.id, IdentityKind.PERSON, display_name
+            account.id,
+            IdentityKind.PERSON,
+            display_name,
+            operator_opened=load_registration() is Registration.OPEN,
         )
         key = await self.create_api_key(
             APIKeyCreate(
@@ -832,15 +844,7 @@ class AuthenticationService:
         that go into cookies and nowhere in the JSON body.
         """
         assert_password_channel(https)
-        policy = get_security_policy()
-        if not policy.open_registration:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=(
-                    "Self-service registration is disabled in "
-                    f"{policy.mode.value} mode; ask an operator to mint an account"
-                ),
-            )
+        refuse_uninvited(get_security_policy())
         try:
             username = validate_username(username)
         except ValueError as exc:
@@ -866,7 +870,10 @@ class AuthenticationService:
                 detail="That username is already taken.",
             ) from None
         identity = await self.create_identity(
-            account.id, IdentityKind.PERSON, display_name
+            account.id,
+            IdentityKind.PERSON,
+            display_name,
+            operator_opened=load_registration() is Registration.OPEN,
         )
         recovery_code = await self._issue_recovery_code(account)
         token, csrf, _session = await self._issue_session(account)
@@ -1181,14 +1188,18 @@ class AuthenticationService:
         account_id: UUID,
         kind: IdentityKind = IdentityKind.PERSON,
         display_name: str = "",
+        *,
+        operator_opened: bool = False,
     ) -> Identity:
         """Mint a new Ed25519 identity and bind it to ``account_id`` (custodial).
 
         Shielded mode disables custodial minting (``custodial_keys_allowed=False``).
+        An operator who explicitly opens registration has chosen to hold the
+        keys of the people who then sign up, including on a shielded node.
         """
         if not self._identity_store:
             raise RuntimeError("Identity store not available")
-        if not get_security_policy().custodial_keys_allowed:
+        if not operator_opened and not get_security_policy().custodial_keys_allowed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=(

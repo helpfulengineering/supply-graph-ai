@@ -107,6 +107,87 @@ async def test_shielded_mode_refuses_registration(service, monkeypatch):
     assert await service.list_accounts() == []
 
 
+@pytest.mark.asyncio
+async def test_an_operator_closing_registration_refuses_signup(
+    service, tmp_path, monkeypatch
+):
+    """A peacetime node stays open until an operator says otherwise (#568)."""
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    await service.set_registration("closed")
+
+    with pytest.raises(HTTPException) as exc:
+        await service.register("Nobody")
+
+    assert exc.value.status_code == 403
+    assert exc.value.detail == (
+        "This node is not accepting registrations. "
+        "Ask an operator to create an account."
+    )
+    assert await service.list_accounts() == []
+
+
+@pytest.mark.asyncio
+async def test_closing_registration_also_refuses_a_password_signup(
+    service, tmp_path, monkeypatch
+):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    await service.set_registration("closed")
+
+    with pytest.raises(HTTPException) as exc:
+        await service.register_member("ada", "correct horse", "Ada", https=False)
+
+    assert exc.value.status_code == 403
+    assert exc.value.detail == (
+        "This node is not accepting registrations. "
+        "Ask an operator to create an account."
+    )
+    assert await service.list_accounts() == []
+
+
+@pytest.mark.asyncio
+async def test_invite_registration_refuses_a_signup_without_an_invite(
+    service, tmp_path, monkeypatch
+):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    await service.set_registration("invite")
+
+    with pytest.raises(HTTPException) as exc:
+        await service.register_member("ada", "correct horse", "Ada", https=False)
+
+    assert exc.value.status_code == 403
+    assert exc.value.detail == (
+        "This node only accepts a registration that carries an invite."
+    )
+    assert await service.list_accounts() == []
+
+
+@pytest.mark.asyncio
+async def test_an_operator_can_open_registration_on_a_shielded_node(
+    service, tmp_path, monkeypatch
+):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        "src.core.services.auth_service.get_security_policy",
+        lambda: get_security_policy(SecurityMode.SHIELDED),
+    )
+    await service.set_registration("open")
+
+    result, _token, _csrf = await service.register_member(
+        "ada", "correct horse", "Ada", https=True
+    )
+
+    assert result.did.startswith("did:key:z")
+    assert result.display_name == "Ada"
+
+
 # --- Recovery (#414) --------------------------------------------------------
 #
 # Without this, a person who registers, closes the tab and did not save the

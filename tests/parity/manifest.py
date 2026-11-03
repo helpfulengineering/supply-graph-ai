@@ -664,6 +664,14 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "cannot show the claim behind any of them.",
         "/api/identity/spaces/{space_did}/claim",
     ),
+    *_decision(
+        "never",
+        "cli",
+        "An operator sets who may register. The browser reads the value from "
+        "GET /api/identity/security-policy and the register page follows it; "
+        "the write is `ohm identity registration --set`.",
+        "/api/identity/registration",
+    ),
 )
 
 
