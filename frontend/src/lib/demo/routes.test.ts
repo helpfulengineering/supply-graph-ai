@@ -111,6 +111,8 @@ const WRITE_ONLY = [
   "/api/identity/identities/{did}/rotate",
   "/api/identity/keys/{key_id}",
   "/api/identity/grants/{grant_id}",
+  "/api/identity/invites/{invite_id}/revoke",
+  "/api/identity/coordinate",
   "/api/identity/grants/bootstrap-edge",
   // Spelled {provider} rather than {param} since llm.ts moved onto the typed
   // client: the generated paths carry the parameter's real name, where a

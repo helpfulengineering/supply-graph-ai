@@ -8,6 +8,8 @@ import { DomainPanel } from "../features/settings/DomainPanel";
 import { KeysAccountsPanel } from "../features/settings/KeysAccountsPanel";
 import { IdentitiesPanel } from "../features/settings/IdentitiesPanel";
 import { GrantsPanel } from "../features/settings/GrantsPanel";
+import { InvitesPanel } from "../features/settings/InvitesPanel";
+import { MembersPanel } from "../features/settings/MembersPanel";
 import { SpacesPanel } from "../features/settings/SpacesPanel";
 import { ReputationPanel } from "../features/settings/ReputationPanel";
 import { BindingsPanel } from "../features/settings/BindingsPanel";
@@ -35,11 +37,17 @@ const adminTabs = [
   { to: "/settings/matching", label: "Matching rules" },
   { to: "/settings/identities", label: "Identities" },
   { to: "/settings/grants", label: "Grants" },
+  { to: "/settings/invites", label: "Invites" },
   { to: "/settings/spaces", label: "Spaces" },
   { to: "/settings/bindings", label: "Bindings" },
   { to: "/settings/directory", label: "Directory" },
   { to: "/settings/federation", label: "Federation" },
   { to: "/settings/reputation", label: "Reputation" },
+] as const;
+
+const coordinatorTabs = [
+  { to: "/settings/invites", label: "Invites" },
+  { to: "/settings/members", label: "Members" },
 ] as const;
 
 function panelFor(pathname: string) {
@@ -51,6 +59,8 @@ function panelFor(pathname: string) {
   if (pathname.includes("/matching")) return <MatchingRulesPanel />;
   if (pathname.includes("/identities")) return <IdentitiesPanel />;
   if (pathname.includes("/grants")) return <GrantsPanel />;
+  if (pathname.includes("/invites")) return <InvitesPanel />;
+  if (pathname.includes("/members")) return <MembersPanel />;
   if (pathname.includes("/spaces")) return <SpacesPanel />;
   if (pathname.includes("/bindings")) return <BindingsPanel />;
   if (pathname.includes("/directory")) return <DirectoryPanel />;
@@ -61,8 +71,12 @@ function panelFor(pathname: string) {
 
 export function SettingsPage() {
   const pathname = usePathname() ?? "";
-  const { isAdmin } = useAuth();
-  const tabs = isAdmin ? [...sessionTabs, ...adminTabs] : [...sessionTabs];
+  const { isAdmin, isCoordinator } = useAuth();
+  const tabs = isAdmin
+    ? [...sessionTabs, ...adminTabs]
+    : isCoordinator
+      ? [...sessionTabs, ...coordinatorTabs]
+      : [...sessionTabs];
 
   return (
     <div className="space-y-6">

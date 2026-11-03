@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
 import { PageHero } from "../../components/layout/PageHero";
@@ -39,6 +40,7 @@ export function RegisterView() {
   const [registered, setRegistered] = useState<RegistrationResponse | null>(
     null,
   );
+  const inviteToken = useSearchParams().get("invite") ?? "";
 
   const policy = useQuery({
     queryKey: ["identity", "security-policy"],
@@ -57,6 +59,7 @@ export function RegisterView() {
         username: username.trim(),
         password,
         display_name: name,
+        ...(inviteToken ? { invite: inviteToken } : {}),
       });
       setRegistered(result);
       await noteSession();
@@ -79,7 +82,8 @@ export function RegisterView() {
   // A node that does not accept registrations shows no registration form —
   // not a form that fails on submit.
   const registration = policy.data?.registration;
-  if (policy.data && !registrationIsOpen(policy.data)) {
+  const carriedInvite = registration === "invite" && inviteToken.length > 0;
+  if (policy.data && !registrationIsOpen(policy.data) && !carriedInvite) {
     const invite = registration === "invite";
     return (
       <>
@@ -155,7 +159,9 @@ export function RegisterView() {
           <h2 className={SECTION_TITLE}>Create an identity on this node</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Choose a username and a password. Nothing else is asked for, and no
-            email is involved.
+            email is involved. This account is on{" "}
+            <span>{policy.data?.node_name || "this node"}</span>, run by{" "}
+            <span>{policy.data?.operator_name || "its operator"}</span>.
           </p>
           {user && (
             <p className="mt-2 text-sm text-muted-foreground">

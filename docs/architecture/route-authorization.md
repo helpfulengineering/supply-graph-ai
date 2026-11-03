@@ -86,7 +86,9 @@ that must *never* authenticate, not for routes that merely need not.
 **3. If it writes, give it a dependency.** `require_write` for ordinary
 mutations, `require_admin` for operator surfaces, `require_admin_strict` for
 operations that must never be anonymous even outside production — credential
-management is the existing example. `require_write` and `require_admin` are
+management is the existing example. `require_coordinate` is the same strict
+shape for a coordinator: an admin, or a node-scoped `coordinate` grant, and
+development does not relax it. `require_write` and `require_admin` are
 policy-gated: under `SecurityPolicy.require_auth_for_writes = False` they resolve
 an optional user for attribution rather than refusing, so adding one does not
 break development flows.

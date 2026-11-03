@@ -58,9 +58,19 @@ from ...services.auth_service import (
     SELF_SERVICE_PERMISSIONS,
     AuthenticationService,
 )
-from ..dependencies import get_current_user, require_admin, require_admin_strict
+from ..dependencies import (
+    get_current_user,
+    require_admin,
+    require_admin_strict,
+    require_coordinate,
+)
 from ..models.base import SuccessResponse
 from ..models.identity.policy import (
+    CoordinateGrant,
+    InviteMint,
+    InviteSummary,
+    MemberInventoryRow,
+    MintedInviteResponse,
     RegistrationState,
     RegistrationUpdate,
     SecurityPolicyResponse,
@@ -77,7 +87,16 @@ async def get_auth_service() -> AuthenticationService:
 async def whoami(
     user: AuthenticatedUser = Depends(get_current_user),
 ) -> AuthenticatedUser:
-    """Return the identity (key + account) behind the presented credential."""
+    """Return the identity (key + account) behind the presented credential.
+
+    ``capabilities`` are the verbs a grant on this node adds. A coordinator
+    is named here and is still not an admin.
+    """
+    svc = await get_auth_service()
+    scope = svc.local_node_scope()
+    if scope is not None and user.subject_did:
+        granted = await svc.resolve_capabilities(user.subject_did, scope)
+        user = user.model_copy(update={"capabilities": sorted(granted)})
     return user
 
 
@@ -119,6 +138,107 @@ async def set_registration(
     """
     value = await svc.set_registration(payload.registration)
     return RegistrationState(registration=value)
+
+
+@router.post(
+    "/invites",
+    response_model=MintedInviteResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Mint an invite link",
+)
+async def mint_invite(
+    payload: InviteMint,
+    _caller: AuthenticatedUser = Depends(require_coordinate),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> MintedInviteResponse:
+    """Mint a multi-use invite. The token is in this response and nowhere else."""
+    minted = await svc.mint_invite(payload.ttl_days, use_limit=payload.use_limit)
+    return MintedInviteResponse(
+        invite_id=minted.invite_id,
+        token=minted.token,
+        expires_at=minted.expires_at,
+        use_limit=minted.use_limit,
+    )
+
+
+@router.get(
+    "/invites",
+    response_model=List[InviteSummary],
+    summary="List invite links",
+)
+async def list_invites(
+    _caller: AuthenticatedUser = Depends(require_coordinate),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> List[InviteSummary]:
+    """Invites on this node. Tokens are not repeated here."""
+    rows = await svc.list_invites()
+    return [
+        InviteSummary(
+            invite_id=row.invite_id,
+            expires_at=row.expires_at,
+            use_limit=row.use_limit,
+            uses=row.uses,
+            revoked=row.revoked,
+        )
+        for row in rows
+    ]
+
+
+@router.post(
+    "/invites/{invite_id}/revoke",
+    response_model=InviteSummary,
+    summary="Revoke an invite link",
+)
+async def revoke_invite(
+    invite_id: UUID = Path(...),
+    _caller: AuthenticatedUser = Depends(require_coordinate),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> InviteSummary:
+    row = await svc.revoke_invite(invite_id)
+    return InviteSummary(
+        invite_id=row.invite_id,
+        expires_at=row.expires_at,
+        use_limit=row.use_limit,
+        uses=row.uses,
+        revoked=row.revoked,
+    )
+
+
+@router.post(
+    "/coordinate",
+    response_model=CapabilityGrant,
+    status_code=status.HTTP_201_CREATED,
+    summary="Grant coordinate on this node",
+)
+async def issue_coordinate(
+    payload: CoordinateGrant,
+    _admin: AuthenticatedUser = Depends(require_admin_strict),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> CapabilityGrant:
+    """Make ``subject_did`` a coordinator here. The response shows the expiry."""
+    return await svc.issue_coordinate_grant(payload.subject_did)
+
+
+async def member_facilities() -> list:
+    """Facilities the member inventory joins to accounts."""
+    from ...services.okw_service import OKWService
+
+    okw = await OKWService.get_instance()
+    return await okw.coordinator_facilities()
+
+
+@router.get(
+    "/members",
+    response_model=List[MemberInventoryRow],
+    summary="Member inventory for a coordinator",
+)
+async def list_members(
+    _caller: AuthenticatedUser = Depends(require_coordinate),
+    svc: AuthenticationService = Depends(get_auth_service),
+    facilities: list = Depends(member_facilities),
+) -> List[MemberInventoryRow]:
+    """Account names and each member's facilities. Not a member directory."""
+    return await svc.member_inventory(facilities)
 
 
 @router.post(
@@ -285,6 +405,7 @@ async def register(
             payload.password,
             payload.display_name,
             https=request_is_https(request),
+            invite=payload.invite,
         )
         _set_session(request, response, token, csrf)
         return body

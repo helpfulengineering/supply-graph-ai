@@ -225,6 +225,27 @@ def require_write_unless_public(is_public: Callable[[], bool]):
     return dependency
 
 
+async def require_coordinate(
+    request: Request,
+    auth_header: Optional[str] = Depends(API_KEY_HEADER),
+) -> AuthenticatedUser:
+    """Admin, or a node-scoped ``coordinate`` grant.
+
+    An admin key passes because ``check_permission`` treats admin as every
+    verb. A member does not, unless this node has granted them ``coordinate``.
+    Strict, like :func:`require_admin_strict`: development does not relax it.
+    """
+    user = await get_current_user(request, auth_header)
+    auth_service = await AuthenticationService.get_instance()
+    scope = auth_service.local_node_scope()
+    if not await auth_service.check_permission(user, ["coordinate"], scope=scope):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This operation requires the 'coordinate' permission",
+        )
+    return user
+
+
 async def require_admin_strict(
     request: Request,
     auth_header: Optional[str] = Depends(API_KEY_HEADER),

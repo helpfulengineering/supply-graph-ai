@@ -21,7 +21,13 @@ BASE_PERMISSIONS = frozenset({"read", "write", "admin"})
 # Richer verbs understood by this node beyond the base vocabulary. A grant may
 # carry others; unknown verbs are dropped at resolution (the coarse floor is the
 # guaranteed minimum), never silently honored.
-EXTENDED_PERMISSIONS = frozenset({"publish", "certify", "moderate", "own"})
+EXTENDED_PERMISSIONS = frozenset(
+    {"publish", "certify", "moderate", "own", "coordinate"}
+)
+
+# A coordinator's grant stays this long in every mode, including shielded.
+# Other grants keep the mode's grant_ttl_days.
+COORDINATE_GRANT_TTL_DAYS = 180
 
 # Well-known scope kinds. Unknown kinds are stored and relayed but DENIED ALL at
 # resolution time (fail closed) — see AuthenticationService.resolve_capabilities.

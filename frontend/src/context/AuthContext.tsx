@@ -32,6 +32,8 @@ export type AuthContextValue = {
   token: string | null;
   user: AuthenticatedUser | null;
   isAdmin: boolean;
+  /** A node-scoped coordinate grant. Not an admin. */
+  isCoordinator: boolean;
   hasWrite: boolean;
   isLoading: boolean;
   authError: Error | null;
@@ -139,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const user = whoami.data ?? null;
   const permissions = user?.permissions ?? [];
   const isAdmin = permissions.includes("admin");
+  const isCoordinator = (user?.capabilities ?? []).includes("coordinate");
   const hasWrite = isAdmin || permissions.includes("write");
   const signedIn = Boolean(token) || sessionHint;
 
@@ -147,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       user,
       isAdmin,
+      isCoordinator,
       hasWrite,
       isLoading:
         (Boolean(token) || sessionHint) &&
@@ -165,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       user,
       isAdmin,
+      isCoordinator,
       hasWrite,
       whoami.isPending,
       whoami.isFetching,

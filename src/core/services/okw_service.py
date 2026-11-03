@@ -740,6 +740,44 @@ class OKWService(BaseService["OKWService"]):
         )
         return ordered
 
+    async def coordinator_facilities(self) -> List[Dict[str, Any]]:
+        """Facilities a coordinator may see: name, processes, visibility, owner.
+
+        The operator inventory refuses the name, because a title states intent.
+        A coordinator is matching work to a printer, so the name and the
+        processes are the point. The address and the description stay out.
+        """
+        if not self.storage or not self.storage.manager:
+            return []
+        discovery = SmartFileDiscovery(self.storage.manager)
+        found: List[Dict[str, Any]] = []
+        for file_info in await discovery.discover_files("okw"):
+            try:
+                raw = json.loads(
+                    (await self.storage.manager.get_object(file_info.key)).decode(
+                        "utf-8"
+                    )
+                )
+            except Exception as exc:
+                logger.warning(f"Inventory skipped unreadable {file_info.key}: {exc}")
+                continue
+            if KitchenCapability.is_cooking_capability(raw):
+                continue
+            record_id = raw.get("id")
+            if not record_id:
+                continue
+            _did, account = record_attribution(raw)
+            visibility = await self.get_visibility(record_id)
+            found.append(
+                {
+                    "created_by_account": account,
+                    "name": raw.get("name") or "",
+                    "processes": list(raw.get("manufacturing_processes") or []),
+                    "visibility": visibility.value,
+                }
+            )
+        return found
+
     async def owner_did(self, record_id: str) -> Optional[str]:
         """The DID that created ``record_id``, or None if unattributed.
 

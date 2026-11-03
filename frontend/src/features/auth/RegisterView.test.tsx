@@ -4,7 +4,11 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it, beforeEach } from "vitest";
 import { server } from "../../test/msw/server";
-import { securityPolicyFixture } from "../../test/fixtures";
+import {
+  registrationFixture,
+  securityPolicyFixture,
+} from "../../test/fixtures";
+import { setMockNavigation } from "../../test/nextNavigation";
 import { AuthProvider } from "../../context/AuthContext";
 import { ToastProvider } from "../../components/ui/Toast";
 import { RegisterView } from "./RegisterView";
@@ -70,6 +74,35 @@ describe("RegisterView", () => {
     expect(localStorage.getItem("ohm_api_key")).toBeNull();
     expect(sessionStorage.getItem("ohm_api_key")).toBeNull();
     expect(localStorage.getItem("ohm_session_hint")).toBe("1");
+  });
+
+  it("registers from an invite link and names the node", async () => {
+    setMockNavigation({ pathname: "/register", search: "invite=invite-token" });
+    let sent: unknown;
+    server.use(
+      http.get("*/v1/api/identity/security-policy", () =>
+        HttpResponse.json({
+          ...securityPolicyFixture,
+          open_registration: true,
+          registration: "invite",
+        }),
+      ),
+      http.post("*/v1/api/identity/register", async ({ request }) => {
+        sent = await request.json();
+        return HttpResponse.json(registrationFixture, { status: 201 });
+      }),
+    );
+    const user = userEvent.setup();
+    renderView();
+
+    expect(
+      await screen.findByText(securityPolicyFixture.node_name),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(securityPolicyFixture.operator_name),
+    ).toBeInTheDocument();
+    await registerAs(user, "Ada Lovelace");
+    expect(sent).toMatchObject({ invite: "invite-token" });
   });
 
   it("tells an invite-only node that a link is required", async () => {

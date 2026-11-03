@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bootstrapEdgeGrant,
+  issueCoordinate,
   issueGrant,
   listGrants,
   revokeGrant,
@@ -31,11 +32,26 @@ export function GrantsPanel() {
   const [scopeKind, setScopeKind] = useState("space");
   const [scopeTarget, setScopeTarget] = useState("");
   const [ttlDays, setTtlDays] = useState("");
+  const [coordinatorExpiry, setCoordinatorExpiry] = useState<string | null>(
+    null,
+  );
 
   const grants = useQuery({
     queryKey: ["identity", "grants", listSubject],
     queryFn: () => listGrants(listSubject),
     enabled: Boolean(listSubject),
+  });
+
+  const coordinate = useMutation({
+    mutationFn: () => issueCoordinate(subjectDid.trim()),
+    onSuccess: (grant) => {
+      setCoordinatorExpiry(grant.expires_at);
+      setListSubject(subjectDid.trim());
+      void queryClient.invalidateQueries({
+        queryKey: ["identity", "grants", subjectDid.trim()],
+      });
+    },
+    onError: reportAuthFailure,
   });
 
   const issue = useMutation({
@@ -169,6 +185,26 @@ export function GrantsPanel() {
               </li>
             )}
           </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="coordinate-heading" className={PANEL}>
+        <h2 id="coordinate-heading" className={SECTION_TITLE}>
+          Make a coordinator
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          On this node, for 180 days. Uses the Subject DID above.
+        </p>
+        <button
+          type="button"
+          disabled={!subjectDid.trim() || coordinate.isPending}
+          className="mt-3 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
+          onClick={() => coordinate.mutate()}
+        >
+          Grant coordinate
+        </button>
+        {coordinatorExpiry && (
+          <p className="mt-2 text-sm">expires {coordinatorExpiry}</p>
         )}
       </section>
 

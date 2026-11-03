@@ -13,6 +13,10 @@ AUTH_RECOVERY_INDEX_PREFIX = "auth/recovery-index"
 # username -> account_id, so sign-in resolves in one lookup (#570)
 AUTH_USERNAME_INDEX_PREFIX = "auth/usernames"
 AUTH_ACCOUNTS_PREFIX = "auth/accounts"
+# A minted invite and its digest pointer (#569). Credential-adjacent: a
+# migrate, copy, or wipe of auth/ moves these too.
+AUTH_INVITES_PREFIX = "auth/invites"
+AUTH_INVITE_INDEX_PREFIX = "auth/invite-index"
 IDENTITY_GRANTS_PREFIX = "identity/grants"
 PROVENANCE_PREFIX = "provenance"
 VISIBILITY_PREFIX = "visibility"

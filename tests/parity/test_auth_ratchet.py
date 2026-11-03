@@ -46,6 +46,11 @@ AUTH_DEPENDENCY_QUALNAMES = frozenset(
     {
         "require_permission.<locals>.dependency",
         "require_admin_strict",
+        # A coordinator is not an admin. The invites they mint still authorize:
+        # admin, or a node-scoped coordinate grant, and development does not
+        # relax it. Same shape as require_admin_strict — it calls
+        # get_current_user itself, so that name is not in the dependant tree.
+        "require_coordinate",
         "get_current_user",
         # Conditional guards count. `require_permission` is itself conditional
         # — it no-ops when SecurityPolicy relaxes writes — so "authorizes" has
