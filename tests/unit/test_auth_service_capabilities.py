@@ -231,6 +231,33 @@ async def test_check_permission_legacy_flat_key_unaffected(service):
 
 
 @pytest.mark.asyncio
+async def test_a_coordinate_grant_lasts_180_days_even_when_shielded(
+    service, monkeypatch
+):
+    """A coordinator's grant is long in every mode, and it is not admin (#573)."""
+    from src.config.security_policy import SecurityMode, get_security_policy
+
+    subject = await service.create_identity(uuid4(), IdentityKind.PERSON, "Ada")
+    monkeypatch.setattr(
+        "src.core.services.auth_service.get_security_policy",
+        lambda: get_security_policy(SecurityMode.SHIELDED),
+    )
+
+    grant = await service.issue_grant(
+        issuer_did=service._node_signing.did,
+        subject_did=subject.did,
+        permissions=["coordinate"],
+        scope=_node_scope(service),
+    )
+
+    assert (grant.expires_at - grant.issued_at).days == 180
+    assert "admin" not in grant.permissions
+    perms = await service.resolve_capabilities(subject.did, _node_scope(service))
+    assert "coordinate" in perms
+    assert "admin" not in perms
+
+
+@pytest.mark.asyncio
 async def test_rotation_links_old_to_new(service):
     subject = await service.create_identity(uuid4(), IdentityKind.PERSON, "Ada")
     rotated = await service.rotate_identity(subject.did)

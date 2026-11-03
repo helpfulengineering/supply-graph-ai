@@ -168,6 +168,247 @@ async def test_invite_registration_refuses_a_signup_without_an_invite(
 
 
 @pytest.mark.asyncio
+async def test_a_valid_invite_registers_a_member(service, tmp_path, monkeypatch):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    await service.set_registration("invite")
+    invite = await service.mint_invite(ttl_days=7)
+
+    result, _token, _csrf = await service.register_member(
+        "ada",
+        "correct horse",
+        "Ada",
+        https=False,
+        invite=invite.token,
+    )
+
+    assert result.did.startswith("did:key:z")
+    assert result.display_name == "Ada"
+
+
+@pytest.mark.asyncio
+async def test_an_invite_registers_on_a_shielded_node(service, tmp_path, monkeypatch):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        "src.core.services.auth_service.get_security_policy",
+        lambda: get_security_policy(SecurityMode.SHIELDED),
+    )
+    await service.set_registration("invite")
+    invite = await service.mint_invite(ttl_days=7)
+
+    result, _token, _csrf = await service.register_member(
+        "ada",
+        "correct horse",
+        "Ada",
+        https=True,
+        invite=invite.token,
+    )
+
+    assert result.did.startswith("did:key:z")
+
+
+@pytest.mark.asyncio
+async def test_an_expired_invite_is_refused(service, tmp_path, monkeypatch):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    await service.set_registration("invite")
+    invite = await service.mint_invite(ttl_days=-1)
+
+    with pytest.raises(HTTPException) as exc:
+        await service.register_member(
+            "ada", "correct horse", "Ada", https=False, invite=invite.token
+        )
+
+    assert exc.value.status_code == 403
+    assert "expired" in exc.value.detail.lower()
+    assert await service.list_accounts() == []
+
+
+@pytest.mark.asyncio
+async def test_a_revoked_invite_is_refused(service, tmp_path, monkeypatch):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    await service.set_registration("invite")
+    invite = await service.mint_invite(ttl_days=7)
+    await service.revoke_invite(invite.invite_id)
+
+    with pytest.raises(HTTPException) as exc:
+        await service.register_member(
+            "ada", "correct horse", "Ada", https=False, invite=invite.token
+        )
+
+    assert exc.value.status_code == 403
+    assert "revoked" in exc.value.detail.lower()
+    assert await service.list_accounts() == []
+
+
+@pytest.mark.asyncio
+async def test_an_invite_stops_accepting_once_its_use_limit_is_spent(
+    service, tmp_path, monkeypatch
+):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    await service.set_registration("invite")
+    invite = await service.mint_invite(ttl_days=7, use_limit=1)
+    await service.register_member(
+        "ada", "correct horse", "Ada", https=False, invite=invite.token
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        await service.register_member(
+            "grace", "correct horse", "Grace", https=False, invite=invite.token
+        )
+
+    assert exc.value.status_code == 403
+    assert "use" in exc.value.detail.lower()
+    accounts = await service.list_accounts()
+    assert [a.display_name for a in accounts] == ["Ada"]
+
+
+@pytest.mark.asyncio
+async def test_listing_invites_does_not_repeat_the_token(service):
+    invite = await service.mint_invite(ttl_days=7, use_limit=3)
+
+    listed = await service.list_invites()
+
+    assert [item.invite_id for item in listed] == [invite.invite_id]
+    assert listed[0].use_limit == 3
+    assert listed[0].uses == 0
+    assert listed[0].revoked is False
+    assert getattr(listed[0], "token", None) is None
+
+
+@pytest.mark.asyncio
+async def test_an_admin_mints_and_lists_an_invite_over_http(service):
+    from uuid import uuid4
+
+    import httpx
+    from fastapi import FastAPI
+
+    from src.core.api.dependencies import require_admin_strict, require_coordinate
+    from src.core.api.routes.identity import get_auth_service
+    from src.core.main import api_v1
+    from src.core.models.auth import AuthenticatedUser
+
+    admin = AuthenticatedUser(
+        key_id=uuid4(),
+        name="admin",
+        permissions=["admin"],
+        account_id=uuid4(),
+    )
+    app = FastAPI()
+    app.mount("/v1", api_v1)
+    api_v1.dependency_overrides[get_auth_service] = lambda: service
+    api_v1.dependency_overrides[require_admin_strict] = lambda: admin
+    api_v1.dependency_overrides[require_coordinate] = lambda: admin
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            minted = await client.post(
+                "/v1/api/identity/invites", json={"ttl_days": 7, "use_limit": 4}
+            )
+            assert minted.status_code == 201, minted.text
+            body = minted.json()
+            listed = await client.get("/v1/api/identity/invites")
+    finally:
+        api_v1.dependency_overrides.pop(get_auth_service, None)
+        api_v1.dependency_overrides.pop(require_admin_strict, None)
+        api_v1.dependency_overrides.pop(require_coordinate, None)
+
+    assert body["token"]
+    assert body["use_limit"] == 4
+    assert listed.status_code == 200, listed.text
+    assert listed.json()[0]["invite_id"] == body["invite_id"]
+    assert "token" not in listed.json()[0]
+
+
+@pytest.mark.asyncio
+async def test_an_admin_revokes_an_invite_over_http(service):
+    from uuid import uuid4
+
+    import httpx
+    from fastapi import FastAPI
+
+    from src.core.api.dependencies import require_coordinate
+    from src.core.api.routes.identity import get_auth_service
+    from src.core.main import api_v1
+    from src.core.models.auth import AuthenticatedUser
+
+    invite = await service.mint_invite(ttl_days=7)
+    admin = AuthenticatedUser(
+        key_id=uuid4(),
+        name="admin",
+        permissions=["admin"],
+        account_id=uuid4(),
+    )
+    app = FastAPI()
+    app.mount("/v1", api_v1)
+    api_v1.dependency_overrides[get_auth_service] = lambda: service
+    api_v1.dependency_overrides[require_coordinate] = lambda: admin
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            revoked = await client.post(
+                f"/v1/api/identity/invites/{invite.invite_id}/revoke"
+            )
+            listed = await client.get("/v1/api/identity/invites")
+    finally:
+        api_v1.dependency_overrides.pop(get_auth_service, None)
+        api_v1.dependency_overrides.pop(require_coordinate, None)
+
+    assert revoked.status_code == 200, revoked.text
+    assert listed.json()[0]["revoked"] is True
+
+
+@pytest.mark.asyncio
+async def test_registering_over_http_carries_the_invite(service, tmp_path, monkeypatch):
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_DATA_DIR", str(tmp_path))
+    await service.set_registration("invite")
+    invite = await service.mint_invite(ttl_days=7)
+
+    import httpx
+    from fastapi import FastAPI
+
+    from src.core.api.routes.identity import get_auth_service
+    from src.core.main import api_v1
+
+    app = FastAPI()
+    app.mount("/v1", api_v1)
+    api_v1.dependency_overrides[get_auth_service] = lambda: service
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            registered = await client.post(
+                "/v1/api/identity/register",
+                json={
+                    "username": "ada",
+                    "password": "correct horse",
+                    "display_name": "Ada",
+                    "invite": invite.token,
+                },
+            )
+    finally:
+        api_v1.dependency_overrides.pop(get_auth_service, None)
+
+    assert registered.status_code == 201, registered.text
+    assert registered.json()["display_name"] == "Ada"
+
+
+@pytest.mark.asyncio
 async def test_an_operator_can_open_registration_on_a_shielded_node(
     service, tmp_path, monkeypatch
 ):

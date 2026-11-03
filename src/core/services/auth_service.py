@@ -26,8 +26,10 @@ from src.config.security_policy import (
 )
 
 from ..auth.origin import assert_password_channel
+from ..auth import invites
 from ..auth.registration import (
     Registration,
+    effective as effective_registration,
     load as load_registration,
     refuse_uninvited,
     save as save_registration,
@@ -66,6 +68,7 @@ from ..models.auth import (
     RegistrationResponse,
 )
 from ..models.capability import (
+    COORDINATE_GRANT_TTL_DAYS,
     KNOWN_SCOPE_KINDS,
     CapabilityGrant,
     Scope,
@@ -799,6 +802,80 @@ class AuthenticationService:
         save_registration(chosen)
         return chosen.value
 
+    async def mint_invite(
+        self, ttl_days: int, use_limit: Optional[int] = None
+    ) -> invites.MintedInvite:
+        """Mint a multi-use invite. The token is returned once.
+
+        ``use_limit`` caps how many people can register with it. Unset, it
+        works until it expires or is revoked.
+        """
+        if not self._auth_storage:
+            raise RuntimeError("Storage not available for invites")
+        token = self._generate_token()
+        invite = invites.Invite(
+            invite_id=uuid4(),
+            token_digest=self._token_digest(token),
+            expires_at=datetime.utcnow() + timedelta(days=ttl_days),
+            use_limit=use_limit,
+        )
+        await invites.save(self._auth_storage.storage_service.manager, invite)
+        return invites.MintedInvite(
+            invite_id=invite.invite_id,
+            token=token,
+            expires_at=invite.expires_at,
+            use_limit=invite.use_limit,
+        )
+
+    async def list_invites(self) -> list[invites.Invite]:
+        if not self._auth_storage:
+            raise RuntimeError("Storage not available for invites")
+        return await invites.list_all(self._auth_storage.storage_service.manager)
+
+    async def revoke_invite(self, invite_id: UUID) -> invites.Invite:
+        if not self._auth_storage:
+            raise RuntimeError("Storage not available for invites")
+        manager = self._auth_storage.storage_service.manager
+        invite = await invites.load(manager, invite_id)
+        if invite is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No invite with that id.",
+            )
+        invite.revoked = True
+        await invites.save(manager, invite)
+        return invite
+
+    async def _require_invite(self, token: Optional[str]) -> invites.Invite:
+        if not token or not self._auth_storage:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This node only accepts a registration that carries an invite.",
+            )
+        digest = self._token_digest(token)
+        found = await invites.find(self._auth_storage.storage_service.manager, digest)
+        if found is None or not secrets.compare_digest(digest, found.token_digest):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="That invite is not valid.",
+            )
+        if found.revoked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="That invite has been revoked.",
+            )
+        if found.expires_at <= datetime.utcnow():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="That invite has expired.",
+            )
+        if found.use_limit is not None and found.uses >= found.use_limit:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="That invite has no uses left.",
+            )
+        return found
+
     async def register(self, display_name: str) -> RegistrationResponse:
         """Self-service onboarding: account + person DID + first key, in one call.
 
@@ -836,7 +913,13 @@ class AuthenticationService:
         )
 
     async def register_member(
-        self, username: str, password: str, display_name: str, *, https: bool
+        self,
+        username: str,
+        password: str,
+        display_name: str,
+        *,
+        https: bool,
+        invite: Optional[str] = None,
     ) -> tuple[RegistrationResponse, str, str]:
         """Account, person DID, recovery code and a browser session.
 
@@ -844,7 +927,12 @@ class AuthenticationService:
         that go into cookies and nowhere in the JSON body.
         """
         assert_password_channel(https)
-        refuse_uninvited(get_security_policy())
+        policy = get_security_policy()
+        accepted = None
+        if effective_registration(policy) is Registration.INVITE:
+            accepted = await self._require_invite(invite)
+        else:
+            refuse_uninvited(policy)
         try:
             username = validate_username(username)
         except ValueError as exc:
@@ -873,10 +961,14 @@ class AuthenticationService:
             account.id,
             IdentityKind.PERSON,
             display_name,
-            operator_opened=load_registration() is Registration.OPEN,
+            operator_opened=accepted is not None
+            or load_registration() is Registration.OPEN,
         )
         recovery_code = await self._issue_recovery_code(account)
         token, csrf, _session = await self._issue_session(account)
+        if accepted is not None:
+            accepted.uses += 1
+            await invites.save(self._auth_storage.storage_service.manager, accepted)
         logger.info(f"Registered member {account.id} as {username}")
         body = RegistrationResponse(
             account_id=account.id,
@@ -1111,6 +1203,38 @@ class AuthenticationService:
             if a.kind == AccountKind.PERSON and not a.disabled
         }
 
+    async def member_inventory(self, facilities: list[dict]) -> list[dict]:
+        """Accounts a coordinator may see, and the facilities each one authored.
+
+        Name and display name, plus each facility's name, processes and
+        visibility. Nothing else: not a password, not a design, not the
+        facility's address.
+        """
+        by_account: dict[str, list[dict]] = {}
+        for facility in facilities:
+            account_id = facility.get("created_by_account")
+            if not account_id:
+                continue
+            by_account.setdefault(str(account_id), []).append(
+                {
+                    "name": facility.get("name") or "",
+                    "processes": list(facility.get("processes") or []),
+                    "visibility": facility.get("visibility") or "private",
+                }
+            )
+        rows = []
+        for account in await self.list_accounts():
+            if account.kind != AccountKind.PERSON or account.disabled:
+                continue
+            rows.append(
+                {
+                    "username": account.username,
+                    "display_name": account.display_name,
+                    "facilities": by_account.get(str(account.id), []),
+                }
+            )
+        return rows
+
     async def disable_account(self, account_id: UUID) -> Account:
         """Disable an account so it can no longer be used for new grants/keys."""
         if not self._account_storage:
@@ -1289,7 +1413,12 @@ class AuthenticationService:
                 detail="No signing key held for issuer; cannot issue grant",
             )
 
-        ttl = ttl_days if ttl_days is not None else get_security_policy().grant_ttl_days
+        if ttl_days is not None:
+            ttl = ttl_days
+        elif "coordinate" in permissions:
+            ttl = COORDINATE_GRANT_TTL_DAYS
+        else:
+            ttl = get_security_policy().grant_ttl_days
         now = datetime.utcnow()
         grant = CapabilityGrant(
             issuer_did=issuer_did,
@@ -1304,6 +1433,21 @@ class AuthenticationService:
         await self._grant_store.save_grant(grant)
         logger.info(f"Issued grant {grant.grant_id} to {subject_did} on {scope.key()}")
         return grant
+
+    async def issue_coordinate_grant(self, subject_did: str) -> CapabilityGrant:
+        """Grant ``coordinate`` on this node. Lasts 180 days in every mode."""
+        scope = self.local_node_scope()
+        if scope is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No local node identity; cannot issue a coordinate grant",
+            )
+        return await self.issue_grant(
+            issuer_did=scope.target,
+            subject_did=subject_did,
+            permissions=["coordinate"],
+            scope=scope,
+        )
 
     async def list_grants(self, subject_did: str) -> List[CapabilityGrant]:
         """List all grants whose subject is ``subject_did``."""

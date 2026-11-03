@@ -46,6 +46,10 @@ export type GrantIssue = components["schemas"]["GrantIssue"];
 export type SecurityPolicyPublic =
   components["schemas"]["SecurityPolicyResponse"];
 
+export type InviteSummary = components["schemas"]["InviteSummary"];
+export type MintedInvite = components["schemas"]["MintedInviteResponse"];
+export type MemberInventoryRow = components["schemas"]["MemberInventoryRow"];
+
 /** A stranger can register here without an invite. */
 export function registrationIsOpen(
   policy:
@@ -104,6 +108,84 @@ export async function fetchWhoami(): Promise<AuthenticatedUser> {
   return data;
 }
 
+export async function mintInvite(body: {
+  ttl_days: number;
+  use_limit?: number | null;
+}): Promise<MintedInvite> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/invites",
+    { body },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to mint invite"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function listInvites(): Promise<InviteSummary[]> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/identity/invites",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to list invites"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function issueCoordinate(
+  subjectDid: string,
+): Promise<CapabilityGrant> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/coordinate",
+    { body: { subject_did: subjectDid } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to grant coordinate"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function listMembers(): Promise<MemberInventoryRow[]> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/identity/members",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to load members"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function revokeInvite(inviteId: string): Promise<InviteSummary> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/invites/{invite_id}/revoke",
+    { params: { path: { invite_id: inviteId } } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to revoke invite"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
 export async function fetchSecurityPolicy(): Promise<SecurityPolicyPublic> {
   const { data, error, response } = await apiClient.GET(
     "/api/identity/security-policy",
@@ -133,6 +215,7 @@ export async function registerPerson(input: {
   username: string;
   password: string;
   display_name: string;
+  invite?: string;
 }): Promise<RegistrationResponse> {
   const { data, error, response } = await apiClient.POST(
     "/api/identity/register",

@@ -3229,6 +3229,9 @@ export interface paths {
         /**
          * Current identity
          * @description Return the identity (key + account) behind the presented credential.
+         *
+         *     ``capabilities`` are the verbs a grant on this node adds. A coordinator
+         *     is named here and is still not an admin.
          */
         get: operations["whoami_api_identity_whoami_get"];
         put?: never;
@@ -3279,6 +3282,87 @@ export interface paths {
          *     whether a stranger can create an account.
          */
         put: operations["set_registration_api_identity_registration_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List invite links
+         * @description Invites on this node. Tokens are not repeated here.
+         */
+        get: operations["list_invites_api_identity_invites_get"];
+        put?: never;
+        /**
+         * Mint an invite link
+         * @description Mint a multi-use invite. The token is in this response and nowhere else.
+         */
+        post: operations["mint_invite_api_identity_invites_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/invites/{invite_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke an invite link */
+        post: operations["revoke_invite_api_identity_invites__invite_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/coordinate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Grant coordinate on this node
+         * @description Make ``subject_did`` a coordinator here. The response shows the expiry.
+         */
+        post: operations["issue_coordinate_api_identity_coordinate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Member inventory for a coordinator
+         * @description Account names and each member's facilities. Not a member directory.
+         */
+        get: operations["list_members_api_identity_members_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -4204,6 +4288,8 @@ export interface components {
             account_id: string;
             /** Subject Did */
             subject_did?: string | null;
+            /** Capabilities */
+            capabilities?: string[];
         };
         /** Body_convert_from_datasheet_api_convert_from_datasheet_post */
         Body_convert_from_datasheet_api_convert_from_datasheet_post: {
@@ -5202,6 +5288,14 @@ export interface components {
             })[] | null;
         };
         /**
+         * CoordinateGrant
+         * @description An admin making someone a coordinator on this node.
+         */
+        CoordinateGrant: {
+            /** Subject Did */
+            subject_did: string;
+        };
+        /**
          * Credit
          * @description Attribution to one contributor — a DID *or* a claimable external id.
          *
@@ -6093,6 +6187,35 @@ export interface components {
             modified_at?: string | null;
         };
         /**
+         * InviteMint
+         * @description An admin's request for an invite link.
+         */
+        InviteMint: {
+            /** Ttl Days */
+            ttl_days: number;
+            /** Use Limit */
+            use_limit?: number | null;
+        };
+        /** InviteSummary */
+        InviteSummary: {
+            /**
+             * Invite Id
+             * Format: uuid
+             */
+            invite_id: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Use Limit */
+            use_limit?: number | null;
+            /** Uses */
+            uses: number;
+            /** Revoked */
+            revoked: boolean;
+        };
+        /**
          * LLMCredentialListResponse
          * @description List of stored LLM credentials (masked).
          * @example {
@@ -6768,6 +6891,47 @@ export interface components {
             nlp_matches: number;
             /** Llm Matches */
             llm_matches: number;
+        };
+        /** MemberFacilitySummary */
+        MemberFacilitySummary: {
+            /** Name */
+            name: string;
+            /** Processes */
+            processes: string[];
+            /** Visibility */
+            visibility: string;
+        };
+        /**
+         * MemberInventoryRow
+         * @description What a coordinator sees of one member. Not a directory.
+         */
+        MemberInventoryRow: {
+            /** Username */
+            username?: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Facilities */
+            facilities: components["schemas"]["MemberFacilitySummary"][];
+        };
+        /**
+         * MintedInviteResponse
+         * @description The token exists only in this response.
+         */
+        MintedInviteResponse: {
+            /**
+             * Invite Id
+             * Format: uuid
+             */
+            invite_id: string;
+            /** Token */
+            token: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Use Limit */
+            use_limit?: number | null;
         };
         /**
          * NestedMatchData
@@ -9398,6 +9562,8 @@ export interface components {
             username?: string | null;
             /** Password */
             password?: string | null;
+            /** Invite */
+            invite?: string | null;
         };
         /**
          * RegistrationResponse
@@ -18592,6 +18758,143 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_invites_api_identity_invites_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteSummary"][];
+                };
+            };
+        };
+    };
+    mint_invite_api_identity_invites_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteMint"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MintedInviteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_invite_api_identity_invites__invite_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invite_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_coordinate_api_identity_coordinate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoordinateGrant"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityGrant"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_members_api_identity_members_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberInventoryRow"][];
                 };
             };
         };

@@ -1399,6 +1399,28 @@ export const storageConfigureFixture = {
 };
 
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/identity/members": [
+    {
+      username: "ada",
+      display_name: "Ada Lovelace",
+      facilities: [
+        {
+          name: "Ada's printer",
+          processes: ["3D Printing"],
+          visibility: "members",
+        },
+      ],
+    },
+  ],
+  "/v1/api/identity/invites": [
+    {
+      invite_id: "11111111-1111-4111-8111-111111111111",
+      expires_at: "2026-12-01T00:00:00Z",
+      use_limit: null,
+      uses: 0,
+      revoked: false,
+    },
+  ],
   "/v1/api/match/domains": matchDomainsFixture,
   "/v1/api/okh/generate-from-url/jobs/job-1/events": generateJobEventsFixture,
   "/v1/api/package/remote": remotePackagesFixture,

@@ -10,9 +10,11 @@ the exact failure a response model introduces. The golden in
 which is what makes this a coupling with a gate rather than a comment.
 """
 
-from typing import Literal
+from datetime import datetime
+from typing import List, Literal, Optional
+from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SecurityPolicyResponse(BaseModel):
@@ -49,3 +51,47 @@ class RegistrationUpdate(BaseModel):
 
 class RegistrationState(BaseModel):
     registration: Literal["open", "invite", "closed"]
+
+
+class InviteMint(BaseModel):
+    """An admin's request for an invite link."""
+
+    ttl_days: int = Field(..., gt=0)
+    use_limit: Optional[int] = Field(default=None, gt=0)
+
+
+class MintedInviteResponse(BaseModel):
+    """The token exists only in this response."""
+
+    invite_id: UUID
+    token: str
+    expires_at: datetime
+    use_limit: Optional[int] = None
+
+
+class InviteSummary(BaseModel):
+    invite_id: UUID
+    expires_at: datetime
+    use_limit: Optional[int] = None
+    uses: int
+    revoked: bool
+
+
+class CoordinateGrant(BaseModel):
+    """An admin making someone a coordinator on this node."""
+
+    subject_did: str
+
+
+class MemberFacilitySummary(BaseModel):
+    name: str
+    processes: List[str]
+    visibility: str
+
+
+class MemberInventoryRow(BaseModel):
+    """What a coordinator sees of one member. Not a directory."""
+
+    username: Optional[str] = None
+    display_name: str
+    facilities: List[MemberFacilitySummary]

@@ -78,6 +78,9 @@ class AuthenticatedUser(BaseModel):
     permissions: List[str]
     account_id: UUID = ROOT_ACCOUNT_ID
     subject_did: Optional[str] = None
+    # Verbs a grant on this node adds. Empty until whoami resolves them.
+    # The key's own permissions stay in ``permissions``.
+    capabilities: List[str] = Field(default_factory=list)
 
 
 class RegistrationCreate(BaseModel):
@@ -91,6 +94,9 @@ class RegistrationCreate(BaseModel):
     display_name: str = Field(..., min_length=1, max_length=200)
     username: Optional[str] = Field(default=None, max_length=64)
     password: Optional[str] = Field(default=None, max_length=256)
+    # Presented by someone who followed an invite link. Ignored when the node
+    # is open. Required when the node is invite-only.
+    invite: Optional[str] = Field(default=None, max_length=128)
 
 
 class LoginRequest(BaseModel):

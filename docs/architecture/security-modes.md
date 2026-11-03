@@ -117,7 +117,15 @@ instead of one is the difference between a limit and a suggestion.
   --set`). Unset, peacetime and crisis are open and shielded is closed, which
   is what `open_registration` still reports. A stored value overrides the mode,
   including opening registration on a shielded node. `closed` and `invite`
-  refuse a signup that carries no invite. `members` visibility is only as
+  refuse a signup that carries no invite. An admin mints a multi-use link
+  (`ohm identity invite mint`, Settings → Invites) with an expiry and an
+  optional use limit, and can revoke it. The link registers someone only while
+  the setting is invite. A coordinator holds a node-scoped `coordinate` grant,
+  issued by an admin (`ohm identity coordinate`, Settings → Grants) and shown
+  with its expiry. It lasts 180 days in every mode. A coordinator mints and
+  revokes invites and sees the member inventory — account names and each
+  member's facilities — and cannot change storage, language-model credentials,
+  or who may register, or read a private record. `members` visibility is only as
   private as that choice: on an open node it means anyone who signs up
   ([members visibility](members-visibility-adr.md)).
 - **mDNS** — advertise and browse require env flag **and** role capability **and**

@@ -188,6 +188,168 @@ async def registration_cmd(
     cli_ctx.log(f"Registration: {result.get('registration')}", "success")
 
 
+@identity_group.group(name="invite")
+def invite_group() -> None:
+    """Mint, list, and revoke invite links."""
+    pass
+
+
+@invite_group.command(name="mint")
+@click.option(
+    "--ttl-days", required=True, type=int, help="Days until the link expires."
+)
+@click.option(
+    "--use-limit",
+    type=int,
+    default=None,
+    help="How many people may use the link. Omit for no limit.",
+)
+@standard_cli_command(
+    help_text="Mint an invite link. Requires coordinate on this node. The token is shown once.",
+    async_cmd=True,
+)
+@click.pass_context
+async def invite_mint(
+    ctx: click.Context,
+    ttl_days: int,
+    use_limit: Optional[int],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Mint a multi-use invite. Copy the link; it is not shown again."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    body: dict = {"ttl_days": ttl_days}
+    if use_limit is not None:
+        body["use_limit"] = use_limit
+    try:
+        result = await _request(cli_ctx, "POST", "/invites", json=body)
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    token = result.get("token")
+    cli_ctx.log(f"Invite {result.get('invite_id')}", "success")
+    click.echo(f"  /register?invite={token}")
+
+
+@invite_group.command(name="list")
+@standard_cli_command(
+    help_text="List invite links. Requires coordinate on this node.",
+    async_cmd=True,
+)
+@click.pass_context
+async def invite_list(
+    ctx: click.Context,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """List invites. Tokens are not repeated."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "GET", "/invites")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    for row in result:
+        state = "revoked" if row.get("revoked") else "active"
+        click.echo(
+            f"  {row.get('invite_id')}  {state}  uses={row.get('uses')}  "
+            f"limit={row.get('use_limit')}  expires={row.get('expires_at')}"
+        )
+
+
+@invite_group.command(name="revoke")
+@click.argument("invite_id")
+@standard_cli_command(
+    help_text="Revoke an invite link. Requires coordinate on this node.",
+    async_cmd=True,
+)
+@click.pass_context
+async def invite_revoke(
+    ctx: click.Context,
+    invite_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Revoke an invite so it can no longer register anyone."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "POST", f"/invites/{invite_id}/revoke")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Revoked {invite_id}", "success")
+
+
+@identity_group.command(name="coordinate")
+@click.argument("subject_did")
+@standard_cli_command(
+    help_text="Grant coordinate on this node. Requires an admin key. Prints the expiry.",
+    async_cmd=True,
+)
+@click.pass_context
+async def coordinate_cmd(
+    ctx: click.Context,
+    subject_did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Make someone a coordinator. The grant lasts 180 days in every mode."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx, "POST", "/coordinate", json={"subject_did": subject_did}
+        )
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Coordinator {subject_did}", "success")
+    click.echo(f"  expires {result.get('expires_at')}")
+
+
 @identity_group.command()
 @click.option("--display-name", required=True, help="How you want to be credited.")
 @standard_cli_command(help_text="Register yourself on a node.", async_cmd=True)
