@@ -385,6 +385,30 @@ async def resolve_provenance(
     from ..models.provenance import Credit, RecordProvenance
 
     subject = user.subject_did if user else None
+    claim = None
+    grant = None
+    if on_behalf_of and not subject:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "This node cannot publish for an organisation without a personal "
+                "identity. Register one and ask the organisation's admin to "
+                "affiliate you. An operator who is the admin can affiliate "
+                "themselves. Attribution can be added later."
+            ),
+        )
+    if on_behalf_of:
+        auth_service = await AuthenticationService.get_instance()
+        found = await auth_service.current_affiliation(subject, on_behalf_of)
+        if found is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "You are not yet affiliated with that organisation. Ask its "
+                    "admin to affiliate you. Attribution can be added later."
+                ),
+            )
+        claim, grant = found
     credits = []
     if author:
         if author.startswith("did:"):
@@ -398,7 +422,11 @@ async def resolve_provenance(
         return None
 
     provenance = RecordProvenance(
-        authored_by=credits, published_by=subject, on_behalf_of=on_behalf_of
+        authored_by=credits,
+        published_by=subject,
+        on_behalf_of=on_behalf_of,
+        space_claim=claim,
+        affiliation=grant,
     )
     auth_service = await AuthenticationService.get_instance()
     return auth_service.sign_provenance_if_possible(provenance)

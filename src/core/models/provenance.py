@@ -4,7 +4,8 @@ Who authored / published a record, and on whose behalf. Provenance is *content
 trust* (about the record), distinct from the *transport trust* of the relaying
 node. It is persisted in its own :class:`ProvenanceStore` keyed by record id —
 deliberately *outside* the manifest so it never enters the design content hash —
-and may be signed by the author/space key for offline authorship verification.
+and may be signed by the publisher for offline authorship verification.
+The organisation named in ``on_behalf_of`` does not sign.
 See ``notes/federated-identity-adr.md`` §4.3 / §4.3.1.
 """
 
@@ -12,6 +13,9 @@ from typing import List, Optional
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from pydantic import BaseModel, Field, model_validator
+
+from .capability import CapabilityGrant
+from .space import SpaceClaim
 
 # Manifests stash OHM-internal metadata under ``ohm_*`` keys so it never collides
 # with OKH/OKW schema fields. ``to_dict()`` on those models is a whitelist, so these
@@ -52,6 +56,12 @@ class RecordProvenance(BaseModel):
     on_behalf_of: Optional[str] = None  # space DID a record is published for
     signed_by: Optional[str] = None  # DID whose key signed this provenance
     signature: str = ""  # hex over signing_payload()
+    # The affiliation that authorised on_behalf_of. Each object is signed by
+    # its own key. Neither enters signing_payload, so the member's signature
+    # stays over the claimed facts, and neither enters the content hash,
+    # because provenance is stored in its own plane.
+    space_claim: Optional[SpaceClaim] = None
+    affiliation: Optional[CapabilityGrant] = None
 
     def signing_payload(self) -> dict:
         """Deterministic, signature-free payload (the claimed facts only)."""
@@ -72,7 +82,7 @@ class RecordProvenance(BaseModel):
 def sign_provenance(
     provenance: RecordProvenance, private_key: Ed25519PrivateKey, signer_did: str
 ) -> RecordProvenance:
-    """Sign a provenance claim with the author/space key (in place)."""
+    """Sign a provenance claim with the given key (in place)."""
     # Imported lazily: federation/__init__ pulls in the service layer, which
     # imports the OKH/OKW services that import this module — a top-level import
     # here would form a cycle.

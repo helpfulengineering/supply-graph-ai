@@ -1399,6 +1399,13 @@ export const storageConfigureFixture = {
 };
 
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/identity/affiliations": [
+    {
+      space_did: "did:key:z6Mkfablab",
+      display_name: "FabLab",
+      expires_at: "2026-12-01T00:00:00Z",
+    },
+  ],
   "/v1/api/identity/members": [
     {
       username: "ada",

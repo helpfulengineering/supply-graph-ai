@@ -95,15 +95,16 @@ manifest or OKW facility.
   claimable `external_id` (e.g. `orcid:0000-…`, `name:Jane Doe`) — exactly one of
   the two. An unclaimed external credit can be bound to a real DID later.
 - A record's provenance carries `authored_by[]`, `published_by` (a DID), and
-  `on_behalf_of` (a space DID), and may be **signed** by the author/space key for
-  offline authorship verification (`sign_provenance` / `verify_provenance` reuse
-  the same `did:key` crypto).
+  `on_behalf_of` (a space DID). The **publisher** signs it. `on_behalf_of` is
+  accepted only when the caller holds a current affiliation to that
+  organisation, and the organisation's key is not used to sign the claim.
 - Provenance lives in its **own store** keyed by record id, deliberately *outside*
   the manifest, so it never enters the design **content hash** — the same design
   published by two people still deduplicates.
 
-On create, the API stamps provenance from the authenticated subject; `--author`
-and `--on-behalf-of` override the defaults. Read it back per record:
+On create, the API stamps provenance from the authenticated subject. `--author`
+overrides the author. `--on-behalf-of` is accepted only for an organisation the
+caller is currently affiliated with. Read it back per record:
 
 ```bash
 # create attributes to the caller by default; override with flags

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
 import { Button } from "../../components/ui/button";
+import { AffiliationPicker } from "./AffiliationPicker";
 import { Badge } from "../../components/ui/Badge";
 import type { ValidationResult } from "../../api/ohm/okh";
 
@@ -52,6 +53,7 @@ export function CreateJsonRecordPage({
   const [onBehalfOf, setOnBehalfOf] = useState("");
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [offerWithoutOrg, setOfferWithoutOrg] = useState(false);
   const [busy, setBusy] = useState<"validate" | "create" | null>(null);
 
   function parseContent(): Record<string, unknown> | null {
@@ -83,8 +85,7 @@ export function CreateJsonRecordPage({
     }
   }
 
-  async function onCreate(e: FormEvent) {
-    e.preventDefault();
+  async function publish(organisation: string | undefined) {
     if (!hasWrite) {
       setError(
         "Creating requires a write-capable API key. Connect one in Settings.",
@@ -96,18 +97,31 @@ export function CreateJsonRecordPage({
     if (!content) return;
     setBusy("create");
     setError(null);
+    setOfferWithoutOrg(false);
     try {
       const { id } = await create(content, {
         author: author.trim() || undefined,
-        onBehalfOf: onBehalfOf.trim() || undefined,
+        onBehalfOf: organisation,
       });
       router.push(detailHref(id));
     } catch (err) {
       reportAuthFailure(err);
-      setError(err instanceof Error ? err.message : "Create failed.");
+      const message = err instanceof Error ? err.message : "Create failed.";
+      setError(message);
+      setOfferWithoutOrg(message.toLowerCase().includes("not yet affiliated"));
     } finally {
       setBusy(null);
     }
+  }
+
+  async function onCreate(e: FormEvent) {
+    e.preventDefault();
+    await publish(onBehalfOf.trim() || undefined);
+  }
+
+  async function saveWithoutOrganisation() {
+    setOnBehalfOf("");
+    await publish(undefined);
   }
 
   function onFile(file: File | undefined) {
@@ -175,21 +189,28 @@ export function CreateJsonRecordPage({
               className={`${FIELD} mt-1 w-full`}
             />
           </label>
-          <label className={LABEL}>
-            On behalf of (optional)
-            <input
-              value={onBehalfOf}
-              onChange={(e) => setOnBehalfOf(e.target.value)}
-              placeholder="space DID"
-              className={`${FIELD} mt-1 w-full`}
-            />
-          </label>
+          <AffiliationPicker
+            value={onBehalfOf}
+            onChange={setOnBehalfOf}
+            disabled={busy !== null}
+            className={`${FIELD} mt-1 w-full`}
+          />
         </div>
 
         {error && (
           <p className="text-sm text-destructive" role="alert">
             {error}
           </p>
+        )}
+        {offerWithoutOrg && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy !== null}
+            onClick={() => void saveWithoutOrganisation()}
+          >
+            Save without organisation
+          </Button>
         )}
 
         {validation && (

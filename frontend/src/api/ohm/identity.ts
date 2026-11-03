@@ -31,6 +31,7 @@ export type Account = components["schemas"]["Account"];
 export type AccountCreate = components["schemas"]["AccountCreate"];
 export type Identity = components["schemas"]["Identity"];
 export type IdentityMint = components["schemas"]["IdentityMint"];
+export type AffiliationSummary = components["schemas"]["AffiliationSummary"];
 export type CapabilityGrant = components["schemas"]["CapabilityGrant"];
 export type GrantIssue = components["schemas"]["GrantIssue"];
 
@@ -151,6 +152,20 @@ export async function issueCoordinate(
     throw new ApiError(
       response.status,
       errorMessage(error, "Failed to grant coordinate"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function listAffiliations(): Promise<AffiliationSummary[]> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/identity/affiliations",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to load affiliations"),
       requestIdFromError(error, response),
     );
   }

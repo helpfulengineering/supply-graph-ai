@@ -11,6 +11,7 @@ import { ApiError } from "../../api/ohm/client";
 import { createOkw, updateOkw, validateOkw } from "../../api/ohm/okw";
 import { fetchProcessTaxonomy } from "../../api/ohm/taxonomy";
 import { Button } from "../../components/ui/button";
+import { AffiliationPicker } from "../create/AffiliationPicker";
 import { ProcessTaxonomyPicker } from "./ProcessTaxonomyPicker";
 import { PANEL } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [importText, setImportText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [offerWithoutOrg, setOfferWithoutOrg] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const patch = (partial: Partial<FacilityFormState>) =>
@@ -87,9 +89,9 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
     state.equipment,
   ]);
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function save(onBehalfOf: string | undefined) {
     setError(null);
+    setOfferWithoutOrg(false);
 
     if (!hasWrite) {
       setError(
@@ -128,7 +130,7 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       if (mode === "create") {
         const { id } = await createOkw(content, {
           author: state.author.trim() || undefined,
-          onBehalfOf: state.onBehalfOf.trim() || undefined,
+          onBehalfOf,
         });
         router.push(`/facilities/${id}?created=1`);
         return;
@@ -142,10 +144,22 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
       router.push(`/facilities/${facilityId}`);
     } catch (err) {
       reportAuthFailure(err);
-      setError(err instanceof Error ? err.message : "Save failed.");
+      const message = err instanceof Error ? err.message : "Save failed.";
+      setError(message);
+      setOfferWithoutOrg(message.toLowerCase().includes("not yet affiliated"));
     } finally {
       setBusy(false);
     }
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    await save(state.onBehalfOf.trim() || undefined);
+  }
+
+  async function saveWithoutOrganisation() {
+    patch({ onBehalfOf: "" });
+    await save(undefined);
   }
 
   function applyImport() {
@@ -350,15 +364,12 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
                   className={fieldClass}
                 />
               </label>
-              <label className={LABEL}>
-                On behalf of (space)
-                <input
-                  value={state.onBehalfOf}
-                  onChange={(e) => patch({ onBehalfOf: e.target.value })}
-                  placeholder="space DID"
-                  className={fieldClass}
-                />
-              </label>
+              <AffiliationPicker
+                value={state.onBehalfOf}
+                onChange={(spaceDid) => patch({ onBehalfOf: spaceDid })}
+                disabled={busy}
+                className={fieldClass}
+              />
             </div>
           </section>
         )}
@@ -519,6 +530,16 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
           <p className="text-sm text-destructive" role="alert">
             {error}
           </p>
+        )}
+        {offerWithoutOrg && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void saveWithoutOrganisation()}
+          >
+            Save without organisation
+          </Button>
         )}
 
         <div className="flex flex-wrap gap-2">

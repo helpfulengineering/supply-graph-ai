@@ -3350,6 +3350,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/identity/affiliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Organisations the caller may publish for
+         * @description Current affiliations. A caller with no personal identity has none.
+         */
+        get: operations["list_affiliations_api_identity_affiliations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/identity/members": {
         parameters: {
             query?: never;
@@ -4076,6 +4096,21 @@ export interface components {
          * @enum {string}
          */
         AccountKind: "person" | "space";
+        /**
+         * AffiliationSummary
+         * @description One organisation the caller may publish for.
+         */
+        AffiliationSummary: {
+            /** Space Did */
+            space_did: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
         /** AssetCreateRequest */
         AssetCreateRequest: {
             /**
@@ -9532,6 +9567,8 @@ export interface components {
              * @default
              */
             signature: string;
+            space_claim?: components["schemas"]["SpaceClaim"] | null;
+            affiliation?: components["schemas"]["CapabilityGrant"] | null;
         };
         /**
          * RecoveryRedeem
@@ -18875,6 +18912,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_affiliations_api_identity_affiliations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AffiliationSummary"][];
                 };
             };
         };

@@ -89,6 +89,14 @@ class MemberFacilitySummary(BaseModel):
     visibility: str
 
 
+class AffiliationSummary(BaseModel):
+    """One organisation the caller may publish for."""
+
+    space_did: str
+    display_name: str
+    expires_at: datetime
+
+
 class MemberInventoryRow(BaseModel):
     """What a coordinator sees of one member. Not a directory."""
 
