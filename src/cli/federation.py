@@ -602,6 +602,48 @@ async def unsubscribe_list_cmd(
     cli_ctx.log(f"Unsubscribed from {list_id}", "success")
 
 
+@lists.command("marks")
+@standard_cli_command(
+    help_text=(
+        "Show designs a subscribed list bumped or removed. "
+        "The designs stay on this node. Set OHM_API_KEY to a node admin key."
+    ),
+    async_cmd=True,
+    handle_errors=True,
+)
+@click.pass_context
+async def list_marks_cmd(
+    ctx: click.Context,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Show labels on designs a subscribed list bumped or removed."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    marks = await _send(cli_ctx, "GET", "/lists/marks") or []
+    if output_format == "json":
+        click.echo(format_llm_output(marks, cli_ctx))
+        return
+    if not marks:
+        cli_ctx.log("No list marks", "info")
+        return
+    for mark in marks:
+        detail = (
+            f"superseded by {mark['superseded_by']}"
+            if mark.get("superseded_by")
+            else mark["status"]
+        )
+        click.echo(
+            f"{mark['list_name']} ({mark['peer_url']}): "
+            f"{mark['content_hash']} {detail}"
+        )
+
+
 @lists.command("show")
 @click.argument("list_id")
 @standard_cli_command(

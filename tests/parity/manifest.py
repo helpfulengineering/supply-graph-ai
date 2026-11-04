@@ -673,6 +673,14 @@ UNCALLED_ENDPOINTS: tuple[Endpoint, ...] = (
         "the write is `ohm identity registration --set`.",
         "/api/identity/registration",
     ),
+    *_decision(
+        "never",
+        "cli",
+        "Labels a subscribed list left on designs it bumped or dropped. "
+        "The designs stay. The operator reads them with "
+        "`ohm federation lists marks`.",
+        "/api/federation/lists/marks",
+    ),
 )
 
 

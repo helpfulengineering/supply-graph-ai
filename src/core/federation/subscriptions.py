@@ -6,7 +6,7 @@ import httpx
 
 from .identity import verify_payload
 from .ingest import verify_and_store
-from .models import CuratedList, ListSubscription, SignedManifestRecord
+from .models import CuratedList, ListMark, ListSubscription, SignedManifestRecord
 from .peer_registry import build_federation_base_url
 from .store import FederationStore
 from .sync import SyncPeerResult
@@ -50,6 +50,39 @@ def unsubscribe(
     return store.delete_subscription(build_federation_base_url(peer_url), list_id)
 
 
+def _label_list_changes(
+    store: FederationStore, subscription: ListSubscription, document: CuratedList
+) -> None:
+    """Label pins a verified list replaced or dropped. The designs stay."""
+    current = {entry.content_hash for entry in document.entries}
+    replaced = {entry.supersedes for entry in document.entries if entry.supersedes}
+    previous = store.load_seen_pins(subscription.peer_url, document.list_id)
+    for content_hash in sorted(previous - current - replaced):
+        store.save_mark(
+            ListMark(
+                peer_url=subscription.peer_url,
+                list_id=document.list_id,
+                list_name=document.name,
+                content_hash=content_hash,
+                status="removed",
+            )
+        )
+    for entry in document.entries:
+        if not entry.supersedes:
+            continue
+        store.save_mark(
+            ListMark(
+                peer_url=subscription.peer_url,
+                list_id=document.list_id,
+                list_name=document.name,
+                content_hash=entry.supersedes,
+                status="superseded",
+                superseded_by=entry.content_hash,
+            )
+        )
+    store.save_seen_pins(subscription.peer_url, document.list_id, current)
+
+
 async def _fetch_record(peer_url: str, content_hash: str) -> SignedManifestRecord:
     url = (
         f"{build_federation_base_url(peer_url)}"
@@ -87,6 +120,7 @@ async def sync_subscribed_lists(
             result.errors.append("The list signature does not verify")
             results.append(result)
             continue
+        _label_list_changes(store, subscription, document)
         for entry in document.entries:
             if entry.content_hash in local_hashes:
                 result.skipped += 1

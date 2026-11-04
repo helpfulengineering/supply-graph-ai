@@ -3351,6 +3351,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/federation/lists/marks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Labels a subscribed list left on designs it no longer pins
+         * @description Superseded and removed pins. The designs themselves stay.
+         */
+        get: operations["list_marks_api_federation_lists_marks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/federation/lists/{id}": {
         parameters: {
             query?: never;
@@ -6872,6 +6892,24 @@ export interface components {
              * @description List of available provider names
              */
             available_providers: string[];
+        };
+        /**
+         * ListMark
+         * @description A subscriber's label on a design a list no longer pins as current.
+         */
+        ListMark: {
+            /** Peer Url */
+            peer_url: string;
+            /** List Id */
+            list_id: string;
+            /** List Name */
+            list_name: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Status */
+            status: string;
+            /** Superseded By */
+            superseded_by?: string | null;
         };
         /**
          * ListSubscription
@@ -19479,6 +19517,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_marks_api_federation_lists_marks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListMark"][];
                 };
             };
         };

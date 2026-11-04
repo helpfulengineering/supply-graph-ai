@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .models import CuratedList, ListSubscription, PeerState
+from .models import CuratedList, ListMark, ListSubscription, PeerState
 
 
 class FederationStore:
@@ -18,6 +18,8 @@ class FederationStore:
         self._follows_path = self.data_dir / "follows.json"
         self._lists_path = self.data_dir / "lists.json"
         self._subscriptions_path = self.data_dir / "subscriptions.json"
+        self._marks_path = self.data_dir / "list-marks.json"
+        self._pins_path = self.data_dir / "list-pins.json"
 
     def load_peers(self) -> list[PeerState]:
         if not self._peers_path.is_file():
@@ -127,3 +129,49 @@ class FederationStore:
             json.dumps(payload, indent=2), encoding="utf-8"
         )
         return removed
+
+    def load_marks(self) -> list[ListMark]:
+        if not self._marks_path.is_file():
+            return []
+        raw = json.loads(self._marks_path.read_text(encoding="utf-8"))
+        return [ListMark.model_validate(item) for item in raw]
+
+    def save_mark(self, mark: ListMark) -> None:
+        kept = [
+            item
+            for item in self.load_marks()
+            if not (
+                item.peer_url == mark.peer_url
+                and item.list_id == mark.list_id
+                and item.content_hash == mark.content_hash
+            )
+        ]
+        kept.append(mark)
+        payload = [item.model_dump(mode="json", exclude_none=True) for item in kept]
+        self._marks_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    def load_seen_pins(self, peer_url: str, list_id: str) -> set[str]:
+        for item in self._read_pins():
+            if item["peer_url"] == peer_url and item["list_id"] == list_id:
+                return set(item["content_hashes"])
+        return set()
+
+    def save_seen_pins(self, peer_url: str, list_id: str, hashes: set[str]) -> None:
+        kept = [
+            item
+            for item in self._read_pins()
+            if not (item["peer_url"] == peer_url and item["list_id"] == list_id)
+        ]
+        kept.append(
+            {
+                "peer_url": peer_url,
+                "list_id": list_id,
+                "content_hashes": sorted(hashes),
+            }
+        )
+        self._pins_path.write_text(json.dumps(kept, indent=2), encoding="utf-8")
+
+    def _read_pins(self) -> list[dict]:
+        if not self._pins_path.is_file():
+            return []
+        return json.loads(self._pins_path.read_text(encoding="utf-8"))

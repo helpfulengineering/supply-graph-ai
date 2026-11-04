@@ -444,3 +444,195 @@ async def test_an_entry_the_publisher_adds_arrives_on_the_next_sync(
     assert second_sync.status_code == 200, second_sync.text
     assert second_sync.json()["total_pulled"] == 1, second_sync.text
     assert designs.created == [first, added]
+
+
+@pytest.mark.asyncio
+async def test_a_bump_keeps_the_old_design_and_labels_it_superseded(
+    tmp_path, monkeypatch
+):
+    from unittest.mock import patch
+
+    from src.config import settings
+    from src.core.api.routes.federation import get_federation_service
+    from src.core.services.okh_service import OKHService
+    from tests.api.test_affiliation_required import MINIMAL
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_ENABLED", True)
+    auth = _auth(tmp_path)
+    admin = await auth.create_api_key(
+        APIKeyCreate(name="admin", permissions=["admin"], account_id=uuid4())
+    )
+    publisher = generate_identity("Publisher")
+    old = dict(MINIMAL)
+    old_hash, old_record = _signed_record(publisher, old)
+    new = dict(MINIMAL)
+    new["id"] = str(uuid4())
+    new["title"] = "Bumped"
+    new_hash, new_record = _signed_record(publisher, new)
+    records = {old_hash: old_record, new_hash: new_record}
+    first_list = sign_curated_list(
+        publisher,
+        CuratedList(
+            list_id="field-designs",
+            name="Field designs",
+            publisher_did=publisher.did,
+            sequence=1,
+            entries=[CuratedListEntry(content_hash=old_hash)],
+        ),
+    ).model_dump(mode="json", exclude_none=True)
+    bumped = sign_curated_list(
+        publisher,
+        CuratedList(
+            list_id="field-designs",
+            name="Field designs",
+            publisher_did=publisher.did,
+            sequence=2,
+            entries=[
+                CuratedListEntry(content_hash=new_hash, supersedes=old_hash),
+            ],
+        ),
+    ).model_dump(mode="json", exclude_none=True)
+    designs = _EmptyDesigns()
+
+    async def get_instance(cls):
+        return designs
+
+    monkeypatch.setattr(OKHService, "get_instance", classmethod(get_instance))
+    served = {"document": first_list}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/v1/api/federation/lists/field-designs":
+            return httpx.Response(200, json=served["document"])
+        for content_hash, record in records.items():
+            if content_hash in request.url.path:
+                return httpx.Response(200, json=record)
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    real_client = httpx.AsyncClient
+    headers = {"Authorization": f"Bearer {admin.token}"}
+
+    async with _client(
+        monkeypatch,
+        auth,
+        overrides={get_federation_service: lambda: _federation(tmp_path)},
+    ) as client:
+        with patch(
+            "src.core.federation.subscriptions.httpx.AsyncClient",
+            side_effect=lambda *args, **kwargs: real_client(transport=transport),
+        ):
+            subscribed = await client.post(
+                "/v1/api/federation/lists/subscriptions",
+                headers=headers,
+                json={"peer_url": "http://peer.example", "list_id": "field-designs"},
+            )
+            assert subscribed.status_code == 201, subscribed.text
+            await client.post("/v1/api/federation/sync/run", headers=headers)
+            served["document"] = bumped
+            await client.post("/v1/api/federation/sync/run", headers=headers)
+            marks = await client.get(
+                "/v1/api/federation/lists/marks",
+                headers=headers,
+            )
+
+    assert designs.created == [old, new]
+    assert marks.status_code == 200, marks.text
+    assert marks.json() == [
+        {
+            "peer_url": "http://peer.example",
+            "list_id": "field-designs",
+            "list_name": "Field designs",
+            "content_hash": old_hash,
+            "status": "superseded",
+            "superseded_by": new_hash,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_a_removal_keeps_the_design_and_labels_it_removed(tmp_path, monkeypatch):
+    from unittest.mock import patch
+
+    from src.config import settings
+    from src.core.api.routes.federation import get_federation_service
+    from src.core.services.okh_service import OKHService
+    from tests.api.test_affiliation_required import MINIMAL
+
+    monkeypatch.setattr(settings, "OHM_FEDERATION_ENABLED", True)
+    auth = _auth(tmp_path)
+    admin = await auth.create_api_key(
+        APIKeyCreate(name="admin", permissions=["admin"], account_id=uuid4())
+    )
+    publisher = generate_identity("Publisher")
+    kept = dict(MINIMAL)
+    kept_hash, kept_record = _signed_record(publisher, kept)
+    first_list = sign_curated_list(
+        publisher,
+        CuratedList(
+            list_id="field-designs",
+            name="Field designs",
+            publisher_did=publisher.did,
+            sequence=1,
+            entries=[CuratedListEntry(content_hash=kept_hash)],
+        ),
+    ).model_dump(mode="json", exclude_none=True)
+    emptied = sign_curated_list(
+        publisher,
+        CuratedList(
+            list_id="field-designs",
+            name="Field designs",
+            publisher_did=publisher.did,
+            sequence=2,
+            entries=[],
+        ),
+    ).model_dump(mode="json", exclude_none=True)
+    designs = _EmptyDesigns()
+
+    async def get_instance(cls):
+        return designs
+
+    monkeypatch.setattr(OKHService, "get_instance", classmethod(get_instance))
+    served = {"document": first_list}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/v1/api/federation/lists/field-designs":
+            return httpx.Response(200, json=served["document"])
+        if kept_hash in request.url.path:
+            return httpx.Response(200, json=kept_record)
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    real_client = httpx.AsyncClient
+    headers = {"Authorization": f"Bearer {admin.token}"}
+
+    async with _client(
+        monkeypatch,
+        auth,
+        overrides={get_federation_service: lambda: _federation(tmp_path)},
+    ) as client:
+        with patch(
+            "src.core.federation.subscriptions.httpx.AsyncClient",
+            side_effect=lambda *args, **kwargs: real_client(transport=transport),
+        ):
+            subscribed = await client.post(
+                "/v1/api/federation/lists/subscriptions",
+                headers=headers,
+                json={"peer_url": "http://peer.example", "list_id": "field-designs"},
+            )
+            assert subscribed.status_code == 201, subscribed.text
+            await client.post("/v1/api/federation/sync/run", headers=headers)
+            served["document"] = emptied
+            await client.post("/v1/api/federation/sync/run", headers=headers)
+            marks = await client.get("/v1/api/federation/lists/marks", headers=headers)
+
+    assert designs.created == [kept]
+    assert marks.status_code == 200, marks.text
+    assert marks.json() == [
+        {
+            "peer_url": "http://peer.example",
+            "list_id": "field-designs",
+            "list_name": "Field designs",
+            "content_hash": kept_hash,
+            "status": "removed",
+        }
+    ]
