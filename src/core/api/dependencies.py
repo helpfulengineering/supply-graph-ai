@@ -15,6 +15,7 @@ from src.config import get_security_policy
 from ..auth.origin import assert_allowed_origin
 from ..auth.sessions import UNSAFE_METHODS, read_session_cookie
 from ..models.auth import AuthenticatedUser
+from ..models.provenance import BulkAttributionResult
 from ..models.visibility import (
     DEV_LOCAL_ACCOUNT,
     BulkVisibilityResult,
@@ -370,6 +371,43 @@ async def set_visibility_each(
     return results
 
 
+async def set_attribution_each(
+    service: Any,
+    ids: list[Any],
+    on_behalf_of: Optional[str],
+    user: Optional[AuthenticatedUser],
+) -> list[BulkAttributionResult]:
+    """Apply the single-record attribution rule to each id, reporting per id.
+
+    A missing affiliation refuses the whole request, the same 403 as one record.
+    ``not_found`` covers a missing id and one the caller may not read.
+    """
+    if on_behalf_of:
+        await require_affiliation(user.subject_did if user else None, on_behalf_of)
+    viewer = await viewer_scope(user)
+    results = []
+    for record_id in ids:
+        if await service.get(record_id) is None or not await can_read(
+            service, record_id, user
+        ):
+            results.append(BulkAttributionResult(id=record_id, outcome="not_found"))
+        elif not viewer.owns(*await service.owner_attribution(str(record_id))):
+            results.append(BulkAttributionResult(id=record_id, outcome="not_yours"))
+        else:
+            saved = await service.save_provenance(
+                record_id,
+                await attribute_existing(
+                    user, await service.get_provenance(record_id), on_behalf_of
+                ),
+            )
+            results.append(
+                BulkAttributionResult(
+                    id=record_id, outcome="changed", on_behalf_of=saved.on_behalf_of
+                )
+            )
+    return results
+
+
 async def resolve_provenance(
     user: Optional[AuthenticatedUser],
     author: Optional[str] = None,
@@ -387,28 +425,8 @@ async def resolve_provenance(
     subject = user.subject_did if user else None
     claim = None
     grant = None
-    if on_behalf_of and not subject:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=(
-                "This node cannot publish for an organisation without a personal "
-                "identity. Register one and ask the organisation's admin to "
-                "affiliate you. An operator who is the admin can affiliate "
-                "themselves. Attribution can be added later."
-            ),
-        )
     if on_behalf_of:
-        auth_service = await AuthenticationService.get_instance()
-        found = await auth_service.current_affiliation(subject, on_behalf_of)
-        if found is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=(
-                    "You are not yet affiliated with that organisation. Ask its "
-                    "admin to affiliate you. Attribution can be added later."
-                ),
-            )
-        claim, grant = found
+        claim, grant = await require_affiliation(subject, on_behalf_of)
     credits = []
     if author:
         if author.startswith("did:"):
@@ -424,6 +442,64 @@ async def resolve_provenance(
     provenance = RecordProvenance(
         authored_by=credits,
         published_by=subject,
+        on_behalf_of=on_behalf_of,
+        space_claim=claim,
+        affiliation=grant,
+    )
+    auth_service = await AuthenticationService.get_instance()
+    return auth_service.sign_provenance_if_possible(provenance)
+
+
+async def require_affiliation(subject: Optional[str], on_behalf_of: str):
+    """The claim and grant that let ``subject`` publish for ``on_behalf_of``."""
+    if not subject:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "This node cannot publish for an organisation without a personal "
+                "identity. Register one and ask the organisation's admin to "
+                "affiliate you. An operator who is the admin can affiliate "
+                "themselves. Attribution can be added later."
+            ),
+        )
+    auth_service = await AuthenticationService.get_instance()
+    found = await auth_service.current_affiliation(subject, on_behalf_of)
+    if found is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "You are not yet affiliated with that organisation. Ask its "
+                "admin to affiliate you. Attribution can be added later."
+            ),
+        )
+    return found
+
+
+async def attribute_existing(
+    user: Optional[AuthenticatedUser],
+    existing: Optional[Any],
+    on_behalf_of: Optional[str],
+):
+    """A new signed provenance that names ``on_behalf_of``, keeping authorship.
+
+    ``None`` clears the organisation. The owner does not need a current grant
+    to stop naming one.
+    """
+    from ..models.provenance import Credit, RecordProvenance
+
+    subject = user.subject_did if user else None
+    claim = grant = None
+    if on_behalf_of:
+        claim, grant = await require_affiliation(subject, on_behalf_of)
+    credits = list(existing.authored_by) if existing and existing.authored_by else []
+    if not credits and subject:
+        credits.append(Credit(subject_did=subject, role="author"))
+    published_by = (
+        existing.published_by if existing and existing.published_by else subject
+    )
+    provenance = RecordProvenance(
+        authored_by=credits,
+        published_by=published_by,
         on_behalf_of=on_behalf_of,
         space_claim=claim,
         affiliation=grant,

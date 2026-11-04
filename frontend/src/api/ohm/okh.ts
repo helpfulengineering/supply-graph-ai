@@ -340,6 +340,51 @@ export async function setOkhVisibilityBulk(
   return data.results;
 }
 
+export type BulkAttributionResult =
+  components["schemas"]["BulkAttributionResult"];
+
+/** Name or clear the organisation. The design's content is not rewritten. */
+export async function setOkhAttribution(
+  id: string,
+  onBehalfOf: string | null,
+): Promise<RecordProvenance> {
+  const { data, error, response } = await apiClient.PUT(
+    "/api/okh/{id}/attribution",
+    { params: { path: { id } }, body: { on_behalf_of: onBehalfOf } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Failed to attribute design (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return data;
+}
+
+/** One organisation for many designs; one result per id, in request order. */
+export async function setOkhAttributionBulk(
+  ids: string[],
+  onBehalfOf: string | null,
+): Promise<BulkAttributionResult[]> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/okh/attribution",
+    { body: { ids, on_behalf_of: onBehalfOf } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Failed to attribute designs (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return data.results;
+}
+
 // --- generate-from-URL ----------------------------------------------------
 
 export interface OkhQualityReport {

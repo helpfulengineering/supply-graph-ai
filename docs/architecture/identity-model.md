@@ -101,6 +101,10 @@ manifest or OKW facility.
   The organisation's admin issues that grant, and renews or revokes it. Its
   lifetime is the security mode's grant lifetime. A member with one affiliation
   publishes new records for that organisation unless they choose otherwise.
+  The owner of an existing record can add or remove that organisation later,
+  from the record, the account page, or `ohm okh attribute` / `ohm okw attribute`.
+  Removing it does not require the grant still be current. The content hash
+  does not change.
 - Provenance lives in its **own store** keyed by record id, deliberately *outside*
   the manifest, so it never enters the design **content hash** — the same design
   published by two people still deduplicates.

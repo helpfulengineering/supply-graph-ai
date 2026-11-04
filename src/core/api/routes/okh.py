@@ -52,9 +52,11 @@ from ..dependencies import (
     created_by_did,
     get_optional_user,
     get_viewer,
+    attribute_existing,
     require_ownership,
     require_write,
     resolve_provenance,
+    set_attribution_each,
     set_visibility_each,
     viewer_scope,
 )
@@ -75,7 +77,12 @@ from ..models.okh.collection import (
 )
 from ...models.okh_process_fields import derive_process_fields
 from ...models.generation_provenance import GenerationProvenanceRecord
-from ...models.provenance import RecordProvenance
+from ...models.provenance import (
+    AttributionBody,
+    BulkAttributionBody,
+    BulkAttributionResponse,
+    RecordProvenance,
+)
 from ...models.visibility import (
     BulkVisibilityBody,
     BulkVisibilityResponse,
@@ -450,6 +457,50 @@ async def get_okh_provenance(
             detail="No provenance recorded for this manifest",
         )
     return provenance
+
+
+@router.put(
+    "/{id}/attribution",
+    response_model=RecordProvenance,
+    summary="Attribute an existing manifest to an organisation",
+)
+async def set_okh_attribution(
+    body: AttributionBody,
+    id: UUID = Path(..., title="The ID of the OKH manifest"),
+    okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> RecordProvenance:
+    """The owner, holding the affiliation, names the organisation. The design is not rewritten."""
+    if await okh_service.get(id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKH manifest with ID {id} not found",
+        )
+    await require_ownership(
+        await okh_service.owner_attribution(str(id)), user, "manifest"
+    )
+    provenance = await attribute_existing(
+        user, await okh_service.get_provenance(id), body.on_behalf_of
+    )
+    return await okh_service.save_provenance(id, provenance)
+
+
+@router.post(
+    "/attribution",
+    response_model=BulkAttributionResponse,
+    summary="Attribute many manifests to an organisation",
+)
+async def set_okh_attribution_bulk(
+    body: BulkAttributionBody,
+    okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> BulkAttributionResponse:
+    """One organisation for many designs. Each id reports changed, not_yours, or not_found."""
+    return BulkAttributionResponse(
+        results=await set_attribution_each(
+            okh_service, body.ids, body.on_behalf_of, user
+        )
+    )
 
 
 @router.get(

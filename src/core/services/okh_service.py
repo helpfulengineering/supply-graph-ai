@@ -268,6 +268,18 @@ class OKHService(BaseService["OKHService"]):
             return None
         return await self._provenance_store().load(str(manifest_id))
 
+    async def save_provenance(
+        self, manifest_id: UUID, provenance: RecordProvenance
+    ) -> RecordProvenance:
+        """Replace a manifest's provenance. The manifest itself is not written."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            raise RuntimeError("Storage service not available")
+        if await self.get(manifest_id) is None:
+            raise LookupError(f"OKH manifest {manifest_id} not found")
+        await self._provenance_store().save(str(manifest_id), provenance)
+        return provenance
+
     async def get_generation_provenance(
         self, manifest_id: UUID
     ) -> Optional[GenerationProvenanceRecord]:

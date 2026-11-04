@@ -1,12 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
-import { getOkhProvenance, type RecordProvenance } from "../../api/ohm/okh";
-import { getOkwProvenance } from "../../api/ohm/okw";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getOkhProvenance,
+  setOkhAttribution,
+  type RecordProvenance,
+} from "../../api/ohm/okh";
+import { getOkwProvenance, setOkwAttribution } from "../../api/ohm/okw";
+import { listAffiliations } from "../../api/ohm/identity";
 import type { components } from "../../api/generated/schema";
+import { Button } from "../../components/ui/button";
+import { FIELD, LABEL } from "../../components/ui/field";
 import { PANEL } from "../../components/ui/surface";
 import {
   SECTION_LABEL,
   SECTION_LABEL_SM,
 } from "../../components/ui/typography";
+import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
 
 type Credit = components["schemas"]["Credit"];
@@ -96,6 +105,63 @@ export function AuthorshipPanel({
         <p className="text-sm text-muted-foreground">No provenance recorded.</p>
       )}
       {query.data && <ProvenanceBody data={query.data} />}
+      <AttributeRecord kind={kind} id={id} />
     </section>
+  );
+}
+
+function AttributeRecord({ kind, id }: { kind: "okh" | "okw"; id: string }) {
+  const { signedIn, reportAuthFailure } = useAuth();
+  const queryClient = useQueryClient();
+  const [choice, setChoice] = useState("");
+  const affiliations = useQuery({
+    queryKey: ["identity", "affiliations"],
+    queryFn: listAffiliations,
+    enabled: signedIn,
+  });
+  const save = useMutation({
+    mutationFn: (onBehalfOf: string | null) =>
+      kind === "okh"
+        ? setOkhAttribution(id, onBehalfOf)
+        : setOkwAttribution(id, onBehalfOf),
+    onSuccess: () => {
+      setChoice("");
+      void queryClient.invalidateQueries({
+        queryKey: [kind, "provenance", id],
+      });
+    },
+    onError: reportAuthFailure,
+  });
+  if (!signedIn || !affiliations.data) return null;
+  const org = choice === "none" ? null : choice;
+
+  return (
+    <form
+      className="mt-4 flex flex-wrap items-end gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (choice) save.mutate(org);
+      }}
+    >
+      <label className={LABEL}>
+        <span className="sr-only">Organisation</span>
+        <select
+          value={choice}
+          onChange={(e) => setChoice(e.target.value)}
+          className={`${FIELD} mt-1`}
+        >
+          <option value="">Attribute to…</option>
+          {affiliations.data.map((row) => (
+            <option key={row.space_did} value={row.space_did}>
+              {row.display_name}
+            </option>
+          ))}
+          <option value="none">Remove organisation</option>
+        </select>
+      </label>
+      <Button type="submit" disabled={!choice || save.isPending}>
+        {choice === "none" ? "Remove" : "Attribute"}
+      </Button>
+    </form>
   );
 }
