@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .models import CuratedList, PeerState
+from .models import CuratedList, ListSubscription, PeerState
 
 
 class FederationStore:
@@ -17,6 +17,7 @@ class FederationStore:
         self._peers_path = self.data_dir / "peers.json"
         self._follows_path = self.data_dir / "follows.json"
         self._lists_path = self.data_dir / "lists.json"
+        self._subscriptions_path = self.data_dir / "subscriptions.json"
 
     def load_peers(self) -> list[PeerState]:
         if not self._peers_path.is_file():
@@ -84,3 +85,45 @@ class FederationStore:
             item.model_dump(mode="json", exclude_none=True) for item in by_id.values()
         ]
         self._lists_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    def load_subscriptions(self) -> list[ListSubscription]:
+        if not self._subscriptions_path.is_file():
+            return []
+        raw = json.loads(self._subscriptions_path.read_text(encoding="utf-8"))
+        return [ListSubscription.model_validate(item) for item in raw]
+
+    def save_subscription(self, subscription: ListSubscription) -> None:
+        kept = [
+            item
+            for item in self.load_subscriptions()
+            if not (
+                item.peer_url == subscription.peer_url
+                and item.list_id == subscription.list_id
+            )
+        ]
+        kept.append(subscription)
+        payload = [item.model_dump(mode="json") for item in kept]
+        self._subscriptions_path.write_text(
+            json.dumps(payload, indent=2), encoding="utf-8"
+        )
+
+    def delete_subscription(
+        self, peer_url: str, list_id: str
+    ) -> ListSubscription | None:
+        current = self.load_subscriptions()
+        removed = next(
+            (
+                item
+                for item in current
+                if item.peer_url == peer_url and item.list_id == list_id
+            ),
+            None,
+        )
+        if removed is None:
+            return None
+        kept = [item for item in current if item is not removed]
+        payload = [item.model_dump(mode="json") for item in kept]
+        self._subscriptions_path.write_text(
+            json.dumps(payload, indent=2), encoding="utf-8"
+        )
+        return removed

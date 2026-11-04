@@ -130,6 +130,23 @@ class CuratedListWrite(BaseModel):
     publisher_did: str | None = None
 
 
+class ListSubscriptionWrite(BaseModel):
+    """Where to fetch the list a node wants to follow."""
+
+    peer_url: str
+    list_id: str
+
+
+class ListSubscription(BaseModel):
+    """A follow scoped to one list on one node."""
+
+    peer_url: str
+    list_id: str
+    name: str
+    publisher_did: str
+    sequence: int
+
+
 class CuratedList(BaseModel):
     """The signed current membership of a curated list."""
 

@@ -3323,6 +3323,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/federation/lists/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List curated-list subscriptions
+         * @description The lists this node follows, and which node serves each one.
+         */
+        get: operations["list_subscriptions_api_federation_lists_subscriptions_get"];
+        put?: never;
+        /**
+         * Subscribe to a peer's curated list
+         * @description A follow scoped to one list. The publisher's signature must verify.
+         */
+        post: operations["subscribe_to_list_api_federation_lists_subscriptions_post"];
+        /**
+         * Unsubscribe from a peer's curated list
+         * @description Stop pulling that list. Designs already stored stay.
+         */
+        delete: operations["unsubscribe_from_list_api_federation_lists_subscriptions_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/federation/lists/{id}": {
         parameters: {
             query?: never;
@@ -6844,6 +6872,32 @@ export interface components {
              * @description List of available provider names
              */
             available_providers: string[];
+        };
+        /**
+         * ListSubscription
+         * @description A follow scoped to one list on one node.
+         */
+        ListSubscription: {
+            /** Peer Url */
+            peer_url: string;
+            /** List Id */
+            list_id: string;
+            /** Name */
+            name: string;
+            /** Publisher Did */
+            publisher_did: string;
+            /** Sequence */
+            sequence: number;
+        };
+        /**
+         * ListSubscriptionWrite
+         * @description Where to fetch the list a node wants to follow.
+         */
+        ListSubscriptionWrite: {
+            /** Peer Url */
+            peer_url: string;
+            /** List Id */
+            list_id: string;
         };
         /**
          * LoginRequest
@@ -19331,6 +19385,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CuratedList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_subscriptions_api_federation_lists_subscriptions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListSubscription"][];
+                };
+            };
+        };
+    };
+    subscribe_to_list_api_federation_lists_subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListSubscriptionWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListSubscription"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unsubscribe_from_list_api_federation_lists_subscriptions_delete: {
+        parameters: {
+            query: {
+                peer_url: string;
+                list_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListSubscription"];
                 };
             };
             /** @description Validation Error */

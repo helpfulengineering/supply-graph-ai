@@ -35,6 +35,9 @@ describe("Curated lists", () => {
     const calls: unknown[] = [];
     server.use(
       http.get("*/v1/api/federation/lists", () => HttpResponse.json([LIST])),
+      http.get("*/v1/api/federation/lists/subscriptions", () =>
+        HttpResponse.json([]),
+      ),
       http.post("*/v1/api/federation/lists", async ({ request }) => {
         calls.push(await request.json());
         return HttpResponse.json(
@@ -93,5 +96,59 @@ describe("Curated lists", () => {
         { name: "Field designs", entries: [{ content_hash: "sha256:def" }] },
       ]),
     );
+  });
+
+  it("subscribes to a peer's list and can unsubscribe", async () => {
+    const user = userEvent.setup();
+    const calls: { method: string; body?: unknown; url: string }[] = [];
+    const subscription = {
+      list_id: "field-designs",
+      name: "Field kit",
+      publisher_did: "did:key:zSpace",
+      peer_url: "http://peer.example",
+      sequence: 1,
+    };
+    server.use(
+      http.get("*/v1/api/federation/lists", () => HttpResponse.json([])),
+      http.get("*/v1/api/federation/lists/subscriptions", () =>
+        HttpResponse.json([subscription]),
+      ),
+      http.post("*/v1/api/federation/lists/subscriptions", async ({ request }) => {
+        calls.push({
+          method: "POST",
+          url: request.url,
+          body: await request.json(),
+        });
+        return HttpResponse.json(subscription, { status: 201 });
+      }),
+      http.delete("*/v1/api/federation/lists/subscriptions", ({ request }) => {
+        calls.push({ method: "DELETE", url: request.url });
+        return new HttpResponse(null, { status: 200 });
+      }),
+    );
+
+    renderPage(<CuratedListsPage />);
+    expect(await screen.findByText("Field kit")).toBeInTheDocument();
+    expect(screen.getByText("http://peer.example")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Peer"), "http://peer.example");
+    await user.type(screen.getByLabelText("List"), "field-designs");
+    await user.click(screen.getByRole("button", { name: "Subscribe" }));
+    await user.click(screen.getByRole("button", { name: "Unsubscribe" }));
+
+    await waitFor(() =>
+      expect(calls).toEqual([
+        {
+          method: "POST",
+          url: expect.stringContaining("/lists/subscriptions"),
+          body: { peer_url: "http://peer.example", list_id: "field-designs" },
+        },
+        {
+          method: "DELETE",
+          url: expect.stringContaining("list_id=field-designs"),
+        },
+      ]),
+    );
+    expect(calls[1].url).toContain("peer_url=http%3A%2F%2Fpeer.example");
   });
 });

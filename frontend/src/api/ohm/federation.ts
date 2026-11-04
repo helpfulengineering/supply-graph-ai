@@ -16,6 +16,8 @@ export type SyncRunResponse = components["schemas"]["SyncRunResponse"];
 export type FollowResponse = components["schemas"]["FollowResponse"];
 export type CuratedList = components["schemas"]["CuratedList"];
 export type CuratedListWrite = components["schemas"]["CuratedListWrite"];
+export type ListSubscription = components["schemas"]["ListSubscription"];
+export type ListSubscriptionWrite = components["schemas"]["ListSubscriptionWrite"];
 
 export async function fetchFederationStatus(): Promise<FederationStatus> {
   const { data, error, response } = await apiClient.GET(
@@ -277,6 +279,54 @@ export async function replaceCuratedList(
     );
   }
   return data;
+}
+
+export async function listSubscriptions(): Promise<ListSubscription[]> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/federation/lists/subscriptions",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to load subscriptions"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function subscribeToList(
+  body: ListSubscriptionWrite,
+): Promise<ListSubscription> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/federation/lists/subscriptions",
+    { body },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Could not subscribe to that list"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function unsubscribeFromList(
+  peerUrl: string,
+  listId: string,
+): Promise<void> {
+  const { error, response } = await apiClient.DELETE(
+    "/api/federation/lists/subscriptions",
+    { params: { query: { peer_url: peerUrl, list_id: listId } } },
+  );
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Could not unsubscribe"),
+      requestIdFromError(error, response),
+    );
+  }
 }
 
 /** The `action` field as a sentence. It is the whole result. */

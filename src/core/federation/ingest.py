@@ -73,13 +73,15 @@ async def verify_and_store(
     store: FederationStore,
     okh_service: OKHService,
     local_content_hashes: set[str],
+    require_follow: bool = True,
 ) -> IngestResult:
     """
     Verify a remote signed record and persist if allowed.
 
-    Requires ``publisher_did`` to be on the local follow allowlist.
+    Requires ``publisher_did`` to be on the local follow allowlist, unless the
+    caller already authorized this hash from a verified list subscription.
     """
-    if not store.is_followed(publisher_did):
+    if require_follow and not store.is_followed(publisher_did):
         raise IngestError(f"publisher {publisher_did} is not followed")
 
     verify_signed_record(record)
