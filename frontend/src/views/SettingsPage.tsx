@@ -10,6 +10,7 @@ import { IdentitiesPanel } from "../features/settings/IdentitiesPanel";
 import { GrantsPanel } from "../features/settings/GrantsPanel";
 import { InvitesPanel } from "../features/settings/InvitesPanel";
 import { MembersPanel } from "../features/settings/MembersPanel";
+import { OrganisationsPanel } from "../features/settings/OrganisationsPanel";
 import { SpacesPanel } from "../features/settings/SpacesPanel";
 import { ReputationPanel } from "../features/settings/ReputationPanel";
 import { BindingsPanel } from "../features/settings/BindingsPanel";
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 const sessionTabs = [
   { to: "/settings/session", label: "Session" },
   { to: "/settings/domain", label: "Domain" },
+  { to: "/settings/organisations", label: "Organisations" },
 ] as const;
 
 const adminTabs = [
@@ -61,6 +63,7 @@ function panelFor(pathname: string) {
   if (pathname.includes("/grants")) return <GrantsPanel />;
   if (pathname.includes("/invites")) return <InvitesPanel />;
   if (pathname.includes("/members")) return <MembersPanel />;
+  if (pathname.includes("/organisations")) return <OrganisationsPanel />;
   if (pathname.includes("/spaces")) return <SpacesPanel />;
   if (pathname.includes("/bindings")) return <BindingsPanel />;
   if (pathname.includes("/directory")) return <DirectoryPanel />;

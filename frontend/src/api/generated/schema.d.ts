@@ -3363,6 +3363,70 @@ export interface paths {
          */
         get: operations["list_affiliations_api_identity_affiliations_get"];
         put?: never;
+        /**
+         * Affiliate a person to an organisation
+         * @description The organisation's admin issues a space-scoped publish grant.
+         */
+        post: operations["affiliate_member_api_identity_affiliations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/affiliations/{grant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Unaffiliate a person
+         * @description The organisation's admin revokes the publish grant.
+         */
+        delete: operations["unaffiliate_member_api_identity_affiliations__grant_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/affiliations/{grant_id}/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Renew an affiliation
+         * @description The organisation's admin issues a fresh publish grant and retires the old one.
+         */
+        post: operations["renew_affiliation_api_identity_affiliations__grant_id__renew_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/affiliations/administered": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Organisations the caller administers
+         * @description Members of organisations this person administers, with each grant's expiry.
+         */
+        get: operations["list_administered_affiliations_api_identity_affiliations_administered_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -4096,6 +4160,48 @@ export interface components {
          * @enum {string}
          */
         AccountKind: "person" | "space";
+        /**
+         * AdministeredMember
+         * @description One person affiliated to an organisation the caller administers.
+         */
+        AdministeredMember: {
+            /** Subject Did */
+            subject_did: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Grant Id
+             * Format: uuid
+             */
+            grant_id: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /**
+         * AdministeredOrganisation
+         * @description An organisation whose claimed admin is the caller, and its members.
+         */
+        AdministeredOrganisation: {
+            /** Space Did */
+            space_did: string;
+            /** Display Name */
+            display_name: string;
+            /** Members */
+            members: components["schemas"]["AdministeredMember"][];
+        };
+        /**
+         * AffiliationCreate
+         * @description The organisation admin affiliating a person.
+         */
+        AffiliationCreate: {
+            /** Space Did */
+            space_did: string;
+            /** Subject Did */
+            subject_did: string;
+        };
         /**
          * AffiliationSummary
          * @description One organisation the caller may publish for.
@@ -18932,6 +19038,121 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AffiliationSummary"][];
+                };
+            };
+        };
+    };
+    affiliate_member_api_identity_affiliations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AffiliationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityGrant"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unaffiliate_member_api_identity_affiliations__grant_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    renew_affiliation_api_identity_affiliations__grant_id__renew_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityGrant"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_administered_affiliations_api_identity_affiliations_administered_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministeredOrganisation"][];
                 };
             };
         };

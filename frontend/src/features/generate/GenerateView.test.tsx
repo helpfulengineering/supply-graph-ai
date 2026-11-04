@@ -167,6 +167,81 @@ describe("GenerateView — LLM generation without an account (#561)", () => {
   });
 });
 
+describe("GenerateView — save for an organisation", () => {
+  it("saves a generated design for the caller's only organisation", async () => {
+    sessionStorage.setItem("ohm_api_key", "test-token");
+    const organisations: Array<string | null> = [];
+    const manifest = {
+      title: "Widget",
+      version: "1.0.0",
+      function: "Holds things",
+      documentation_language: "en",
+      licensor: { name: "Ada" },
+      license: { hardware: "MIT" },
+    };
+    server.use(
+      http.get("*/v1/api/identity/affiliations", () =>
+        HttpResponse.json([
+          {
+            space_did: "did:key:zFab",
+            display_name: "FabLab",
+            expires_at: "2026-12-01T00:00:00Z",
+          },
+        ]),
+      ),
+      http.post("*/v1/api/okh/generate-from-url/jobs", () =>
+        HttpResponse.json(
+          {
+            batch_id: "b",
+            jobs: [{ job_id: "j", url: "https://github.com/acme/widget" }],
+          },
+          { status: 202 },
+        ),
+      ),
+      http.get("*/v1/api/okh/generate-from-url/jobs/j", () =>
+        HttpResponse.json({ state: "SUCCESS", manifest }),
+      ),
+      http.get("*/v1/api/okh/generate-from-url/jobs/j/events", () =>
+        HttpResponse.json({ events: [] }),
+      ),
+      http.post("*/v1/api/okh/create", ({ request }) => {
+        organisations.push(new URL(request.url).searchParams.get("on_behalf_of"));
+        return HttpResponse.json(
+          { success: true, message: "created", okh: { id: "okh-1" } },
+          { status: 201 },
+        );
+      }),
+    );
+
+    try {
+      renderView();
+      await userEvent.type(
+        screen.getByLabelText(/Repository URL/i),
+        "https://github.com/acme/widget",
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+      expect(
+        await screen.findByRole(
+          "option",
+          { name: "FabLab" },
+          { timeout: 3000 },
+        ),
+      ).toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.getByRole("combobox", { name: /on behalf of/i }),
+        ).toHaveValue("did:key:zFab"),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: "Save to this node" }),
+      );
+      await waitFor(() => expect(organisations).toEqual(["did:key:zFab"]));
+    } finally {
+      sessionStorage.removeItem("ohm_api_key");
+    }
+  });
+});
+
 describe("GenerateView — before a run", () => {
   it("says what will happen, in the stage names a reader can act on", () => {
     renderView();

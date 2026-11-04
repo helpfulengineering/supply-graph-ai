@@ -350,6 +350,123 @@ async def coordinate_cmd(
     click.echo(f"  expires {result.get('expires_at')}")
 
 
+@identity_group.group(name="affiliate")
+def affiliate_group() -> None:
+    """Affiliate people to an organisation you administer."""
+    pass
+
+
+@affiliate_group.command(name="add")
+@click.argument("subject_did")
+@click.option("--space", "space_did", required=True, help="Organisation DID")
+@standard_cli_command(
+    help_text="Affiliate a person. You must be that organisation's admin. Prints the expiry.",
+    async_cmd=True,
+)
+@click.pass_context
+async def affiliate_add(
+    ctx: click.Context,
+    subject_did: str,
+    space_did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Issue a space-scoped publish grant. The lifetime follows the security mode."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx,
+            "POST",
+            "/affiliations",
+            json={"space_did": space_did, "subject_did": subject_did},
+        )
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Affiliated {subject_did}", "success")
+    click.echo(f"  expires {result.get('expires_at')}")
+
+
+@affiliate_group.command(name="revoke")
+@click.argument("grant_id")
+@standard_cli_command(
+    help_text="Unaffiliate a person. You must be that organisation's admin.",
+    async_cmd=True,
+)
+@click.pass_context
+async def affiliate_revoke(
+    ctx: click.Context,
+    grant_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Revoke the publish grant. Records already signed keep their provenance."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "DELETE", f"/affiliations/{grant_id}")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Unaffiliated {grant_id}", "success")
+
+
+@affiliate_group.command(name="renew")
+@click.argument("grant_id")
+@standard_cli_command(
+    help_text="Renew an affiliation. You must be that organisation's admin. Prints the new expiry.",
+    async_cmd=True,
+)
+@click.pass_context
+async def affiliate_renew(
+    ctx: click.Context,
+    grant_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Replace the grant with a fresh one for the mode's full lifetime."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "POST", f"/affiliations/{grant_id}/renew")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Renewed {grant_id}", "success")
+    click.echo(f"  expires {result.get('expires_at')}")
+
+
 @identity_group.command()
 @click.option("--display-name", required=True, help="How you want to be credited.")
 @standard_cli_command(help_text="Register yourself on a node.", async_cmd=True)

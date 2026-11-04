@@ -1399,6 +1399,20 @@ export const storageConfigureFixture = {
 };
 
 export const fixturesByPath: Record<string, unknown> = {
+  "/v1/api/identity/affiliations/administered": [
+    {
+      space_did: "did:key:z6Mkfablab",
+      display_name: "FabLab",
+      members: [
+        {
+          subject_did: "did:key:z6Mkada",
+          display_name: "Ada Lovelace",
+          grant_id: "11111111-1111-4111-8111-111111111111",
+          expires_at: "2026-12-01T00:00:00Z",
+        },
+      ],
+    },
+  ],
   "/v1/api/identity/affiliations": [
     {
       space_did: "did:key:z6Mkfablab",

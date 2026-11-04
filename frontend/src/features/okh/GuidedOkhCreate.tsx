@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/ohm/client";
 import { createOkh } from "../../api/ohm/okh";
+import { AffiliationPicker } from "../create/AffiliationPicker";
 import { Button } from "../../components/ui/button";
 import { TieredEditor } from "../generate/TieredEditor";
 import { missingRequired } from "../generate/manifestTiers";
@@ -79,6 +80,7 @@ export function GuidedOkhCreate() {
   }, [template.data]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [onBehalfOf, setOnBehalfOf] = useState("");
 
   const missing = missingRequired(manifest);
   const canSave = hasWrite && missing.length === 0 && !busy;
@@ -87,7 +89,9 @@ export function GuidedOkhCreate() {
     setBusy(true);
     setError(null);
     try {
-      const { id } = await createOkh(manifest, {});
+      const { id } = await createOkh(manifest, {
+        onBehalfOf: onBehalfOf.trim() || undefined,
+      });
       router.push(`/okh/${id}`);
     } catch (err) {
       if (
@@ -140,6 +144,13 @@ export function GuidedOkhCreate() {
           {error}
         </p>
       )}
+
+      <AffiliationPicker
+        value={onBehalfOf}
+        onChange={setOnBehalfOf}
+        disabled={busy}
+        className="mt-1 w-full max-w-sm rounded-md border border-border px-3 py-2 text-sm bg-background"
+      />
 
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={!canSave} onClick={onCreate}>

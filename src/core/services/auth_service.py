@@ -1603,6 +1603,63 @@ class AuthenticationService:
             return None
         return await self._space_claim_store.load(space_did)
 
+    async def affiliate(
+        self, caller_did: Optional[str], space_did: str, subject_did: str
+    ) -> CapabilityGrant:
+        """Issue a publish grant for ``space_did``. Only its claimed admin may."""
+        issuer_did = await self._require_org_admin(caller_did, space_did)
+        return await self.issue_grant(
+            issuer_did=issuer_did,
+            subject_did=subject_did,
+            permissions=["publish"],
+            scope=Scope(kind="space", target=space_did),
+        )
+
+    async def renew_affiliation(
+        self, caller_did: Optional[str], grant_id: UUID
+    ) -> CapabilityGrant:
+        """Replace a publish grant with a fresh one. The old signature stays on records already made."""
+        grant = await self._publish_grant(grant_id)
+        issuer_did = await self._require_org_admin(caller_did, grant.scope.target)
+        renewed = await self.issue_grant(
+            issuer_did=issuer_did,
+            subject_did=grant.subject_did,
+            permissions=["publish"],
+            scope=grant.scope,
+        )
+        await self.revoke_grant(grant_id)
+        return renewed
+
+    async def unaffiliate(self, caller_did: Optional[str], grant_id: UUID) -> None:
+        """Revoke a publish grant. Only the organisation's claimed admin may."""
+        grant = await self._publish_grant(grant_id)
+        await self._require_org_admin(caller_did, grant.scope.target)
+        await self.revoke_grant(grant_id)
+
+    async def _require_org_admin(
+        self, caller_did: Optional[str], space_did: str
+    ) -> str:
+        claim = await self.get_space_claim(space_did)
+        if claim is None or not caller_did or claim.admin_did != caller_did:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only that organisation's admin can change its affiliations.",
+            )
+        return caller_did
+
+    async def _publish_grant(self, grant_id: UUID) -> CapabilityGrant:
+        if self._grant_store:
+            for grant in await self._grant_store.list_all():
+                if (
+                    grant.grant_id == grant_id
+                    and grant.scope.kind == "space"
+                    and "publish" in grant.permissions
+                ):
+                    return grant
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Affiliation not found"
+        )
+
     async def current_affiliation(
         self, subject_did: str, space_did: str
     ) -> Optional[Tuple[SpaceClaim, CapabilityGrant]]:
@@ -1620,20 +1677,61 @@ class AuthenticationService:
                 return claim, grant
         return None
 
-    async def list_affiliations(self, subject_did: str) -> list[dict]:
-        """Current publish grants this person holds."""
+    async def list_administered(self, caller_did: str) -> list[dict]:
+        """Organisations this person administers, and each current affiliation."""
+        if not caller_did or not self._grant_store:
+            return []
+        claims = [
+            claim
+            for claim in await self.list_space_claims()
+            if claim.admin_did == caller_did
+        ]
+        grants = await self._grant_store.list_all()
         rows = []
-        for grant in await self._current_publish_grants(subject_did):
-            identity = self.get_identity(grant.scope.target)
-            name = identity.display_name if identity and identity.display_name else ""
+        for claim in claims:
+            members = []
+            for grant in grants:
+                if grant.scope.kind != "space" or grant.scope.target != claim.space_did:
+                    continue
+                if "publish" not in grant.permissions:
+                    continue
+                if not self.verify_grant(grant) or not await self._is_issuer_trusted(
+                    grant
+                ):
+                    continue
+                members.append(
+                    {
+                        "subject_did": grant.subject_did,
+                        "display_name": self._display_name(grant.subject_did),
+                        "grant_id": grant.grant_id,
+                        "expires_at": grant.expires_at,
+                    }
+                )
             rows.append(
                 {
-                    "space_did": grant.scope.target,
-                    "display_name": name or grant.scope.target,
-                    "expires_at": grant.expires_at,
+                    "space_did": claim.space_did,
+                    "display_name": self._display_name(claim.space_did),
+                    "members": members,
                 }
             )
         return rows
+
+    async def list_affiliations(self, subject_did: str) -> list[dict]:
+        """Current publish grants this person holds."""
+        return [
+            {
+                "space_did": grant.scope.target,
+                "display_name": self._display_name(grant.scope.target),
+                "expires_at": grant.expires_at,
+            }
+            for grant in await self._current_publish_grants(subject_did)
+        ]
+
+    def _display_name(self, did: str) -> str:
+        identity = self.get_identity(did)
+        if identity and identity.display_name:
+            return identity.display_name
+        return did
 
     async def _current_publish_grants(self, subject_did: str) -> list:
         """Space-scoped publish grants that still verify and whose issuer is trusted."""

@@ -3,7 +3,9 @@
 ## Status
 
 Accepted. Create refuses an `on_behalf_of` that is not a current affiliation,
-the publisher signs, and the evidence chain is stored (#577). Verification on
+the publisher signs, and the evidence chain is stored (#577). The
+organisation's admin affiliates, renews, and unaffiliates from the UI and
+CLI, and a sole affiliation is the default on new records (#578). Verification on
 receipt is #588. Adding attribution to an existing record is #589. Supersedes
 rung 0 of the [Facility claim ladder](facility-claim-ladder-adr.md) for
 `on_behalf_of`.

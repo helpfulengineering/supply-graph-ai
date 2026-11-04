@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listAffiliations } from "../../api/ohm/identity";
 import { LABEL } from "../../components/ui/field";
@@ -21,6 +22,14 @@ export function AffiliationPicker({
     queryKey: ["identity", "affiliations"],
     queryFn: listAffiliations,
   });
+  const applied = useRef(false);
+  useEffect(() => {
+    if (applied.current || !affiliations.data) return;
+    applied.current = true;
+    if (affiliations.data.length === 1 && value === "") {
+      onChange(affiliations.data[0].space_did);
+    }
+  }, [affiliations.data, onChange, value]);
 
   return (
     <label className={LABEL}>

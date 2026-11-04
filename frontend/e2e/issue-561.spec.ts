@@ -182,7 +182,7 @@ test("a signed-in designer saves the generated design to this node", async ({
   await signIn(page);
   await mockGeneration(page);
   let saved: Record<string, unknown> | null = null;
-  await page.route("**/api/okh/create", async (route) => {
+  await page.route(/\/api\/okh\/create(\?|$)/, async (route) => {
     saved = route.request().postDataJSON();
     return route.fulfill({
       status: 201,
