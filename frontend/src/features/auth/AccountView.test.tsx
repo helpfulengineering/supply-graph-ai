@@ -52,7 +52,9 @@ beforeEach(() => {
 describe("AccountView", () => {
   it("points an anonymous visitor at registration", async () => {
     renderView();
-    expect(await screen.findByText("You are not signed in")).toBeInTheDocument();
+    expect(
+      await screen.findByText("You are not signed in"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Register" })).toHaveAttribute(
       "href",
       "/register",
@@ -101,7 +103,9 @@ describe("AccountView", () => {
       screen.getByRole("checkbox", { name: "Select Shared Widget" }),
     );
     await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: "New visibility for selected designs" }),
+      screen.getByRole("combobox", {
+        name: "New visibility for selected designs",
+      }),
       "members",
     );
     expect(screen.getByRole("status")).toHaveTextContent(
@@ -136,5 +140,47 @@ describe("AccountView", () => {
     expect(
       await screen.findByText(/You have not created a design yet/),
     ).toBeInTheDocument();
+  });
+
+  it("attributes the selected designs to an organisation", async () => {
+    setToken("tok");
+    myDesigns([{ id: "d1", title: "Unshared Widget", visibility: "private" }]);
+    let posted: unknown = null;
+    server.use(
+      http.get("*/v1/api/identity/affiliations", () =>
+        HttpResponse.json([
+          {
+            space_did: "did:key:zFab",
+            display_name: "FabLab",
+            expires_at: "2026-12-01T00:00:00Z",
+          },
+        ]),
+      ),
+      http.post("*/v1/api/okh/attribution", async ({ request }) => {
+        posted = await request.json();
+        return HttpResponse.json({
+          results: [
+            { id: "d1", outcome: "changed", on_behalf_of: "did:key:zFab" },
+          ],
+        });
+      }),
+    );
+    renderView();
+
+    await userEvent.click(
+      await screen.findByRole("checkbox", { name: "Select Unshared Widget" }),
+    );
+    await userEvent.selectOptions(
+      await screen.findByRole("combobox", {
+        name: "Organisation for selected designs",
+      }),
+      "did:key:zFab",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Attribute 1 design to FabLab" }),
+    );
+
+    expect(await screen.findByText("Changed")).toBeInTheDocument();
+    expect(posted).toEqual({ ids: ["d1"], on_behalf_of: "did:key:zFab" });
   });
 });

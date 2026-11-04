@@ -24,12 +24,19 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import {
   fetchOkhList,
+  setOkhAttributionBulk,
   setOkhVisibilityBulk,
+  type BulkAttributionResult,
   type BulkVisibilityResult,
   type VisibilityLevel,
 } from "../../api/ohm/okh";
+import { listAffiliations } from "../../api/ohm/identity";
 import { MyKeysPanel } from "./MyKeysPanel";
-import { searchOkw, setOkwVisibilityBulk } from "../../api/ohm/okw";
+import {
+  searchOkw,
+  setOkwAttributionBulk,
+  setOkwVisibilityBulk,
+} from "../../api/ohm/okw";
 import { VisibilityBadge } from "../okh/VisibilityBadge";
 import { AUDIENCE, LEVELS } from "../okh/VisibilityControl";
 
@@ -58,6 +65,11 @@ export function AccountView() {
   const facilities = useQuery({
     queryKey: FACILITIES_KEY,
     queryFn: () => searchOkw({ page_size: 100, mine: true }),
+    enabled: signedIn,
+  });
+  const affiliations = useQuery({
+    queryKey: ["identity", "affiliations"],
+    queryFn: listAffiliations,
     enabled: signedIn,
   });
 
@@ -170,6 +182,8 @@ export function AccountView() {
           }))}
           nothing="You have not created a design yet."
           apply={setOkhVisibilityBulk}
+          organisations={affiliations.data}
+          attribute={setOkhAttributionBulk}
         />
 
         <YourRecordsSection
@@ -187,6 +201,8 @@ export function AccountView() {
           }))}
           nothing="You have not created a facility yet."
           apply={setOkwVisibilityBulk}
+          organisations={affiliations.data}
+          attribute={setOkwAttributionBulk}
         />
       </div>
     </>
@@ -209,6 +225,8 @@ function YourRecordsSection({
   rows,
   nothing,
   apply,
+  organisations,
+  attribute,
 }: {
   id: string;
   title: string;
@@ -228,11 +246,17 @@ function YourRecordsSection({
     ids: string[],
     level: VisibilityLevel,
   ) => Promise<BulkVisibilityResult[]>;
+  organisations?: { space_did: string; display_name: string }[];
+  attribute: (
+    ids: string[],
+    onBehalfOf: string | null,
+  ) => Promise<BulkAttributionResult[]>;
 }) {
   const { hasWrite, reportAuthFailure } = useAuth();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
   const [level, setLevel] = useState<VisibilityLevel | null>(null);
+  const [organisation, setOrganisation] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<
     Record<string, BulkVisibilityResult["outcome"]>
   >({});
@@ -247,6 +271,16 @@ function YourRecordsSection({
     },
     onError: reportAuthFailure,
   });
+  const attributeMutation = useMutation({
+    mutationFn: (org: string | null) => attribute(selected, org),
+    onSuccess: (results) => {
+      setOutcomes(Object.fromEntries(results.map((r) => [r.id, r.outcome])));
+      setSelected([]);
+      setOrganisation(null);
+      void queryClient.invalidateQueries({ queryKey: listKey });
+    },
+    onError: reportAuthFailure,
+  });
 
   const toggle = (rowId: string) =>
     setSelected((s) =>
@@ -254,6 +288,8 @@ function YourRecordsSection({
     );
   const count = selected.length;
   const pending = count > 0 && level;
+  const chosen = organisations?.find((row) => row.space_did === organisation);
+  const attributing = count > 0 && organisation !== null;
 
   return (
     <section className={PANEL} aria-labelledby={`yours-${id}`}>
@@ -286,7 +322,11 @@ function YourRecordsSection({
                     className={CHECKBOX}
                     aria-label={`Select ${row.label}`}
                     checked={selected.includes(row.id)}
-                    disabled={!hasWrite || mutation.isPending}
+                    disabled={
+                      !hasWrite ||
+                      mutation.isPending ||
+                      attributeMutation.isPending
+                    }
                     onChange={() => toggle(row.id)}
                   />
                 </label>
@@ -352,6 +392,49 @@ function YourRecordsSection({
                   Cancel
                 </Button>
               </div>
+            </div>
+          )}
+
+          {organisations && (
+            <label className={`${LABEL} mt-4`}>
+              <span className="sr-only">
+                Organisation for selected {nouns.many}
+              </span>
+              <select
+                value={organisation ?? ""}
+                disabled={
+                  !hasWrite || count === 0 || attributeMutation.isPending
+                }
+                onChange={(e) => setOrganisation(e.target.value || null)}
+                className={`${FIELD} w-full max-w-xs`}
+              >
+                <option value="">Attribute selected to…</option>
+                {organisations.map((row) => (
+                  <option key={row.space_did} value={row.space_did}>
+                    {row.display_name}
+                  </option>
+                ))}
+                <option value="none">Remove organisation</option>
+              </select>
+            </label>
+          )}
+          {attributing && (
+            <div className="mt-3">
+              <Button
+                size="sm"
+                disabled={attributeMutation.isPending}
+                onClick={() =>
+                  attributeMutation.mutate(
+                    organisation === "none" ? null : organisation,
+                  )
+                }
+              >
+                {attributeMutation.isPending
+                  ? "Attributing…"
+                  : organisation === "none"
+                    ? `Remove the organisation from ${count} ${count === 1 ? nouns.one : nouns.many}`
+                    : `Attribute ${count} ${count === 1 ? nouns.one : nouns.many} to ${chosen?.display_name}`}
+              </Button>
             </div>
           )}
           {!hasWrite && (

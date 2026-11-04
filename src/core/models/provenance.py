@@ -9,7 +9,8 @@ The organisation named in ``on_behalf_of`` does not sign.
 See ``notes/federated-identity-adr.md`` §4.3 / §4.3.1.
 """
 
-from typing import List, Optional
+from typing import List, Literal, Optional
+from uuid import UUID
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from pydantic import BaseModel, Field, model_validator
@@ -46,6 +47,36 @@ class Credit(BaseModel):
                 "exactly one of subject_did / external_id must be set on a Credit"
             )
         return self
+
+
+class AttributionBody(BaseModel):
+    """The organisation an existing record should be published for.
+
+    ``None`` removes the attribution. Removing does not require a current grant.
+    """
+
+    on_behalf_of: Optional[str] = None
+
+
+class BulkAttributionBody(BaseModel):
+    """One organisation for many records the caller owns."""
+
+    ids: list[UUID] = Field(..., min_length=1, max_length=500)
+    on_behalf_of: Optional[str] = None
+
+
+class BulkAttributionResult(BaseModel):
+    """What happened to one id. ``on_behalf_of`` is set only when ``changed``."""
+
+    id: UUID
+    outcome: Literal["changed", "not_yours", "not_found"]
+    on_behalf_of: Optional[str] = None
+
+
+class BulkAttributionResponse(BaseModel):
+    """One result per requested id, in request order."""
+
+    results: list[BulkAttributionResult]
 
 
 class RecordProvenance(BaseModel):

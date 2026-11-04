@@ -408,6 +408,18 @@ class OKWService(BaseService["OKWService"]):
             return None
         return await self._provenance_store().load(str(facility_id))
 
+    async def save_provenance(
+        self, facility_id: UUID, provenance: RecordProvenance
+    ) -> RecordProvenance:
+        """Replace a facility's provenance. The facility itself is not written."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            raise RuntimeError("Storage service not available")
+        if await self.get(facility_id) is None:
+            raise LookupError(f"OKW facility {facility_id} not found")
+        await self._provenance_store().save(str(facility_id), provenance)
+        return provenance
+
     async def get_visibility(self, facility_id: UUID) -> VisibilityLevel:
         """Return visibility for a facility.
 

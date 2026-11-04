@@ -221,6 +221,53 @@ export async function setOkwVisibilityBulk(
   return data.results;
 }
 
+export type BulkAttributionResult =
+  components["schemas"]["BulkAttributionResult"];
+
+/** Name or clear the organisation. The facility's content is not rewritten. */
+export async function setOkwAttribution(
+  id: string,
+  onBehalfOf: string | null,
+): Promise<components["schemas"]["RecordProvenance"]> {
+  const { data, error, response } = await apiClient.PUT(
+    "/api/okw/{id}/attribution",
+    { params: { path: { id } }, body: { on_behalf_of: onBehalfOf } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Failed to attribute facility (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return data;
+}
+
+/** One organisation for many facilities; one result per id, in request order. */
+export async function setOkwAttributionBulk(
+  ids: string[],
+  onBehalfOf: string | null,
+): Promise<BulkAttributionResult[]> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/okw/attribution",
+    {
+      body: { ids, on_behalf_of: onBehalfOf },
+    },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(
+        error,
+        `Failed to attribute facilities (HTTP ${response.status})`,
+      ),
+    );
+  }
+  return data.results;
+}
+
 export type DisclosureGroup = components["schemas"]["DisclosureGroup"];
 export type DisclosureAudience = components["schemas"]["DisclosureAudience"];
 export type AudienceDisclosure = components["schemas"]["AudienceDisclosure"];

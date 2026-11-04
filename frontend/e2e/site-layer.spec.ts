@@ -161,6 +161,16 @@ test("theme and mode still work with the layer off", async ({ page }) => {
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem("ohm-theme")))
     .toBe("terminal");
+  // The address bar is what a reload reads. `?theme=` outranks storage, and
+  // it is written a frame after the click — after React commits the new
+  // world. Reloading on the storage write alone loses that frame and comes
+  // back as the previous look. Measured on a loaded runner: storage was
+  // already "terminal", the URL still said ttm, and the reload kept ttm.
+  await expect
+    .poll(() =>
+      page.evaluate(() => new URL(location.href).searchParams.get("theme")),
+    )
+    .toBe("terminal");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute(
     "data-ttm-theme",

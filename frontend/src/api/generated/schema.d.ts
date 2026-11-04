@@ -443,6 +443,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/{id}/attribution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Attribute an existing manifest to an organisation
+         * @description The owner, holding the affiliation, names the organisation. The design is not rewritten.
+         */
+        put: operations["set_okh_attribution_api_okh__id__attribution_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okh/attribution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attribute many manifests to an organisation
+         * @description One organisation for many designs. Each id reports changed, not_yours, or not_found.
+         */
+        post: operations["set_okh_attribution_bulk_api_okh_attribution_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/{id}/generation-provenance": {
         parameters: {
             query?: never;
@@ -1463,6 +1503,46 @@ export interface paths {
         get: operations["get_okw_provenance_api_okw__id__provenance_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/{id}/attribution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Attribute an existing facility to an organisation
+         * @description The owner, holding the affiliation, names the organisation. The facility is not rewritten.
+         */
+        put: operations["set_okw_attribution_api_okw__id__attribution_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/attribution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attribute many facilities to an organisation
+         * @description One organisation for many facilities. Each id reports changed, not_yours, or not_found.
+         */
+        post: operations["set_okw_attribution_bulk_api_okw_attribution_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4397,6 +4477,16 @@ export interface components {
             expires_at?: string | null;
         };
         /**
+         * AttributionBody
+         * @description The organisation an existing record should be published for.
+         *
+         *     ``None`` removes the attribution. Removing does not require a current grant.
+         */
+        AttributionBody: {
+            /** On Behalf Of */
+            on_behalf_of?: string | null;
+        };
+        /**
          * AudienceDisclosure
          * @description Which field groups are included for one audience.
          */
@@ -4608,6 +4698,42 @@ export interface components {
         BreakGlassRequest: {
             /** Reason */
             reason: string;
+        };
+        /**
+         * BulkAttributionBody
+         * @description One organisation for many records the caller owns.
+         */
+        BulkAttributionBody: {
+            /** Ids */
+            ids: string[];
+            /** On Behalf Of */
+            on_behalf_of?: string | null;
+        };
+        /**
+         * BulkAttributionResponse
+         * @description One result per requested id, in request order.
+         */
+        BulkAttributionResponse: {
+            /** Results */
+            results: components["schemas"]["BulkAttributionResult"][];
+        };
+        /**
+         * BulkAttributionResult
+         * @description What happened to one id. ``on_behalf_of`` is set only when ``changed``.
+         */
+        BulkAttributionResult: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "changed" | "not_yours" | "not_found";
+            /** On Behalf Of */
+            on_behalf_of?: string | null;
         };
         /**
          * BulkVisibilityBody
@@ -12473,6 +12599,112 @@ export interface operations {
             };
         };
     };
+    set_okh_attribution_api_okh__id__attribution_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttributionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordProvenance"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_okh_attribution_bulk_api_okh_attribution_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAttributionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkAttributionResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     get_okh_generation_provenance_api_okh__id__generation_provenance_get: {
         parameters: {
             query?: never;
@@ -14917,6 +15149,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecordProvenance"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_okw_attribution_api_okw__id__attribution_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttributionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordProvenance"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_okw_attribution_bulk_api_okw_attribution_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAttributionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkAttributionResponse"];
                 };
             };
             /** @description Bad Request */

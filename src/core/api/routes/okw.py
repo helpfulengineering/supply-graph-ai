@@ -19,7 +19,12 @@ from fastapi import (
 
 from ...models.auth import AuthenticatedUser
 from ...models.okw import ManufacturingFacility
-from ...models.provenance import RecordProvenance
+from ...models.provenance import (
+    AttributionBody,
+    BulkAttributionBody,
+    BulkAttributionResponse,
+    RecordProvenance,
+)
 from ...models.disclosure import (
     DisclosureAudience,
     DisclosureBody,
@@ -52,9 +57,11 @@ from ..dependencies import (
     created_by_did,
     get_optional_user,
     get_viewer,
+    attribute_existing,
     require_ownership,
     require_write,
     resolve_provenance,
+    set_attribution_each,
     set_visibility_each,
     viewer_scope,
 )
@@ -1426,6 +1433,50 @@ async def get_okw_provenance(
             detail="No provenance recorded for this facility",
         )
     return provenance
+
+
+@router.put(
+    "/{id}/attribution",
+    response_model=RecordProvenance,
+    summary="Attribute an existing facility to an organisation",
+)
+async def set_okw_attribution(
+    body: AttributionBody,
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> RecordProvenance:
+    """The owner, holding the affiliation, names the organisation. The facility is not rewritten."""
+    if await okw_service.get(id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
+    await require_ownership(
+        await okw_service.owner_attribution(str(id)), user, "facility"
+    )
+    provenance = await attribute_existing(
+        user, await okw_service.get_provenance(id), body.on_behalf_of
+    )
+    return await okw_service.save_provenance(id, provenance)
+
+
+@router.post(
+    "/attribution",
+    response_model=BulkAttributionResponse,
+    summary="Attribute many facilities to an organisation",
+)
+async def set_okw_attribution_bulk(
+    body: BulkAttributionBody,
+    okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> BulkAttributionResponse:
+    """One organisation for many facilities. Each id reports changed, not_yours, or not_found."""
+    return BulkAttributionResponse(
+        results=await set_attribution_each(
+            okw_service, body.ids, body.on_behalf_of, user
+        )
+    )
 
 
 @router.get(

@@ -496,6 +496,47 @@ async def create(
         raise
 
 
+@okw_group.command("attribute")
+@click.argument("facility_id", type=str)
+@click.option("--on-behalf-of", "on_behalf_of", default=None, help="Organisation DID")
+@click.option(
+    "--clear", is_flag=True, help="Remove the organisation from this facility"
+)
+@standard_cli_command(
+    help_text="Attribute a facility you created to an organisation, or clear that attribution. "
+    "You must hold that organisation's affiliation to add it.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def attribute_facility(
+    ctx,
+    facility_id: str,
+    on_behalf_of: Optional[str],
+    clear: bool,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Name or clear the organisation. The facility's content is not rewritten."""
+    if clear == bool(on_behalf_of):
+        raise click.UsageError("Pass --on-behalf-of or --clear, not both.")
+    cli_ctx = ctx.obj
+    response = await cli_ctx.api_client.request(
+        "PUT",
+        f"/api/okw/{facility_id}/attribution",
+        json_data={"on_behalf_of": None if clear else on_behalf_of},
+    )
+    click.echo(json.dumps(response, indent=2, default=str))
+
+
 @okw_group.group(name="visibility")
 def visibility_group():
     """Get or set how far a facility may leave this node."""
