@@ -177,7 +177,7 @@ export async function validateOkh(
   return data as ValidationResult;
 }
 
-export type RecordProvenance = components["schemas"]["RecordProvenance"];
+export type RecordProvenance = components["schemas"]["ProvenanceResponse"];
 export type VisibilityLevel = components["schemas"]["VisibilityLevel"];
 export type VisibilityResponse = components["schemas"]["VisibilityResponse"];
 export type BulkVisibilityResult =

@@ -81,7 +81,8 @@ from ...models.provenance import (
     AttributionBody,
     BulkAttributionBody,
     BulkAttributionResponse,
-    RecordProvenance,
+    ProvenanceResponse,
+    present_provenance,
 )
 from ...models.visibility import (
     BulkVisibilityBody,
@@ -442,9 +443,10 @@ async def create_okh_manifest(
 
 @router.get(
     "/{id}/provenance",
-    response_model=RecordProvenance,
+    response_model=ProvenanceResponse,
     summary="Get OKH manifest provenance",
-    description="Return the authorship/publication provenance recorded for a manifest.",
+    description="Return the authorship/publication provenance recorded for a manifest. "
+    "organisation_verified is this node's offline check of the evidence chain.",
 )
 async def get_okh_provenance(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
@@ -456,12 +458,12 @@ async def get_okh_provenance(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No provenance recorded for this manifest",
         )
-    return provenance
+    return present_provenance(provenance)
 
 
 @router.put(
     "/{id}/attribution",
-    response_model=RecordProvenance,
+    response_model=ProvenanceResponse,
     summary="Attribute an existing manifest to an organisation",
 )
 async def set_okh_attribution(
@@ -469,7 +471,7 @@ async def set_okh_attribution(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
     okh_service: OKHService = Depends(get_okh_service),
     user: Optional[AuthenticatedUser] = Depends(require_write),
-) -> RecordProvenance:
+) -> ProvenanceResponse:
     """The owner, holding the affiliation, names the organisation. The design is not rewritten."""
     if await okh_service.get(id) is None:
         raise HTTPException(
@@ -482,7 +484,7 @@ async def set_okh_attribution(
     provenance = await attribute_existing(
         user, await okh_service.get_provenance(id), body.on_behalf_of
     )
-    return await okh_service.save_provenance(id, provenance)
+    return present_provenance(await okh_service.save_provenance(id, provenance))
 
 
 @router.post(

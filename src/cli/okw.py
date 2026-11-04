@@ -396,7 +396,7 @@ async def get(
 @okw_group.command()
 @click.argument("facility_id", type=str)
 @standard_cli_command(
-    help_text="Show the authorship/publication provenance recorded for a facility.",
+    help_text="Show a facility's authorship, including whether its organisation verified.",
     epilog="""
     Examples:
       ohm okw provenance 123e4567-e89b-12d3-a456-426614174000

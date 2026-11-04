@@ -99,7 +99,7 @@ export async function validateOkw(
   return data as ValidationResult;
 }
 
-export type RecordProvenance = components["schemas"]["RecordProvenance"];
+export type RecordProvenance = components["schemas"]["ProvenanceResponse"];
 export type VisibilityLevel = components["schemas"]["VisibilityLevel"];
 export type VisibilityResponse = components["schemas"]["VisibilityResponse"];
 export type BulkVisibilityResult =
@@ -228,7 +228,7 @@ export type BulkAttributionResult =
 export async function setOkwAttribution(
   id: string,
   onBehalfOf: string | null,
-): Promise<components["schemas"]["RecordProvenance"]> {
+): Promise<RecordProvenance> {
   const { data, error, response } = await apiClient.PUT(
     "/api/okw/{id}/attribution",
     { params: { path: { id } }, body: { on_behalf_of: onBehalfOf } },

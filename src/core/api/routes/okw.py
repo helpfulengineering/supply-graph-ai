@@ -23,7 +23,8 @@ from ...models.provenance import (
     AttributionBody,
     BulkAttributionBody,
     BulkAttributionResponse,
-    RecordProvenance,
+    ProvenanceResponse,
+    present_provenance,
 )
 from ...models.disclosure import (
     DisclosureAudience,
@@ -1418,9 +1419,10 @@ async def create_okw_facility(
 
 @router.get(
     "/{id}/provenance",
-    response_model=RecordProvenance,
+    response_model=ProvenanceResponse,
     summary="Get OKW facility provenance",
-    description="Return the authorship/publication provenance recorded for a facility.",
+    description="Return the authorship/publication provenance recorded for a facility. "
+    "organisation_verified is this node's offline check of the evidence chain.",
 )
 async def get_okw_provenance(
     id: UUID = Path(..., title="The ID of the OKW facility"),
@@ -1432,12 +1434,12 @@ async def get_okw_provenance(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No provenance recorded for this facility",
         )
-    return provenance
+    return present_provenance(provenance)
 
 
 @router.put(
     "/{id}/attribution",
-    response_model=RecordProvenance,
+    response_model=ProvenanceResponse,
     summary="Attribute an existing facility to an organisation",
 )
 async def set_okw_attribution(
@@ -1445,7 +1447,7 @@ async def set_okw_attribution(
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
     user: Optional[AuthenticatedUser] = Depends(require_write),
-) -> RecordProvenance:
+) -> ProvenanceResponse:
     """The owner, holding the affiliation, names the organisation. The facility is not rewritten."""
     if await okw_service.get(id) is None:
         raise HTTPException(
@@ -1458,7 +1460,7 @@ async def set_okw_attribution(
     provenance = await attribute_existing(
         user, await okw_service.get_provenance(id), body.on_behalf_of
     )
-    return await okw_service.save_provenance(id, provenance)
+    return present_provenance(await okw_service.save_provenance(id, provenance))
 
 
 @router.post(
