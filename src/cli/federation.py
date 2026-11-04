@@ -69,15 +69,25 @@ def _list_entries(pins: tuple[str, ...], replaces: tuple[str, ...]) -> list[dict
 
 
 async def _send(
-    cli_ctx: CLIContext, method: str, path: str, json: dict | None = None
-) -> dict:
+    cli_ctx: CLIContext,
+    method: str,
+    path: str,
+    json: dict | None = None,
+    params: dict | None = None,
+) -> dict | None:
     token = os.getenv("OHM_API_KEY")
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     async with httpx.AsyncClient(timeout=cli_ctx.config.timeout) as client:
         response = await client.request(
-            method, _federation_url(cli_ctx, path), json=json, headers=headers
+            method,
+            _federation_url(cli_ctx, path),
+            json=json,
+            params=params,
+            headers=headers,
         )
         response.raise_for_status()
+        if not response.content:
+            return None
         return response.json()
 
 
@@ -511,6 +521,85 @@ async def update_list_cmd(
         json={"name": name, "entries": _list_entries(pins, replaces)},
     )
     _print_list(cli_ctx, document, output_format)
+
+
+@lists.command("subscribe")
+@click.option("--peer", "peer_url", required=True, help="Node that serves the list")
+@click.option("--list", "list_id", required=True, help="Id of the list on that node")
+@standard_cli_command(
+    help_text=(
+        "Follow one curated list. Sync pulls that list's designs and nothing "
+        "else from that node. Set OHM_API_KEY to a node admin key."
+    ),
+    async_cmd=True,
+    handle_errors=True,
+)
+@click.pass_context
+async def subscribe_list_cmd(
+    ctx: click.Context,
+    peer_url: str,
+    list_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Subscribe to a peer's signed list."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    document = await _send(
+        cli_ctx,
+        "POST",
+        "/lists/subscriptions",
+        json={"peer_url": peer_url, "list_id": list_id},
+    )
+    if output_format == "json":
+        click.echo(format_llm_output(document, cli_ctx))
+        return
+    cli_ctx.log(
+        f"Subscribed to {document['name']} at {document['peer_url']}", "success"
+    )
+
+
+@lists.command("unsubscribe")
+@click.option("--peer", "peer_url", required=True, help="Node that serves the list")
+@click.option("--list", "list_id", required=True, help="Id of the list on that node")
+@standard_cli_command(
+    help_text="Stop following a curated list. Designs already stored stay.",
+    async_cmd=True,
+    handle_errors=True,
+)
+@click.pass_context
+async def unsubscribe_list_cmd(
+    ctx: click.Context,
+    peer_url: str,
+    list_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Forget a subscription."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    await _send(
+        cli_ctx,
+        "DELETE",
+        "/lists/subscriptions",
+        params={"peer_url": peer_url, "list_id": list_id},
+    )
+    if output_format == "json":
+        click.echo(
+            format_llm_output({"peer_url": peer_url, "list_id": list_id}, cli_ctx)
+        )
+        return
+    cli_ctx.log(f"Unsubscribed from {list_id}", "success")
 
 
 @lists.command("show")

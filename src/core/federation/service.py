@@ -11,7 +11,12 @@ from src.config.security_policy import get_security_policy
 
 from ..services.base import BaseService, ServiceConfig
 from ..utils.logging import get_logger
-from .catalog import CatalogIndex, build_catalog_index, build_catalog_summary
+from .catalog import (
+    CatalogIndex,
+    _shareable_leaves,
+    build_catalog_index,
+    build_catalog_summary,
+)
 from .discovery import MdnsAdvertiser, browse_mdns_peers
 from .identity import NodeIdentity, load_or_create_identity
 from .metrics import FederationMetricsCollector
@@ -326,6 +331,16 @@ class FederationService(BaseService["FederationService"]):
             if peer.followed or store.is_followed(peer.did):
                 peer = peer.model_copy(update={"followed": True})
                 result = await sync_with_peer(self, peer)
+                self.record_sync_result(result, background=background)
+                results.append(result)
+        if store.load_subscriptions():
+            from ..services.okh_service import OKHService
+            from .subscriptions import sync_subscribed_lists
+
+            okh = await OKHService.get_instance()
+            leaves = await _shareable_leaves(okh, 10_000)
+            local_hashes = {content_hash for _manifest, _body, content_hash in leaves}
+            for result in await sync_subscribed_lists(store, okh, local_hashes):
                 self.record_sync_result(result, background=background)
                 results.append(result)
         return results

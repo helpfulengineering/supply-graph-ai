@@ -23,7 +23,11 @@ from src.core.api.models.federation.response import (
     SyncPeerResultResponse,
     SyncRunResponse,
 )
-from src.core.api.dependencies import get_current_user, require_write
+from src.core.api.dependencies import (
+    get_current_user,
+    require_admin_strict,
+    require_write,
+)
 from src.core.models.auth import AuthenticatedUser
 from src.core.services.auth_service import AuthenticationService
 from src.core.federation.identity import NodeIdentity
@@ -37,8 +41,15 @@ from src.core.federation.store import FederationStore
 from src.core.federation.models import (
     CuratedList,
     CuratedListWrite,
+    ListSubscription,
+    ListSubscriptionWrite,
     SyncDigest,
     SyncDigestResponse,
+)
+from src.core.federation.subscriptions import (
+    ListSignatureInvalid,
+    subscribe,
+    unsubscribe,
 )
 from src.core.federation.package_fetch import PEER_DID_HEADER, fetch_package_from_peer
 from src.core.federation.package_pointer import (
@@ -551,6 +562,61 @@ async def list_curated_lists(
 ) -> list[CuratedList]:
     """Every list this node publishes. Each document carries its own signature."""
     return _store(service).load_lists()
+
+
+@router.post(
+    "/lists/subscriptions",
+    response_model=ListSubscription,
+    status_code=status.HTTP_201_CREATED,
+    summary="Subscribe to a peer's curated list",
+)
+async def subscribe_to_list(
+    body: ListSubscriptionWrite,
+    service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_admin_strict),
+) -> ListSubscription:
+    """A follow scoped to one list. The publisher's signature must verify."""
+    try:
+        return await subscribe(_store(service), body.peer_url, body.list_id)
+    except ListSignatureInvalid as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The list signature does not verify",
+        ) from exc
+
+
+@router.get(
+    "/lists/subscriptions",
+    response_model=list[ListSubscription],
+    summary="List curated-list subscriptions",
+)
+async def list_subscriptions(
+    service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_admin_strict),
+) -> list[ListSubscription]:
+    """The lists this node follows, and which node serves each one."""
+    return _store(service).load_subscriptions()
+
+
+@router.delete(
+    "/lists/subscriptions",
+    response_model=ListSubscription,
+    summary="Unsubscribe from a peer's curated list",
+)
+async def unsubscribe_from_list(
+    peer_url: str,
+    list_id: str,
+    service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_admin_strict),
+) -> ListSubscription:
+    """Stop pulling that list. Designs already stored stay."""
+    removed = unsubscribe(_store(service), peer_url, list_id)
+    if removed is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No subscription for that list",
+        )
+    return removed
 
 
 @router.get(

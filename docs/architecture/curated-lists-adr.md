@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. Publishing is implemented (#580). Subscribing is not.
+Accepted. Publishing (#580) and subscribing (#581) are implemented. Keep-and-mark is not.
 
 ## Date
 

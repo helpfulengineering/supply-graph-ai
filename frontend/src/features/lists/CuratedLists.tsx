@@ -6,10 +6,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchCuratedList,
   listCuratedLists,
+  listSubscriptions,
   publishCuratedList,
   replaceCuratedList,
+  subscribeToList,
+  unsubscribeFromList,
   type CuratedList,
   type CuratedListWrite,
+  type ListSubscriptionWrite,
 } from "../../api/ohm/federation";
 import { ApiError } from "../../api/ohm/client";
 import { PageHero } from "../../components/layout/PageHero";
@@ -125,6 +129,54 @@ function PublishForm({
   );
 }
 
+function SubscribeForm({
+  onSubmit,
+  pending,
+}: {
+  onSubmit: (body: ListSubscriptionWrite) => void;
+  pending: boolean;
+}) {
+  const [peer, setPeer] = useState("");
+  const [listId, setListId] = useState("");
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit({ peer_url: peer.trim(), list_id: listId.trim() });
+      }}
+    >
+      <div className="space-y-1">
+        <label className={LABEL} htmlFor="subscribe-peer">
+          Peer
+        </label>
+        <input
+          id="subscribe-peer"
+          className={FIELD_MONO}
+          value={peer}
+          onChange={(event) => setPeer(event.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-1">
+        <label className={LABEL} htmlFor="subscribe-list">
+          List
+        </label>
+        <input
+          id="subscribe-list"
+          className={FIELD_MONO}
+          value={listId}
+          onChange={(event) => setListId(event.target.value)}
+          required
+        />
+      </div>
+      <Button type="submit" disabled={pending}>
+        Subscribe
+      </Button>
+    </form>
+  );
+}
+
 function failure(err: unknown): string {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
@@ -138,6 +190,36 @@ export function CuratedListsPage() {
   const lists = useQuery({
     queryKey: ["federation", "lists"],
     queryFn: listCuratedLists,
+  });
+  const subscriptions = useQuery({
+    queryKey: ["federation", "subscriptions"],
+    queryFn: listSubscriptions,
+  });
+  const subscribe = useMutation({
+    mutationFn: subscribeToList,
+    onSuccess: () => {
+      setError(null);
+      void queryClient.invalidateQueries({
+        queryKey: ["federation", "subscriptions"],
+      });
+    },
+    onError: (err) => {
+      reportAuthFailure(err);
+      setError(failure(err));
+    },
+  });
+  const unsubscribe = useMutation({
+    mutationFn: (body: ListSubscriptionWrite) =>
+      unsubscribeFromList(body.peer_url, body.list_id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["federation", "subscriptions"],
+      });
+    },
+    onError: (err) => {
+      reportAuthFailure(err);
+      setError(failure(err));
+    },
   });
   const publish = useMutation({
     mutationFn: publishCuratedList,
@@ -183,16 +265,47 @@ export function CuratedListsPage() {
           )}
         </ul>
       )}
+      {subscriptions.data && subscriptions.data.length > 0 && (
+        <ul className="space-y-2">
+          {subscriptions.data.map((subscription) => (
+            <li key={`${subscription.peer_url}:${subscription.list_id}`}>
+              <span className="font-medium">{subscription.name}</span>
+              <span className={cn(BODY_MUTED, "ml-2")}>{subscription.peer_url}</span>
+              {signedIn && (
+                <Button
+                  type="button"
+                  className="ml-2"
+                  disabled={unsubscribe.isPending}
+                  onClick={() =>
+                    unsubscribe.mutate({
+                      peer_url: subscription.peer_url,
+                      list_id: subscription.list_id,
+                    })
+                  }
+                >
+                  Unsubscribe
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {signedIn && error && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+      {signedIn && (
+        <SubscribeForm
+          pending={subscribe.isPending}
+          onSubmit={(body) => subscribe.mutate(body)}
+        />
+      )}
       {signedIn && (
         <section aria-labelledby="publish-list-heading" className={PANEL}>
           <h2 id="publish-list-heading" className={SECTION_TITLE}>
             Publish a list
           </h2>
-          {error && (
-            <p className="mb-3 text-sm text-destructive" role="alert">
-              {error}
-            </p>
-          )}
           <PublishForm
             submitLabel="Publish"
             pending={publish.isPending}
