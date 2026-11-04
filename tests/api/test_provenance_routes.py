@@ -90,3 +90,47 @@ async def test_get_okw_provenance_returns_record():
         assert resp.json()["on_behalf_of"] == "did:key:zSpace"
     finally:
         api_v1.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_a_legacy_organisation_is_reported_unverified():
+    from src.core.api.routes.okh import get_okh_service
+
+    app, api_v1 = _get_app()
+    svc = MagicMock()
+    svc.get_provenance = AsyncMock(
+        return_value=RecordProvenance(
+            published_by="did:key:zAuthor",
+            on_behalf_of="did:key:zLegacy",
+        )
+    )
+    api_v1.dependency_overrides[get_okh_service] = lambda: svc
+    try:
+        async with await _client(app) as client:
+            resp = await client.get(f"/v1/api/okh/{uuid4()}/provenance")
+        assert resp.status_code == 200, resp.text
+        assert resp.json()["organisation_verified"] is False
+    finally:
+        api_v1.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_a_valid_chain_is_reported_verified():
+    from src.core.api.routes.okh import get_okh_service
+    from tests.federation.test_organisation_chain import _chain
+
+    app, api_v1 = _get_app()
+    svc = MagicMock()
+    svc.get_provenance = AsyncMock(return_value=_chain())
+    api_v1.dependency_overrides[get_okh_service] = lambda: svc
+    try:
+        async with await _client(app) as client:
+            resp = await client.get(f"/v1/api/okh/{uuid4()}/provenance")
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["organisation_verified"] is True
+        assert "signed_at" in body
+    finally:
+        api_v1.dependency_overrides.clear()

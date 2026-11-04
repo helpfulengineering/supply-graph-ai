@@ -128,7 +128,14 @@ author's signature when the claim is signed — a *signed-but-invalid* claim is
 rejected, an unsigned claim is relayed as an unverified assertion — then re-stamps
 it into its own provenance plane. So a design authored by user U at node A shows U
 as author after syncing to node B. A design published for an organisation still
-names that organisation.
+names that organisation. The receiving node checks that organisation's evidence
+chain offline: the space claim, the admin's publish grant to the member, and
+the member's signature, at the time the member signed. A chain that holds is
+`organisation_verified`. A missing, tampered, or expired-at-signing chain, or
+one issued by someone who is not the claimed admin, is kept and shown as
+unverified — this node could not check. A grant that has since lapsed does not
+unset a chain that held when the record was signed. `ohm okh provenance` and
+`ohm okw provenance` report the verdict, and so does the record.
 
 ## Record visibility (share policy)
 

@@ -14,6 +14,7 @@ describe("isSyncedFacilityProvenance", () => {
         on_behalf_of: null,
         signed_by: null,
         signature: "",
+        organisation_verified: false,
       }),
     ).toBe(true);
   });
@@ -26,6 +27,7 @@ describe("isSyncedFacilityProvenance", () => {
         on_behalf_of: null,
         signed_by: null,
         signature: "",
+        organisation_verified: false,
       }),
     ).toBe(false);
     expect(isSyncedFacilityProvenance(null)).toBe(false);

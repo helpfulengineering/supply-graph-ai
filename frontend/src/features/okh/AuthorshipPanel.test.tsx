@@ -22,6 +22,39 @@ function renderPanel() {
 }
 
 describe("AuthorshipPanel", () => {
+  it("shows an organisation this node could not check as unverified", async () => {
+    server.use(
+      http.get("*/v1/api/okh/d1/provenance", () =>
+        HttpResponse.json({
+          authored_by: [],
+          published_by: "did:key:zAda",
+          on_behalf_of: "did:key:zFab",
+          organisation_verified: false,
+        }),
+      ),
+    );
+    renderPanel();
+    expect(await screen.findByText("did:key:zFab")).toBeInTheDocument();
+    expect(
+      screen.getByText("Unverified — this node could not check"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a chain that holds as verified", async () => {
+    server.use(
+      http.get("*/v1/api/okh/d1/provenance", () =>
+        HttpResponse.json({
+          authored_by: [],
+          published_by: "did:key:zAda",
+          on_behalf_of: "did:key:zFab",
+          organisation_verified: true,
+        }),
+      ),
+    );
+    renderPanel();
+    expect(await screen.findByText("Verified")).toBeInTheDocument();
+  });
+
   it("attributes this design to an organisation the caller holds", async () => {
     setToken("tok");
     let posted: unknown = null;

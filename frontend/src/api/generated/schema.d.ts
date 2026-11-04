@@ -432,7 +432,7 @@ export interface paths {
         };
         /**
          * Get OKH manifest provenance
-         * @description Return the authorship/publication provenance recorded for a manifest.
+         * @description Return the authorship/publication provenance recorded for a manifest. organisation_verified is this node's offline check of the evidence chain.
          */
         get: operations["get_okh_provenance_api_okh__id__provenance_get"];
         put?: never;
@@ -1498,7 +1498,7 @@ export interface paths {
         };
         /**
          * Get OKW facility provenance
-         * @description Return the authorship/publication provenance recorded for a facility.
+         * @description Return the authorship/publication provenance recorded for a facility. organisation_verified is this node's offline check of the evidence chain.
          */
         get: operations["get_okw_provenance_api_okw__id__provenance_get"];
         put?: never;
@@ -9651,6 +9651,34 @@ export interface components {
             notes: string;
         };
         /**
+         * ProvenanceResponse
+         * @description Provenance plus this node's verdict. The verdict is computed, never stored.
+         */
+        ProvenanceResponse: {
+            /** Authored By */
+            authored_by?: components["schemas"]["Credit"][];
+            /** Published By */
+            published_by?: string | null;
+            /** On Behalf Of */
+            on_behalf_of?: string | null;
+            /** Signed By */
+            signed_by?: string | null;
+            /** Signed At */
+            signed_at?: string | null;
+            /**
+             * Signature
+             * @default
+             */
+            signature: string;
+            space_claim?: components["schemas"]["SpaceClaim"] | null;
+            affiliation?: components["schemas"]["CapabilityGrant"] | null;
+            /**
+             * Organisation Verified
+             * @default false
+             */
+            organisation_verified: boolean;
+        };
+        /**
          * ProviderStatus
          * @description Status information for an LLM provider.
          */
@@ -9794,6 +9822,8 @@ export interface components {
             on_behalf_of?: string | null;
             /** Signed By */
             signed_by?: string | null;
+            /** Signed At */
+            signed_at?: string | null;
             /**
              * Signature
              * @default
@@ -12566,7 +12596,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecordProvenance"];
+                    "application/json": components["schemas"]["ProvenanceResponse"];
                 };
             };
             /** @description Bad Request */
@@ -12620,7 +12650,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecordProvenance"];
+                    "application/json": components["schemas"]["ProvenanceResponse"];
                 };
             };
             /** @description Bad Request */
@@ -15148,7 +15178,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecordProvenance"];
+                    "application/json": components["schemas"]["ProvenanceResponse"];
                 };
             };
             /** @description Bad Request */
@@ -15202,7 +15232,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecordProvenance"];
+                    "application/json": components["schemas"]["ProvenanceResponse"];
                 };
             };
             /** @description Bad Request */

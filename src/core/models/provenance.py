@@ -9,11 +9,12 @@ The organisation named in ``on_behalf_of`` does not sign.
 See ``notes/federated-identity-adr.md`` §4.3 / §4.3.1.
 """
 
+from datetime import datetime
 from typing import List, Literal, Optional
 from uuid import UUID
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_serializer, model_validator
 
 from .capability import CapabilityGrant
 from .space import SpaceClaim
@@ -86,6 +87,9 @@ class RecordProvenance(BaseModel):
     published_by: Optional[str] = None  # publisher DID
     on_behalf_of: Optional[str] = None  # space DID a record is published for
     signed_by: Optional[str] = None  # DID whose key signed this provenance
+    signed_at: Optional[datetime] = (
+        None  # when the member signed; binds the grant window
+    )
     signature: str = ""  # hex over signing_payload()
     # The affiliation that authorised on_behalf_of. Each object is signed by
     # its own key. Neither enters signing_payload, so the member's signature
@@ -94,9 +98,18 @@ class RecordProvenance(BaseModel):
     space_claim: Optional[SpaceClaim] = None
     affiliation: Optional[CapabilityGrant] = None
 
+    @model_serializer(mode="wrap")
+    def _omit_absent_signing_time(self, handler, _info):
+        # Records signed before the chain carried a time have no key. Dumping
+        # null would change the catalog payload those nodes already signed.
+        data = handler(self)
+        if isinstance(data, dict) and data.get("signed_at") is None:
+            data.pop("signed_at")
+        return data
+
     def signing_payload(self) -> dict:
         """Deterministic, signature-free payload (the claimed facts only)."""
-        return {
+        payload = {
             "authored_by": [
                 {
                     "subject_did": c.subject_did,
@@ -108,6 +121,11 @@ class RecordProvenance(BaseModel):
             "published_by": self.published_by,
             "on_behalf_of": self.on_behalf_of,
         }
+        # Absent on records signed before the chain carried a time, so their
+        # signatures still verify. Present, it is covered by the signature.
+        if self.signed_at is not None:
+            payload["signed_at"] = self.signed_at.isoformat()
+        return payload
 
 
 def sign_provenance(
@@ -119,9 +137,65 @@ def sign_provenance(
     # here would form a cycle.
     from ..federation.identity import sign_payload
 
+    if provenance.signed_at is None:
+        provenance.signed_at = datetime.utcnow()
     provenance.signed_by = signer_did
     provenance.signature = sign_payload(private_key, provenance.signing_payload())
     return provenance
+
+
+def organisation_verified(provenance: RecordProvenance) -> bool:
+    """True when the embedded chain shows this organisation authorised the record.
+
+    Offline: signatures only, against the keys named in the chain, at the time
+    the member signed. A grant that has since lapsed still holds. A missing or
+    broken chain does not.
+    """
+    from ..federation.identity import verify_payload
+
+    claim = provenance.space_claim
+    grant = provenance.affiliation
+    signed_at = provenance.signed_at
+    if (
+        not provenance.on_behalf_of
+        or claim is None
+        or grant is None
+        or signed_at is None
+        or not verify_provenance(provenance)
+    ):
+        return False
+    if (
+        claim.space_did != provenance.on_behalf_of
+        or grant.issuer_did != claim.admin_did
+    ):
+        return False
+    if not verify_payload(claim.space_did, claim.signing_payload(), claim.signature):
+        return False
+    if (
+        grant.subject_did != provenance.signed_by
+        or grant.scope.kind != "space"
+        or grant.scope.target != provenance.on_behalf_of
+        or "publish" not in grant.permissions
+    ):
+        return False
+    if not verify_payload(grant.issuer_did, grant.signing_payload(), grant.signature):
+        return False
+    if grant.not_before and signed_at < grant.not_before:
+        return False
+    return signed_at < grant.expires_at
+
+
+class ProvenanceResponse(RecordProvenance):
+    """Provenance plus this node's verdict. The verdict is computed, never stored."""
+
+    organisation_verified: bool = False
+
+
+def present_provenance(provenance: RecordProvenance) -> ProvenanceResponse:
+    return ProvenanceResponse(
+        **provenance.model_dump(),
+        organisation_verified=organisation_verified(provenance),
+    )
 
 
 def verify_provenance(provenance: RecordProvenance) -> bool:

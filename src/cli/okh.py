@@ -525,7 +525,7 @@ async def get(
 @okh_group.command()
 @click.argument("manifest_id", type=str)
 @standard_cli_command(
-    help_text="Show the authorship/publication provenance recorded for a manifest.",
+    help_text="Show a manifest's authorship, including whether its organisation verified.",
     epilog="""
     Examples:
       ohm okh provenance 123e4567-e89b-12d3-a456-426614174000

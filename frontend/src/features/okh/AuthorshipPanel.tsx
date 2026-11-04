@@ -55,8 +55,15 @@ function ProvenanceBody({ data }: { data: RecordProvenance }) {
       {data.on_behalf_of && (
         <div>
           <dt className={SECTION_LABEL_SM}>On behalf of</dt>
-          <dd className="mt-1 break-all font-mono text-xs">
-            {data.on_behalf_of}
+          <dd className="mt-1">
+            <span className="break-all font-mono text-xs">
+              {data.on_behalf_of}
+            </span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              {data.organisation_verified
+                ? "Verified"
+                : "Unverified — this node could not check"}
+            </span>
           </dd>
         </div>
       )}
