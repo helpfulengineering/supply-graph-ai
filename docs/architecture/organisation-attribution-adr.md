@@ -9,7 +9,8 @@ CLI, and a sole affiliation is the default on new records (#578). The owner
 of an existing record can add or remove that organisation later; the content
 hash does not change (#589). A receiving node checks the chain offline and
 shows the organisation as verified or unverified; a failed chain is kept
-(#588). Supersedes
+(#588). A collection zip carries that chain and not the sender's visibility
+(#579). Supersedes
 rung 0 of the [Facility claim ladder](facility-claim-ladder-adr.md) for
 `on_behalf_of`.
 

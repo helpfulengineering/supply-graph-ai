@@ -219,6 +219,99 @@ def test_diff_symmetric():
     assert result["only_local"][0]["title"] == "Beta"
 
 
+def test_a_carried_chain_keeps_the_verdict_it_had():
+    from src.core.federation.catalog import manifest_content_hash
+    from src.core.models.provenance import organisation_verified
+    from src.core.packaging.collection import analyse_import, export_collection
+    from tests.federation.test_organisation_chain import _chain
+
+    manifest = _manifest("Widget")
+    held = _chain()
+    broken = _chain(tamper_claim=True)
+    archive = export_collection(
+        [manifest],
+        {str(manifest.id): held},
+    )
+    report, _incoming = analyse_import(archive, [])
+    restored = report.provenance[report.new[0]["content_hash"]]
+    assert report.new[0]["content_hash"] == manifest_content_hash(manifest.to_dict())
+    assert organisation_verified(restored)
+
+    other = _manifest("Other")
+    archive = export_collection([other], {str(other.id): broken})
+    report, _incoming = analyse_import(archive, [])
+    restored = report.provenance[report.new[0]["content_hash"]]
+    assert not organisation_verified(restored)
+
+
+def test_an_archive_without_provenance_still_imports():
+    from src.core.federation.catalog import manifest_content_hash
+    from src.core.packaging.collection import (
+        _INDEX_FILE,
+        _manifest_filename,
+        analyse_import,
+    )
+
+    manifest = _manifest("Widget")
+    body = manifest.to_dict()
+    content_hash = manifest_content_hash(body)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr(_manifest_filename(content_hash), json.dumps(body))
+        zf.writestr(
+            _INDEX_FILE,
+            json.dumps(
+                [
+                    {
+                        "content_hash": content_hash,
+                        "title": manifest.title,
+                        "version": manifest.version,
+                        "exported_at": "2020-01-01T00:00:00+00:00",
+                    }
+                ]
+            ),
+        )
+    report, incoming = analyse_import(buf.getvalue(), [])
+    assert len(incoming) == 1
+    assert report.provenance == {}
+
+
+def test_the_archive_does_not_carry_visibility():
+    from src.core.packaging.collection import export_collection
+
+    data = export_collection([_manifest("Widget")])
+    with zipfile.ZipFile(io.BytesIO(data)) as zf:
+        assert not any("visibility" in name for name in zf.namelist())
+
+
+def test_export_then_import_keeps_the_author_and_organisation():
+    from src.core.federation.identity import generate_identity
+    from src.core.models.provenance import (
+        Credit,
+        RecordProvenance,
+        sign_provenance,
+        verify_provenance,
+    )
+    from src.core.packaging.collection import analyse_import, export_collection
+
+    author = generate_identity("Ada")
+    manifest = _manifest("Widget")
+    provenance = RecordProvenance(
+        authored_by=[Credit(subject_did=author.did, role="author")],
+        published_by=author.did,
+        on_behalf_of="did:key:zFab",
+    )
+    sign_provenance(provenance, author.private_key, author.did)
+    archive = export_collection([manifest], {str(manifest.id): provenance})
+
+    report, incoming = analyse_import(archive, [])
+    assert len(incoming) == 1
+    restored = report.provenance[report.new[0]["content_hash"]]
+    assert restored.published_by == author.did
+    assert restored.on_behalf_of == "did:key:zFab"
+    assert verify_provenance(restored)
+
+
 def test_diff_entry_has_required_keys():
     from src.core.packaging.collection import diff_collection
 

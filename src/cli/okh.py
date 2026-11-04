@@ -3062,9 +3062,10 @@ def create_interactive(ctx, output: Optional[str], store: bool, output_format: s
 async def export_collection_cmd(ctx, output, verbose):
     """Export the local OKH collection as a portable zip archive.
 
-    The archive contains every stored manifest plus a collection-index.json,
-    keyed by content hash.  Pass the archive to another OHM node and run
-    'ohm okh import-collection' to ingest it.
+    The archive contains every stored manifest, its provenance, and a
+    collection-index.json, keyed by content hash. Visibility is not included:
+    the receiving node restamps it. Pass the archive to another OHM node and
+    run 'ohm okh import-collection' to ingest it.
 
     \b
     Examples:
@@ -3086,7 +3087,12 @@ async def export_collection_cmd(ctx, output, verbose):
         manifests, _ = await okh_service.list(page=1, page_size=10_000)
         if not manifests:
             raise click.ClickException("No OKH manifests found in local collection.")
-        return export_collection(manifests)
+        provenance_by_id = {}
+        for manifest in manifests:
+            found = await okh_service.get_provenance(manifest.id)
+            if found is not None:
+                provenance_by_id[str(manifest.id)] = found
+        return export_collection(manifests, provenance_by_id)
 
     try:
         archive_bytes = await http_export()
@@ -3117,7 +3123,8 @@ async def import_collection_cmd(ctx, archive, dry_run, verbose):
     """Import an OKH collection archive into the local store.
 
     Each manifest in the archive is classified as:
-    - new:       not present locally → will be imported
+    - new:       not present locally → imported, with its provenance if the
+      archive carries one. Visibility becomes this node's default.
     - duplicate: identical content hash already present → skipped
     - conflict:  same title/version but different content → skipped (logged)
 
@@ -3146,8 +3153,10 @@ async def import_collection_cmd(ctx, archive, dry_run, verbose):
         report, incoming = analyse_import(archive_bytes, local_manifests)
         imported = 0
         if not dry_run:
-            for manifest in incoming.values():
-                await okh_service.create(manifest)
+            for content_hash, manifest in incoming.items():
+                await okh_service.create(
+                    manifest, provenance=report.provenance.get(content_hash)
+                )
                 imported += 1
         return {
             "new": report.new,
