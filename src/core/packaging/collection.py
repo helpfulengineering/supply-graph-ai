@@ -7,10 +7,11 @@ import json
 import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from ..federation.catalog import manifest_content_hash
 from ..models.okh import OKHManifest
+from ..models.provenance import RecordProvenance
 
 _INDEX_FILE = "collection-index.json"
 
@@ -20,17 +21,33 @@ def _manifest_filename(content_hash: str) -> str:
     return f"manifests/sha256_{short}.okh.json"
 
 
+def _provenance_filename(content_hash: str) -> str:
+    short = content_hash.removeprefix("sha256:")[:12]
+    return f"provenance/sha256_{short}.json"
+
+
 @dataclass
 class ImportReport:
     new: List[dict] = field(default_factory=list)
     duplicate: List[dict] = field(default_factory=list)
     conflict: List[dict] = field(default_factory=list)
     imported: List[dict] = field(default_factory=list)
+    # Provenance for the new records, keyed by content hash. Absent for an
+    # archive written before provenance was carried.
+    provenance: Dict[str, RecordProvenance] = field(default_factory=dict)
 
 
-def export_collection(manifests: List[OKHManifest]) -> bytes:
-    """Return a zip archive containing all manifests and a collection-index.json."""
+def export_collection(
+    manifests: List[OKHManifest],
+    provenance_by_id: Optional[Dict[str, RecordProvenance]] = None,
+) -> bytes:
+    """Return a zip of the manifests, their provenance, and a collection-index.json.
+
+    Provenance rides beside the manifest, keyed by the same content hash, so it
+    never enters that hash. Visibility is not written: the receiver restamps it.
+    """
     exported_at = datetime.now(timezone.utc).isoformat()
+    carried = provenance_by_id or {}
     index = []
     buf = io.BytesIO()
 
@@ -42,6 +59,14 @@ def export_collection(manifests: List[OKHManifest]) -> bytes:
                 _manifest_filename(content_hash),
                 json.dumps(manifest_dict, indent=2, sort_keys=True),
             )
+            provenance = carried.get(str(manifest.id))
+            if provenance is not None:
+                zf.writestr(
+                    _provenance_filename(content_hash),
+                    json.dumps(
+                        provenance.model_dump(mode="json"), indent=2, sort_keys=True
+                    ),
+                )
             index.append(
                 {
                     "content_hash": content_hash,
@@ -86,6 +111,12 @@ def analyse_import(
                 "title": manifest.title,
                 "version": manifest.version,
             }
+            provenance_name = _provenance_filename(content_hash)
+            provenance = (
+                RecordProvenance.model_validate(json.loads(zf.read(provenance_name)))
+                if provenance_name in zf.namelist()
+                else None
+            )
 
             if actual_hash in local_hashes:
                 report.duplicate.append(s)
@@ -94,6 +125,8 @@ def analyse_import(
             else:
                 report.new.append(s)
                 incoming[actual_hash] = manifest
+                if provenance is not None:
+                    report.provenance[actual_hash] = provenance
 
     return report, incoming
 

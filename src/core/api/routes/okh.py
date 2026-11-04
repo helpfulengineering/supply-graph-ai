@@ -394,7 +394,12 @@ async def export_collection_endpoint(
             status_code=404, detail="No OKH manifests found in collection"
         )
 
-    archive_bytes = export_collection(manifests)
+    provenance_by_id = {}
+    for manifest in manifests:
+        found = await okh_service.get_provenance(manifest.id)
+        if found is not None:
+            provenance_by_id[str(manifest.id)] = found
+    archive_bytes = export_collection(manifests, provenance_by_id)
     return Response(
         content=archive_bytes,
         media_type="application/zip",
@@ -1979,8 +1984,10 @@ async def import_collection_endpoint(
 
         imported = 0
         if not dry_run:
-            for manifest in incoming.values():
-                await okh_service.create(manifest)
+            for content_hash, manifest in incoming.items():
+                await okh_service.create(
+                    manifest, provenance=report.provenance.get(content_hash)
+                )
                 imported += 1
 
         return {

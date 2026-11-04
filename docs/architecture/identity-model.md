@@ -135,7 +135,11 @@ the member's signature, at the time the member signed. A chain that holds is
 one issued by someone who is not the claimed admin, is kept and shown as
 unverified — this node could not check. A grant that has since lapsed does not
 unset a chain that held when the record was signed. `ohm okh provenance` and
-`ohm okw provenance` report the verdict, and so does the record.
+`ohm okw provenance` report the verdict, and so does the record. A collection
+zip carries the same provenance, including the evidence chain, beside the
+manifest. Visibility is not in the archive: `ohm okh import-collection`
+restamps the receiving node's default, and a zip written before provenance
+was carried still imports.
 
 ## Record visibility (share policy)
 
