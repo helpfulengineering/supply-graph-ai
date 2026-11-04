@@ -33,8 +33,10 @@ Maps of Making entries have none: they come from a public directory, not from
 this instance.
 
 **Members** suits a volunteer sharing a home printer with the organisation that
-runs the instance. It is only as narrow as the instance's sign-up policy: if
-anyone can register, anyone can become a member.
+runs the instance. It is only as narrow as who can join. On an `open` node,
+anyone who registers becomes a member. An `invite` or `closed` node keeps
+membership to the people an operator let in. See
+[Join a node](join-a-node.md).
 
 Visibility governs **both** ways a record can leave: the federation catalogue
 that peer instances read, and this instance's own API. A private record is

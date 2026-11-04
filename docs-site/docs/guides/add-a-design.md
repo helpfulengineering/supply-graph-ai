@@ -72,6 +72,33 @@ licensing is a design people hesitate to build.
 You can add a design with the bare minimum and improve it later. A thin record
 that exists beats a perfect one that doesn't.
 
+## Publishing it for an organisation
+
+If an organisation's admin has affiliated you, you can publish a design on
+its behalf. The picker is labelled **On behalf of**. One affiliation is
+selected for you, including when you save from Generate. With several, you
+choose. None is allowed.
+
+You sign the design. The organisation's key is not used. The organisation is
+not part of the design's content hash, so the same bytes published by two
+people still match.
+
+A node that syncs the design shows the organisation as verified when it can
+check the chain as of the moment you signed, and unverified when it cannot.
+A lapsed affiliation does not change a design that was valid when you signed
+it. You can add or remove the organisation later, from the design, from your
+account, or with `ohm okh attribute`. Adding it requires a current
+affiliation. Removing it does not. A facility uses the same idea:
+`ohm okw attribute`.
+
+The organisation's admin affiliates you from **Settings → Organisations**, or:
+
+```bash
+ohm identity affiliate add did:key:zPerson --space did:key:zOrg
+```
+
+The affiliation expires. Renewal is that admin's act.
+
 ## What happens next
 
 Once a design is in, you can [find who can build it](find-who-can-build-it.md),

@@ -23,8 +23,9 @@ infrastructure they control. If that's not you, skip
 
 ## Become a member
 
-Reading OHM needs no account. Adding a design does. On most nodes you can
-register yourself at `/register`; see [Join a node](join-a-node.md) for what
+Reading OHM needs no account. Adding a design does. Whether you can register
+yourself is the node's choice — `open`, `invite`, or `closed` — and that
+choice overrides the security mode. See [Join a node](join-a-node.md) for what
 you get and what to keep safe.
 
 ## Add your design

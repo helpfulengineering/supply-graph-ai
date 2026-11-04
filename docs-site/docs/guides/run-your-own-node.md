@@ -169,6 +169,50 @@ needs it, and an unauthenticated Redis reachable from the internet is a
 well-known way to lose a server. The optional metrics container isn't started at
 all unless you ask for it, and listens only on localhost when you do.
 
+## Who may join
+
+Self-service registration follows a setting you store, and that setting
+overrides the security mode. Unset, `peacetime` and `crisis` are open and
+`shielded` is closed.
+
+```bash
+ohm identity registration --set invite
+```
+
+`open`, `invite`, or `closed`. This needs an admin key. `open` accepts a
+signup with no link. `closed` refuses every signup, including one that carries
+an invite. `invite` accepts a signup only from a link you minted.
+
+```bash
+ohm identity invite mint --ttl-days 14
+ohm identity invite mint --ttl-days 14 --use-limit 20
+ohm identity invite list
+ohm identity invite revoke INVITE_ID
+```
+
+Mint prints `/register?invite=...` once. The link is multi-use until it
+expires, you revoke it, or it reaches the use limit you set. The same controls
+are under **Settings → Invites**. The page a person opens names this node and
+who runs it.
+
+A coordinator can mint, list, and revoke those links, and can see who is on
+the node. Grant it with an admin key. The grant lasts 180 days in every
+security mode, and the command prints the expiry. **Settings → Grants** does
+the same.
+
+```bash
+ohm identity coordinate did:key:z...
+```
+
+What they get is **Settings → Invites** and **Settings → Members**. Members
+lists each account's display name and username, and each member's facilities:
+the name, the processes, and the visibility. The address and the rest of the
+record stay out. A coordinator does not get storage, language-model
+credentials, the security mode, or who may register. A coordinator does not
+read a private record, and their list of designs is the same as any other
+member's. Affiliating someone to an organisation stays with that
+organisation's admin.
+
 ## Configuration
 
 Everything else is optional. Copy the template when you want to change something:
@@ -255,6 +299,35 @@ Turn it on only when you actually intend to connect to other instances — at wh
 point you decide who to follow, and what leaves your instance, per record. See
 [federation and sovereignty](../about/federation-and-sovereignty.md) and
 [who can see your data](who-can-see-your-data.md).
+
+## Curated lists
+
+Following a node pulls every shareable design it publishes. A curated list is
+narrower: a named set of pinned versions. A later edit of a design does not
+move the list. The publisher bumps the pin on purpose.
+
+A node admin publishes one at **Lists** (`/lists`), or:
+
+```bash
+ohm federation lists publish --name "Field designs" --pin sha256:abc
+```
+
+An organisation's admin can publish a list for that organisation. A private or
+members-only design is refused, so a list never widens who can see a record.
+
+Subscribe from the same page, or:
+
+```bash
+ohm federation lists subscribe --peer https://peer.example --list field-designs
+```
+
+Sync then pulls those designs and nothing else from that node. A pin the
+publisher adds arrives on the next sync. When they bump a pin, you keep both
+versions and the old one is labelled superseded, with the hash that replaced
+it. When they remove a pin, you keep the design, labelled removed from the
+list. Nothing already stored is deleted because a list changed.
+`ohm federation lists marks` reads those labels. Unsubscribing stops the pull
+and leaves the designs you already have.
 
 ## Running it somewhere other than your laptop
 

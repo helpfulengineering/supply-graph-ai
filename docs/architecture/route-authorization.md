@@ -34,7 +34,11 @@ each row cites the source that says so. There are four, in two groups:
 - **onboarding and recovery** (`/identity/register`, `/identity/recover`),
   because a node operator should not be the only way to become someone on a
   node, and because the credential recovery returns is the one the caller lost.
-  These are gated by `SecurityPolicy.open_registration`, not by a key.
+  These are not gated by a key. Registration is gated by the stored setting
+  (`open`, `invite`, or `closed`), which overrides
+  `SecurityPolicy.open_registration`. Unset, that knob still decides.
+  `closed` refuses signup even with an invite. `invite` accepts it only with
+  a valid link.
 
 **`READS_EXPRESSED_AS_POST`** is for routes that use a mutating method only
 because the query needs a body. They are not writes, and a write permission on a

@@ -191,8 +191,15 @@ ohm identity register --display-name "Ada Lovelace"
 ```
 
 The issued key carries `read` and `write` and **never** `admin`. The token is
-returned once and is not recoverable. Shielded mode refuses registration
-(`open_registration=false`) — there, onboarding is a deliberate out-of-band act.
+returned once and is not recoverable. Who may register is a value the operator
+stores: `open`, `invite`, or `closed` (`ohm identity registration --set`, or
+`PUT /api/identity/registration`). Unset, peacetime and crisis are open and
+shielded is closed, which is what `open_registration` reports. A stored value
+overrides the mode, including opening registration on a shielded node. `open`
+needs no link. `invite` accepts a signup only with a valid invite. `closed`
+refuses signup even when the request carries one. An admin or a coordinator
+mints the link (`ohm identity invite mint`). The website form reached from
+that link names the node and its operator.
 
 This is what keeps a well-known node from being a structurally special one: any
 node that accepts registrations is as good a place to start as any other.
@@ -263,8 +270,8 @@ Three properties worth knowing, because they are deliberate:
 - **It never grants `admin`.** A recovered key carries `read` and `write`
   whatever the account held before: a way back in, never a way up.
 
-Shielded mode refuses self-service recovery, as it refuses registration —
-onboarding and recovery are both out-of-band acts there.
+Shielded mode refuses self-service recovery. Registration is a separate
+setting: a stored `open` or `invite` still lets people join a shielded node.
 
 Guessing is not what the rate limit on this endpoint defends against: the code
 is 256 bits of CSPRNG output, the same generator as an API token. The limit

@@ -99,9 +99,11 @@ means the collection is yours end to end — see
 [run your own node](run-your-own-node.md).
 
 **Who sees it.** Imported records follow the same visibility rules as anything
-else, and default to private. You can bring a collection in, look at it, and
-decide about sharing afterwards. See
-[who can see your data](who-can-see-your-data.md).
+else, and default to private. The archive does not copy the sender's
+visibility. It does carry who published each design, including an organisation,
+so that attribution survives the import. An archive written before that still
+imports. You can bring a collection in, look at it, and decide about sharing
+afterwards. See [who can see your data](who-can-see-your-data.md).
 
 ## Getting in touch
 
