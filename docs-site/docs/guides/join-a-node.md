@@ -10,19 +10,39 @@ You can read OHM without an account. Browsing designs, searching facilities,
 running a match — none of it needs a credential. An account is what lets you
 **write**: add a design, list a facility, save a match.
 
-On most nodes you can make one yourself.
+Whether you can make one yourself is a setting the operator stores: `open`,
+`invite`, or `closed`. That choice overrides the security mode. Unset,
+`peacetime` and `crisis` are open and `shielded` is closed. An operator can
+open registration on a shielded node, or close it on a peacetime one.
 
 ## Register
 
-Go to `/register`, or open the same form where you are — on Generate, when
-saving or when the language model asks for an account. The form names this
-node and who runs it. Choose a username, a password and a display name. The
-node creates an account and signs you in. The browser holds that session in a
-cookie. There is no token to copy.
+### Open, invite, or closed
 
-The two names are the node's own: `OHM_FEDERATION_NODE_NAME` (default `OHM
-Node`) and `OHM_NODE_OPERATOR` (default `the operator of this node`). They are
-shown whether or not federation is turned on.
+**Open.** Go to `/register`. No link is required. The same form also opens
+where you are — on Generate, when saving, or when the language model asks for
+an account.
+
+**Invite.** The form appears when you open a link you were sent,
+`/register?invite=...`. It names the node and who runs it. The link registers
+you only while the setting is `invite`, and only until it expires, is revoked,
+or runs out of uses. Opening `/register` with no link shows *"An invite is
+required"*. A link does not register you on a node set to `closed`.
+
+**Closed.** You see *"This node does not accept registrations"* instead of a
+form, including when the address still carries an old invite. Ask whoever runs
+the node for an account. A script still uses an API key they issue — see
+[Get a write key](get-a-write-key.md).
+
+### The form
+
+Choose a username, a password and a display name. The node creates an account
+and signs you in. The browser holds that session in a cookie. There is no
+token to copy.
+
+The form names this node and who runs it: `OHM_FEDERATION_NODE_NAME` (default
+`OHM Node`) and `OHM_NODE_OPERATOR` (default `the operator of this node`). They
+are shown whether or not federation is turned on.
 
 One thing appears once: a **recovery code**. Copy it or download it, and
 confirm you have saved it somewhere other than this browser, before
@@ -36,13 +56,6 @@ Signing in later is `/login`, with the same username and password.
 A script still uses an API key. `ohm identity register` prints one, and a key
 you already have can be pasted under Settings. That pasted key stays on this
 tab only. The website session does not.
-
-### If the node will not let you
-
-You will see *"This node does not accept registrations"* instead of a form.
-That is the node's choice: open registration is on in the `peacetime` and
-`crisis` postures and off in `shielded`. Ask whoever runs it for a key — see
-[Get a write key](get-a-write-key.md).
 
 ## Your account
 

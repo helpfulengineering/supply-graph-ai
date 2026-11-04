@@ -17,13 +17,17 @@ This page is about getting that key on a node you run.
 Two very different situations, and the difference matters more than anything
 else on this page.
 
-**Someone else's node** — register yourself, if the node lets you. Most do:
-open registration is on in both `peacetime` and `crisis` postures, and off only
-in `shielded`. On the website that is a username and password. See
+**Someone else's node** — register yourself, if the node lets you. Who may
+register is a setting the operator stores: `open`, `invite`, or `closed`. It
+overrides the security mode. Unset, `peacetime` and `crisis` are open and
+`shielded` is closed. `open` needs no link. An invite link,
+`/register?invite=...`, registers you only while the setting is `invite`.
+`closed` refuses signup, including a signup that carries a link. See
 [Join a node](join-a-node.md). This page is the API key a script uses.
 
-If registration is closed, the node's operator issues credentials instead. Ask
-them.
+If you cannot register, the node's operator issues the credential. Ask them.
+They set the choice, and mint, list, and revoke invites, as described in
+[Run your own node](run-your-own-node.md#who-may-join).
 
 **Your own node** — you already have everything you need. The rest of this page
 is for you.

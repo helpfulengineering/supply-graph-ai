@@ -54,6 +54,10 @@ networks.
 | `key_ttl_days` | 180 | 365 (offline grace) | 30 |
 | `admin_break_glass` | **no** | yes (recorded) | **no** |
 
+`open_registration` is the default when the operator has not stored a choice.
+The stored choice — `open`, `invite`, or `closed` — overrides it. See
+[What is wired today](#what-is-wired-today).
+
 ## Transport headers
 
 **HSTS** is sent on secure origins only, `max-age=31536000; includeSubDomains`.

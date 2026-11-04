@@ -1,6 +1,6 @@
 ---
 title: Federation and sovereignty
-reviewed: 2026-07-25
+reviewed: 2026-11-03
 ---
 
 # Federation and sovereignty
@@ -73,6 +73,7 @@ for.
 
 ## Choosing peers
 
-For now, sensible defaults. Deliberately curating a set of peers matters once
-groups of institutions start joining as groups, and we'd rather build that when
-there are real consortia to shape it than guess at it in advance.
+You choose which nodes to follow, and you can follow less than a whole node.
+A curated list is a named set of pinned designs. Subscribing pulls those
+designs, and later pins the publisher adds, and leaves the rest. See
+[Run your own node](../guides/run-your-own-node.md#curated-lists).
