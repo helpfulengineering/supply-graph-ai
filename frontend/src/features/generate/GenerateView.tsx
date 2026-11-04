@@ -48,6 +48,7 @@ import { ProvenanceRecord } from "./ProvenanceRecord";
 import { ReopenRecord } from "./ReopenRecord";
 import { LlmAccountNotice } from "./LlmAccountNotice";
 import { InlineSignup } from "../auth/InlineSignup";
+import { AffiliationPicker } from "../create/AffiliationPicker";
 import { useAuth } from "../../context/AuthContext";
 import {
   liveRecordFrom,
@@ -157,6 +158,7 @@ export function GenerateView() {
   const [signupOpen, setSignupOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [onBehalfOf, setOnBehalfOf] = useState("");
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -303,7 +305,9 @@ export function GenerateView() {
     setSaving(true);
     setSaveError(null);
     try {
-      const { id } = await createOkh(manifest);
+      const { id } = await createOkh(manifest, {
+        onBehalfOf: onBehalfOf.trim() || undefined,
+      });
       if (provenance) await putGenerationProvenance(id, provenance);
       router.push(`/okh/${id}`);
     } catch (err) {
@@ -565,6 +569,15 @@ export function GenerateView() {
           </div>
 
           {provenance && <ProvenanceRecord record={provenance} />}
+
+          {signedIn && (
+            <AffiliationPicker
+              value={onBehalfOf}
+              onChange={setOnBehalfOf}
+              disabled={saving}
+              className={`${FIELD} mt-1 w-full max-w-sm`}
+            />
+          )}
 
           <div className="flex flex-wrap items-center gap-3">
             <button

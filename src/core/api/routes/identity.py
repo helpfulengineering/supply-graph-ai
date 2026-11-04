@@ -66,6 +66,8 @@ from ..dependencies import (
 )
 from ..models.base import SuccessResponse
 from ..models.identity.policy import (
+    AdministeredOrganisation,
+    AffiliationCreate,
     AffiliationSummary,
     CoordinateGrant,
     InviteMint,
@@ -218,6 +220,66 @@ async def issue_coordinate(
 ) -> CapabilityGrant:
     """Make ``subject_did`` a coordinator here. The response shows the expiry."""
     return await svc.issue_coordinate_grant(payload.subject_did)
+
+
+@router.post(
+    "/affiliations",
+    response_model=CapabilityGrant,
+    status_code=status.HTTP_201_CREATED,
+    summary="Affiliate a person to an organisation",
+)
+async def affiliate_member(
+    payload: AffiliationCreate,
+    user: AuthenticatedUser = Depends(get_current_user),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> CapabilityGrant:
+    """The organisation's admin issues a space-scoped publish grant."""
+    return await svc.affiliate(user.subject_did, payload.space_did, payload.subject_did)
+
+
+@router.delete(
+    "/affiliations/{grant_id}",
+    response_model=SuccessResponse,
+    summary="Unaffiliate a person",
+)
+async def unaffiliate_member(
+    grant_id: UUID = Path(...),
+    user: AuthenticatedUser = Depends(get_current_user),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> SuccessResponse:
+    """The organisation's admin revokes the publish grant."""
+    await svc.unaffiliate(user.subject_did, grant_id)
+    return SuccessResponse(success=True, message=f"Affiliation {grant_id} revoked")
+
+
+@router.post(
+    "/affiliations/{grant_id}/renew",
+    response_model=CapabilityGrant,
+    status_code=status.HTTP_201_CREATED,
+    summary="Renew an affiliation",
+)
+async def renew_affiliation(
+    grant_id: UUID = Path(...),
+    user: AuthenticatedUser = Depends(get_current_user),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> CapabilityGrant:
+    """The organisation's admin issues a fresh publish grant and retires the old one."""
+    return await svc.renew_affiliation(user.subject_did, grant_id)
+
+
+@router.get(
+    "/affiliations/administered",
+    response_model=List[AdministeredOrganisation],
+    summary="Organisations the caller administers",
+)
+async def list_administered_affiliations(
+    user: AuthenticatedUser = Depends(get_current_user),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> List[AdministeredOrganisation]:
+    """Members of organisations this person administers, with each grant's expiry."""
+    if not user.subject_did:
+        return []
+    return await svc.list_administered(user.subject_did)
 
 
 @router.get(

@@ -105,13 +105,14 @@ async def test_verify_and_store_persists_followed_record(tmp_path) -> None:
     assert okh_service.create.call_args.kwargs["verbatim"] is True
 
 
-def _signed_provenance():
+def _signed_provenance(on_behalf_of=None):
     from src.core.models.provenance import Credit, RecordProvenance, sign_provenance
 
     author = generate_identity("Ada")
     prov = RecordProvenance(
         authored_by=[Credit(subject_did=author.did, role="author")],
         published_by=author.did,
+        on_behalf_of=on_behalf_of,
     )
     sign_provenance(prov, author.private_key, author.did)
     return author, prov
@@ -148,7 +149,7 @@ async def test_provenance_survives_catalog_to_ingest_round_trip(tmp_path) -> Non
     from src.core.federation.catalog import build_catalog_index
 
     node_a = generate_identity("Node A")
-    author, prov = _signed_provenance()
+    author, prov = _signed_provenance(on_behalf_of="did:key:zFabLab")
 
     manifest = MagicMock()
     manifest.id = UUID(MINIMAL_MANIFEST["id"])
@@ -195,6 +196,7 @@ async def test_provenance_survives_catalog_to_ingest_round_trip(tmp_path) -> Non
     assert result.action == "stored"
     _, kwargs = okh_b.create.call_args
     assert kwargs["provenance"].authored_by[0].subject_did == author.did
+    assert kwargs["provenance"].on_behalf_of == "did:key:zFabLab"
 
 
 @pytest.mark.unit

@@ -89,6 +89,30 @@ class MemberFacilitySummary(BaseModel):
     visibility: str
 
 
+class AdministeredMember(BaseModel):
+    """One person affiliated to an organisation the caller administers."""
+
+    subject_did: str
+    display_name: str
+    grant_id: UUID
+    expires_at: datetime
+
+
+class AdministeredOrganisation(BaseModel):
+    """An organisation whose claimed admin is the caller, and its members."""
+
+    space_did: str
+    display_name: str
+    members: List[AdministeredMember]
+
+
+class AffiliationCreate(BaseModel):
+    """The organisation admin affiliating a person."""
+
+    space_did: str
+    subject_did: str
+
+
 class AffiliationSummary(BaseModel):
     """One organisation the caller may publish for."""
 

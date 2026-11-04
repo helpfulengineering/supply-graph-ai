@@ -31,6 +31,8 @@ export type Account = components["schemas"]["Account"];
 export type AccountCreate = components["schemas"]["AccountCreate"];
 export type Identity = components["schemas"]["Identity"];
 export type IdentityMint = components["schemas"]["IdentityMint"];
+export type AdministeredOrganisation =
+  components["schemas"]["AdministeredOrganisation"];
 export type AffiliationSummary = components["schemas"]["AffiliationSummary"];
 export type CapabilityGrant = components["schemas"]["CapabilityGrant"];
 export type GrantIssue = components["schemas"]["GrantIssue"];
@@ -152,6 +154,69 @@ export async function issueCoordinate(
     throw new ApiError(
       response.status,
       errorMessage(error, "Failed to grant coordinate"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function listAdministered(): Promise<AdministeredOrganisation[]> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/identity/affiliations/administered",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to load organisations"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function affiliateMember(
+  spaceDid: string,
+  subjectDid: string,
+): Promise<CapabilityGrant> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/affiliations",
+    { body: { space_did: spaceDid, subject_did: subjectDid } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to affiliate"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function unaffiliateMember(grantId: string): Promise<void> {
+  const { error, response } = await apiClient.DELETE(
+    "/api/identity/affiliations/{grant_id}",
+    { params: { path: { grant_id: grantId } } },
+  );
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to unaffiliate"),
+      requestIdFromError(error, response),
+    );
+  }
+}
+
+export async function renewAffiliation(
+  grantId: string,
+): Promise<CapabilityGrant> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/identity/affiliations/{grant_id}/renew",
+    { params: { path: { grant_id: grantId } } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to renew affiliation"),
       requestIdFromError(error, response),
     );
   }

@@ -98,6 +98,9 @@ manifest or OKW facility.
   `on_behalf_of` (a space DID). The **publisher** signs it. `on_behalf_of` is
   accepted only when the caller holds a current affiliation to that
   organisation, and the organisation's key is not used to sign the claim.
+  The organisation's admin issues that grant, and renews or revokes it. Its
+  lifetime is the security mode's grant lifetime. A member with one affiliation
+  publishes new records for that organisation unless they choose otherwise.
 - Provenance lives in its **own store** keyed by record id, deliberately *outside*
   the manifest, so it never enters the design **content hash** — the same design
   published by two people still deduplicates.
@@ -120,7 +123,8 @@ the manifest, so it never enters the content hash). On ingest a peer verifies th
 author's signature when the claim is signed — a *signed-but-invalid* claim is
 rejected, an unsigned claim is relayed as an unverified assertion — then re-stamps
 it into its own provenance plane. So a design authored by user U at node A shows U
-as author after syncing to node B.
+as author after syncing to node B. A design published for an organisation still
+names that organisation.
 
 ## Record visibility (share policy)
 
