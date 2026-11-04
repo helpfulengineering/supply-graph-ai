@@ -91,7 +91,8 @@ These are load-bearing, non-obvious, and each has already caused a real defect.
 - **Record lists are viewer-scoped.** `list(viewer=...)` returns shareable
   records plus the caller's own; `admin` buys nothing extra. `viewer=None` means
   *unscoped* and exists for trusted internal callers only — the federation
-  catalogue builder and the CLI. A request handler that lists without a scope
+  catalogue builder, curated-list publishing (it has to see a private design
+  in order to refuse it), and the CLI. A request handler that lists without a scope
   serves every private record on the node to anyone who asks;
   `tests/parity/test_viewer_scope_ratchet.py` fails the build if one does.
 

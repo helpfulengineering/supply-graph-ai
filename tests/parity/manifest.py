@@ -144,7 +144,8 @@ AREAS: tuple[Area, ...] = (
         "federation",
         "exposed",
         note="No federation_service module; logic lives under src/core/federation/. "
-        "Settings → Federation (F6) calls /api/federation.",
+        "Settings → Federation (F6) calls /api/federation. Curated lists have their own page.",
+        fe_routes=("/lists",),
         fe_api_prefixes=("/api/federation",),
     ),
     Area(

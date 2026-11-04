@@ -23,8 +23,23 @@ from src.core.api.models.federation.response import (
     SyncPeerResultResponse,
     SyncRunResponse,
 )
-from src.core.api.dependencies import require_write
-from src.core.federation.models import SyncDigest, SyncDigestResponse
+from src.core.api.dependencies import get_current_user, require_write
+from src.core.models.auth import AuthenticatedUser
+from src.core.services.auth_service import AuthenticationService
+from src.core.federation.identity import NodeIdentity
+from src.core.federation.lists import (
+    ListNotShareable,
+    SupersedesUnknown,
+    publish_curated_list,
+    replace_curated_list,
+)
+from src.core.federation.store import FederationStore
+from src.core.federation.models import (
+    CuratedList,
+    CuratedListWrite,
+    SyncDigest,
+    SyncDigestResponse,
+)
 from src.core.federation.package_fetch import PEER_DID_HEADER, fetch_package_from_peer
 from src.core.federation.package_pointer import (
     find_package_dir_by_bundle_hash,
@@ -46,6 +61,62 @@ router = APIRouter(
 
 async def get_federation_service() -> FederationService:
     return await FederationService.get_instance()
+
+
+async def _signing_identity(
+    user: AuthenticatedUser,
+    publisher_did: str | None,
+    service: FederationService,
+) -> NodeIdentity:
+    """The key that signs this list, after the caller is allowed to use it.
+
+    A node list is signed by the node identity, and only a node admin may
+    publish it. An organisation list is signed by the space key, and only the
+    claimed admin may ask this node to make that signature.
+    """
+    if service.identity is None:
+        raise RuntimeError("Federation identity not loaded")
+    auth = await AuthenticationService.get_instance()
+    requested = publisher_did or service.identity.did
+    if requested == service.identity.did:
+        if not await auth.check_permission(
+            user, ["admin"], scope=auth.local_node_scope()
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This operation requires the 'admin' permission",
+            )
+        return service.identity
+    claim = await auth.get_space_claim(requested)
+    if claim is None or user.subject_did != claim.admin_did:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only that organisation's admin can publish its list.",
+        )
+    key = (
+        auth._identity_store.load_signing_key(requested)
+        if auth._identity_store is not None
+        else None
+    )
+    if key is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No signing key held for that organisation.",
+        )
+    return key
+
+
+def _store(service: FederationService) -> FederationStore:
+    if service.store is None:
+        raise RuntimeError("Federation store not loaded")
+    return service.store
+
+
+async def get_okh_for_lists():
+    """Designs a curated list may pin. Overridable in tests."""
+    from src.core.services.okh_service import OKHService
+
+    return await OKHService.get_instance()
 
 
 async def require_federation_api(
@@ -443,3 +514,101 @@ async def run_okw_sync(
         results=response_results,
         total_pulled=sum(r.pulled for r in results),
     )
+
+
+@router.post(
+    "/lists",
+    response_model=CuratedList,
+    response_model_exclude_none=True,
+    status_code=status.HTTP_201_CREATED,
+    summary="Publish a curated list of pinned designs",
+)
+async def publish_list(
+    body: CuratedListWrite,
+    user: AuthenticatedUser = Depends(get_current_user),
+    service: FederationService = Depends(require_federation_api),
+    okh=Depends(get_okh_for_lists),
+) -> CuratedList:
+    """Sign the current membership with the node identity or the space key."""
+    signer = await _signing_identity(user, body.publisher_did, service)
+    try:
+        return await publish_curated_list(signer, _store(service), okh, body)
+    except ListNotShareable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Design {exc.content_hash} is not shareable",
+        ) from exc
+
+
+@router.get(
+    "/lists",
+    response_model=list[CuratedList],
+    response_model_exclude_none=True,
+    summary="List published curated lists",
+)
+async def list_curated_lists(
+    service: FederationService = Depends(require_federation_api),
+) -> list[CuratedList]:
+    """Every list this node publishes. Each document carries its own signature."""
+    return _store(service).load_lists()
+
+
+@router.get(
+    "/lists/{id}",
+    response_model=CuratedList,
+    response_model_exclude_none=True,
+    summary="Fetch a published curated list",
+)
+async def get_curated_list(
+    id: str,
+    service: FederationService = Depends(require_federation_api),
+) -> CuratedList:
+    """The signed document. A peer checks it offline from publisher_did."""
+    document = _store(service).get_list(id)
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No curated list with that id",
+        )
+    return document
+
+
+@router.put(
+    "/lists/{id}",
+    response_model=CuratedList,
+    response_model_exclude_none=True,
+    summary="Publish the next membership of a curated list",
+)
+async def replace_list(
+    id: str,
+    body: CuratedListWrite,
+    user: AuthenticatedUser = Depends(get_current_user),
+    service: FederationService = Depends(require_federation_api),
+    okh=Depends(get_okh_for_lists),
+) -> CuratedList:
+    """Add, bump, or remove pins. Sequence increases by one."""
+    store = _store(service)
+    current = store.get_list(id)
+    if current is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No curated list with that id",
+        )
+    signer = await _signing_identity(user, current.publisher_did, service)
+    try:
+        return await replace_curated_list(signer, store, okh, id, body)
+    except ListNotShareable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Design {exc.content_hash} is not shareable",
+        ) from exc
+    except SupersedesUnknown as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{exc.content_hash} is not a pin this edit removes",
+        ) from exc
+    except PermissionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only that list's publisher can edit it",
+        ) from exc

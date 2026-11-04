@@ -507,7 +507,7 @@ class OKHService(BaseService["OKHService"]):
             filter_params: Reserved for future filtering (currently unused).
             viewer: Whose view this is. ``None`` means unscoped and is for
                 trusted internal callers only (the federation catalogue builder,
-                the CLI) — a request handler must always pass a scope, or it
+                curated-list publishing, the CLI) — a request handler must always pass a scope, or it
                 serves every private record on the node to anyone who asks.
                 Filtering happens before pagination so ``total`` and the page
                 contents agree; doing it in the caller would return short pages

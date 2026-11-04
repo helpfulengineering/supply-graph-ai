@@ -15,6 +15,7 @@ export const CHORD_ROUTES: Record<string, string> = {
   m: "/match",
   a: "/assets",
   p: "/packages",
+  l: "/lists",
   r: "/rfq",
   s: "/settings/session",
   // The Create group and Reference, which the first table skipped. A menu
@@ -53,6 +54,7 @@ export const SHORTCUTS: ShortcutDoc[] = [
   { keys: ["g", "m"], desc: "match" },
   { keys: ["g", "a"], desc: "assets" },
   { keys: ["g", "p"], desc: "packages" },
+  { keys: ["g", "l"], desc: "curated lists" },
   { keys: ["g", "r"], desc: "RFQ" },
   { keys: ["g", "s"], desc: "settings" },
   { keys: ["g", "g"], desc: "generate from URL" },

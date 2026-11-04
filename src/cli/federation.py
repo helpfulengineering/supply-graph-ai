@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Optional
 
 import click
@@ -51,6 +52,48 @@ async def _post_json(
         response = await client.post(url, json=json, params=params)
         response.raise_for_status()
         return response.json()
+
+
+def _list_entries(pins: tuple[str, ...], replaces: tuple[str, ...]) -> list[dict]:
+    replaced: dict[str, str] = {}
+    for item in replaces:
+        new, _, old = item.partition("=")
+        replaced[new] = old
+    entries = []
+    for pin in pins:
+        entry = {"content_hash": pin}
+        if pin in replaced:
+            entry["supersedes"] = replaced[pin]
+        entries.append(entry)
+    return entries
+
+
+async def _send(
+    cli_ctx: CLIContext, method: str, path: str, json: dict | None = None
+) -> dict:
+    token = os.getenv("OHM_API_KEY")
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    async with httpx.AsyncClient(timeout=cli_ctx.config.timeout) as client:
+        response = await client.request(
+            method, _federation_url(cli_ctx, path), json=json, headers=headers
+        )
+        response.raise_for_status()
+        return response.json()
+
+
+def _print_list(cli_ctx: CLIContext, document: dict, output_format: str) -> None:
+    if output_format == "json":
+        click.echo(format_llm_output(document, cli_ctx))
+        return
+    cli_ctx.log(
+        f"{document.get('name')} (sequence {document.get('sequence')})", "success"
+    )
+    cli_ctx.log(f"Publisher: {document.get('publisher_did')}", "info")
+    for entry in document.get("entries") or []:
+        line = entry.get("content_hash", "")
+        if entry.get("supersedes"):
+            line = f"{line} replaces {entry['supersedes']}"
+        click.echo(f"  {line}")
 
 
 @federation_group.command()
@@ -358,3 +401,139 @@ async def package_fetch(
             cli_ctx.log(detail, "info")
     else:
         cli_ctx.log(f"Package fetch failed: {detail}", "error")
+
+
+@click.group()
+def lists() -> None:
+    """Publish a curated list of pinned designs.
+
+    Examples:
+      ohm federation lists publish --name "Field designs" --pin sha256:abc
+      ohm federation lists update LIST_ID --name "Field designs" --pin sha256:def --replaces sha256:def=sha256:abc
+    """
+
+
+federation_group.add_command(lists)
+
+
+def _list_command_options(func):
+    func = click.option("--name", required=True, help="Display name of the list")(func)
+    func = click.option(
+        "--pin",
+        "pins",
+        multiple=True,
+        required=True,
+        help="Content hash to include. Repeat for each pin.",
+    )(func)
+    func = click.option(
+        "--replaces",
+        multiple=True,
+        help="NEW=OLD. The new pin replaces OLD, which leaves the list.",
+    )(func)
+    return func
+
+
+@lists.command("publish")
+@click.option(
+    "--publisher",
+    default=None,
+    help="Organisation DID. Omit to publish as this node. Signed by the space key.",
+)
+@_list_command_options
+@standard_cli_command(
+    help_text=(
+        "Publish a named list of pinned content hashes. "
+        "A private or members design is refused. "
+        "Set OHM_API_KEY to an admin key, or to the organisation admin's key."
+    ),
+    async_cmd=True,
+    handle_errors=True,
+)
+@click.pass_context
+async def publish_list_cmd(
+    ctx: click.Context,
+    publisher: Optional[str],
+    name: str,
+    pins: tuple[str, ...],
+    replaces: tuple[str, ...],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Create a curated list and sign its current membership."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    body: dict = {"name": name, "entries": _list_entries(pins, replaces)}
+    if publisher:
+        body["publisher_did"] = publisher
+    document = await _send(cli_ctx, "POST", "/lists", json=body)
+    _print_list(cli_ctx, document, output_format)
+
+
+@lists.command("update")
+@click.argument("list_id")
+@_list_command_options
+@standard_cli_command(
+    help_text=(
+        "Publish the next membership of a list. "
+        "Sequence increases by one. "
+        "A pin named in --replaces records the hash it replaces."
+    ),
+    async_cmd=True,
+    handle_errors=True,
+)
+@click.pass_context
+async def update_list_cmd(
+    ctx: click.Context,
+    list_id: str,
+    name: str,
+    pins: tuple[str, ...],
+    replaces: tuple[str, ...],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Add, bump, or remove pins."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    document = await _send(
+        cli_ctx,
+        "PUT",
+        f"/lists/{list_id}",
+        json={"name": name, "entries": _list_entries(pins, replaces)},
+    )
+    _print_list(cli_ctx, document, output_format)
+
+
+@lists.command("show")
+@click.argument("list_id")
+@standard_cli_command(
+    help_text="Show a published list, including its signature.",
+    async_cmd=True,
+    handle_errors=True,
+)
+@click.pass_context
+async def show_list_cmd(
+    ctx: click.Context,
+    list_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Fetch the signed document."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    document = await _send(cli_ctx, "GET", f"/lists/{list_id}")
+    _print_list(cli_ctx, document, output_format)
