@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. Publishing (#580) and subscribing (#581) are implemented. Keep-and-mark is not.
+Accepted. Publishing (#580), subscribing (#581), and keep-and-mark (#582) are implemented.
 
 ## Date
 
@@ -30,8 +30,14 @@ designs, including later additions. Following a whole node remains the
   covers specific bytes, so a subscriber can verify it holds what was vouched
   for.
 - **Keep and mark.** When an entry is bumped or removed, subscribers pull the
-  new version and keep the old one, labelled "superseded on list X" or "removed
-  from list X". Nothing is deleted on a subscriber because of a remote change.
+  new version and keep the old one, labelled "superseded on list X by …" or
+  "removed from list X". Nothing is deleted on a subscriber because of a remote
+  change. The label is local to the subscriber: it is not part of the signed
+  list and not part of the design's content hash. A bump records the pin named
+  in `supersedes` as superseded by the new hash. A pin that was on the previous
+  document and is absent from the current one, and is not named by `supersedes`,
+  is removed. `GET /api/federation/lists/marks` and `ohm federation lists marks`
+  read those labels.
 - **Lists never widen visibility.** A `private` or `members` design on a
   published list does not sync.
 

@@ -142,3 +142,33 @@ def test_unsubscribe_forgets_the_list(monkeypatch):
         "list_id": "field-designs",
     }
     assert "Unsubscribed" in result.output
+
+
+def test_marks_names_a_superseded_pin_and_a_removed_one(monkeypatch):
+    result, seen = _invoke(
+        monkeypatch,
+        ["lists", "marks"],
+        [
+            {
+                "peer_url": "http://peer.example",
+                "list_id": "field-designs",
+                "list_name": "Field designs",
+                "content_hash": "sha256:old",
+                "status": "superseded",
+                "superseded_by": "sha256:new",
+            },
+            {
+                "peer_url": "http://peer.example",
+                "list_id": "field-designs",
+                "list_name": "Field designs",
+                "content_hash": "sha256:gone",
+                "status": "removed",
+            },
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert seen["method"] == "GET"
+    assert seen["path"] == "/lists/marks"
+    assert "Field designs" in result.output
+    assert "sha256:old superseded by sha256:new" in result.output
+    assert "sha256:gone removed" in result.output

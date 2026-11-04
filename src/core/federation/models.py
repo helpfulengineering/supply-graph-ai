@@ -147,6 +147,17 @@ class ListSubscription(BaseModel):
     sequence: int
 
 
+class ListMark(BaseModel):
+    """A subscriber's label on a design a list no longer pins as current."""
+
+    peer_url: str
+    list_id: str
+    list_name: str
+    content_hash: str
+    status: str
+    superseded_by: str | None = None
+
+
 class CuratedList(BaseModel):
     """The signed current membership of a curated list."""
 

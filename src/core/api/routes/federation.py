@@ -41,6 +41,7 @@ from src.core.federation.store import FederationStore
 from src.core.federation.models import (
     CuratedList,
     CuratedListWrite,
+    ListMark,
     ListSubscription,
     ListSubscriptionWrite,
     SyncDigest,
@@ -617,6 +618,20 @@ async def unsubscribe_from_list(
             detail="No subscription for that list",
         )
     return removed
+
+
+@router.get(
+    "/lists/marks",
+    response_model=list[ListMark],
+    response_model_exclude_none=True,
+    summary="Labels a subscribed list left on designs it no longer pins",
+)
+async def list_marks(
+    service: FederationService = Depends(require_federation_api),
+    _user=Depends(require_admin_strict),
+) -> list[ListMark]:
+    """Superseded and removed pins. The designs themselves stay."""
+    return _store(service).load_marks()
 
 
 @router.get(
