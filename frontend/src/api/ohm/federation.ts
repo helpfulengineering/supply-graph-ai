@@ -14,6 +14,8 @@ export type FederationStatus =
 export type PeerState = components["schemas"]["PeerState"];
 export type SyncRunResponse = components["schemas"]["SyncRunResponse"];
 export type FollowResponse = components["schemas"]["FollowResponse"];
+export type CuratedList = components["schemas"]["CuratedList"];
+export type CuratedListWrite = components["schemas"]["CuratedListWrite"];
 
 export async function fetchFederationStatus(): Promise<FederationStatus> {
   const { data, error, response } = await apiClient.GET(
@@ -211,6 +213,70 @@ export async function fetchPeerPackage(params: {
     );
   }
   return data as PackageFetchResult;
+}
+
+export async function listCuratedLists(): Promise<CuratedList[]> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/federation/lists",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to load curated lists"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function fetchCuratedList(id: string): Promise<CuratedList> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/federation/lists/{id}",
+    { params: { path: { id } } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to load this list"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function publishCuratedList(
+  body: CuratedListWrite,
+): Promise<CuratedList> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/federation/lists",
+    { body },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Could not publish the list"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function replaceCuratedList(
+  id: string,
+  body: CuratedListWrite,
+): Promise<CuratedList> {
+  const { data, error, response } = await apiClient.PUT(
+    "/api/federation/lists/{id}",
+    { params: { path: { id } }, body },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Could not publish the next version"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
 }
 
 /** The `action` field as a sentence. It is the whole result. */

@@ -3299,6 +3299,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/federation/lists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List published curated lists
+         * @description Every list this node publishes. Each document carries its own signature.
+         */
+        get: operations["list_curated_lists_api_federation_lists_get"];
+        put?: never;
+        /**
+         * Publish a curated list of pinned designs
+         * @description Sign the current membership with the node identity or the space key.
+         */
+        post: operations["publish_list_api_federation_lists_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/federation/lists/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch a published curated list
+         * @description The signed document. A peer checks it offline from publisher_did.
+         */
+        get: operations["get_curated_list_api_federation_lists__id__get"];
+        /**
+         * Publish the next membership of a curated list
+         * @description Add, bump, or remove pins. Sequence increases by one.
+         */
+        put: operations["replace_list_api_federation_lists__id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/identity/whoami": {
         parameters: {
             query?: never;
@@ -5577,6 +5625,49 @@ export interface components {
             external_id?: string | null;
             /** Role */
             role?: string | null;
+        };
+        /**
+         * CuratedList
+         * @description The signed current membership of a curated list.
+         */
+        CuratedList: {
+            /** List Id */
+            list_id: string;
+            /** Name */
+            name: string;
+            /** Publisher Did */
+            publisher_did: string;
+            /** Sequence */
+            sequence: number;
+            /** Entries */
+            entries: components["schemas"]["CuratedListEntry"][];
+            /**
+             * Signature
+             * @default
+             */
+            signature: string;
+        };
+        /**
+         * CuratedListEntry
+         * @description One pinned design on a curated list.
+         */
+        CuratedListEntry: {
+            /** Content Hash */
+            content_hash: string;
+            /** Supersedes */
+            supersedes?: string | null;
+        };
+        /**
+         * CuratedListWrite
+         * @description What a publisher sends to create or replace a list.
+         */
+        CuratedListWrite: {
+            /** Name */
+            name: string;
+            /** Entries */
+            entries: components["schemas"]["CuratedListEntry"][];
+            /** Publisher Did */
+            publisher_did?: string | null;
         };
         /**
          * DirectoryEntry
@@ -19196,6 +19287,125 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SyncRunResponse"];
+                };
+            };
+        };
+    };
+    list_curated_lists_api_federation_lists_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CuratedList"][];
+                };
+            };
+        };
+    };
+    publish_list_api_federation_lists_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CuratedListWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CuratedList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_curated_list_api_federation_lists__id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CuratedList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_list_api_federation_lists__id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CuratedListWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CuratedList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

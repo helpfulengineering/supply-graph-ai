@@ -1,5 +1,6 @@
 import {
   EfficiencyIcon,
+  FolderIcon,
   HelpIcon,
   CubeIcon,
   NotebookIcon,
@@ -142,6 +143,12 @@ export const NAV_GROUPS: NavGroup[] = [
         name: "Packages",
         desc: "versioned design bundles",
         icon: PackingIcon,
+      },
+      {
+        href: "/lists",
+        name: "Lists",
+        desc: "named sets of pinned designs",
+        icon: FolderIcon,
       },
     ],
   },

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .models import PeerState
+from .models import CuratedList, PeerState
 
 
 class FederationStore:
@@ -16,6 +16,7 @@ class FederationStore:
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self._peers_path = self.data_dir / "peers.json"
         self._follows_path = self.data_dir / "follows.json"
+        self._lists_path = self.data_dir / "lists.json"
 
     def load_peers(self) -> list[PeerState]:
         if not self._peers_path.is_file():
@@ -63,3 +64,23 @@ class FederationStore:
 
     def is_followed(self, did: str) -> bool:
         return did in self.load_followed_dids()
+
+    def load_lists(self) -> list[CuratedList]:
+        if not self._lists_path.is_file():
+            return []
+        raw = json.loads(self._lists_path.read_text(encoding="utf-8"))
+        return [CuratedList.model_validate(item) for item in raw]
+
+    def get_list(self, list_id: str) -> CuratedList | None:
+        for document in self.load_lists():
+            if document.list_id == list_id:
+                return document
+        return None
+
+    def save_list(self, document: CuratedList) -> None:
+        by_id = {item.list_id: item for item in self.load_lists()}
+        by_id[document.list_id] = document
+        payload = [
+            item.model_dump(mode="json", exclude_none=True) for item in by_id.values()
+        ]
+        self._lists_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")

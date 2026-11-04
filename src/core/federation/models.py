@@ -109,6 +109,49 @@ class PeerState(BaseModel):
     records_synced: int = 0
 
 
+class CuratedListEntry(BaseModel):
+    """One pinned design on a curated list."""
+
+    content_hash: str
+    supersedes: str | None = None
+
+    def signing_dict(self) -> dict[str, str]:
+        item = {"content_hash": self.content_hash}
+        if self.supersedes:
+            item["supersedes"] = self.supersedes
+        return item
+
+
+class CuratedListWrite(BaseModel):
+    """What a publisher sends to create or replace a list."""
+
+    name: str
+    entries: list[CuratedListEntry]
+    publisher_did: str | None = None
+
+
+class CuratedList(BaseModel):
+    """The signed current membership of a curated list."""
+
+    list_id: str
+    name: str
+    publisher_did: str
+    sequence: int
+    entries: list[CuratedListEntry]
+    signature: str = ""
+
+    def record_payload(self) -> dict[str, Any]:
+        """Fields covered by the signature. The signature itself is excluded."""
+        entries = sorted(self.entries, key=lambda entry: entry.content_hash)
+        return {
+            "list_id": self.list_id,
+            "name": self.name,
+            "publisher_did": self.publisher_did,
+            "sequence": self.sequence,
+            "entries": [entry.signing_dict() for entry in entries],
+        }
+
+
 class SignedManifestRecord(BaseModel):
     """Full manifest payload transferred between peers."""
 

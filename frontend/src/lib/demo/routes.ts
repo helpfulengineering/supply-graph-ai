@@ -101,6 +101,18 @@ const PARAMETERISED: Array<{
 }> = [
   {
     method: "GET",
+    pattern: /^\/v1\/api\/federation\/lists\/([^/]+)$/,
+    resolve: (id) => ({
+      list_id: id,
+      name: "Field designs",
+      publisher_did: "did:key:zSpace",
+      sequence: 1,
+      entries: [{ content_hash: "sha256:abc" }],
+      signature: "00",
+    }),
+  },
+  {
+    method: "GET",
     pattern: /^\/v1\/api\/okh\/([^/]+)$/,
     resolve: (id) =>
       (demoOkhDetail as Record<string, unknown>)[id] ?? {

@@ -1525,6 +1525,16 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/llm/providers": llmProvidersFixture,
   "/v1/api/federation/status": federationStatusFixture,
   "/v1/api/federation/peers": federationPeersFixture,
+  "/v1/api/federation/lists": [
+    {
+      list_id: "field-designs",
+      name: "Field designs",
+      publisher_did: "did:key:zSpace",
+      sequence: 1,
+      entries: [{ content_hash: "sha256:abc" }],
+      signature: "00",
+    },
+  ],
   "/v1/api/package/list": packageListFixture,
   "/v1/api/package/demo/widget/1.0.0": packageMetadataFixture,
 };
