@@ -12,7 +12,7 @@ interface Options {
 }
 
 /**
- * Site-wide keyboard layer: `?` menu, `m` mode, `g`+key to navigate.
+ * Site-wide keyboard layer: `?` menu, `t` theme, `m` mode, `g`+key to navigate.
  *
  * Bound on document at the bubble phase, not capture. The reference used
  * capture to outrank page handlers, but here the drawer owns Escape and its
@@ -24,12 +24,12 @@ interface Options {
  */
 export function useKeyboardShortcuts({ menuOpen, openMenu, closeMenu }: Options): void {
   const router = useRouter();
-  const { toggle } = useTheme();
+  const { toggle, theme, setTheme, themes } = useTheme();
 
   // Refs so the listener can stay mounted for the life of the app: rebinding
   // on every theme change would drop a chord that was mid-flight.
-  const state = useRef({ menuOpen, openMenu, closeMenu, toggle });
-  state.current = { menuOpen, openMenu, closeMenu, toggle };
+  const state = useRef({ menuOpen, openMenu, closeMenu, toggle, theme, setTheme, themes });
+  state.current = { menuOpen, openMenu, closeMenu, toggle, theme, setTheme, themes };
 
   useEffect(() => {
     let armedAt = 0;
@@ -61,6 +61,13 @@ export function useKeyboardShortcuts({ menuOpen, openMenu, closeMenu }: Options)
       }
       armedAt = 0;
 
+      if (event.key === "t") {
+        event.preventDefault();
+        const order = s.themes.map((t) => t.slug);
+        const next = order[(order.indexOf(s.theme) + 1) % order.length];
+        s.setTheme(next);
+        return;
+      }
       if (event.key === "m") {
         event.preventDefault();
         s.toggle();

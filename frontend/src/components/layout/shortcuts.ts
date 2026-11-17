@@ -47,6 +47,7 @@ export interface ShortcutDoc {
 export const SHORTCUTS: ShortcutDoc[] = [
   { keys: ["?"], desc: "open this menu" },
   { keys: ["Esc"], desc: "close" },
+  { keys: ["t"], desc: "next theme" },
   { keys: ["m"], desc: "light / dark" },
   { keys: ["g", "d"], desc: "dashboard" },
   { keys: ["g", "k"], desc: "designs" },
