@@ -15,6 +15,8 @@ export default defineConfig({
   reporter: [
     ["list"],
     ["html", { outputFolder: "artifacts/playwright-report", open: "never" }],
+    // The UAT workflow builds a Pass-line table from this. Other lanes ignore it.
+    ["json", { outputFile: "artifacts/uat-results.json" }],
   ],
   use: {
     baseURL: harness.appUrl,
@@ -32,8 +34,10 @@ export default defineConfig({
       // README embeds, and it is run on demand. Left in the default lane it
       // rewrote four committed binaries on every run, so an unrelated frontend
       // change arrived with four modified screenshots attached.
+      // e2e/uat/ is the membership UAT, which needs a real API on a throwaway
+      // node; it has its own lane below.
       testIgnore:
-        /demo-data\.spec\.ts|responsive\.spec\.ts|readme-assets\.spec\.ts/,
+        /demo-data\.spec\.ts|responsive\.spec\.ts|readme-assets\.spec\.ts|e2e[\\/]uat[\\/]/,
       use: { ...devices["Desktop Chrome"] },
     },
     // Narrow-viewport lane. Every other lane is Desktop Chrome at 1280px, so
@@ -59,8 +63,39 @@ export default defineConfig({
     {
       name: "real-api",
       testIgnore:
-        /screenshots\.spec\.ts|responsive\.spec\.ts|readme-assets\.spec\.ts/,
+        /screenshots\.spec\.ts|responsive\.spec\.ts|readme-assets\.spec\.ts|e2e[\\/]uat[\\/]/,
       use: { ...devices["Desktop Chrome"] },
+    },
+    /**
+     * Opt-in lane: the membership UAT, end to end, against a real API.
+     *
+     *     npm run e2e:uat -- --grep @membership
+     *
+     * Its own project, not part of `npm run e2e` or `e2e:real`, for two reasons.
+     * It creates accounts, invites and organisations, so it must only ever point
+     * at a throwaway node: `e2e/uat/env.ts` refuses to start unless
+     * UAT_THROWAWAY_NODE=1. And it is a story told in order, so it runs serially
+     * (`--workers=1` is in the npm script, because `workers` cannot be set per
+     * project) with no retries: a retry would re-run a step that has already
+     * changed the world, and report a pass for a flow that did not work once.
+     * Evidence is kept on failure only for trace and video; the specs take
+     * their own screenshots at the points the runbook says to look.
+     */
+    {
+      name: "uat",
+      testMatch: /e2e[\\/]uat[\\/].*\.spec\.ts/,
+      fullyParallel: false,
+      retries: 0,
+      // Each `ohm` call is a cold Python start of 2-6 seconds, and minting a
+      // person is five of them before a browser opens. The 30 second default
+      // was exceeded by that alone, with nothing wrong.
+      timeout: 240_000,
+      outputDir: "./artifacts/uat-results",
+      use: {
+        ...devices["Desktop Chrome"],
+        trace: "retain-on-failure",
+        video: "retain-on-failure",
+      },
     },
     /**
      * Opt-in lane: regenerate the four images the README embeds.

@@ -15,6 +15,7 @@
     "e2e": "playwright test --project=mocked --project=responsive",
     "e2e:responsive": "playwright test --project=responsive",
     "e2e:real": "playwright test --project=real-api",
+    "e2e:uat": "playwright test --project=uat --workers=1",
     "gen:api": "node harness/gen-api-types.mjs",
     "frontend-ready": "node harness/run-gate.mjs",
     "contract:proxy": "node harness/proxy-contract.mjs",
