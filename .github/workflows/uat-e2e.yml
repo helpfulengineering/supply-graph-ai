@@ -1,0 +1,364 @@
+name: UAT (membership, end to end)
+
+# The membership runbook, run by a machine against a real API and a real browser.
+# It is a weekly check, not a pull request gate: it runs only when code has
+# changed since the last run that executed, and a manual dispatch always runs.
+#
+# Screenshots are evidence for a person to review, not baselines. Only the last
+# three runs keep theirs; `prune` deletes the rest.
+#
+# What the node under test is: a stack this job builds from this tree with local
+# storage and a freshly generated key, and destroys at the end. The suite refuses
+# to start unless told so (UAT_THROWAWAY_NODE), and the preflight below refuses
+# to build the node if anything that could point it at real storage is present.
+
+on:
+  schedule:
+    # Mondays, 07:23 UTC. Off the hour, where scheduled runs queue.
+    - cron: "23 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Prune only reports what it would delete. Set true to keep everything."
+        type: boolean
+        # Live by default once the dry-run path has been exercised (phase 5).
+        # A scheduled run has no inputs, so prune treats an empty value as live.
+        default: false
+
+# One at a time, and never cancelling one in flight: a run is minutes of real
+# work and ten dispatches in a row are how flake gets measured.
+concurrency:
+  group: uat-e2e
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Has anything changed?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # The diff against the last run's commit needs the history between.
+          fetch-depth: 0
+
+      - name: Decide
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/uat_ci.py gate
+
+  membership:
+    name: Membership (parts 0-5)
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # The node is built from a .env this job writes. Compose loads .env from
+      # the checkout, so a stray one, or a storage credential in the job's
+      # environment, would aim the suite at something that is not disposable.
+      - name: Preflight, this must be a throwaway node
+        run: |
+          if [ -e .env ]; then
+            echo "::error::A .env already exists in the checkout. This job writes its own."
+            exit 1
+          fi
+          if env | grep -q '^AZURE_STORAGE_'; then
+            echo "::error::AZURE_STORAGE_* is set in this job's environment. The node under test must use local storage."
+            exit 1
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      # `ohm` is the CLI the suite drives. It is installed into .venv, where
+      # frontend/e2e/uat/env.ts looks for it.
+      - name: Install the ohm CLI
+        run: uv sync --extra dev
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # Tagged as the name docker-compose.yml resolves, so Compose runs this
+      # build rather than a published release. Shares compose-stack's cache.
+      - name: Build the API image under the tag Compose expects
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: touchthesun/openhardwaremanager:citest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ENVIRONMENT=production because development and test accept anonymous
+      # writes, and then membership looks optional. The key and the encryption
+      # secrets exist only for this run and are masked in the log. API_KEYS also
+      # goes to later steps, because the suite mints the operator with it.
+      - name: Write a .env for the throwaway node
+        run: |
+          api_key="$(openssl rand -hex 32)"
+          salt="$(openssl rand -hex 32)"
+          password="$(openssl rand -hex 32)"
+          echo "::add-mask::$api_key"
+          echo "::add-mask::$salt"
+          echo "::add-mask::$password"
+          operator="Ada's workshop"
+          umask 077
+          {
+            echo "ENVIRONMENT=production"
+            echo "STORAGE_PROVIDER=local"
+            echo "LLM_ENABLED=false"
+            echo "API_KEYS=$api_key"
+            echo "OHM_ENCRYPTION_SALT=$salt"
+            echo "OHM_ENCRYPTION_PASSWORD=$password"
+            echo "OHM_FEDERATION_ENABLED=true"
+            echo "OHM_FEDERATION_NODE_NAME=Field node"
+            echo "OHM_NODE_OPERATOR=\"$operator\""
+          } > .env
+          echo "API_KEYS=$api_key" >> "$GITHUB_ENV"
+
+      - name: Start the API and worker
+        env:
+          OHM_VERSION: citest
+        run: docker compose up -d ohm-api ohm-worker
+
+      - name: Wait for the API
+        run: sh scripts/wait_container_healthy.sh ohm-api
+
+      # The suite is served from the build, not `next dev`: lazy per-route
+      # compilation under a 30 second test timeout is how unrelated specs used
+      # to fail.
+      - name: Build the frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Membership UAT
+        working-directory: frontend
+        env:
+          API_UPSTREAM_URL: http://localhost:8001
+          UAT_API_URL: http://localhost:8001
+          UAT_THROWAWAY_NODE: "1"
+        run: npm run e2e:uat -- --grep @membership
+
+      # Always, so a failed run keeps the screenshots that show where it stopped.
+      # retention-days is a backstop. `prune` is what keeps the last three runs.
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uat-membership-evidence
+          path: |
+            frontend/artifacts/uat-evidence
+            frontend/artifacts/uat-results
+            frontend/artifacts/uat-results.json
+            frontend/artifacts/playwright-report
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Stack logs and resource use
+        if: failure()
+        run: |
+          echo "=== api ===";    docker compose logs --tail=200 ohm-api
+          echo "=== worker ==="; docker compose logs --tail=120 ohm-worker
+          echo "=== redis ===";  docker compose logs --tail=40 redis
+          docker compose ps -a
+          docker stats --no-stream
+
+      - name: Destroy the node
+        if: always()
+        run: docker compose down -v --remove-orphans || true
+
+      - name: Pass lines into the step summary
+        if: always()
+        working-directory: frontend
+        run: |
+          if [ -f artifacts/uat-results.json ]; then
+            python3 ../scripts/uat_ci.py summary artifacts/uat-results.json
+          else
+            echo "No Playwright JSON report to summarise." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  federation:
+    name: Federation (parts 6-10)
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Preflight, this must be a throwaway node
+        run: |
+          if [ -e .env ]; then
+            echo "::error::A .env already exists in the checkout. This job writes its own."
+            exit 1
+          fi
+          if env | grep -q '^AZURE_STORAGE_'; then
+            echo "::error::AZURE_STORAGE_* is set in this job's environment. The node under test must use local storage."
+            exit 1
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install the ohm CLI
+        run: uv sync --extra dev
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Write a minimal .env for compose
+        run: |
+          umask 077
+          {
+            echo "ENVIRONMENT=test"
+            echo "STORAGE_PROVIDER=local"
+            echo "LLM_ENABLED=false"
+            echo "OHM_ENCRYPTION_SALT=$(openssl rand -hex 32)"
+            echo "OHM_ENCRYPTION_PASSWORD=$(openssl rand -hex 32)"
+          } > .env
+
+      - name: Start the two-node federation stack
+        run: docker compose -f docker-compose.federation.yml up --build -d
+
+      - name: Wait for peer A and peer B
+        run: |
+          sh scripts/wait_container_healthy.sh ohm-peer-a
+          sh scripts/wait_container_healthy.sh ohm-peer-b
+
+      # The federation specs need no page, but Playwright still starts the
+      # configured webServer. Serve a built frontend so it does not compile
+      # under the test.
+      - name: Build the frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Federation UAT
+        working-directory: frontend
+        env:
+          API_UPSTREAM_URL: http://localhost:8001
+          UAT_API_URL: http://localhost:8001
+          UAT_PEER_A_URL: http://localhost:8001
+          UAT_PEER_B_URL: http://localhost:8002
+          UAT_PEER_A_INTERNAL: http://ohm-peer-a:8001
+          UAT_KEY_A: fed-test-key-a
+          UAT_KEY_B: fed-test-key-b
+          API_KEYS: fed-test-key-a
+          UAT_THROWAWAY_NODE: "1"
+        run: npm run e2e:uat -- --grep @federation
+
+      - name: Federation matrix (non-blocking until green)
+        continue-on-error: true
+        env:
+          OHM_BIN: .venv/bin/ohm
+        run: |
+          command -v jq >/dev/null
+          command -v uuidgen >/dev/null
+          sh scripts/federation_matrix.sh
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uat-federation-evidence
+          path: |
+            frontend/artifacts/uat-evidence
+            frontend/artifacts/uat-results
+            frontend/artifacts/uat-results.json
+            frontend/artifacts/playwright-report
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Stack logs and resource use
+        if: failure()
+        run: |
+          echo "=== peer-a ==="; docker compose -f docker-compose.federation.yml logs --tail=200 ohm-peer-a
+          echo "=== peer-b ==="; docker compose -f docker-compose.federation.yml logs --tail=200 ohm-peer-b
+          docker compose -f docker-compose.federation.yml ps -a
+          docker stats --no-stream
+
+      - name: Destroy the nodes
+        if: always()
+        run: docker compose -f docker-compose.federation.yml down -v --remove-orphans || true
+
+      - name: Pass lines into the step summary
+        if: always()
+        working-directory: frontend
+        run: |
+          if [ -f artifacts/uat-results.json ]; then
+            python3 ../scripts/uat_ci.py summary artifacts/uat-results.json
+          else
+            echo "No Playwright JSON report to summarise." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # Keeps the evidence of the last three runs. The only job that can delete
+  # anything, and the only one with `actions: write`. Reports instead of deleting
+  # unless dry_run was explicitly set to false: a scheduled run is a dry run
+  # until that default is flipped on purpose.
+  prune:
+    name: Keep the last three runs of evidence
+    needs: [gate, membership, federation]
+    if: always() && needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Prune
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+        run: |
+          # workflow_dispatch can force a dry run. A scheduled run (no input)
+          # and an explicit false both delete. Only the string "true" is dry.
+          if [ "$DRY_RUN_INPUT" = "true" ]; then
+            python3 scripts/uat_ci.py prune --current-run "$GITHUB_RUN_ID" --dry-run
+          else
+            python3 scripts/uat_ci.py prune --current-run "$GITHUB_RUN_ID"
+          fi
