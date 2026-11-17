@@ -325,3 +325,10 @@ summary = "Delete storage left by saved supply-tree solutions (#498); reports co
 run = "python scripts/remove_supply_tree_storage.py [--apply]"
 mutates = true
 used_by = "one-off cleanup after the #498 release"
+
+[scripts.uat_ci]
+category = "verify"
+summary = "Decide whether the weekly UAT workflow should run (gate), keep only the last 3 runs of evidence (prune), and write a Pass-line step summary."
+run = "python3 scripts/uat_ci.py gate | prune --current-run <ID> [--dry-run] | summary <report.json>"
+mutates = true
+used_by = ["ci: uat-e2e (gate, prune, summary)", "tests/unit/test_uat_ci.py"]
