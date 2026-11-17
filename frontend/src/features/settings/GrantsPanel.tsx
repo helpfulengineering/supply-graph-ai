@@ -18,7 +18,9 @@ import {
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PanelGuide } from "../../components/ui/PanelGuide";
 import { PANEL } from "../../components/ui/surface";
+import { Tooltip } from "../../components/ui/Tooltip";
 import { SECTION_TITLE } from "../../components/ui/typography";
 
 const PERMISSION_OPTIONS = ["read", "write", "admin"] as const;
@@ -192,17 +194,24 @@ export function GrantsPanel() {
         <h2 id="coordinate-heading" className={SECTION_TITLE}>
           Make a coordinator
         </h2>
+        <PanelGuide
+          intro="A coordinator can mint invites and see members' facilities, and cannot reconfigure storage, LLM keys, or accounts."
+          docsHref="/docs/guides/run-your-own-node/"
+          docsLabel="Who may join"
+        />
         <p className="mt-2 text-sm text-muted-foreground">
           On this node, for 180 days. Uses the Subject DID above.
         </p>
-        <button
-          type="button"
-          disabled={!subjectDid.trim() || coordinate.isPending}
-          className="mt-3 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
-          onClick={() => coordinate.mutate()}
-        >
-          Grant coordinate
-        </button>
+        <Tooltip content="Coordinate is a node-scoped grant: Invites and Members only, not admin.">
+          <button
+            type="button"
+            disabled={!subjectDid.trim() || coordinate.isPending}
+            className="mt-3 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50"
+            onClick={() => coordinate.mutate()}
+          >
+            Grant coordinate
+          </button>
+        </Tooltip>
         {coordinatorExpiry && (
           <p className="mt-2 text-sm">expires {coordinatorExpiry}</p>
         )}

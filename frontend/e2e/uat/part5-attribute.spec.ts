@@ -92,7 +92,7 @@ test.describe("@membership part 5: attribute a design later", () => {
     const { context: opCtx, page: opPage } = await newVisitor(browser);
     try {
       await pasteToken(opPage, operator.token, operator.name);
-      await opPage.goto("/settings/organisations");
+      await opPage.goto("/people/organisations");
       await opPage.getByRole("button", { name: "Unaffiliate" }).click();
       await expect(opPage.getByRole("button", { name: "Unaffiliate" })).toHaveCount(
         0,

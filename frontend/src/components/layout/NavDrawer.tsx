@@ -175,7 +175,7 @@ function NavGroupBlock({
 export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const pathname = usePathname() ?? "";
   const { domain } = useDomain();
-  const { isAdmin, token, signedIn } = useAuth();
+  const { isAdmin, isCoordinator, token, signedIn } = useAuth();
   const site = useSiteLayer();
   const { isDark, toggle, theme, setTheme, themes, shareUrl } = useTheme();
   // Only while the picker is on screen — see the hook: resolving costs ten
@@ -224,11 +224,16 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   // The sitemap row is Settings. What the drawer shows depends on the
   // credential: an operator keeps Settings, a pasted key keeps the session
   // page, a website session goes to the account, and everyone else signs in.
+  //
+  // The paste form is how an operator gets a key into the browser in the
+  // first place, so it stays in the menu when no key is held yet. Hiding it
+  // behind Settings made the admin path unreachable from a signed-out browser.
+  const accountEntry = ACCOUNT_GROUP.entries[0];
   const accountGroup: NavGroup = {
     ...ACCOUNT_GROUP,
     entries: [
       {
-        ...ACCOUNT_GROUP.entries[0],
+        ...accountEntry,
         name: isAdmin
           ? "Settings"
           : token
@@ -238,20 +243,31 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               : "Sign in",
         href:
           isAdmin || token
-            ? ACCOUNT_GROUP.entries[0].href
+            ? accountEntry.href
             : signedIn
               ? "/account"
               : "/login",
         match:
           isAdmin || token ? "/settings" : signedIn ? "/account" : "/login",
         desc: isAdmin
-          ? "instance administration panels"
+          ? "node credentials and administration (People is invites and members)"
           : token
-            ? "your API session"
+            ? "your pasted API key for this tab"
             : signedIn
-              ? "your records on this node"
+              ? "your keys, sessions, and records"
               : "sign in, or register",
       },
+      ...(!isAdmin && !token
+        ? [
+            {
+              ...accountEntry,
+              name: "API key",
+              href: "/settings/session",
+              match: "/settings/session",
+              desc: "paste an operator key for this browser tab",
+            },
+          ]
+        : []),
     ],
   };
 
@@ -316,13 +332,38 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         />
 
         <nav aria-label="Primary navigation" className="flex-1 px-2 pt-2">
-          {navGroupsForDomain(domain).map((group) => (
-            <NavGroupBlock
-              key={group.label}
-              group={group}
-              pathname={pathname}
-            />
-          ))}
+          {navGroupsForDomain(domain).map((group) => {
+            // Coordinators land on Invites; everyone else on Organisations.
+            // The sitemap row is still one "People" entry with match /people.
+            if (group.label !== "People") {
+              return (
+                <NavGroupBlock
+                  key={group.label}
+                  group={group}
+                  pathname={pathname}
+                />
+              );
+            }
+            const peopleHref =
+              isAdmin || isCoordinator
+                ? "/people/invites"
+                : "/people/organisations";
+            const peopleGroup: NavGroup = {
+              ...group,
+              entries: group.entries.map((entry) =>
+                entry.match === "/people"
+                  ? { ...entry, href: peopleHref }
+                  : entry,
+              ),
+            };
+            return (
+              <NavGroupBlock
+                key={group.label}
+                group={peopleGroup}
+                pathname={pathname}
+              />
+            );
+          })}
 
           <NavGroupBlock group={accountGroup} pathname={pathname} />
 

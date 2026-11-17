@@ -13,6 +13,7 @@ import { LLMRuntimePanel } from "./LLMRuntimePanel";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
+import { PanelGuide } from "../../components/ui/PanelGuide";
 import { PANEL, PANEL_INSET } from "../../components/ui/surface";
 import { cn } from "@/lib/utils";
 import { SECTION_TITLE } from "../../components/ui/typography";
@@ -114,6 +115,11 @@ export function LLMCredentialsPanel() {
         <h2 id="llm-credentials-form-heading" className={SECTION_TITLE}>
           Set provider key
         </h2>
+        <PanelGuide
+          intro="Encrypted keys for Generate and other LLM work. Stored on this node; never shown again after you save."
+          docsHref="/docs/guides/configure-an-llm/"
+          docsLabel="Configure an LLM"
+        />
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className={LABEL}>
             <span className="font-medium text-foreground">Provider</span>

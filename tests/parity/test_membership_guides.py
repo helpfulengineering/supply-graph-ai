@@ -36,14 +36,14 @@ def test_an_operator_can_read_how_to_set_registration_and_mint_invites():
     assert "ohm identity invite mint" in page
     assert "ohm identity invite list" in page
     assert "ohm identity invite revoke" in page
-    assert "Settings → Invites" in page
+    assert "People → Invites" in page
 
 
 def test_a_coordinator_reaches_invites_and_the_member_inventory():
     page = _read("docs-site", "docs", "guides", "run-your-own-node.md")
     assert "ohm identity coordinate" in page
     assert "180 days in every" in page
-    assert "Settings → Members" in page
+    assert "People → Members" in page
     assert "does not read a private record" in page
     assert "who may register" in page
 

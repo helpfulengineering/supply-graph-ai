@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  createApiKey,
   fetchSecurityPolicy,
   getIdentity,
   listAccounts,
@@ -14,6 +15,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
+import { TokenOnce } from "../auth/TokenOnce";
 
 function remember(id: Identity, replaceDid?: string) {
   return (prev: Identity[]) => [
@@ -29,6 +31,8 @@ export function IdentitiesPanel() {
   const [displayName, setDisplayName] = useState("");
   const [lookupDid, setLookupDid] = useState("");
   const [known, setKnown] = useState<Identity[]>([]);
+  const [issuedToken, setIssuedToken] = useState<string | null>(null);
+  const [keyError, setKeyError] = useState<string | null>(null);
 
   const policy = useQuery({
     queryKey: ["identity", "security-policy"],
@@ -43,15 +47,35 @@ export function IdentitiesPanel() {
   const mintAllowed = policy.data?.custodial_keys_allowed !== false;
 
   const mint = useMutation({
-    mutationFn: () =>
-      mintIdentity({
+    mutationFn: async () => {
+      const name = displayName.trim();
+      const id = await mintIdentity({
         account_id: accountId,
         kind,
-        display_name: displayName.trim(),
-      }),
-    onSuccess: (id) => {
+        display_name: name,
+      });
+      // A DID alone cannot sign in. The first key is the credential, and it
+      // is shown once — the same rule as a key created on the Keys page.
+      let token: string | null = null;
+      let keyError: string | null = null;
+      try {
+        const key = await createApiKey({
+          name: `${name || id.display_name || "person"} (first key)`,
+          permissions: ["read", "write"],
+          account_id: accountId,
+        });
+        token = key.token ?? null;
+      } catch (err) {
+        keyError =
+          err instanceof Error ? err.message : "Could not create an API key";
+      }
+      return { id, token, keyError };
+    },
+    onSuccess: ({ id, token, keyError }) => {
       setKnown(remember(id));
       setDisplayName("");
+      setIssuedToken(token);
+      setKeyError(keyError);
     },
     onError: reportAuthFailure,
   });
@@ -74,6 +98,14 @@ export function IdentitiesPanel() {
         <h2 id="mint-heading" className={SECTION_TITLE}>
           Mint identity
         </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Create a person or space DID on an account, and a first API key for
+          it. The token is shown once. Prefer{" "}
+          <a href="/settings/keys" className="underline">
+            Keys &amp; accounts
+          </a>{" "}
+          when you only need another key on an existing account.
+        </p>
         {!mintAllowed && (
           <p className="mt-2 text-sm text-warning" role="status">
             Custodial key minting is disabled by this node&apos;s security
@@ -139,7 +171,21 @@ export function IdentitiesPanel() {
               {mint.error instanceof Error ? mint.error.message : "Mint failed"}
             </p>
           )}
+          {keyError && (
+            <p className="text-sm text-destructive" role="alert">
+              The identity was created. The API key was not: {keyError}
+            </p>
+          )}
         </form>
+        {issuedToken && (
+          <div className="mt-4">
+            <TokenOnce
+              token={issuedToken}
+              description="Paste it under Settings → Session to act as this person. It will not be shown again. A person created here has no password, so the sign-in form cannot accept them."
+              onDismiss={() => setIssuedToken(null)}
+            />
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="lookup-heading" className={PANEL}>

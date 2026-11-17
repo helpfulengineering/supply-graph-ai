@@ -13,6 +13,7 @@ test("settings session is reachable without an admin key (paste bootstrap)", asy
   // the way to sign in. The paste field on this page is still here for a key.
   await page.getByRole("button", { name: "Site menu" }).click();
   await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "API key" })).toBeVisible();
   await page.getByRole("button", { name: "Close menu" }).click();
   await expect(page.getByRole("link", { name: "Keys & accounts" })).toHaveCount(
     0,

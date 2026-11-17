@@ -192,7 +192,7 @@ ohm identity invite revoke INVITE_ID
 
 Mint prints `/register?invite=...` once. The link is multi-use until it
 expires, you revoke it, or it reaches the use limit you set. The same controls
-are under **Settings → Invites**. The page a person opens names this node and
+are under **People → Invites**. The page a person opens names this node and
 who runs it.
 
 A coordinator can mint, list, and revoke those links, and can see who is on
@@ -204,7 +204,7 @@ the same.
 ohm identity coordinate did:key:z...
 ```
 
-What they get is **Settings → Invites** and **Settings → Members**. Members
+What they get is **People → Invites** and **People → Members**. Members
 lists each account's display name and username, and each member's facilities:
 the name, the processes, and the visibility. The address and the rest of the
 record stay out. A coordinator does not get storage, language-model

@@ -101,9 +101,10 @@ export function BindingsPanel() {
           Domain bind
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Host a challenge at{" "}
+          Prove a domain belongs to a DID: host a challenge at{" "}
           <code className="text-xs">.well-known/ohm-did.json</code>, then
-          verify.
+          verify it here. Bindings are how a node trusts that a hostname and a
+          DID go together.
         </p>
         <form
           className="mt-4 space-y-3"

@@ -71,14 +71,14 @@ test.describe("@membership part 4: publish for an organisation", () => {
     saveWorld({ spaceDid });
   });
 
-  test("Settings → Organisations lists Ada with Renew and Unaffiliate", async ({
+  test("People → Organisations lists Ada with Renew and Unaffiliate", async ({
     browser,
   }, testInfo) => {
     const operator = await requireOperator();
     const { context, page } = await newVisitor(browser);
     try {
       await pasteToken(page, operator.token, operator.name);
-      await page.goto("/settings/organisations");
+      await page.goto("/people/organisations");
       await expect(page.getByText("Field org")).toBeVisible();
       await expect(page.getByText("Ada", { exact: false })).toBeVisible();
       await expect(page.getByRole("button", { name: "Renew" })).toBeVisible();

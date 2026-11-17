@@ -91,7 +91,7 @@ account, or with `ohm okh attribute`. Adding it requires a current
 affiliation. Removing it does not. A facility uses the same idea:
 `ohm okw attribute`.
 
-The organisation's admin affiliates you from **Settings → Organisations**, or:
+The organisation's admin affiliates you from **People → Organisations**, or:
 
 ```bash
 ohm identity affiliate add did:key:zPerson --space did:key:zOrg

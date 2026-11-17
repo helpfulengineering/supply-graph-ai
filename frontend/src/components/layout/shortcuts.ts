@@ -18,6 +18,7 @@ export const CHORD_ROUTES: Record<string, string> = {
   l: "/lists",
   r: "/rfq",
   s: "/settings/session",
+  e: "/people/organisations",
   // The Create group and Reference, which the first table skipped. A menu
   // entry with no chord is the half of the contract nobody can see is
   // missing; `shortcuts.test.ts` now fails if a nav route has none.
@@ -46,7 +47,6 @@ export interface ShortcutDoc {
 export const SHORTCUTS: ShortcutDoc[] = [
   { keys: ["?"], desc: "open this menu" },
   { keys: ["Esc"], desc: "close" },
-  { keys: ["t"], desc: "next theme" },
   { keys: ["m"], desc: "light / dark" },
   { keys: ["g", "d"], desc: "dashboard" },
   { keys: ["g", "k"], desc: "designs" },
@@ -57,6 +57,7 @@ export const SHORTCUTS: ShortcutDoc[] = [
   { keys: ["g", "l"], desc: "curated lists" },
   { keys: ["g", "r"], desc: "RFQ" },
   { keys: ["g", "s"], desc: "settings" },
+  { keys: ["g", "e"], desc: "people" },
   { keys: ["g", "g"], desc: "generate from URL" },
   { keys: ["g", "n"], desc: "new design" },
   { keys: ["g", "w"], desc: "new facility" },

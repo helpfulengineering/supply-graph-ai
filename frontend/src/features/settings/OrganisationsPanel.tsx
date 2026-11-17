@@ -13,6 +13,7 @@ import { FIELD, LABEL } from "../../components/ui/field";
 import { Button } from "../../components/ui/button";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PanelGuide } from "../../components/ui/PanelGuide";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
 
@@ -121,14 +122,26 @@ export function OrganisationsPanel() {
   const rows = organisations.data ?? [];
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
-        You do not administer an organisation.
-      </p>
+      <div className="space-y-2">
+        <PanelGuide
+          intro="Organisations you administer appear here. Affiliate a person so they can publish designs on the organisation's behalf."
+          docsHref="/docs/guides/add-a-design/"
+          docsLabel="Publish for an organisation"
+        />
+        <p className="text-sm text-muted-foreground">
+          You do not administer an organisation.
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      <PanelGuide
+        intro="Affiliate a person so they can publish designs on the organisation's behalf. Renew or unaffiliate from each member row."
+        docsHref="/docs/guides/add-a-design/"
+        docsLabel="Publish for an organisation"
+      />
       {rows.map((org) => (
         <OrganisationSection key={org.space_did} org={org} />
       ))}

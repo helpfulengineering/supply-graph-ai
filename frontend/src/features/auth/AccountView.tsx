@@ -46,9 +46,9 @@ const FACILITIES_KEY = ["okw-search", "account", "mine"] as const;
 /**
  * Where a signed-in visitor goes.
  *
- * Settings is admin-only and stays that way, so a registered non-admin needs
- * somewhere that is theirs: everything you have made, who can see each one,
- * and a way to change that for many at once (#576).
+ * Account is keys, sessions, and your records. People (when visible) is
+ * invites, members, and organisations. Settings stays operator-facing for
+ * node credentials and administration.
  *
  * The lists ask for `mine=true`. Without it a caller sees shareable records
  * plus their own, so their *shared* records are indistinguishable from anyone
@@ -109,7 +109,10 @@ export function AccountView() {
 
   return (
     <>
-      <PageHero title="Your account" />
+      <PageHero
+        title="Your account"
+        description="Your keys, sessions, and records on this node. Invites and members live under People; node credentials under Settings."
+      />
 
       <div className="space-y-6">
         <section className={PANEL} aria-labelledby="account-identity">

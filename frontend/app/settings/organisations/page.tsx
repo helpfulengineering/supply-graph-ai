@@ -1,7 +1,5 @@
-"use client";
-
-import { SettingsPage } from "@/views/SettingsPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <SettingsPage />;
+  redirect("/people/organisations");
 }

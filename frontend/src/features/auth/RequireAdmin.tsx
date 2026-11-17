@@ -51,3 +51,24 @@ export function RequireCoordinator({ children }: { children: ReactNode }) {
     </RedirectUnless>
   );
 }
+
+/** People → Organisations: any signed-in visitor (cookie or pasted key). */
+export function RequireSignedIn({ children }: { children: ReactNode }) {
+  const { signedIn, user, authError } = useAuth();
+  const router = useRouter();
+  const settling = signedIn && !user && !authError;
+
+  useEffect(() => {
+    if (!settling && !signedIn) router.replace("/login");
+  }, [settling, signedIn, router]);
+
+  if (settling) {
+    return (
+      <div className="flex justify-center py-16">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+  if (!signedIn) return null;
+  return <>{children}</>;
+}

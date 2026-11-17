@@ -34,7 +34,7 @@ test("Escape closes the drawer and returns focus to the burger", async ({
   await expect(burger).toBeFocused();
 });
 
-test("t cycles the theme and m flips the mode", async ({ page }) => {
+test("m flips the mode and the palette with it", async ({ page }) => {
   await page.goto("/");
   await keysReady(page);
   const world = () =>
@@ -44,11 +44,12 @@ test("t cycles the theme and m flips the mode", async ({ page }) => {
 
   const before = await world();
   await page.keyboard.press("t");
-  await expect.poll(world).not.toBe(before);
+  await expect.poll(world).toBe(before);
 
   const wasDark = await dark();
   await page.keyboard.press("m");
   await expect.poll(dark).toBe(!wasDark);
+  await expect.poll(world).toBe(wasDark ? "ember" : "mono");
 });
 
 for (const [key, href] of Object.entries(CHORD_ROUTES)) {

@@ -61,7 +61,7 @@ export function SessionPanel() {
             <button
               type="button"
               onClick={() => clear()}
-              disabled={!token}
+              disabled={!token && !user}
               className={`${FIELD_SM} font-medium hover:bg-background dark:hover:bg-muted`}
             >
               Clear session
@@ -74,15 +74,21 @@ export function SessionPanel() {
         <h2 id="session-identity-heading" className={SECTION_TITLE}>
           Current identity
         </h2>
-        {!token && (
+        {!user && !token && !isLoading && (
           <p className="mt-2 text-sm text-muted-foreground">
             No API key in this session.
           </p>
         )}
-        {token && isLoading && (
+        {user && !token && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Signed in with a password. This tab has no API key. Paste one
+            above to act as someone else.
+          </p>
+        )}
+        {!user && isLoading && (
           <p className="mt-2 text-sm text-muted-foreground">Loading whoami…</p>
         )}
-        {token && authError && (
+        {authError && (
           <p className="mt-2 text-sm text-destructive" role="alert">
             {authError.message}
           </p>

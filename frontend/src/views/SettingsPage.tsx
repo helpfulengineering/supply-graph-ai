@@ -8,9 +8,6 @@ import { DomainPanel } from "../features/settings/DomainPanel";
 import { KeysAccountsPanel } from "../features/settings/KeysAccountsPanel";
 import { IdentitiesPanel } from "../features/settings/IdentitiesPanel";
 import { GrantsPanel } from "../features/settings/GrantsPanel";
-import { InvitesPanel } from "../features/settings/InvitesPanel";
-import { MembersPanel } from "../features/settings/MembersPanel";
-import { OrganisationsPanel } from "../features/settings/OrganisationsPanel";
 import { SpacesPanel } from "../features/settings/SpacesPanel";
 import { ReputationPanel } from "../features/settings/ReputationPanel";
 import { BindingsPanel } from "../features/settings/BindingsPanel";
@@ -25,32 +22,32 @@ import { useAuth } from "../context/AuthContext";
 import { SECTION_LABEL_SM } from "../components/ui/typography";
 import { cn } from "@/lib/utils";
 
-const sessionTabs = [
+type Tab = { to: string; label: string };
+
+const accessTabs: Tab[] = [
   { to: "/settings/session", label: "Session" },
   { to: "/settings/domain", label: "Domain" },
-  { to: "/settings/organisations", label: "Organisations" },
-] as const;
+];
 
-const adminTabs = [
-  { to: "/settings/keys", label: "Keys & accounts" },
-  { to: "/settings/inventory", label: "Inventory" },
+const nodeTabs: Tab[] = [
   { to: "/settings/storage", label: "Storage" },
   { to: "/settings/llm", label: "LLM providers" },
   { to: "/settings/matching", label: "Matching rules" },
+  { to: "/settings/inventory", label: "Inventory" },
+  { to: "/settings/federation", label: "Federation" },
+];
+
+const identityTabs: Tab[] = [
+  { to: "/settings/keys", label: "Keys & accounts" },
   { to: "/settings/identities", label: "Identities" },
   { to: "/settings/grants", label: "Grants" },
-  { to: "/settings/invites", label: "Invites" },
   { to: "/settings/spaces", label: "Spaces" },
   { to: "/settings/bindings", label: "Bindings" },
   { to: "/settings/directory", label: "Directory" },
-  { to: "/settings/federation", label: "Federation" },
   { to: "/settings/reputation", label: "Reputation" },
-] as const;
+];
 
-const coordinatorTabs = [
-  { to: "/settings/invites", label: "Invites" },
-  { to: "/settings/members", label: "Members" },
-] as const;
+type TabGroup = { label: string; tabs: Tab[] };
 
 function panelFor(pathname: string) {
   if (pathname.includes("/domain")) return <DomainPanel />;
@@ -61,9 +58,6 @@ function panelFor(pathname: string) {
   if (pathname.includes("/matching")) return <MatchingRulesPanel />;
   if (pathname.includes("/identities")) return <IdentitiesPanel />;
   if (pathname.includes("/grants")) return <GrantsPanel />;
-  if (pathname.includes("/invites")) return <InvitesPanel />;
-  if (pathname.includes("/members")) return <MembersPanel />;
-  if (pathname.includes("/organisations")) return <OrganisationsPanel />;
   if (pathname.includes("/spaces")) return <SpacesPanel />;
   if (pathname.includes("/bindings")) return <BindingsPanel />;
   if (pathname.includes("/directory")) return <DirectoryPanel />;
@@ -72,14 +66,58 @@ function panelFor(pathname: string) {
   return <SessionPanel />;
 }
 
+function TabStrip({
+  groups,
+  pathname,
+}: {
+  groups: TabGroup[];
+  pathname: string;
+}) {
+  return (
+    <nav className="space-y-3" aria-label="Settings">
+      {groups.map((group) => (
+        <div key={group.label}>
+          <p className={cn(SECTION_LABEL_SM, "px-3")}>{group.label}</p>
+          <div
+            className="mt-1 flex flex-wrap gap-1 border-b border-border"
+            role="group"
+            aria-label={group.label}
+          >
+            {group.tabs.map(({ to, label }) => {
+              const isActive = pathname === to;
+              return (
+                <Link
+                  key={to}
+                  href={to}
+                  aria-current={isActive ? "page" : undefined}
+                  className={[
+                    "border-b-2 px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "border-primary/30 text-primary-ink"
+                      : "border-transparent text-muted-foreground hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
 export function SettingsPage() {
   const pathname = usePathname() ?? "";
-  const { isAdmin, isCoordinator } = useAuth();
-  const tabs = isAdmin
-    ? [...sessionTabs, ...adminTabs]
-    : isCoordinator
-      ? [...sessionTabs, ...coordinatorTabs]
-      : [...sessionTabs];
+  const { isAdmin } = useAuth();
+  const groups: TabGroup[] = isAdmin
+    ? [
+        { label: "Access", tabs: accessTabs },
+        { label: "Node", tabs: nodeTabs },
+        { label: "Identity", tabs: identityTabs },
+      ]
+    : [{ label: "Access", tabs: accessTabs }];
 
   return (
     <div className="space-y-6">
@@ -96,6 +134,7 @@ export function SettingsPage() {
             yet, and the audit could not tell the two apart. */}
         <PageHero
           title="Settings"
+          description="Configure this node and its credentials."
           crumb={[
             { label: "session" },
             { label: "keys" },
@@ -104,29 +143,7 @@ export function SettingsPage() {
         />
       </div>
 
-      <nav
-        className="flex flex-wrap gap-1 border-b border-border"
-        aria-label="Settings"
-      >
-        {tabs.map(({ to, label }) => {
-          const isActive = pathname === to;
-          return (
-            <Link
-              key={to}
-              href={to}
-              aria-current={isActive ? "page" : undefined}
-              className={[
-                "border-b-2 px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "border-primary/30 text-primary-ink"
-                  : "border-transparent text-muted-foreground hover:text-foreground",
-              ].join(" ")}
-            >
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
+      <TabStrip groups={groups} pathname={pathname} />
 
       {panelFor(pathname)}
 

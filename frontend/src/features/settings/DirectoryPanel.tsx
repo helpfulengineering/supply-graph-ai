@@ -47,7 +47,9 @@ export function DirectoryPanel() {
           Publish
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Trust-on-follow registry row for a known DID (peacetime posture).
+          Publish a row other nodes can follow: a known DID, a display name, and
+          optionally a base URL. Trust-on-follow means you choose whom to trust;
+          peacetime posture means this is not a crisis override.
         </p>
         <form
           className="mt-4 space-y-3"

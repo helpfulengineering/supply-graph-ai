@@ -1,4 +1,5 @@
 import {
+  AwarenessIcon,
   EfficiencyIcon,
   FolderIcon,
   HelpIcon,
@@ -184,6 +185,22 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    label: "People",
+    accent: "text-chart-5",
+    entries: [
+      // One entry; Invites / Members / Organisations are the People page's
+      // own tabs — same pattern as Settings. The drawer remaps the href for
+      // coordinators (invites) vs everyone else signed in (organisations).
+      {
+        href: "/people/organisations",
+        match: "/people",
+        name: "People",
+        desc: "invites, members, and organisations on this node",
+        icon: AwarenessIcon,
+      },
+    ],
+  },
+  {
     label: "Reference",
     accent: "text-chart-3",
     entries: [
@@ -206,8 +223,8 @@ export const NAV_GROUPS: NavGroup[] = [
 ];
 // Deliberately absent from NAV_GROUPS: detail routes
 // (/okh/[id], /facilities/[id], /packages/[org]/[project]/[version],
-// /okh/[id]/files/*) are reached from their lists, and /settings/* subtabs
-// from the Settings page's own tab strip.
+// /okh/[id]/files/*) are reached from their lists, and /settings/* and
+// /people/* subtabs from those pages' own tab strips.
 //
 // tests/parity guards only the top-level segment set, not the route set —
 // /okh/generate and /settings/reputation both collapse to an existing segment
@@ -231,7 +248,7 @@ export const ACCOUNT_GROUP: NavGroup = {
       href: "/settings/session",
       match: "/settings",
       name: "Settings",
-      desc: "your API session, and instance administration when your key allows it",
+      desc: "node credentials and administration; People is invites and members",
       icon: SettingsIcon,
     },
   ],
@@ -252,6 +269,8 @@ export const ACCOUNT_GROUP: NavGroup = {
  */
 export const SITE_GROUP: NavGroup = {
   label: "Operator",
+  // Same categorical slot as People: Operator is opt-in and rarely shown
+  // beside People, so the clash is rare; both stay on the five-token ramp.
   accent: "text-chart-5",
   entries: [
     {
