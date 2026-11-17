@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
   // Trailing slashes are policy-per-surface (docs keep them, app routes drop
   // them); proxy.ts owns the split, so the global redirect is off.
   skipTrailingSlashRedirect: true,
+  experimental: {
+    // Set by the Next.js security agent upgrade (16.4.3 → 16.4.6).
+    agentUpgrade: "security",
+  },
 };
 
 export default nextConfig;
