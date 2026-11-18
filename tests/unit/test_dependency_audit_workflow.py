@@ -56,11 +56,12 @@ def test_the_audit_reads_the_lockfile_not_the_venv():
 def test_the_audit_covers_the_frontend_lockfile():
     """#601: 81 npm advisories accrued because only Python was audited.
 
-    Moderate and low are tolerated: what remains there is dev tooling whose
-    only fix is a downgrade or a major upgrade.
+    Production deps only (--omit=dev): the standalone image never loads the
+    frontend's CLI/test toolchain. Moderate and low are tolerated.
     """
     recipe = _audit_recipe()
     assert "npm audit" in recipe and "--package-lock-only" in recipe
+    assert "--omit=dev" in recipe
     assert "--audit-level=high" in recipe
 
 

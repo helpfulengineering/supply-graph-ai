@@ -148,18 +148,19 @@ lock-check:
 	uv lock --check
 
 # Dependency vulnerability audit of both lockfiles — Python (every extra) and
-# frontend — not the installed trees: those also hold whatever was installed to
-# run the audit. npm fails on high and critical only (#601). Not in `ready` —
-# it asks a live advisory database, so its answer changes without the code
-# changing. CI runs it on dependency changes, daily on main, and on release
-# (#594); see docs/RELEASE.md.
+# frontend production deps — not the installed trees: those also hold whatever
+# was installed to run the audit. npm audits with --omit=dev (what the
+# standalone image can load) and fails on high and critical only (#601). Not in
+# `ready` — it asks a live advisory database, so its answer changes without the
+# code changing. CI runs it on dependency changes, daily on main, and on
+# release (#594); see docs/RELEASE.md.
 audit:
 	@status=0; req=$$(mktemp) && trap 'rm -f "$$req"' EXIT && \
 	uv export --all-extras --no-emit-project --format requirements-txt -q -o "$$req" && \
 	uvx pip-audit -r "$$req" --disable-pip --no-deps --progress-spinner off || { \
 		echo "::error::Python dependency audit failed. The vulnerable packages are in the table above; the 'Skip Reason' table is informational. Raise the floor in pyproject.toml and relock (docs/RELEASE.md)."; \
 		status=1; }; \
-	(cd frontend && npm audit --package-lock-only --audit-level=high) || { \
+	(cd frontend && npm audit --package-lock-only --omit=dev --audit-level=high) || { \
 		echo "::error::Frontend dependency audit failed (high or critical above). Run 'npm audit fix' in frontend/ (docs/RELEASE.md)."; \
 		status=1; }; \
 	exit $$status
