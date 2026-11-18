@@ -104,18 +104,18 @@ dev = [
     "black==26.10.1",
 ]
 docs = [
-    # Pinned below 2.0 deliberately. MkDocs 2.0 (https://www.encode.io/mkdocs/)
-    # is a pre-release that drops the plugin system, moves config from YAML to
-    # TOML, and does not currently state a license — so an unpinned `mkdocs`
-    # would silently break both sites on a routine `uv sync`. Revisit when 2.0
-    # is licensed and its hook/theme story is settled.
+    # Public site (docs-site/) builds with Zensical (#654). MkDocs stays for the
+    # root developer/agent corpus (mkdocs.yml) until its out-of-tree links are
+    # cleaned up — still pinned below 2.0 (unlicensed / no plugin migration).
     "mkdocs>=1.6,<2",
-    # >=9.7.7 fixes PYSEC-2026-3864.
+    # >=9.7.7 fixes PYSEC-2026-3864. Still pulled for root mkdocs serve.
     "mkdocs-material>=9.7.7,<10",
     # Transitive via mkdocs-material; pinned directly since pip-audit flags it on
     # its own. Security pin: PYSEC-2026-2999, PYSEC-2026-3609, PYSEC-2026-3654
     # (fixed 11.0.1).
     "pymdown-extensions>=11.0.1",
+    # Public docs SSG (`make docs-site`).
+    "zensical>=0.1.2",
 ]
 
 [tool.setuptools.packages.find]

@@ -17,18 +17,17 @@ site_description: >-
 # one domain, no DNS record, no CORS, and the app links to it internally.
 site_url: https://www.openhardwaremanager.org/docs/
 
-# Built straight into the frontend image's build context. That context is
-# `frontend/`, so the site has to land inside it to be COPY-able — building
-# elsewhere and copying afterwards would be a step everyone has to remember.
-# `make docs-site` puts it here; the frontend Dockerfile picks it up.
-site_dir: ../frontend/docs-dist
+# Zensical requires site_dir inside the config's project root (docs-site/),
+# so we build here and `make docs-site` copies into frontend/docs-dist for the
+# frontend Dockerfile COPY. Do not point site_dir at ../frontend/docs-dist.
+site_dir: site
 
 # Built from the STAGED tree, never from the authored one. Run
 # `make docs-site` (scripts/build_docs_site.py) first — it copies
 # docs-site/docs/ here and injects status badges from tests/parity/manifest.py.
 #
-# Staging rather than a MkDocs hook keeps this generator swappable; see
-# notes/docs-v2-spec.md §5.
+# Staging rather than a generator hook keeps the SSG swappable; see
+# notes/docs-v2-spec.md §5 and #654.
 docs_dir: .build
 
 # Coupling between these pages and the code is enforced by
@@ -43,6 +42,8 @@ docs_dir: .build
 
 theme:
   name: material
+  # Material look-alike under Zensical (#654 / classic variant).
+  variant: classic
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
