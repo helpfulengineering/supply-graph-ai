@@ -248,23 +248,31 @@ The dev server proxies all `/v1` requests to the OHM API. If your API is not at 
 
 ## Documentation
 
-This README provides a quick start guide and basic project information. For full documentation, run MkDocs locally.
+This README provides a quick start guide and basic project information. Product
+docs live under `docs-site/` (served at `/docs` on the node). The denser
+developer/agent corpus is under `docs/`.
 
-### Building Documentation Locally
+### Building documentation locally
 
-The OHM documentation is built using [MkDocs](https://www.mkdocs.org/).
+The **public** site is built with [Zensical](https://zensical.org/) (Material
+classic variant). Staging + build + copy into `frontend/docs-dist`:
 
 ```bash
-# Install docs dependencies (MkDocs + plugins) into the project venv
 uv sync --extra docs
-
-# Serve with live reload
-uv run mkdocs serve
+make docs-site
+# preview
+uv run --extra docs zensical serve -f docs-site/mkdocs.yml
 ```
 
-Open your browser to `http://localhost:8000/`.
+The **developer** corpus still uses MkDocs (root `mkdocs.yml`) until its
+out-of-tree links are cleaned up:
 
-> Port 8000 is the MkDocs server. The API server runs on port 8001.
+```bash
+uv run --extra docs mkdocs serve
+```
+
+Open the preview in your browser (Zensical/MkDocs default to port 8000). The
+API server runs on port 8001.
 
 ### Documentation Structure
 
