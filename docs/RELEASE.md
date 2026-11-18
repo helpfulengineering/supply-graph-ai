@@ -154,10 +154,13 @@ docker build --build-arg APP_VERSION=0.8.0 -t openhardwaremanager:0.8.0 .
 ## Dependency audit
 
 `make audit` audits both lockfiles: pip-audit against `uv.lock` (all extras
-included), then `npm audit` against `frontend/package-lock.json`. The npm audit
-fails on high and critical advisories only. It asks a live advisory database, so
-its answer can change while the code doesn't. That's why it is not part of
-`make ready`, and why CI runs it in three places:
+included), then `npm audit --omit=dev` against `frontend/package-lock.json`.
+The npm audit covers production dependencies only — matching what the Next
+standalone image can load — and fails on high and critical advisories only.
+Dev tooling (CLI generators, vitest, vite) stays locked for local/CI gates;
+Dependabot still opens security PRs for those. It asks a live advisory
+database, so its answer can change while the code doesn't. That's why it is
+not part of `make ready`, and why CI runs it in three places:
 
 - **Pull requests**: only when `pyproject.toml`, `uv.lock`,
   `frontend/package.json`, `frontend/package-lock.json`, the `Makefile` or
