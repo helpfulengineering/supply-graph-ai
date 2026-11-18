@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-17
+
+### Added
+
+- An operator can set who may register on a node to open, invite, or closed
+  (#568). Unset, the security mode still decides: peacetime and crisis are open,
+  shielded is closed. A stored choice overrides the mode. The public security
+  policy reports the value in force, and the register page follows it.
+- An admin can mint, list, and revoke invite links (#569). A link is multi-use
+  until it expires, is revoked, or reaches an optional use limit. On an
+  invite-only node, following the link registers a member. The register page
+  names the node and who runs it.
+- An admin can grant `coordinate` on this node (#573). The grant lasts 180 days
+  in every mode, and the expiry is shown when it is issued. A coordinator can
+  mint and revoke invites and see the member inventory, and cannot reconfigure
+  the node or read a private record.
+- An organisation's admin can affiliate a member, see when it expires, renew
+  it, and unaffiliate them (#578), from the API, the CLI (`ohm identity
+  affiliate`), and Settings → Organisations. The grant lasts as long as the
+  security mode allows. A member with one affiliation publishes new records,
+  including Save from Generate, for that organisation; with several, they choose.
+  A design synced to another node still names the organisation.
+- A collection zip carries each design's provenance, including the organisation's
+  evidence chain (#579). Import restores it, and the organisation shows as
+  verified or unverified by the same check a synced design uses. Visibility is
+  not in the archive: imported designs take this node's default. A zip written
+  before this change still imports.
+- A node admin or an organisation admin can publish a curated list of pinned
+  designs (#580). The list is one signed document of its current membership.
+  Peers fetch it and check the signature offline. A private or members design
+  cannot be put on the list. The list has a page, and `ohm federation lists`
+  publishes and edits it.
+- A node admin can subscribe to a peer's curated list (#581). Sync pulls
+  that list's designs and nothing else from that node, and a pin the publisher
+  adds arrives on the next sync. `ohm federation lists subscribe` and the lists
+  page do the same thing. Unsubscribing stops the pull and leaves stored designs
+  in place.
+- A subscribed list that bumps or drops a pin leaves the old design in place
+  (#582). The old pin is labelled superseded, with the hash that replaced it,
+  or removed from the list. `ohm federation lists marks` reads those labels.
+  Nothing on the subscriber is deleted because a list changed.
+- A node that receives a design checks the organisation's evidence chain offline
+  (#588). A chain that holds is shown as verified, on the record and from
+  `ohm okh provenance` / `ohm okw provenance`. A missing, tampered, or
+  expired-at-signing chain is kept and shown as unverified, including a record
+  that never carried one. Unverified means this node could not check.
+- The owner of a design or facility can add or remove its organisation after
+  the record exists (#589), from the record, the account page, and `ohm okh
+  attribute` / `ohm okw attribute`. Adding it needs the same affiliation as
+  publishing a new record, and stores the same evidence chain. Removing it
+  does not. The content hash does not change.
+- A top-level People area for Invites, Members, and Organisations, with
+  Settings regrouped into Access / Node / Identity and short panel guides
+  linking to the matching docs.
+
+  People guides for [managing invites, members, and coordinators](/docs-site/docs/guides/manage-people.md)
+  and [publishing for an organisation](/docs-site/docs/guides/publish-for-an-organisation.md),
+  with PanelGuide links retargeted off the adjacent self-host / add-a-design pages.
+
+### Changed
+
+- Publishing for an organisation requires a current affiliation (#577).
+  `on_behalf_of` is accepted only when the caller holds a space-scoped `publish`
+  grant from that organisation's admin. A missing identity, an unaffiliated
+  organisation, an expired or revoked grant, free text, and an unclaimed DID are
+  refused, and nothing is stored. The publisher signs the provenance; the
+  organisation's key is not used. The facility form and the JSON create page
+  offer the caller's affiliations, and a lapsed affiliation can be saved without
+  the organisation in one click.
+- The published guides describe who may register, a coordinator's reach,
+  publishing a design for an organisation, and subscribing to a curated list
+  (#638). An operator's registration setting overrides the security mode.
+- Frontend release audit scopes to production dependencies (`npm audit
+  --omit=dev`): `shadcn` moved to `devDependencies` so the gate matches what the
+  Next standalone image can load (#658). Dev-tool advisories remain via
+  Dependabot.
+
 ## [0.15.1] - 2026-11-02
 
 ### Fixed
