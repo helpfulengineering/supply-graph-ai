@@ -881,6 +881,20 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         requires_fe_call="/api/identity/register",
     ),
     SiteDoc(
+        "identity",
+        "Manage people: invites, members, coordinators",
+        "deployed",
+        path="guides/manage-people.md",
+        requires_fe_call="/api/identity/invites",
+    ),
+    SiteDoc(
+        "identity",
+        "Publish for an organisation",
+        "deployed",
+        path="guides/publish-for-an-organisation.md",
+        requires_fe_call="/api/identity/affiliations/administered",
+    ),
+    SiteDoc(
         "storage",
         "Configure where a node keeps its data",
         "deployed",

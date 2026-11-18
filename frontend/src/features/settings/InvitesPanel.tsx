@@ -51,7 +51,7 @@ export function InvitesPanel() {
       <h2 className={SECTION_TITLE}>Invites</h2>
       <PanelGuide
         intro="Mint a link someone can use to register when this node is in invite mode. Each link can expire and can be limited to one use."
-        docsHref="/docs/guides/run-your-own-node/"
+        docsHref="/docs/guides/manage-people/#who-may-join"
         docsLabel="Who may join"
       />
       <form

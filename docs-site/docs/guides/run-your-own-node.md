@@ -171,47 +171,13 @@ all unless you ask for it, and listens only on localhost when you do.
 
 ## Who may join
 
-Self-service registration follows a setting you store, and that setting
-overrides the security mode. Unset, `peacetime` and `crisis` are open and
-`shielded` is closed.
-
-```bash
-ohm identity registration --set invite
-```
-
-`open`, `invite`, or `closed`. This needs an admin key. `open` accepts a
-signup with no link. `closed` refuses every signup, including one that carries
-an invite. `invite` accepts a signup only from a link you minted.
-
-```bash
-ohm identity invite mint --ttl-days 14
-ohm identity invite mint --ttl-days 14 --use-limit 20
-ohm identity invite list
-ohm identity invite revoke INVITE_ID
-```
-
-Mint prints `/register?invite=...` once. The link is multi-use until it
-expires, you revoke it, or it reaches the use limit you set. The same controls
-are under **People → Invites**. The page a person opens names this node and
-who runs it.
-
-A coordinator can mint, list, and revoke those links, and can see who is on
-the node. Grant it with an admin key. The grant lasts 180 days in every
-security mode, and the command prints the expiry. **Settings → Grants** does
-the same.
-
-```bash
-ohm identity coordinate did:key:z...
-```
-
-What they get is **People → Invites** and **People → Members**. Members
-lists each account's display name and username, and each member's facilities:
-the name, the processes, and the visibility. The address and the rest of the
-record stay out. A coordinator does not get storage, language-model
-credentials, the security mode, or who may register. A coordinator does not
-read a private record, and their list of designs is the same as any other
-member's. Affiliating someone to an organisation stays with that
-organisation's admin.
+Registration (`open` / `invite` / `closed`), invite links, coordinators, and
+the member inventory live under **People**. The full guide is
+[Manage people on a node](manage-people.md) — including **People → Invites**,
+**People → Members**, `ohm identity registration --set`,
+`ohm identity invite mint` / `list` / `revoke`, and `ohm identity coordinate`.
+Publishing designs for an organisation is
+[Publish for an organisation](publish-for-an-organisation.md).
 
 ## Configuration
 

@@ -196,8 +196,8 @@ export function GrantsPanel() {
         </h2>
         <PanelGuide
           intro="A coordinator can mint invites and see members' facilities, and cannot reconfigure storage, LLM keys, or accounts."
-          docsHref="/docs/guides/run-your-own-node/"
-          docsLabel="Who may join"
+          docsHref="/docs/guides/manage-people/#coordinator-reach"
+          docsLabel="Coordinator reach"
         />
         <p className="mt-2 text-sm text-muted-foreground">
           On this node, for 180 days. Uses the Subject DID above.

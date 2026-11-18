@@ -27,7 +27,7 @@ overrides the security mode. Unset, `peacetime` and `crisis` are open and
 
 If you cannot register, the node's operator issues the credential. Ask them.
 They set the choice, and mint, list, and revoke invites, as described in
-[Run your own node](run-your-own-node.md#who-may-join).
+[Manage people on a node](manage-people.md#who-may-join).
 
 **Your own node** — you already have everything you need. The rest of this page
 is for you.

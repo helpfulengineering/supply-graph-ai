@@ -26,7 +26,7 @@ export function MembersPanel() {
       <h2 className={SECTION_TITLE}>Members</h2>
       <PanelGuide
         intro="People on this node and the facilities they authored. Names and processes are listed; street addresses are not."
-        docsHref="/docs/guides/run-your-own-node/"
+        docsHref="/docs/guides/manage-people/#coordinator-reach"
         docsLabel="Coordinator reach"
       />
       <ul className="mt-3 space-y-3 text-sm">

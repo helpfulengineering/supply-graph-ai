@@ -31,7 +31,7 @@ def test_join_and_write_key_describe_open_invite_and_closed():
 
 
 def test_an_operator_can_read_how_to_set_registration_and_mint_invites():
-    page = _read("docs-site", "docs", "guides", "run-your-own-node.md")
+    page = _read("docs-site", "docs", "guides", "manage-people.md")
     assert "ohm identity registration --set" in page
     assert "ohm identity invite mint" in page
     assert "ohm identity invite list" in page
@@ -40,7 +40,7 @@ def test_an_operator_can_read_how_to_set_registration_and_mint_invites():
 
 
 def test_a_coordinator_reaches_invites_and_the_member_inventory():
-    page = _read("docs-site", "docs", "guides", "run-your-own-node.md")
+    page = _read("docs-site", "docs", "guides", "manage-people.md")
     assert "ohm identity coordinate" in page
     assert "180 days in every" in page
     assert "People → Members" in page
@@ -50,14 +50,23 @@ def test_a_coordinator_reaches_invites_and_the_member_inventory():
 
 def test_the_guides_describe_organisation_publishing_and_curated_lists():
     design = _read("docs-site", "docs", "guides", "add-a-design.md")
+    org = _read("docs-site", "docs", "guides", "publish-for-an-organisation.md")
     node = _read("docs-site", "docs", "guides", "run-your-own-node.md")
     assert "On behalf of" in design
-    assert "ohm okh attribute" in design
     assert "affiliation" in design
+    assert "On behalf of" in org
+    assert "ohm okh attribute" in org
+    assert "People → Organisations" in org
     assert "ohm federation lists subscribe" in node
     assert "superseded" in node
     assert "removed" in node
     assert "ohm federation lists marks" in node
+
+
+def test_selfhost_guide_points_at_people_guides():
+    page = _read("docs-site", "docs", "guides", "run-your-own-node.md")
+    assert "manage-people.md" in page
+    assert "publish-for-an-organisation.md" in page
 
 
 def test_architecture_pages_do_not_leave_registration_as_only_the_mode():

@@ -125,7 +125,7 @@ export function OrganisationsPanel() {
       <div className="space-y-2">
         <PanelGuide
           intro="Organisations you administer appear here. Affiliate a person so they can publish designs on the organisation's behalf."
-          docsHref="/docs/guides/add-a-design/"
+          docsHref="/docs/guides/publish-for-an-organisation/"
           docsLabel="Publish for an organisation"
         />
         <p className="text-sm text-muted-foreground">
@@ -139,7 +139,7 @@ export function OrganisationsPanel() {
     <div className="space-y-4">
       <PanelGuide
         intro="Affiliate a person so they can publish designs on the organisation's behalf. Renew or unaffiliate from each member row."
-        docsHref="/docs/guides/add-a-design/"
+        docsHref="/docs/guides/publish-for-an-organisation/"
         docsLabel="Publish for an organisation"
       />
       {rows.map((org) => (
