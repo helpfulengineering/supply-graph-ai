@@ -100,7 +100,11 @@ export function InventoryPanel() {
       <p className="mt-1 text-sm text-muted-foreground">
         Every record on this node, by its metadata. Content is deliberately not
         shown — including titles. Use this to find, attribute and remove a
-        record without reading it.
+        record without reading it.{" "}
+        <abbr title="Break-glass: read a private record once, with a reason, when policy allows">
+          Break-glass
+        </abbr>{" "}
+        appears only when this node&apos;s security mode permits it.
       </p>
 
       <div className="mt-4 flex flex-wrap items-end gap-3">

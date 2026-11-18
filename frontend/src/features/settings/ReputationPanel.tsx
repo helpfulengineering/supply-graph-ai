@@ -25,8 +25,8 @@ export function ReputationPanel() {
           Reputation lookup
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Known-type, signature-valid attestations about a subject DID (no
-          numeric score).
+          Look up signed attestations about a person or organisation DID. There
+          is no numeric score — only statements this node can verify.
         </p>
         <form
           className="mt-4 flex flex-wrap items-end gap-2"

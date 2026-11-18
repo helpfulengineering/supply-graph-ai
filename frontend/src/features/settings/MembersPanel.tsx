@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { listMembers } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { PanelGuide } from "../../components/ui/PanelGuide";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
 
@@ -23,6 +24,11 @@ export function MembersPanel() {
   return (
     <section className={PANEL}>
       <h2 className={SECTION_TITLE}>Members</h2>
+      <PanelGuide
+        intro="People on this node and the facilities they authored. Names and processes are listed; street addresses are not."
+        docsHref="/docs/guides/manage-people/#coordinator-reach"
+        docsLabel="Coordinator reach"
+      />
       <ul className="mt-3 space-y-3 text-sm">
         {(members.data ?? []).map((row) => (
           <li key={row.username ?? row.display_name}>

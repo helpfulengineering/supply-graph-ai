@@ -59,7 +59,9 @@ tab only. The website session does not.
 
 ## Your account
 
-`/account` is yours. Settings is for operators; this page is for you.
+`/account` is yours — your keys, sessions, and records. **People** is for
+invites, members, and organisations when you coordinate or administer them.
+**Settings** is for operators configuring the node.
 
 It shows who you are — display name, account id, your DID — and what your key
 can do. From here you can:

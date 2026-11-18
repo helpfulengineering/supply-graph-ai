@@ -273,26 +273,6 @@ Our documentation covers:
 - **Architecture Guide**: System design, components, and data flow
   - System architecture overview
   - Data flow diagrams
-  - Component interactions
-  - Validation and matching pipelines
-
-- **Domain Implementations**:
-  - Manufacturing domain (OKH/OKW matching)
-  - Cooking domain (Recipe/Kitchen matching)
-  - Domain extension guidelines
-
-- **API Reference**:
-  - RESTful API endpoints
-  - Authentication
-  - Request/Response formats
-  - Usage examples
-
-- **Developer Guide**:
-  - Setup and installation
-  - Contributing guidelines
-  - Testing procedures
-  - Best practices
-
 
 ## Project Structure
 

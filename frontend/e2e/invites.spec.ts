@@ -7,7 +7,7 @@ test("an admin lists invites and can mint one", async ({ page }, testInfo) => {
     sessionStorage.setItem("ohm_api_key", "test-admin-token");
   });
 
-  await page.goto("/settings/invites");
+  await page.goto("/people/invites");
   await expect(page.getByRole("heading", { name: "Invites" })).toBeVisible();
   await expect(
     page.getByText("11111111-1111-4111-8111-111111111111"),

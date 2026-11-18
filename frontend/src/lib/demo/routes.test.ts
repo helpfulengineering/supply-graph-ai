@@ -107,6 +107,7 @@ const WRITE_ONLY = [
   "/api/identity/bindings/domain",
   "/api/identity/bindings/domain/verify",
   "/api/identity/bindings/oauth",
+  "/api/identity/accounts/{account_id}",
   "/api/identity/accounts/{account_id}/disable",
   "/api/identity/identities/{did}/rotate",
   "/api/identity/keys/{key_id}",

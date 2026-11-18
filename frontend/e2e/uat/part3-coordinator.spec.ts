@@ -38,27 +38,33 @@ test.describe("@membership part 3: a coordinator", () => {
     expect(bo.did).toMatch(/^did:key:/);
   });
 
-  test("Bo's Settings shows Invites and Members, not Storage or Keys", async ({
+  test("Bo's People shows Invites and Members; Settings has no admin tabs", async ({
     browser,
   }, testInfo) => {
     const bo = await requirePerson("bo");
     const { context, page } = await newVisitor(browser);
     try {
       await pasteToken(page, bo.token, bo.name);
+      await page.goto("/people/invites");
+      const peopleNav = page.getByRole("navigation", { name: "People" });
+      await expect(
+        peopleNav.getByRole("link", { name: "Invites" }),
+      ).toBeVisible();
+      await expect(
+        peopleNav.getByRole("link", { name: "Members" }),
+      ).toBeVisible();
       await page.goto("/settings/session");
-      const nav = page.getByRole("navigation", { name: "Settings" });
-      await expect(nav.getByRole("link", { name: "Invites" })).toBeVisible();
-      await expect(nav.getByRole("link", { name: "Members" })).toBeVisible();
+      const settingsNav = page.getByRole("navigation", { name: "Settings" });
       await expect(
-        nav.getByRole("link", { name: "Storage" }),
+        settingsNav.getByRole("link", { name: "Storage" }),
       ).toHaveCount(0);
       await expect(
-        nav.getByRole("link", { name: "LLM providers" }),
+        settingsNav.getByRole("link", { name: "LLM providers" }),
       ).toHaveCount(0);
       await expect(
-        nav.getByRole("link", { name: "Keys & accounts" }),
+        settingsNav.getByRole("link", { name: "Keys & accounts" }),
       ).toHaveCount(0);
-      await shot(page, testInfo, "part3-01-bo-settings");
+      await shot(page, testInfo, "part3-01-bo-people");
     } finally {
       await context.close();
     }
@@ -102,7 +108,7 @@ test.describe("@membership part 3: a coordinator", () => {
     const { context: boCtx, page: boPage } = await newVisitor(browser);
     try {
       await pasteToken(boPage, bo.token, bo.name);
-      await boPage.goto("/settings/members");
+      await boPage.goto("/people/members");
       await expect(
         boPage.getByRole("heading", { name: "Members" }),
       ).toBeVisible();
@@ -182,7 +188,7 @@ test.describe("@membership part 3: a coordinator", () => {
     const { context, page } = await newVisitor(browser);
     try {
       await pasteToken(page, bo.token, bo.name);
-      await page.goto("/settings/invites");
+      await page.goto("/people/invites");
       await page.getByLabel("Expires in days").fill("7");
       await page.getByLabel("Use limit").fill("1");
       await page.getByRole("button", { name: "Mint invite" }).click();

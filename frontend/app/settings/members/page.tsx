@@ -1,12 +1,5 @@
-"use client";
-
-import { RequireCoordinator } from "@/features/auth/RequireAdmin";
-import { SettingsPage } from "@/views/SettingsPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return (
-    <RequireCoordinator>
-      <SettingsPage />
-    </RequireCoordinator>
-  );
+  redirect("/people/members");
 }

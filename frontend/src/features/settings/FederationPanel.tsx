@@ -76,6 +76,15 @@ export function FederationPanel() {
         <h2 id="federation-status-heading" className={SECTION_TITLE}>
           Node status
         </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Peers this node follows and syncs with.{" "}
+          <a
+            href="/docs/about/federation-and-sovereignty/"
+            className="underline underline-offset-2"
+          >
+            Federation and sovereignty
+          </a>
+        </p>
         {status.isLoading && <LoadingSpinner message="Loading status…" />}
         {status.isError && !disabled && (
           <p className="mt-3 text-sm text-destructive" role="alert">

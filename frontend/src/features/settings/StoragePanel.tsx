@@ -4,6 +4,7 @@ import { FIELD, FIELD_MONO, LABEL } from "../../components/ui/field";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
+import { PanelGuide } from "../../components/ui/PanelGuide";
 import { PANEL, PANEL_INSET, PANEL_WARNING } from "../../components/ui/surface";
 import {
   SECTION_LABEL_SM,
@@ -126,6 +127,11 @@ export function StoragePanel() {
         <h2 id="storage-current-heading" className={SECTION_TITLE}>
           Current configuration
         </h2>
+        <PanelGuide
+          intro="Where this node keeps designs, facilities, and keys. Local disk for a laptop; object storage for a durable deploy."
+          docsHref="/docs/guides/configure-storage/"
+          docsLabel="Configure storage"
+        />
 
         {current.isLoading && (
           <LoadingSpinner message="Loading storage configuration…" />

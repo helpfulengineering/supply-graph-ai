@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listInvites, mintInvite, revokeInvite } from "../../api/ohm/identity";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
+import { PanelGuide } from "../../components/ui/PanelGuide";
 import { PANEL } from "../../components/ui/surface";
 import { SECTION_TITLE } from "../../components/ui/typography";
 
@@ -48,6 +49,11 @@ export function InvitesPanel() {
   return (
     <section className={PANEL}>
       <h2 className={SECTION_TITLE}>Invites</h2>
+      <PanelGuide
+        intro="Mint a link someone can use to register when this node is in invite mode. Each link can expire and can be limited to one use."
+        docsHref="/docs/guides/manage-people/#who-may-join"
+        docsLabel="Who may join"
+      />
       <form
         className="mt-3 flex flex-wrap items-end gap-3 text-sm"
         onSubmit={(e) => {

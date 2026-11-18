@@ -262,11 +262,19 @@ AREAS: tuple[Area, ...] = (
         "capability grants, space claims, edge bootstrap, attestations, domain/OAuth "
         "bindings, trust-on-follow directory, and security-policy status. See "
         "notes/federated-identity-spec.md Slices 1-8. Frontend Track F: Settings "
-        "(admin) under /settings; F3–F6 panels landed. F8 adds self-service "
-        "registration at /register and the signed-in visitor's own page at "
-        "/account — Settings stays admin-only, so a registered non-admin needs "
+        "(admin) under /settings; People (invites, members, organisations) under "
+        "/people. F3–F6 panels landed. F8 adds self-service registration at "
+        "/register and the signed-in visitor's own page at /account — Settings "
+        "stays instance administration, so a registered non-admin needs "
         "somewhere that is theirs.",
-        fe_routes=("/settings", "/register", "/account", "/recover", "/login"),
+        fe_routes=(
+            "/settings",
+            "/people",
+            "/register",
+            "/account",
+            "/recover",
+            "/login",
+        ),
         fe_api_prefixes=("/api/identity",),
     ),
     # --- Frontend-only surfaces: no service, no API, no CLI ---------------
@@ -871,6 +879,20 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         # made "there is no self-service signup" false everywhere it was
         # written down.
         requires_fe_call="/api/identity/register",
+    ),
+    SiteDoc(
+        "identity",
+        "Manage people: invites, members, coordinators",
+        "deployed",
+        path="guides/manage-people.md",
+        requires_fe_call="/api/identity/invites",
+    ),
+    SiteDoc(
+        "identity",
+        "Publish for an organisation",
+        "deployed",
+        path="guides/publish-for-an-organisation.md",
+        requires_fe_call="/api/identity/affiliations/administered",
     ),
     SiteDoc(
         "storage",

@@ -51,9 +51,10 @@ export function DomainPanel() {
           Domain selection
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Choose one matching domain for this browser. Default is {DEFAULT_DOMAIN}. Cooking
-          shows Recipes and Kitchens in the nav; manufacturing shows Designs, Facilities,
-          Packages, and Match.
+          Choose which vocabulary this browser uses for match and create.
+          Default is {DEFAULT_DOMAIN}. Cooking shows Recipes and Kitchens;
+          manufacturing shows Designs, Facilities, Packages, and Match. This
+          is a local preference, not a node-wide setting.
         </p>
 
         <fieldset className="mt-4 min-w-0 space-y-3">
