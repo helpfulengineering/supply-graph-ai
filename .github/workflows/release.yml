@@ -503,9 +503,9 @@ jobs:
         uses: actions/checkout@v6
 
       # The documentation site is served from /docs by this image's docs route
-      # handler. `make docs-site` builds with Zensical into docs-site/site and
-      # copies into frontend/docs-dist, which the Dockerfile COPYs — so it MUST
-      # run before the image, or the image ships an empty docs section.
+      # handler. mkdocs writes into frontend/docs-dist (its site_dir), which the
+      # Dockerfile COPYs — so it MUST be built before the image, or the image
+      # ships an empty docs section.
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
 

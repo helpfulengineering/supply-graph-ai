@@ -248,31 +248,23 @@ The dev server proxies all `/v1` requests to the OHM API. If your API is not at 
 
 ## Documentation
 
-This README provides a quick start guide and basic project information. Product
-docs live under `docs-site/` (served at `/docs` on the node). The denser
-developer/agent corpus is under `docs/`.
+This README provides a quick start guide and basic project information. For full documentation, run MkDocs locally.
 
-### Building documentation locally
+### Building Documentation Locally
 
-The **public** site is built with [Zensical](https://zensical.org/) (Material
-classic variant). Staging + build + copy into `frontend/docs-dist`:
+The OHM documentation is built using [MkDocs](https://www.mkdocs.org/).
 
 ```bash
+# Install docs dependencies (MkDocs + plugins) into the project venv
 uv sync --extra docs
-make docs-site
-# preview
-uv run --extra docs zensical serve -f docs-site/mkdocs.yml
+
+# Serve with live reload
+uv run mkdocs serve
 ```
 
-The **developer** corpus still uses MkDocs (root `mkdocs.yml`) until its
-out-of-tree links are cleaned up:
+Open your browser to `http://localhost:8000/`.
 
-```bash
-uv run --extra docs mkdocs serve
-```
-
-Open the preview in your browser (Zensical/MkDocs default to port 8000). The
-API server runs on port 8001.
+> Port 8000 is the MkDocs server. The API server runs on port 8001.
 
 ### Documentation Structure
 
@@ -281,26 +273,6 @@ Our documentation covers:
 - **Architecture Guide**: System design, components, and data flow
   - System architecture overview
   - Data flow diagrams
-  - Component interactions
-  - Validation and matching pipelines
-
-- **Domain Implementations**:
-  - Manufacturing domain (OKH/OKW matching)
-  - Cooking domain (Recipe/Kitchen matching)
-  - Domain extension guidelines
-
-- **API Reference**:
-  - RESTful API endpoints
-  - Authentication
-  - Request/Response formats
-  - Usage examples
-
-- **Developer Guide**:
-  - Setup and installation
-  - Contributing guidelines
-  - Testing procedures
-  - Best practices
-
 
 ## Project Structure
 

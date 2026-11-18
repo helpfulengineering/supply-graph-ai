@@ -7,9 +7,8 @@
 #   docker compose up            # self-host: pull published, tested images
 #   docker compose up --build    # develop:   build from source
 #
-# Pulling by default also avoids a trap: `frontend/docs-dist/` is gitignored
-# (aside from .gitkeep), so a from-source frontend build without `make docs-site`
-# succeeds while shipping an empty /docs.
+# Pulling by default also avoids a trap: `frontend/docs-dist/` is tracked but
+# empty, so a from-source frontend build succeeds while shipping an empty /docs.
 #
 # Tags are kept equal to pyproject by scripts/bump_version.py. Set OHM_VERSION to
 # run another release (OHM_VERSION=0.10 floats on patches).

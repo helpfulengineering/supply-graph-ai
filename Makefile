@@ -97,7 +97,7 @@ test:
 check: lint format-check test
 
 # Documentation link gate: every link into the docs must reach a real page, and
-# no link may name the host that does not serve them. zensical strict validates relative
+# no link may name the host that does not serve them. mkdocs validates relative
 # links between pages and nothing validated the rest -- which is how the facility
 # form spent months pointing at docs.openhardwaremanager.org/auth/get-a-write-key/,
 # a wrong host and a page that was never written.
@@ -131,16 +131,11 @@ docs-status:
 	uv run pytest tests/parity/test_docs_status.py -q
 
 # Public documentation site (openhardwaremanager.org). Stages docs-site/docs
-# into docs-site/.build with status badges injected, builds with Zensical into
-# docs-site/site, then copies into frontend/docs-dist for the image COPY.
-# Author under docs-site/docs/; never edit .build, site, or docs-dist by hand.
+# into docs-site/.build with status badges injected, then builds it. Authored
+# markdown lives in docs-site/docs; never edit .build or site.
 docs-site:
 	uv run python scripts/build_docs_site.py
-	uv run --extra docs zensical build -f docs-site/mkdocs.yml
-	rm -rf frontend/docs-dist
-	mkdir -p frontend/docs-dist
-	cp -a docs-site/site/. frontend/docs-dist/
-	touch frontend/docs-dist/.gitkeep
+	uv run --extra docs mkdocs build -f docs-site/mkdocs.yml
 
 # Version drift gate (lockfile pattern): fails if any "current release" claim
 # in the registry (scripts/bump_version.py) drifts from pyproject.toml.
